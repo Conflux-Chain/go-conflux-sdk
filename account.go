@@ -66,6 +66,18 @@ func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (type
 	return types.Address(hexutil.Encode(account.Address.Bytes())), nil
 }
 
+// Delete deletes the specified account.
+func (m *AccountManager) Delete(address types.Address, passphrase string) error {
+	account := m.account(address)
+	return m.ks.Delete(account, passphrase)
+}
+
+// Update updates the passphrase of specified account.
+func (m *AccountManager) Update(address types.Address, passphrase, newPassphrase string) error {
+	account := m.account(address)
+	return m.ks.Update(account, passphrase, newPassphrase)
+}
+
 // List lists all accounts.
 func (m *AccountManager) List() []types.Address {
 	result := make([]types.Address, 0)

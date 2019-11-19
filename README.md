@@ -16,11 +16,9 @@ govendor fetch github.com/Conflux-Chain/go-conflux-sdk
 
 ## Manage Accounts
 Use `AccountManager` struct to manage accounts at local machine.
-- Create an account.
-- Import existing account.
+- Create/Import/Update/Delete an account.
 - List all accounts.
-- Unlock an account.
-- Lock an account.
+- Unlock/Lock an account.
 - Sign a transaction.
 
 ## Query Conflux Information
