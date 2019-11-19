@@ -208,10 +208,10 @@ func (c *Client) GetTransactionCount(address types.Address, epoch ...*types.Epoc
 }
 
 // SendSignedTransaction sends signed transaction and return its hash.
-func (c *Client) SendSignedTransaction(rawData string) (types.Hash, error) {
+func (c *Client) SendSignedTransaction(rawData []byte) (types.Hash, error) {
 	var result interface{}
 
-	if err := c.rpcClient.Call(&result, "cfx_sendRawTransaction", rawData); err != nil {
+	if err := c.rpcClient.Call(&result, "cfx_sendRawTransaction", hexutil.Encode(rawData)); err != nil {
 		return "", err
 	}
 

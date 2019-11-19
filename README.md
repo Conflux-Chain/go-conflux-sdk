@@ -17,9 +17,11 @@ govendor fetch github.com/Conflux-Chain/go-conflux-sdk
 ## Manage Accounts
 Use `AccountManager` struct to manage accounts at local machine.
 - Create an account.
+- Import existing account.
 - List all accounts.
-- Unlock an account to send transactions.
+- Unlock an account.
 - Lock an account.
+- Sign a transaction.
 
 ## Query Conflux Information
 Use `Client` struct to query Conflux blockchain information, such as block, epoch, transaction, receipt. Following is an example to query the current epoch number:
@@ -51,18 +53,23 @@ func main() {
 ```
 
 ## Send Transaction
-There are 2 ways to send a transaction:
-1. Send a signed transaction
+To send a transaction, you need to sign the transaction at local machine, and send the signed transaction to local or remote Conflux node.
+- Sign a transaction with unlocked account:
 
-    `Client.SendSignedTransaction(hexRawData string)`
-2. Send a transaction with local account
+    `AccountManager.SignTransaction(tx UnsignedTransaction)`
 
-    `AccountManager.SendTransaction(tx UnsignedTransaction, password ...string)`
+- Sign a transaction with passphrase for locked account:
 
-To send multiple transactions, you can unlock the account at first, then send multiple transactions without password. To send a single transaction, you can just only send the transaction with passoword.
+	`AccountManager.SignTransactionWithPassphrase(tx UnsignedTransaction, passphrase string)`
+
+- Send a signed transaction
+
+    `Client.SendSignedTransaction(rawData []byte)`
+
+To send multiple transactions at a time, you can unlock the account at first, then send multiple transactions without passphrase. To send a single transaction, you can just only send the transaction with passphrase.
 
 ## Deploy/Call Smart Contract
-To deploy or call a smart contract, you can use the `AccountManager.SendTransaction` API and set the `Data` field in `UnsignedTransaction` struct. When deploy a smart contract, you can use ***solc*** to compile the smart contract to get the contract bytecodes in HEX format, which is set to the `Data` field. To all a contract, you can import the [ABI](https://github.com/ethereum/go-ethereum/tree/master/accounts/abi) library from [go-etherem](https://github.com/ethereum/go-ethereum) to get the encoded method call in HEX format, which is set to the `Data` field.
+To deploy or call a smart contract, you can sign a transaction with `Data` field set in `UnsignedTransaction` struct. When deploy a smart contract, you can use ***solc*** to compile the smart contract to get the contract bytecodes, which is set to the `Data` field. To all a contract, you can import the [ABI](https://github.com/ethereum/go-ethereum/tree/master/accounts/abi) library from [go-etherem](https://github.com/ethereum/go-ethereum) to get the encoded method call, which is set to the `Data` field.
 
 ### ABI Example
 ```go
