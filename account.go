@@ -210,12 +210,14 @@ func (tx *UnsignedTransaction) encodeWithSignature(v byte, r, s []byte) []byte {
 	}
 
 	data := []interface{}{
-		new(big.Int).SetUint64(tx.Nonce),
-		tx.GasPrice.ToInt(),
-		new(big.Int).SetUint64(tx.Gas),
-		to,
-		tx.Value.ToInt(),
-		tx.Data,
+		[]interface{}{
+			new(big.Int).SetUint64(tx.Nonce),
+			tx.GasPrice.ToInt(),
+			new(big.Int).SetUint64(tx.Gas),
+			to,
+			tx.Value.ToInt(),
+			tx.Data,
+		},
 		v,
 		r,
 		s,
