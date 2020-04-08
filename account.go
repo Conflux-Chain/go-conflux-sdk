@@ -7,7 +7,6 @@ package sdk
 import (
 	"fmt"
 	"io/ioutil"
-	"math/big"
 	"time"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
@@ -15,8 +14,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/rlp"
 )
 
 // AccountManager manages Conflux accounts.
@@ -118,115 +115,51 @@ func (m *AccountManager) Lock(address types.Address) error {
 }
 
 // SignTransaction signs a transaction and return its RLP encoded data.
-func (m *AccountManager) SignTransaction(tx UnsignedTransaction) ([]byte, error) {
-	tx.applyDefault()
+func (m *AccountManager) SignTransaction(tx types.UnsignedTransaction) ([]byte, error) {
+	tx.ApplyDefault()
 
 	account := m.account(tx.From)
-	sig, err := m.ks.SignHash(account, tx.hash())
+	sig, err := m.ks.SignHash(account, tx.Hash())
 	if err != nil {
 		return nil, err
 	}
 
-	encoded := tx.encodeWithSignature(sig[64], sig[0:32], sig[32:64])
+	encoded, err := tx.EncodeWithSignature(sig[64], sig[0:32], sig[32:64])
+	if err != nil {
+		return nil, err
+	}
 
 	return encoded, nil
 }
 
 // SignTransactionWithPassphrase signs a transaction with given passphrase and return its RLP encoded data.
-func (m *AccountManager) SignTransactionWithPassphrase(tx UnsignedTransaction, passphrase string) ([]byte, error) {
-	tx.applyDefault()
+func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) ([]byte, error) {
+	tx.ApplyDefault()
 
 	account := m.account(tx.From)
-	sig, err := m.ks.SignHashWithPassphrase(account, passphrase, tx.hash())
+	sig, err := m.ks.SignHashWithPassphrase(account, passphrase, tx.Hash())
 	if err != nil {
 		return nil, err
 	}
 
-	encoded := tx.encodeWithSignature(sig[64], sig[0:32], sig[32:64])
+	encoded, err := tx.EncodeWithSignature(sig[64], sig[0:32], sig[32:64])
+	if err != nil {
+		return nil, err
+	}
 
 	return encoded, nil
 }
 
-// UnsignedTransaction represents a transaction without signature.
-type UnsignedTransaction struct {
-	From     types.Address
-	To       *types.Address
-	Nonce    uint64
-	GasPrice *hexutil.Big
-	Gas      uint64
-	Value    *hexutil.Big
-	Data     []byte
-}
-
-// DefaultGas is the default gas in a transaction to transfer amount without any data.
-const defaultGas uint64 = 21000
-
-// DefaultGasPrice is the default gas price.
-var defaultGasPrice *hexutil.Big = types.NewBigInt(10000000000) // 10G drip
-
-func (tx *UnsignedTransaction) applyDefault() {
-	if tx.GasPrice == nil {
-		tx.GasPrice = defaultGasPrice
-	}
-
-	if tx.Gas == 0 {
-		tx.Gas = defaultGas
-	}
-
-	if tx.Value == nil {
-		tx.Value = types.NewBigInt(0)
-	}
-}
-
-func (tx *UnsignedTransaction) hash() []byte {
-	var to *common.Address
-	if tx.To != nil {
-		addr := common.HexToAddress(string(*tx.To))
-		to = &addr
-	}
-
-	data := []interface{}{
-		new(big.Int).SetUint64(tx.Nonce),
-		tx.GasPrice.ToInt(),
-		new(big.Int).SetUint64(tx.Gas),
-		to,
-		tx.Value.ToInt(),
-		tx.Data,
-	}
-
-	encoded, err := rlp.EncodeToBytes(data)
+// Sign return signature of transaction
+func (m *AccountManager) Sign(tx types.UnsignedTransaction, passphrase string) (v byte, r, s []byte, err error) {
+	tx.ApplyDefault()
+	account := m.account(tx.From)
+	sig, err := m.ks.SignHashWithPassphrase(account, passphrase, tx.Hash())
 	if err != nil {
-		panic(err)
+		return 0, []byte{}, []byte{}, err
 	}
-
-	return crypto.Keccak256(encoded)
-}
-
-func (tx *UnsignedTransaction) encodeWithSignature(v byte, r, s []byte) []byte {
-	var to *common.Address
-	if tx.To != nil {
-		addr := common.HexToAddress(string(*tx.To))
-		to = &addr
-	}
-
-	data := []interface{}{
-		[]interface{}{
-			new(big.Int).SetUint64(tx.Nonce),
-			tx.GasPrice.ToInt(),
-			new(big.Int).SetUint64(tx.Gas),
-			to,
-			tx.Value.ToInt(),
-			tx.Data,
-		},
-		v,
-		r,
-		s,
-	}
-
-	encoded, err := rlp.EncodeToBytes(data)
-	if err != nil {
-		panic(err)
-	}
-
-	return encoded
+	v = sig[64]
+	r = sig[0:32]
+	s = sig[32:64]
+	return v, r, s, nil
 }

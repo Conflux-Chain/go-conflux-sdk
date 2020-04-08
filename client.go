@@ -5,6 +5,7 @@
 package sdk
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"math/big"
 
@@ -218,6 +219,37 @@ func (c *Client) SendSignedTransaction(rawData []byte) (types.Hash, error) {
 	return types.Hash(result.(string)), nil
 }
 
+// SignEncodedTransactionAndSend sign RLP encoded transaction and send it, return responsed transaction
+func (c *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte) (*types.Transaction, error) {
+	tx, err := types.DecodeRlpToUnsignTransction(encodedTx)
+	if err != nil {
+		return nil, err
+	}
+
+	respondTx, err := c.signTransactionAndSend(tx, v, r, s)
+	if err != nil {
+		return nil, err
+	}
+
+	return respondTx, nil
+}
+
+func (c *Client) signTransactionAndSend(tx *types.UnsignedTransaction, v byte, r, s []byte) (*types.Transaction, error) {
+	rlp, err := tx.EncodeWithSignature(v, r, s)
+	if err != nil {
+		return nil, err
+	}
+	hash, err := c.SendSignedTransaction(rlp)
+	if err != nil {
+		return nil, err
+	}
+	respondTx, err := c.GetTransactionByHash(hash)
+	if err != nil {
+		return nil, err
+	}
+	return respondTx, nil
+}
+
 // Call executes contract but not mined into the blockchain,
 // and returns the contract execution result.
 func (c *Client) Call(request types.CallRequest, epoch ...*types.Epoch) (string, error) {
@@ -288,6 +320,23 @@ func (c *Client) EstimateGas(request types.CallRequest, epoch ...*types.Epoch) (
 	return hexutil.DecodeBig(result.(string))
 }
 
+// EstimateGasAndCollateral estimates the consumed gas and storage for collateral of transaction/contract execution.
+func (c *Client) EstimateGasAndCollateral(request types.CallRequest) (*types.Estimate, error) {
+	var result interface{}
+
+	args := []interface{}{request}
+
+	if err := c.rpcClient.Call(&result, "cfx_estimateGasAndCollateral", args...); err != nil {
+		return nil, err
+	}
+	var estimate types.Estimate
+	if err := unmarshalRPCResult(result, &estimate); err != nil {
+		return nil, err
+	}
+
+	return &estimate, nil
+}
+
 // GetBlocksByEpoch returns the blocks in the specified epoch.
 func (c *Client) GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error) {
 	var result interface{}
@@ -323,6 +372,47 @@ func (c *Client) GetTransactionReceipt(txHash types.Hash) (*types.Receipt, error
 	}
 
 	return &receipt, nil
+}
+
+// CreateUnsignedTransaction create an UnsignedTransaction instance
+func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount hexutil.Big) (*types.UnsignedTransaction, error) {
+	tx := new(types.UnsignedTransaction)
+	tx.From = from
+	tx.To = &to
+	tx.Value = &amount
+	err := c.applyUnsignedTransactionDefault(tx)
+	if err != nil {
+		return nil, err
+	}
+
+	return tx, nil
+}
+
+func (c *Client) applyUnsignedTransactionDefault(tx *types.UnsignedTransaction) error {
+	tx.ApplyDefault()
+	if c != nil {
+		if tx.EpochHeight == nil {
+			epoch, err := c.GetEpochNumber(types.EpochLatestState)
+			if err != nil {
+				return err
+			}
+			tx.EpochHeight = (*hexutil.Big)(epoch)
+		}
+
+		if tx.StorageLimit == nil {
+			callReq := new(types.CallRequest)
+			callReq.To = tx.To
+			dataStr := "0x" + hex.EncodeToString(tx.Data)
+			callReq.Data = &dataStr
+			sm, err := c.EstimateGasAndCollateral(*callReq)
+			if err != nil {
+				return err
+			}
+			tx.StorageLimit = sm.StorageCollateralized
+		}
+	}
+
+	return nil
 }
 
 // Debug calls the Conflux debug API.
