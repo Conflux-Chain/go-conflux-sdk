@@ -32,7 +32,8 @@ func NewAccountManager(keydir string) *AccountManager {
 func (m *AccountManager) Create(passphrase string) (types.Address, error) {
 	account, err := m.ks.NewAccount(passphrase)
 	if err != nil {
-		return "", err
+		msg := fmt.Sprintf("create account with passphrase %+v error", passphrase)
+		return "", types.WrapError(err, msg)
 	}
 
 	return types.Address(hexutil.Encode(account.Address.Bytes())), nil
@@ -43,12 +44,14 @@ func (m *AccountManager) Create(passphrase string) (types.Address, error) {
 func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (types.Address, error) {
 	keyJSON, err := ioutil.ReadFile(keyFile)
 	if err != nil {
-		return "", err
+		msg := fmt.Sprintf("read file %+v error", keyFile)
+		return "", types.WrapError(err, msg)
 	}
 
 	key, err := keystore.DecryptKey(keyJSON, passphrase)
 	if err != nil {
-		return "", err
+		msg := fmt.Sprintf("decrypt key %+v with passphrase %+v error", keyJSON, passphrase)
+		return "", types.WrapError(err, msg)
 	}
 
 	if m.ks.HasAddress(key.Address) {
@@ -57,7 +60,8 @@ func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (type
 
 	account, err := m.ks.Import(keyJSON, passphrase, newPassphrase)
 	if err != nil {
-		return "", err
+		msg := fmt.Sprintf("import account by keystore {%+v}, passphrase %+v, new passphrase %+v error", keyJSON, passphrase, newPassphrase)
+		return "", types.WrapError(err, msg)
 	}
 
 	return types.Address(hexutil.Encode(account.Address.Bytes())), nil
@@ -119,14 +123,21 @@ func (m *AccountManager) SignTransaction(tx types.UnsignedTransaction) ([]byte, 
 	tx.ApplyDefault()
 
 	account := m.account(tx.From)
-	sig, err := m.ks.SignHash(account, tx.Hash())
+	hash, err := tx.Hash()
 	if err != nil {
-		return nil, err
+		msg := fmt.Sprintf("calculate tx hash of %+v error", tx)
+		return nil, types.WrapError(err, msg)
+	}
+	sig, err := m.ks.SignHash(account, hash)
+	if err != nil {
+		msg := fmt.Sprintf("sign tx hash {%+v} by account %+v error", hash, account)
+		return nil, types.WrapError(err, msg)
 	}
 
 	encoded, err := tx.EncodeWithSignature(sig[64], sig[0:32], sig[32:64])
 	if err != nil {
-		return nil, err
+		msg := fmt.Sprintf("encode tx %+v with signature %+v error", tx, sig)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return encoded, nil
@@ -137,14 +148,22 @@ func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransact
 	tx.ApplyDefault()
 
 	account := m.account(tx.From)
-	sig, err := m.ks.SignHashWithPassphrase(account, passphrase, tx.Hash())
+	hash, err := tx.Hash()
 	if err != nil {
-		return nil, err
+		msg := fmt.Sprintf("calculate tx hash of %+v error", tx)
+		return nil, types.WrapError(err, msg)
+	}
+
+	sig, err := m.ks.SignHashWithPassphrase(account, passphrase, hash)
+	if err != nil {
+		msg := fmt.Sprintf("sign tx hash {%+v} by account %+v with passphrase %+v error", hash, account, passphrase)
+		return nil, types.WrapError(err, msg)
 	}
 
 	encoded, err := tx.EncodeWithSignature(sig[64], sig[0:32], sig[32:64])
 	if err != nil {
-		return nil, err
+		msg := fmt.Sprintf("encode tx %+v with signature %+v error", tx, sig)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return encoded, nil
@@ -154,9 +173,16 @@ func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransact
 func (m *AccountManager) Sign(tx types.UnsignedTransaction, passphrase string) (v byte, r, s []byte, err error) {
 	tx.ApplyDefault()
 	account := m.account(tx.From)
-	sig, err := m.ks.SignHashWithPassphrase(account, passphrase, tx.Hash())
+	hash, err := tx.Hash()
 	if err != nil {
-		return 0, []byte{}, []byte{}, err
+		msg := fmt.Sprintf("calculate tx hash of %+v error", tx)
+		return 0, nil, nil, types.WrapError(err, msg)
+	}
+
+	sig, err := m.ks.SignHashWithPassphrase(account, passphrase, hash)
+	if err != nil {
+		msg := fmt.Sprintf("sign tx hash {%+v} by account %+v with passphrase %+v error", hash, account, passphrase)
+		return 0, nil, nil, types.WrapError(err, msg)
 	}
 	v = sig[64]
 	r = sig[0:32]

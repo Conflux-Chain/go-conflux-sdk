@@ -6,10 +6,13 @@ package sdk
 
 import (
 	"encoding/hex"
-	"encoding/json"
+	"fmt"
 	"math/big"
+	"strconv"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/rpc"
 )
@@ -19,11 +22,11 @@ type Client struct {
 	rpcClient *rpc.Client
 }
 
-// NewClient creates a new instance of Client with specified url.
-func NewClient(url string) (*Client, error) {
-	client, err := rpc.Dial(url)
+// NewClient creates a new instance of Client with specified conflux node url.
+func NewClient(nodeURL string) (*Client, error) {
+	client, err := rpc.Dial(nodeURL)
 	if err != nil {
-		return nil, err
+		return nil, types.WrapError(err, "dail failed")
 	}
 
 	return &Client{
@@ -31,15 +34,35 @@ func NewClient(url string) (*Client, error) {
 	}, nil
 }
 
-// GasPrice returns the recent mean gas price.
-func (c *Client) GasPrice() (*big.Int, error) {
+// GetGasPrice returns the recent mean gas price.
+func (c *Client) GetGasPrice() (*big.Int, error) {
 	var result interface{}
 
 	if err := c.rpcClient.Call(&result, "cfx_gasPrice"); err != nil {
-		return nil, err
+		msg := "rpc request cfx_gasPrice error"
+		return nil, types.WrapError(err, msg)
 	}
 
 	return hexutil.DecodeBig(result.(string))
+}
+
+// GetNextNonce returns the address next transaction nonce.
+func (c *Client) GetNextNonce(address types.Address) (uint64, error) {
+	var result interface{}
+	if err := c.rpcClient.Call(&result, "cfx_getNextNonce", address); err != nil {
+		msg := fmt.Sprintf("rpc request cfx_getNextNonce %+v error", address)
+		return 0, types.WrapErrorf(err, msg)
+	}
+
+	// remove prefix "0x"
+	result = string([]byte(result.(string))[2:])
+	nonce, err := strconv.ParseUint(result.(string), 16, 64)
+	if err != nil {
+		msg := fmt.Sprintf("parse uint %+v error", result)
+		return 0, types.WrapError(err, msg)
+	}
+
+	return nonce, nil
 }
 
 // GetEpochNumber returns the highest or specified epoch number.
@@ -52,7 +75,8 @@ func (c *Client) GetEpochNumber(epoch ...*types.Epoch) (*big.Int, error) {
 	}
 
 	if err := c.rpcClient.Call(&result, "cfx_epochNumber", args...); err != nil {
-		return nil, err
+		msg := fmt.Sprintf("rpc cfx_epochNumber %+v error", args)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return hexutil.DecodeBig(result.(string))
@@ -68,7 +92,8 @@ func (c *Client) GetBalance(address types.Address, epoch ...*types.Epoch) (*big.
 	}
 
 	if err := c.rpcClient.Call(&result, "cfx_getBalance", args...); err != nil {
-		return nil, err
+		msg := fmt.Sprintf("rpc cfx_getBalance %+v error", args)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return hexutil.DecodeBig(result.(string))
@@ -84,7 +109,8 @@ func (c *Client) GetCode(address types.Address, epoch ...*types.Epoch) (string, 
 	}
 
 	if err := c.rpcClient.Call(&result, "cfx_getCode", args...); err != nil {
-		return "", err
+		msg := fmt.Sprintf("rpc cfx_getCode %+v error", args)
+		return "", types.WrapError(err, msg)
 	}
 
 	return result.(string), nil
@@ -96,7 +122,8 @@ func (c *Client) GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockSummar
 	var result interface{}
 
 	if err := c.rpcClient.Call(&result, "cfx_getBlockByHash", blockHash, false); err != nil {
-		return nil, err
+		msg := fmt.Sprintf("rpc cfx_getBlockByHash %+v error", blockHash)
+		return nil, types.WrapError(err, msg)
 	}
 
 	if result == nil {
@@ -104,8 +131,9 @@ func (c *Client) GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockSummar
 	}
 
 	var block types.BlockSummary
-	if err := unmarshalRPCResult(result, &block); err != nil {
-		return nil, err
+	if err := utils.UnmarshalRPCResult(result, &block); err != nil {
+		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return &block, nil
@@ -117,7 +145,8 @@ func (c *Client) GetBlockByHash(blockHash types.Hash) (*types.Block, error) {
 	var result interface{}
 
 	if err := c.rpcClient.Call(&result, "cfx_getBlockByHash", blockHash, true); err != nil {
-		return nil, err
+		msg := fmt.Sprintf("rpc cfx_getBlockByHash %+v error", blockHash)
+		return nil, types.WrapError(err, msg)
 	}
 
 	if result == nil {
@@ -125,24 +154,12 @@ func (c *Client) GetBlockByHash(blockHash types.Hash) (*types.Block, error) {
 	}
 
 	var block types.Block
-	if err := unmarshalRPCResult(result, &block); err != nil {
-		return nil, err
+	if err := utils.UnmarshalRPCResult(result, &block); err != nil {
+		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return &block, nil
-}
-
-func unmarshalRPCResult(result interface{}, v interface{}) error {
-	encoded, err := json.Marshal(result)
-	if err != nil {
-		return err
-	}
-
-	if err = json.Unmarshal(encoded, v); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // GetBlockSummaryByEpoch returns the block summary of specified epoch.
@@ -151,12 +168,14 @@ func (c *Client) GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary
 	var result interface{}
 
 	if err := c.rpcClient.Call(&result, "cfx_getBlockByEpochNumber", epoch, false); err != nil {
-		return nil, err
+		msg := fmt.Sprintf("rpc cfx_getBlockByEpochNumber %+v error", epoch)
+		return nil, types.WrapError(err, msg)
 	}
 
 	var block types.BlockSummary
-	if err := unmarshalRPCResult(result, &block); err != nil {
-		return nil, err
+	if err := utils.UnmarshalRPCResult(result, &block); err != nil {
+		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return &block, nil
@@ -168,12 +187,14 @@ func (c *Client) GetBlockByEpoch(epoch *types.Epoch) (*types.Block, error) {
 	var result interface{}
 
 	if err := c.rpcClient.Call(&result, "cfx_getBlockByEpochNumber", epoch, true); err != nil {
-		return nil, err
+		msg := fmt.Sprintf("rpc cfx_getBlockByEpochNumber %+v error", epoch)
+		return nil, types.WrapError(err, msg)
 	}
 
 	var block types.Block
-	if err := unmarshalRPCResult(result, &block); err != nil {
-		return nil, err
+	if err := utils.UnmarshalRPCResult(result, &block); err != nil {
+		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return &block, nil
@@ -184,7 +205,8 @@ func (c *Client) GetBestBlockHash() (types.Hash, error) {
 	var result interface{}
 
 	if err := c.rpcClient.Call(&result, "cfx_getBestBlockHash"); err != nil {
-		return "", err
+		msg := "rpc cfx_getBestBlockHash error"
+		return "", types.WrapError(err, msg)
 	}
 
 	return types.Hash(result.(string)), nil
@@ -202,7 +224,8 @@ func (c *Client) GetTransactionCount(address types.Address, epoch ...*types.Epoc
 	}
 
 	if err := c.rpcClient.Call(&result, "cfx_getTransactionCount", args...); err != nil {
-		return nil, err
+		msg := fmt.Sprintf("rpc cfx_getTransactionCount %+v error", args)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return hexutil.DecodeBig(result.(string))
@@ -213,7 +236,8 @@ func (c *Client) SendSignedTransaction(rawData []byte) (types.Hash, error) {
 	var result interface{}
 
 	if err := c.rpcClient.Call(&result, "cfx_sendRawTransaction", hexutil.Encode(rawData)); err != nil {
-		return "", err
+		msg := fmt.Sprintf("rpc cfx_sendRawTransaction %+v error", rawData)
+		return "", types.WrapError(err, msg)
 	}
 
 	return types.Hash(result.(string)), nil
@@ -223,12 +247,14 @@ func (c *Client) SendSignedTransaction(rawData []byte) (types.Hash, error) {
 func (c *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte) (*types.Transaction, error) {
 	tx, err := types.DecodeRlpToUnsignTransction(encodedTx)
 	if err != nil {
-		return nil, err
+		msg := fmt.Sprintf("Decode rlp encoded data {%+v} to unsignTransction error", encodedTx)
+		return nil, types.WrapError(err, msg)
 	}
 
 	respondTx, err := c.signTransactionAndSend(tx, v, r, s)
 	if err != nil {
-		return nil, err
+		msg := fmt.Sprintf("sign transaction and send {tx: %+v, v:%+v, r:%+v, s:%+v} error", tx, r, s, v)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return respondTx, nil
@@ -237,15 +263,20 @@ func (c *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []
 func (c *Client) signTransactionAndSend(tx *types.UnsignedTransaction, v byte, r, s []byte) (*types.Transaction, error) {
 	rlp, err := tx.EncodeWithSignature(v, r, s)
 	if err != nil {
-		return nil, err
+		msg := fmt.Sprintf("encode tx %+v with signature { v:%+v, r:%+v, s:%+v} error", tx, v, r, s)
+		return nil, types.WrapError(err, msg)
 	}
+
 	hash, err := c.SendSignedTransaction(rlp)
 	if err != nil {
-		return nil, err
+		msg := fmt.Sprintf("send signed tx %+v error", rlp)
+		return nil, types.WrapError(err, msg)
 	}
+
 	respondTx, err := c.GetTransactionByHash(hash)
 	if err != nil {
-		return nil, err
+		msg := fmt.Sprintf("get transaction by hash %+v error", hash)
+		return nil, types.WrapError(err, msg)
 	}
 	return respondTx, nil
 }
@@ -261,7 +292,8 @@ func (c *Client) Call(request types.CallRequest, epoch ...*types.Epoch) (string,
 	}
 
 	if err := c.rpcClient.Call(&result, "cfx_call", args...); err != nil {
-		return "", err
+		msg := fmt.Sprintf("rpc cfx_call {%+v} error", args)
+		return "", types.WrapError(err, msg)
 	}
 
 	return result.(string), nil
@@ -272,12 +304,14 @@ func (c *Client) GetLogs(filter types.LogFilter) ([]types.Log, error) {
 	var result interface{}
 
 	if err := c.rpcClient.Call(&result, "cfx_getLogs", filter); err != nil {
-		return nil, err
+		msg := fmt.Sprintf("rpc cfx_getLogs of {%+v} error", filter)
+		return nil, types.WrapError(err, msg)
 	}
 
 	var log []types.Log
-	if err := unmarshalRPCResult(result, &log); err != nil {
-		return nil, err
+	if err := utils.UnmarshalRPCResult(result, &log); err != nil {
+		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return log, nil
@@ -289,7 +323,8 @@ func (c *Client) GetTransactionByHash(txHash types.Hash) (*types.Transaction, er
 	var result interface{}
 
 	if err := c.rpcClient.Call(&result, "cfx_getTransactionByHash", txHash); err != nil {
-		return nil, err
+		msg := fmt.Sprintf("rpc cfx_getTransactionByHash {%+v} error", txHash)
+		return nil, types.WrapError(err, msg)
 	}
 
 	if result == nil {
@@ -297,8 +332,9 @@ func (c *Client) GetTransactionByHash(txHash types.Hash) (*types.Transaction, er
 	}
 
 	var tx types.Transaction
-	if err := unmarshalRPCResult(result, &tx); err != nil {
-		return nil, err
+	if err := utils.UnmarshalRPCResult(result, &tx); err != nil {
+		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return &tx, nil
@@ -314,7 +350,8 @@ func (c *Client) EstimateGas(request types.CallRequest, epoch ...*types.Epoch) (
 	}
 
 	if err := c.rpcClient.Call(&result, "cfx_estimateGas", args...); err != nil {
-		return nil, err
+		msg := fmt.Sprintf("rpc cfx_estimateGas of {%+v} error", args)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return hexutil.DecodeBig(result.(string))
@@ -327,11 +364,13 @@ func (c *Client) EstimateGasAndCollateral(request types.CallRequest) (*types.Est
 	args := []interface{}{request}
 
 	if err := c.rpcClient.Call(&result, "cfx_estimateGasAndCollateral", args...); err != nil {
-		return nil, err
+		msg := fmt.Sprintf("rpc cfx_estimateGasAndCollateral of {%+v} error", args)
+		return nil, types.WrapError(err, msg)
 	}
 	var estimate types.Estimate
-	if err := unmarshalRPCResult(result, &estimate); err != nil {
-		return nil, err
+	if err := utils.UnmarshalRPCResult(result, &estimate); err != nil {
+		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return &estimate, nil
@@ -342,12 +381,14 @@ func (c *Client) GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error) {
 	var result interface{}
 
 	if err := c.rpcClient.Call(&result, "cfx_getBlocksByEpoch", epoch); err != nil {
-		return nil, err
+		msg := fmt.Sprintf("rpc cfx_getBlocksByEpoch {%+v} error", epoch)
+		return nil, types.WrapError(err, msg)
 	}
 
 	var blocks []types.Hash
-	if err := unmarshalRPCResult(result, &blocks); err != nil {
-		return nil, err
+	if err := utils.UnmarshalRPCResult(result, &blocks); err != nil {
+		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return blocks, nil
@@ -359,7 +400,8 @@ func (c *Client) GetTransactionReceipt(txHash types.Hash) (*types.Receipt, error
 	var result interface{}
 
 	if err := c.rpcClient.Call(&result, "cfx_getTransactionReceipt", txHash); err != nil {
-		return nil, err
+		msg := fmt.Sprintf("rpc cfx_getTransactionReceipt of {%+v} error", txHash)
+		return nil, types.WrapError(err, msg)
 	}
 
 	if result == nil {
@@ -367,22 +409,25 @@ func (c *Client) GetTransactionReceipt(txHash types.Hash) (*types.Receipt, error
 	}
 
 	var receipt types.Receipt
-	if err := unmarshalRPCResult(result, &receipt); err != nil {
-		return nil, err
+	if err := utils.UnmarshalRPCResult(result, &receipt); err != nil {
+		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return &receipt, nil
 }
 
 // CreateUnsignedTransaction create an UnsignedTransaction instance
-func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount hexutil.Big) (*types.UnsignedTransaction, error) {
+func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data *[]byte) (*types.UnsignedTransaction, error) {
 	tx := new(types.UnsignedTransaction)
 	tx.From = from
 	tx.To = &to
-	tx.Value = &amount
+	tx.Value = amount
+	tx.Data = *data
 	err := c.applyUnsignedTransactionDefault(tx)
 	if err != nil {
-		return nil, err
+		msg := fmt.Sprintf("apply default field of transaction {%+v} error", tx)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return tx, nil
@@ -391,10 +436,21 @@ func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address,
 func (c *Client) applyUnsignedTransactionDefault(tx *types.UnsignedTransaction) error {
 	tx.ApplyDefault()
 	if c != nil {
+
+		if tx.Nonce == 0 {
+			nonce, err := c.GetNextNonce(tx.From)
+			if err != nil {
+				msg := fmt.Sprintf("get nonce of {%+v} error", tx.From)
+				return types.WrapError(err, msg)
+			}
+			tx.Nonce = nonce
+		}
+
 		if tx.EpochHeight == nil {
 			epoch, err := c.GetEpochNumber(types.EpochLatestState)
 			if err != nil {
-				return err
+				msg := fmt.Sprintf("get epoch number of {%+v} error", types.EpochLatestState)
+				return types.WrapError(err, msg)
 			}
 			tx.EpochHeight = (*hexutil.Big)(epoch)
 		}
@@ -406,7 +462,8 @@ func (c *Client) applyUnsignedTransactionDefault(tx *types.UnsignedTransaction) 
 			callReq.Data = &dataStr
 			sm, err := c.EstimateGasAndCollateral(*callReq)
 			if err != nil {
-				return err
+				msg := fmt.Sprintf("get estimate gas and collateral error")
+				return types.WrapError(err, msg)
 			}
 			tx.StorageLimit = sm.StorageCollateralized
 		}
@@ -420,10 +477,25 @@ func (c *Client) Debug(method string, args ...interface{}) (interface{}, error) 
 	var result interface{}
 
 	if err := c.rpcClient.Call(&result, method, args...); err != nil {
-		return nil, err
+		msg := fmt.Sprintf("rpc call method {%+v} with args {%+v} error", method, args)
+		return nil, types.WrapError(err, msg)
 	}
 
 	return result, nil
+}
+
+// NewContract creates a contract by abi and contract address
+func (c *Client) NewContract(abiJSON string, address types.Address) (*Contract, error) {
+	var abi abi.ABI
+	err := abi.UnmarshalJSON([]byte(abiJSON))
+	if err != nil {
+		msg := fmt.Sprintf("unmarshal json {%+v} to ABI error", abiJSON)
+		return nil, types.WrapError(err, msg)
+	}
+
+	// var contract IContract
+	contract := &Contract{abi, c, address}
+	return contract, nil
 }
 
 // Close closes the client, aborting any in-flight requests.

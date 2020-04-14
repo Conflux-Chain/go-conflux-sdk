@@ -5,6 +5,7 @@
 package types
 
 import (
+	"fmt"
 	"math/big"
 	"strings"
 
@@ -14,7 +15,8 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-// UnsignedTransaction represents a transaction without signature.
+// UnsignedTransaction represents a transaction without signature,
+// it is the transaction information for sending transaction.
 type UnsignedTransaction struct {
 	From         Address
 	To           *Address
@@ -28,6 +30,7 @@ type UnsignedTransaction struct {
 	ChainID      uint64
 }
 
+// unsignedTransactionForRlp is a intermediate struct for encoding rlp data
 type unsignedTransactionForRlp struct {
 	Nonce        *big.Int
 	GasPrice     *big.Int
@@ -38,13 +41,6 @@ type unsignedTransactionForRlp struct {
 	EpochHeight  *big.Int
 	ChainID      *big.Int
 	Data         []byte
-}
-
-type signedTransactionForRlp struct {
-	UnsignedData *unsignedTransactionForRlp
-	V            byte
-	R            []byte
-	S            []byte
 }
 
 // DefaultGas is the default gas in a transaction to transfer amount without any data.
@@ -69,14 +65,15 @@ func (tx *UnsignedTransaction) ApplyDefault() {
 }
 
 // Hash return transaction Hash
-func (tx *UnsignedTransaction) Hash() []byte {
+func (tx *UnsignedTransaction) Hash() ([]byte, error) {
 	// data := tx.getRlpNeedFields()
 	encoded, err := tx.Encode()
 	if err != nil {
-		panic(err)
+		msg := fmt.Sprintf("encode tx {%+v} error", tx)
+		return nil, WrapError(err, msg)
 	}
 
-	return crypto.Keccak256(encoded)
+	return crypto.Keccak256(encoded), nil
 }
 
 //Encode encode unsigned transaction and return its RLP encoded data
@@ -85,20 +82,14 @@ func (tx *UnsignedTransaction) Encode() ([]byte, error) {
 	data := *tx.toStructForRlp()
 	encoded, err := rlp.EncodeToBytes(data)
 	if err != nil {
-		return nil, err
+		msg := fmt.Sprintf("encode data {%+v} to bytes error", data)
+		return nil, WrapError(err, msg)
 	}
 	return encoded, nil
 }
 
 // EncodeWithSignature encode unsigned transaction with signature and return its RLP encoded data
 func (tx *UnsignedTransaction) EncodeWithSignature(v byte, r, s []byte) ([]byte, error) {
-	// data := tx.getRlpNeedFields()
-	// data = []interface{}{
-	// 	data,
-	// 	v,
-	// 	r,
-	// 	s,
-	// }
 	signedTx := signedTransactionForRlp{
 		UnsignedData: tx.toStructForRlp(),
 		V:            v,
@@ -108,7 +99,8 @@ func (tx *UnsignedTransaction) EncodeWithSignature(v byte, r, s []byte) ([]byte,
 
 	encoded, err := rlp.EncodeToBytes(signedTx)
 	if err != nil {
-		return nil, err
+		msg := fmt.Sprintf("encode data {%+v} to bytes error", signedTx)
+		return nil, WrapError(err, msg)
 	}
 
 	return encoded, nil
@@ -119,32 +111,12 @@ func DecodeRlpToUnsignTransction(data []byte) (*UnsignedTransaction, error) {
 	utxForRlp := new(unsignedTransactionForRlp)
 	err := rlp.DecodeBytes(data, utxForRlp)
 	if err != nil {
-		return nil, err
+		msg := fmt.Sprintf("decode data {%+v} to rlp error", data)
+		return nil, WrapError(err, msg)
 	}
 
 	return utxForRlp.toUnsignedTransaction(), nil
 }
-
-// func (tx *UnsignedTransaction) getRlpNeedFields() []interface{} {
-// 	var to *common.Address
-// 	if tx.To != nil {
-// 		addr := common.HexToAddress(string(*tx.To))
-// 		to = &addr
-// 	}
-
-// 	data := []interface{}{
-// 		new(big.Int).SetUint64(tx.Nonce),
-// 		tx.GasPrice.ToInt(),
-// 		new(big.Int).SetUint64(tx.Gas),
-// 		to,
-// 		tx.Value.ToInt(),
-// 		tx.StorageLimit.ToInt(),
-// 		tx.EpochHeight.ToInt(),
-// 		new(big.Int).SetUint64(tx.ChainID),
-// 		tx.Data,
-// 	}
-// 	return data
-// }
 
 func (tx *UnsignedTransaction) toStructForRlp() *unsignedTransactionForRlp {
 	var to *common.Address
@@ -168,7 +140,6 @@ func (tx *UnsignedTransaction) toStructForRlp() *unsignedTransactionForRlp {
 
 func (tx *unsignedTransactionForRlp) toUnsignedTransaction() *UnsignedTransaction {
 	to := Address(strings.ToLower(tx.To.Hex()))
-	// to := Address("0x" + hex.EncodeToString(tx.To.Bytes()))
 	gasPrice := hexutil.Big(*tx.GasPrice)
 	value := hexutil.Big(*tx.Value)
 	storageLimit := hexutil.Big(*tx.StorageLimit)

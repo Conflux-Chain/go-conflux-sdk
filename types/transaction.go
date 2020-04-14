@@ -6,10 +6,10 @@ package types
 
 import "github.com/ethereum/go-ethereum/common/hexutil"
 
-// Transaction represents a transaction in Conflux.
-type Transaction struct {
+// TransactionCore represents a transaction without signature in Conflux
+type TransactionCore struct {
 	Hash             Hash         `json:"hash"`
-	None             *hexutil.Big `json:"nonce"`
+	Nonce            *hexutil.Big `json:"nonce"`
 	BlockHash        *Hash        `json:"blockHash,omitempty"`
 	TransactionIndex *hexutil.Big `json:"transactionIndex,omitempty"`
 	From             Address      `json:"from"`
@@ -20,9 +20,14 @@ type Transaction struct {
 	ContractCreated  *Address     `json:"contractCreated,omitempty"`
 	Data             string       `json:"data"`
 	Status           *hexutil.Big `json:"status,omitempty"`
-	V                *hexutil.Big `json:"v"`
-	R                *hexutil.Big `json:"r"`
-	S                *hexutil.Big `json:"s"`
+}
+
+// Transaction represents a transaction with signature in Conflux.
+type Transaction struct {
+	TransactionCore
+	V *hexutil.Big `json:"v"`
+	R *hexutil.Big `json:"r"`
+	S *hexutil.Big `json:"s"`
 }
 
 // Receipt represents the transaction execution result in Conflux.
