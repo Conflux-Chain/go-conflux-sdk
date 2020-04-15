@@ -30,8 +30,8 @@ type Transaction struct {
 	S *hexutil.Big `json:"s"`
 }
 
-// Receipt represents the transaction execution result in Conflux.
-type Receipt struct {
+// TransactionReceipt represents the transaction execution result in Conflux.
+type TransactionReceipt struct {
 	TransactionHash Hash         `json:"transactionHash"`
 	Index           uint         `json:"index"`
 	BlockHash       Hash         `json:"blockHash"`
@@ -48,11 +48,12 @@ type Receipt struct {
 
 // CallRequest represents a request to execute contract.
 type CallRequest struct {
-	From     *Address     `json:"from,omitempty"`
-	To       *Address     `json:"to,omitempty"`
-	GasPrice *hexutil.Big `json:"gasPrice,omitempty"`
-	Gas      *hexutil.Big `json:"gas,omitempty"`
-	Value    *hexutil.Big `json:"value,omitempty"`
-	Data     *string      `json:"data,omitempty"`
-	Nonce    *hexutil.Big `json:"nonce,omitempty"`
+	From         *Address     `json:"from,omitempty"`
+	To           *Address     `json:"to,omitempty"`
+	GasPrice     *hexutil.Big `json:"gasPrice,omitempty"`
+	Gas          *hexutil.Big `json:"gas,omitempty"`
+	Value        *hexutil.Big `json:"value,omitempty"`
+	Data         *string      `json:"data,omitempty"`
+	Nonce        *hexutil.Big `json:"nonce,omitempty"`
+	StorageLimit *hexutil.Big `json:"storage_limit,omitempty"`
 }

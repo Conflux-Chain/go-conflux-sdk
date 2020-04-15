@@ -6,6 +6,7 @@ package sdk
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -19,7 +20,8 @@ import (
 
 // Client represents a client to interact with Conflux blockchain.
 type Client struct {
-	rpcClient *rpc.Client
+	rpcClient      *rpc.Client
+	accountManager *AccountManager
 }
 
 // NewClient creates a new instance of Client with specified conflux node url.
@@ -32,6 +34,11 @@ func NewClient(nodeURL string) (*Client, error) {
 	return &Client{
 		rpcClient: client,
 	}, nil
+}
+
+// SetAccountManager set account manager for sign transaction
+func (c *Client) SetAccountManager(accountManager *AccountManager) {
+	c.accountManager = accountManager
 }
 
 // GetGasPrice returns the recent mean gas price.
@@ -231,8 +238,32 @@ func (c *Client) GetTransactionCount(address types.Address, epoch ...*types.Epoc
 	return hexutil.DecodeBig(result.(string))
 }
 
-// SendSignedTransaction sends signed transaction and return its hash.
-func (c *Client) SendSignedTransaction(rawData []byte) (types.Hash, error) {
+// SendTransaction sign and send transaction to conflux blockchain and return the transaction hash.
+func (c *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash, error) {
+	if tx.From == nil {
+		defaultAccount := c.accountManager.GetDefault()
+		if defaultAccount == nil {
+			return "", errors.New("no account exist in keystore directory")
+		}
+		tx.From = defaultAccount
+	}
+
+	rawData, err := c.accountManager.SignTransaction(*tx)
+	if err != nil {
+		msg := fmt.Sprintf("sign transaction {%+v} error", *tx)
+		return "", types.WrapError(err, msg)
+	}
+
+	txhash, err := c.SendRawTransaction(rawData)
+	if err != nil {
+		msg := fmt.Sprintf("send raw transaction {%+v} error", rawData)
+		return "", types.WrapError(err, msg)
+	}
+	return txhash, nil
+}
+
+// SendRawTransaction sends signed transaction and return its hash.
+func (c *Client) SendRawTransaction(rawData []byte) (types.Hash, error) {
 	var result interface{}
 
 	if err := c.rpcClient.Call(&result, "cfx_sendRawTransaction", hexutil.Encode(rawData)); err != nil {
@@ -243,9 +274,10 @@ func (c *Client) SendSignedTransaction(rawData []byte) (types.Hash, error) {
 	return types.Hash(result.(string)), nil
 }
 
-// SignEncodedTransactionAndSend sign RLP encoded transaction and send it, return responsed transaction
+// SignEncodedTransactionAndSend sign RLP encoded transaction and send it, return responsed transaction.
 func (c *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte) (*types.Transaction, error) {
-	tx, err := types.DecodeRlpToUnsignTransction(encodedTx)
+	tx := new(types.UnsignedTransaction)
+	err := tx.Decode(encodedTx)
 	if err != nil {
 		msg := fmt.Sprintf("Decode rlp encoded data {%+v} to unsignTransction error", encodedTx)
 		return nil, types.WrapError(err, msg)
@@ -267,7 +299,7 @@ func (c *Client) signTransactionAndSend(tx *types.UnsignedTransaction, v byte, r
 		return nil, types.WrapError(err, msg)
 	}
 
-	hash, err := c.SendSignedTransaction(rlp)
+	hash, err := c.SendRawTransaction(rlp)
 	if err != nil {
 		msg := fmt.Sprintf("send signed tx %+v error", rlp)
 		return nil, types.WrapError(err, msg)
@@ -396,7 +428,7 @@ func (c *Client) GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error) {
 
 // GetTransactionReceipt returns the receipt of specified transaction hash.
 // If receipt not found, return nil.
-func (c *Client) GetTransactionReceipt(txHash types.Hash) (*types.Receipt, error) {
+func (c *Client) GetTransactionReceipt(txHash types.Hash) (*types.TransactionReceipt, error) {
 	var result interface{}
 
 	if err := c.rpcClient.Call(&result, "cfx_getTransactionReceipt", txHash); err != nil {
@@ -408,7 +440,7 @@ func (c *Client) GetTransactionReceipt(txHash types.Hash) (*types.Receipt, error
 		return nil, nil
 	}
 
-	var receipt types.Receipt
+	var receipt types.TransactionReceipt
 	if err := utils.UnmarshalRPCResult(result, &receipt); err != nil {
 		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
 		return nil, types.WrapError(err, msg)
@@ -420,7 +452,7 @@ func (c *Client) GetTransactionReceipt(txHash types.Hash) (*types.Receipt, error
 // CreateUnsignedTransaction create an UnsignedTransaction instance
 func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data *[]byte) (*types.UnsignedTransaction, error) {
 	tx := new(types.UnsignedTransaction)
-	tx.From = from
+	tx.From = &from
 	tx.To = &to
 	tx.Value = amount
 	tx.Data = *data
@@ -434,16 +466,46 @@ func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address,
 }
 
 func (c *Client) applyUnsignedTransactionDefault(tx *types.UnsignedTransaction) error {
-	tx.ApplyDefault()
+
 	if c != nil {
 
 		if tx.Nonce == 0 {
-			nonce, err := c.GetNextNonce(tx.From)
+			nonce, err := c.GetNextNonce(*tx.From)
 			if err != nil {
 				msg := fmt.Sprintf("get nonce of {%+v} error", tx.From)
 				return types.WrapError(err, msg)
 			}
 			tx.Nonce = nonce
+		}
+
+		if tx.GasPrice == nil {
+			gasPrice, err := c.GetGasPrice()
+			if err != nil {
+				msg := "get gas price error"
+				return types.WrapError(err, msg)
+			}
+			tmp := hexutil.Big(*gasPrice)
+			tx.GasPrice = &tmp
+		}
+
+		if tx.StorageLimit == nil || tx.Gas == 0 {
+			callReq := new(types.CallRequest)
+			callReq.To = tx.To
+			dataStr := "0x" + hex.EncodeToString(tx.Data)
+			callReq.Data = &dataStr
+			sm, err := c.EstimateGasAndCollateral(*callReq)
+			if err != nil {
+				msg := fmt.Sprintf("get estimate gas and collateral by {%+v} error", *callReq)
+				return types.WrapError(err, msg)
+			}
+
+			if tx.Gas == 0 {
+				tx.Gas = sm.GasUsed.ToInt().Uint64()
+			}
+
+			if tx.StorageLimit == nil {
+				tx.StorageLimit = sm.StorageCollateralized
+			}
 		}
 
 		if tx.EpochHeight == nil {
@@ -455,18 +517,7 @@ func (c *Client) applyUnsignedTransactionDefault(tx *types.UnsignedTransaction) 
 			tx.EpochHeight = (*hexutil.Big)(epoch)
 		}
 
-		if tx.StorageLimit == nil {
-			callReq := new(types.CallRequest)
-			callReq.To = tx.To
-			dataStr := "0x" + hex.EncodeToString(tx.Data)
-			callReq.Data = &dataStr
-			sm, err := c.EstimateGasAndCollateral(*callReq)
-			if err != nil {
-				msg := fmt.Sprintf("get estimate gas and collateral error")
-				return types.WrapError(err, msg)
-			}
-			tx.StorageLimit = sm.StorageCollateralized
-		}
+		tx.ApplyDefault()
 	}
 
 	return nil

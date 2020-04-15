@@ -18,7 +18,7 @@ import (
 // UnsignedTransaction represents a transaction without signature,
 // it is the transaction information for sending transaction.
 type UnsignedTransaction struct {
-	From         Address
+	From         *Address
 	To           *Address
 	Nonce        uint64
 	GasPrice     *hexutil.Big
@@ -106,16 +106,17 @@ func (tx *UnsignedTransaction) EncodeWithSignature(v byte, r, s []byte) ([]byte,
 	return encoded, nil
 }
 
-// DecodeRlpToUnsignTransction decode RLP encoded data to unsigned transaction instance.
-func DecodeRlpToUnsignTransction(data []byte) (*UnsignedTransaction, error) {
+// Decode decode RLP encoded data to tx
+func (tx *UnsignedTransaction) Decode(data []byte) error {
 	utxForRlp := new(unsignedTransactionForRlp)
 	err := rlp.DecodeBytes(data, utxForRlp)
 	if err != nil {
 		msg := fmt.Sprintf("decode data {%+v} to rlp error", data)
-		return nil, WrapError(err, msg)
+		return WrapError(err, msg)
 	}
 
-	return utxForRlp.toUnsignedTransaction(), nil
+	*tx = *utxForRlp.toUnsignedTransaction()
+	return nil
 }
 
 func (tx *UnsignedTransaction) toStructForRlp() *unsignedTransactionForRlp {
@@ -146,7 +147,7 @@ func (tx *unsignedTransactionForRlp) toUnsignedTransaction() *UnsignedTransactio
 	epochHeight := hexutil.Big(*tx.EpochHeight)
 
 	return &UnsignedTransaction{
-		From:         Address(""),
+		From:         nil,
 		To:           &to,
 		Nonce:        tx.Nonce.Uint64(),
 		GasPrice:     &gasPrice,

@@ -12,7 +12,7 @@ import (
 
 func TestEncode(t *testing.T) {
 	utx := UnsignedTransaction{
-		From:         Address("0x1cad0b19bb29d4674531d6f115237e16afce377c"),
+		From:         NewAddress("0x1cad0b19bb29d4674531d6f115237e16afce377c"),
 		To:           NewAddress("0x1cad0b19bb29d4674531d6f115237e16afce377d"),
 		Nonce:        16,
 		GasPrice:     NewBigInt(32),
@@ -37,7 +37,7 @@ func TestEncode(t *testing.T) {
 
 func TestEncodeWithSignature(t *testing.T) {
 	utx := UnsignedTransaction{
-		From:         Address("0x1cad0b19bb29d4674531d6f115237e16afce377c"),
+		From:         NewAddress("0x1cad0b19bb29d4674531d6f115237e16afce377c"),
 		To:           NewAddress("0x1cad0b19bb29d4674531d6f115237e16afce377d"),
 		Nonce:        16,
 		GasPrice:     NewBigInt(32),
@@ -68,7 +68,7 @@ func TestDecodeRlpToUnsignTransction(t *testing.T) {
 
 	rlp := []byte{231, 16, 32, 64, 148, 28, 173, 11, 25, 187, 41, 212, 103, 69, 49, 214, 241, 21, 35, 126, 22, 175, 206, 55, 125, 129, 128, 130, 1, 0, 130, 2, 0, 130, 4, 0, 131, 1, 2, 3}
 	expect := &UnsignedTransaction{
-		From:         Address(""),
+		From:         nil,
 		To:           NewAddress("0x1cad0b19bb29d4674531d6f115237e16afce377d"),
 		Nonce:        16,
 		GasPrice:     NewBigInt(32),
@@ -80,7 +80,8 @@ func TestDecodeRlpToUnsignTransction(t *testing.T) {
 		ChainID:      1024,
 	}
 	// t.Errorf("%+v", expect)
-	actual, _ := DecodeRlpToUnsignTransction(rlp)
+	actual := new(UnsignedTransaction)
+	actual.Decode(rlp)
 
 	jexpect, _ := json.Marshal(expect)
 	jactual, _ := json.Marshal(actual)
@@ -90,7 +91,7 @@ func TestDecodeRlpToUnsignTransction(t *testing.T) {
 		return
 	}
 
-	if string(expect.From) != string(actual.From) {
+	if string(*expect.From) != string(*actual.From) {
 		t.Errorf("expect from is %+v, actual from is %+v", expect.From, actual.From)
 	}
 	if string(*expect.To) != string(*actual.To) {

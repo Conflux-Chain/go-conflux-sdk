@@ -91,6 +91,15 @@ func (m *AccountManager) List() []types.Address {
 	return result
 }
 
+// GetDefault return first account in keystore directory
+func (m *AccountManager) GetDefault() *types.Address {
+	list := m.List()
+	if len(list) > 0 {
+		return &list[0]
+	}
+	return nil
+}
+
 func (m *AccountManager) account(address types.Address) accounts.Account {
 	return accounts.Account{
 		Address: common.HexToAddress(string(address)),
@@ -122,7 +131,7 @@ func (m *AccountManager) Lock(address types.Address) error {
 func (m *AccountManager) SignTransaction(tx types.UnsignedTransaction) ([]byte, error) {
 	tx.ApplyDefault()
 
-	account := m.account(tx.From)
+	account := m.account(*tx.From)
 	hash, err := tx.Hash()
 	if err != nil {
 		msg := fmt.Sprintf("calculate tx hash of %+v error", tx)
@@ -147,7 +156,7 @@ func (m *AccountManager) SignTransaction(tx types.UnsignedTransaction) ([]byte, 
 func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) ([]byte, error) {
 	tx.ApplyDefault()
 
-	account := m.account(tx.From)
+	account := m.account(*tx.From)
 	hash, err := tx.Hash()
 	if err != nil {
 		msg := fmt.Sprintf("calculate tx hash of %+v error", tx)
@@ -172,7 +181,7 @@ func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransact
 // Sign return signature of transaction
 func (m *AccountManager) Sign(tx types.UnsignedTransaction, passphrase string) (v byte, r, s []byte, err error) {
 	tx.ApplyDefault()
-	account := m.account(tx.From)
+	account := m.account(*tx.From)
 	hash, err := tx.Hash()
 	if err != nil {
 		msg := fmt.Sprintf("calculate tx hash of %+v error", tx)

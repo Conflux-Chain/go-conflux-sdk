@@ -21,7 +21,7 @@ type HTTPRequester interface {
 type Contractor interface {
 	GetData(method string, args ...interface{}) (*[]byte, error)
 	Call(callRequest types.CallRequest, method string, args ...interface{}) (interface{}, error)
-	SendTransaction(callRequest types.CallRequest,  method string, args ...interface{}) (*types.Hash, error)
+	SendTransaction(callRequest types.CallRequest, method string, args ...interface{}) (*types.Hash, error)
 }
 
 // ClientOperator ...
@@ -36,7 +36,7 @@ type ClientOperator interface {
 	GetBlockByEpoch(epoch *types.Epoch) (*types.Block, error)
 	GetBestBlockHash() (types.Hash, error)
 	GetTransactionCount(address types.Address, epoch ...*types.Epoch) (*big.Int, error)
-	SendSignedTransaction(rawData []byte) (types.Hash, error)
+	SendRawTransaction(rawData []byte) (types.Hash, error)
 	SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte) (*types.Transaction, error)
 	Call(request types.CallRequest, epoch ...*types.Epoch) (string, error)
 	GetLogs(filter types.LogFilter) ([]types.Log, error)
@@ -44,7 +44,7 @@ type ClientOperator interface {
 	EstimateGas(request types.CallRequest, epoch ...*types.Epoch) (*big.Int, error)
 	EstimateGasAndCollateral(request types.CallRequest) (*types.Estimate, error)
 	GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error)
-	GetTransactionReceipt(txHash types.Hash) (*types.Receipt, error)
+	GetTransactionReceipt(txHash types.Hash) (*types.TransactionReceipt, error)
 	CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data *[]byte) (*types.UnsignedTransaction, error)
 	Debug(method string, args ...interface{}) (interface{}, error)
 	Close()
