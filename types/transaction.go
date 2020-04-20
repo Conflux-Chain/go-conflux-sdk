@@ -4,7 +4,9 @@
 
 package types
 
-import "github.com/ethereum/go-ethereum/common/hexutil"
+import (
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
 
 // TransactionCore represents a transaction without signature in Conflux
 type TransactionCore struct {
@@ -44,16 +46,4 @@ type TransactionReceipt struct {
 	LogsBloom       Bloom        `json:"logsBloom"`
 	StateRoot       Hash         `json:"stateRoot"`
 	OutcomeStatus   uint8        `json:"outcomeStatus"`
-}
-
-// CallRequest represents a request to execute contract.
-type CallRequest struct {
-	From         *Address     `json:"from,omitempty"`
-	To           *Address     `json:"to,omitempty"`
-	GasPrice     *hexutil.Big `json:"gasPrice,omitempty"`
-	Gas          *hexutil.Big `json:"gas,omitempty"`
-	Value        *hexutil.Big `json:"value,omitempty"`
-	Data         *string      `json:"data,omitempty"`
-	Nonce        *hexutil.Big `json:"nonce,omitempty"`
-	StorageLimit *hexutil.Big `json:"storage_limit,omitempty"`
 }

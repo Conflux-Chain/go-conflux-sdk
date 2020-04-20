@@ -1,50 +1,49 @@
 package sdk
 
-// import (
-// 	"encoding/json"
-// 	"reflect"
-// 	"testing"
+import (
+	"encoding/json"
+	"reflect"
+	"testing"
 
-// 	"github.com/Conflux-Chain/go-conflux-sdk/types"
-// 	scantypes "github.com/Conflux-Chain/go-conflux-sdk/types/scan"
-// 	testutils "github.com/Conflux-Chain/go-conflux-sdk/utils/test_utils"
-// )
+	"github.com/Conflux-Chain/go-conflux-sdk/mock"
+	richtypes "github.com/Conflux-Chain/go-conflux-sdk/types/richclient"
+)
 
-// func TestGet(t *testing.T) {
-// 	type student struct {
-// 		Name string `json:"name"`
-// 		Age  uint   `json:"age"`
-// 	}
+func TestGet(t *testing.T) {
+	type student struct {
+		Name string `json:"name"`
+		Age  uint   `json:"age"`
+	}
 
-// 	expect := scantypes.Response{
-// 		Code:    0,
-// 		Message: "good",
-// 		Result: student{
-// 			Name: "xiaohong",
-// 			Age:  10,
-// 		},
-// 	}
+	expect := richtypes.Response{
+		Code:    0,
+		Message: "good",
+		Result: student{
+			Name: "xiaohong",
+			Age:  10,
+		},
+	}
 
-// 	var httpRequster testutils.HttpClientMock
-// 	rspBody, _ := json.Marshal(expect)
-// 	httpRequster.SetHandler("", string(rspBody))
+	var httpRequster mock.HttpClientMock
+	rspBody, _ := json.Marshal(expect)
+	httpRequster.SetHandler("", string(rspBody))
 
-// 	var stu student
-// 	s := ScanServer{
-// 		Scheme:        "http",
-// 		HostName:      "test",
-// 		HTTPRequester: &httpRequster,
-// 	}
+	var stu student
+	s := ScanServer{
+		Scheme:        "http",
+		HostName:      "test",
+		HTTPRequester: &httpRequster,
+	}
 
-// 	err := s.Get("/test", nil, &stu)
-// 	if err != nil {
-// 		t.Error(err.Error())
-// 	}
+	err := s.Get("/test", nil, &stu)
+	if err != nil {
+		t.Error(err.Error())
+	}
 
-// 	if !reflect.DeepEqual(expect.Result, stu) {
-// 		t.Errorf("expect:%+v,actual:%v", expect.Result, stu)
-// 	}
-// }
+	if !reflect.DeepEqual(expect.Result, stu) {
+		t.Errorf("expect:%+v,actual:%v", expect.Result, stu)
+	}
+}
 
 // func TestGetTokenByIdentifier(t *testing.T) {
 // 	expect := scantypes.Response{

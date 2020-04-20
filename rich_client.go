@@ -37,10 +37,10 @@ type ScanServer struct {
 }
 
 const (
-	accountBalancesPath    = "/api/account/token/list"
-	accountTokenTxListPath = "/api/account/token/transaction/list"
-	txListPath             = "/api/transaction/list"
-	contractQueryPath      = "/api/contract/query"
+	accountBalancesPath    = "/account/token/list"
+	accountTokenTxListPath = "/future/transfer/list"
+	txListPath             = "/future/transaction/list"
+	contractQueryPath      = "/contract/query"
 )
 
 // NewRichClient create new rich client
@@ -48,12 +48,13 @@ func NewRichClient(client *Client) *RichClient {
 
 	cfxScanBackend := &ScanServer{
 		Scheme:        "http",
-		HostName:      "testnet-jsonrpc.conflux-chain.org:18084",
+		HostName:      "101.201.103.131:8885", //"testnet-jsonrpc.conflux-chain.org:18084",
 		HTTPRequester: &http.Client{},
 	}
+
 	contractManager := &ScanServer{
 		Scheme:        "http",
-		HostName:      "13.75.69.106:8886",
+		HostName:      "101.201.103.131:8886/api", //"13.75.69.106:8886",
 		HTTPRequester: &http.Client{},
 	}
 
@@ -97,14 +98,14 @@ func (s *ScanServer) Get(path string, params map[string]interface{}, unmarshaled
 	if err != nil {
 		return err
 	}
-	fmt.Printf("body:%+v\n\n", string(body))
+	// fmt.Printf("body:%+v\n\n", string(body))
 
 	var rsp richtypes.Response
 	err = json.Unmarshal(body, &rsp)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("unmarshaled body: %+v\n\n", rsp)
+	// fmt.Printf("unmarshaled body: %+v\n\n", rsp)
 
 	if rsp.Code != 0 {
 		msg := fmt.Sprintf("code:%+v, message:%+v", rsp.Code, rsp.Message)
@@ -115,13 +116,13 @@ func (s *ScanServer) Get(path string, params map[string]interface{}, unmarshaled
 	if err != nil {
 		return err
 	}
-	fmt.Printf("marshaled result: %+v\n\n", string(rstBytes))
+	// fmt.Printf("marshaled result: %+v\n\n", string(rstBytes))
 
 	err = json.Unmarshal(rstBytes, unmarshaledResult)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("unmarshaled result: %+v\n\n", unmarshaledResult)
+	// fmt.Printf("unmarshaled result: %+v\n\n", unmarshaledResult)
 	return nil
 }
 
@@ -130,7 +131,8 @@ func (rc *RichClient) GetAccountTokenTransfers(address types.Address, tokenIdent
 	params := make(map[string]interface{})
 	params["address"] = address
 	params["page"] = pageNumber
-	params["pagesize"] = pageSize
+	params["pageSize"] = pageSize
+	params["txType"] = "all"
 
 	var tteList *richtypes.TokenTransferEventList
 	// when tokenIdentifier is not nil return transfer events of the token
@@ -152,16 +154,18 @@ func (rc *RichClient) GetAccountTokenTransfers(address types.Address, tokenIdent
 			msg := fmt.Sprintf("get result of CfxScanBackend server and path {%+v}, params: {%+v} error", txListPath, params)
 			return nil, types.WrapError(err, msg)
 		}
+		fmt.Printf("txs length: %v\n\n", len(txs.List))
 		tteList = txs.ToTokenTransferEventList()
 	}
 
+	fmt.Printf("ttelist length: %v\n\n", len(tteList.List))
 	// get epoch number and revert rate of every transaction
 	var wg sync.WaitGroup
 	wg.Add(int(len(tteList.List)))
 
 	errorStrs := []string{}
 
-	for _, tte := range tteList.List {
+	for i := range tteList.List {
 		go func(_tte *richtypes.TokenTransferEvent) {
 			defer wg.Done()
 
@@ -181,7 +185,7 @@ func (rc *RichClient) GetAccountTokenTransfers(address types.Address, tokenIdent
 
 			_tte.BlockHash = block.Hash
 			_tte.RevertRate = 0
-		}(&tte)
+		}(&tteList.List[i])
 	}
 	wg.Wait()
 
@@ -206,6 +210,7 @@ func (rc *RichClient) CreateSendTokenTransaction(from types.Address, to types.Ad
 
 	params := make(map[string]interface{})
 	params["address"] = tokenIdentifier
+	params["fields"] = "abi,typeCode"
 
 	var cInfo richtypes.Contract
 	err := rc.ContractManager.Get(contractQueryPath, params, &cInfo)
@@ -214,9 +219,9 @@ func (rc *RichClient) CreateSendTokenTransaction(from types.Address, to types.Ad
 		return nil, types.WrapError(err, msg)
 	}
 
-	contract, err := rc.Client.NewContract(cInfo.ABI, to)
+	contract, err := rc.Client.GetContract(cInfo.ABI, &to)
 	if err != nil {
-		msg := fmt.Sprintf("new contract by ABI {%+v}, to {%+v} error", cInfo.ABI, to)
+		msg := fmt.Sprintf("get contract by ABI {%+v}, to {%+v} error", cInfo.ABI, to)
 		return nil, types.WrapError(err, msg)
 	}
 
@@ -247,14 +252,6 @@ func (rc *RichClient) getDataForTransToken(contractType richtypes.ContractType, 
 		}
 		return data, nil
 	}
-
-	// if cInfo.GetContractType() == scantypes.FANSCOIN {
-	// 	data, err = contract.GetData("transfer", common.HexToAddress(string(to)), amount.ToInt())
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	return data, nil
-	// }
 
 	// erc721 send by token_id
 	//

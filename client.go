@@ -5,12 +5,13 @@
 package sdk
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
+	"time"
 
+	"github.com/Conflux-Chain/go-conflux-sdk/constants"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -240,20 +241,41 @@ func (c *Client) GetTransactionCount(address types.Address, epoch ...*types.Epoc
 
 // SendTransaction sign and send transaction to conflux blockchain and return the transaction hash.
 func (c *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash, error) {
-	if tx.From == nil {
-		defaultAccount := c.accountManager.GetDefault()
-		if defaultAccount == nil {
-			return "", errors.New("no account exist in keystore directory")
-		}
-		tx.From = defaultAccount
+
+	err := c.ApplyUnsignedTransactionDefault(tx)
+	if err != nil {
+		msg := fmt.Sprintf("apply transaction {%+v} default fields error", *tx)
+		return "", types.WrapError(err, msg)
 	}
 
+	//check balance, return error if balance not enough
+	epoch := types.NewEpochNumber(tx.EpochHeight.ToInt())
+	balance, err := c.GetBalance(*tx.From, epoch)
+	if err != nil {
+		msg := fmt.Sprintf("get balance of %+v at ephoc %+v error", tx.From, epoch)
+		return "", types.WrapError(err, msg)
+	}
+	need := big.NewInt(int64(tx.Gas))
+	need = need.Add(tx.StorageLimit.ToInt(), need)
+	need = need.Mul(tx.GasPrice.ToInt(), need)
+	need = need.Add(tx.Value.ToInt(), need)
+	need = need.Add(tx.StorageLimit.ToInt(), need)
+
+	if balance.Cmp(need) < 0 {
+		msg := fmt.Sprintf("out of balance, need %+v but your balance is %+v", need, balance)
+		return "", types.WrapError(err, msg)
+	}
+
+	//sign
+	// fmt.Printf("ready to send transaction %+v\n\n", tx)
 	rawData, err := c.accountManager.SignTransaction(*tx)
 	if err != nil {
 		msg := fmt.Sprintf("sign transaction {%+v} error", *tx)
 		return "", types.WrapError(err, msg)
 	}
 
+	// fmt.Printf("signed raw data: %x", rawData)
+	//send raw tx
 	txhash, err := c.SendRawTransaction(rawData)
 	if err != nil {
 		msg := fmt.Sprintf("send raw transaction {%+v} error", rawData)
@@ -267,7 +289,8 @@ func (c *Client) SendRawTransaction(rawData []byte) (types.Hash, error) {
 	var result interface{}
 
 	if err := c.rpcClient.Call(&result, "cfx_sendRawTransaction", hexutil.Encode(rawData)); err != nil {
-		msg := fmt.Sprintf("rpc cfx_sendRawTransaction %+v error", rawData)
+		msg := fmt.Sprintf("rpc cfx_sendRawTransaction %+x error", rawData)
+		// fmt.Printf("call result when error %+v: %+v", err, result)
 		return "", types.WrapError(err, msg)
 	}
 
@@ -282,10 +305,11 @@ func (c *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []
 		msg := fmt.Sprintf("Decode rlp encoded data {%+v} to unsignTransction error", encodedTx)
 		return nil, types.WrapError(err, msg)
 	}
+	// tx.From = from
 
 	respondTx, err := c.signTransactionAndSend(tx, v, r, s)
 	if err != nil {
-		msg := fmt.Sprintf("sign transaction and send {tx: %+v, v:%+v, r:%+v, s:%+v} error", tx, r, s, v)
+		msg := fmt.Sprintf("sign transaction and send {tx: %+v, r:%+x, s:%+x, v:%v} error", tx, r, s, v)
 		return nil, types.WrapError(err, msg)
 	}
 
@@ -295,13 +319,13 @@ func (c *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []
 func (c *Client) signTransactionAndSend(tx *types.UnsignedTransaction, v byte, r, s []byte) (*types.Transaction, error) {
 	rlp, err := tx.EncodeWithSignature(v, r, s)
 	if err != nil {
-		msg := fmt.Sprintf("encode tx %+v with signature { v:%+v, r:%+v, s:%+v} error", tx, v, r, s)
+		msg := fmt.Sprintf("encode tx %+v with signature { v:%+x, r:%+x, s:%v} error", tx, v, r, s)
 		return nil, types.WrapError(err, msg)
 	}
 
 	hash, err := c.SendRawTransaction(rlp)
 	if err != nil {
-		msg := fmt.Sprintf("send signed tx %+v error", rlp)
+		msg := fmt.Sprintf("send signed tx %+x error", rlp)
 		return nil, types.WrapError(err, msg)
 	}
 
@@ -315,20 +339,27 @@ func (c *Client) signTransactionAndSend(tx *types.UnsignedTransaction, v byte, r
 
 // Call executes contract but not mined into the blockchain,
 // and returns the contract execution result.
-func (c *Client) Call(request types.CallRequest, epoch ...*types.Epoch) (string, error) {
-	var result interface{}
+func (c *Client) Call(request types.CallRequest, epoch *types.Epoch) (*string, error) {
+	var rpcResult interface{}
 
 	args := []interface{}{request}
-	if len(epoch) > 0 {
-		args = append(args, epoch[0])
+	// if len(epoch) > 0 {
+	if epoch != nil {
+		// args = append(args, epoch[0])
+		args = append(args, epoch)
 	}
 
-	if err := c.rpcClient.Call(&result, "cfx_call", args...); err != nil {
+	if err := c.rpcClient.Call(&rpcResult, "cfx_call", args...); err != nil {
 		msg := fmt.Sprintf("rpc cfx_call {%+v} error", args)
-		return "", types.WrapError(err, msg)
+		return nil, types.WrapError(err, msg)
 	}
 
-	return result.(string), nil
+	var resultHexStr string
+	if err := utils.UnmarshalRPCResult(rpcResult, &resultHexStr); err != nil {
+		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", rpcResult)
+		return nil, types.WrapError(err, msg)
+	}
+	return &resultHexStr, nil
 }
 
 // GetLogs returns logs that matching the specified filter.
@@ -373,6 +404,8 @@ func (c *Client) GetTransactionByHash(txHash types.Hash) (*types.Transaction, er
 }
 
 // EstimateGas estimates the consumed gas of transaction/contract execution.
+//
+// deprecated, please use EstimateGasAndCollateral instead.
 func (c *Client) EstimateGas(request types.CallRequest, epoch ...*types.Epoch) (*big.Int, error) {
 	var result interface{}
 
@@ -456,7 +489,7 @@ func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address,
 	tx.To = &to
 	tx.Value = amount
 	tx.Data = *data
-	err := c.applyUnsignedTransactionDefault(tx)
+	err := c.ApplyUnsignedTransactionDefault(tx)
 	if err != nil {
 		msg := fmt.Sprintf("apply default field of transaction {%+v} error", tx)
 		return nil, types.WrapError(err, msg)
@@ -465,9 +498,22 @@ func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address,
 	return tx, nil
 }
 
-func (c *Client) applyUnsignedTransactionDefault(tx *types.UnsignedTransaction) error {
+// ApplyUnsignedTransactionDefault set default value for fields which are empty
+func (c *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) error {
 
 	if c != nil {
+		if tx.From == nil {
+			defaultAccount, err := c.accountManager.GetDefault()
+			if err != nil {
+				return types.WrapError(err, "get default account error")
+			}
+			// fmt.Printf("default account is: %+v\n\n", defaultAccount)
+
+			if defaultAccount == nil {
+				return errors.New("no account exist in keystore directory")
+			}
+			tx.From = defaultAccount
+		}
 
 		if tx.Nonce == 0 {
 			nonce, err := c.GetNextNonce(*tx.From)
@@ -484,15 +530,28 @@ func (c *Client) applyUnsignedTransactionDefault(tx *types.UnsignedTransaction) 
 				msg := "get gas price error"
 				return types.WrapError(err, msg)
 			}
+			// conflux responsed gasprice offen be 0, but the min gasprice is 1 when sending transaction, so do this
+			if gasPrice.Cmp(big.NewInt(constants.MinGasprice)) < 1 {
+				gasPrice = big.NewInt(1)
+			}
 			tmp := hexutil.Big(*gasPrice)
 			tx.GasPrice = &tmp
 		}
 
+		if tx.EpochHeight == nil {
+			epoch, err := c.GetEpochNumber(types.EpochLatestState)
+			if err != nil {
+				msg := fmt.Sprintf("get epoch number of {%+v} error", types.EpochLatestState)
+				return types.WrapError(err, msg)
+			}
+			tx.EpochHeight = (*hexutil.Big)(epoch)
+		}
+
+		// The gas and storage limit may influnce by all fileds of transaction ,so set them in last step.
 		if tx.StorageLimit == nil || tx.Gas == 0 {
 			callReq := new(types.CallRequest)
-			callReq.To = tx.To
-			dataStr := "0x" + hex.EncodeToString(tx.Data)
-			callReq.Data = &dataStr
+			callReq.FillByUnsignedTx(tx)
+
 			sm, err := c.EstimateGasAndCollateral(*callReq)
 			if err != nil {
 				msg := fmt.Sprintf("get estimate gas and collateral by {%+v} error", *callReq)
@@ -506,15 +565,6 @@ func (c *Client) applyUnsignedTransactionDefault(tx *types.UnsignedTransaction) 
 			if tx.StorageLimit == nil {
 				tx.StorageLimit = sm.StorageCollateralized
 			}
-		}
-
-		if tx.EpochHeight == nil {
-			epoch, err := c.GetEpochNumber(types.EpochLatestState)
-			if err != nil {
-				msg := fmt.Sprintf("get epoch number of {%+v} error", types.EpochLatestState)
-				return types.WrapError(err, msg)
-			}
-			tx.EpochHeight = (*hexutil.Big)(epoch)
 		}
 
 		tx.ApplyDefault()
@@ -535,8 +585,86 @@ func (c *Client) Debug(method string, args ...interface{}) (interface{}, error) 
 	return result, nil
 }
 
-// NewContract creates a contract by abi and contract address
-func (c *Client) NewContract(abiJSON string, address types.Address) (*Contract, error) {
+// DeployContract Synchronize deploy a contract by abi, bytecode and options, returns a bool channel for notifying whether contract deploy is successful. The callback for handle
+// deploy result.
+func (c *Client) DeployContract(abiJSON string, bytecode []byte, option *types.ContractDeployOption, timeout time.Duration, callback func(deployedContract Contractor, hash *types.Hash, err error)) <-chan bool {
+	// func (c *Client) DeployContract(abiJSON string, tx *types.UnsignedTransaction, timeout time.Duration) (<-chan bool, error) {
+	doneChan := make(chan bool, 1)
+
+	tx := new(types.UnsignedTransaction)
+	if option != nil {
+		tx.UnsignedTransactionBase = option.UnsignedTransactionBase
+	}
+	tx.Data = bytecode
+
+	// if option.Data == nil {
+	// 	msg := fmt.Sprintf("the Data field of options {%+v} should be bytecode, but it is empty", option)
+	// 	callback(nil, nil, errors.New(msg))
+	// 	doneChan <- false
+	// 	return doneChan
+	// }
+
+	//deploy contract
+	txhash, err := c.SendTransaction(tx)
+	if err != nil {
+		msg := fmt.Sprintf("send transaction {%+v} error", tx)
+		callback(nil, nil, types.WrapError(err, msg))
+		doneChan <- false
+		return doneChan
+		// return nil, types.WrapError(err, msg)
+	}
+
+	var abi abi.ABI
+	err = abi.UnmarshalJSON([]byte(abiJSON))
+	if err != nil {
+		msg := fmt.Sprintf("unmarshal json {%+v} to ABI error", abiJSON)
+		callback(nil, nil, types.WrapError(err, msg))
+		doneChan <- false
+		return doneChan
+		// return nil, types.WrapError(err, msg)
+	}
+
+	// wait tx be confirmed and excute callback
+	if timeout == 0 {
+		timeout = 30 * time.Second
+	}
+
+	go func(_txhash types.Hash) {
+		for i := 0; i < 10; i++ {
+			transaction, err := c.GetTransactionByHash(txhash)
+			if err != nil {
+				msg := fmt.Sprintf("get transaction receipt of txhash %+v error", txhash)
+				callback(nil, &_txhash, types.WrapError(err, msg))
+				doneChan <- false
+				return
+			}
+
+			if transaction.Status != nil {
+				if transaction.Status.ToInt().Uint64() == 1 {
+					msg := fmt.Sprintf("transaction is packed but it is failed,the txhash is %+v", _txhash)
+					callback(nil, &_txhash, errors.New(msg))
+					doneChan <- false
+					return
+				}
+
+				contract := &Contract{abi, c, transaction.ContractCreated}
+				callback(contract, &_txhash, nil)
+				doneChan <- true
+				return
+			}
+			time.Sleep(3 * time.Second)
+		}
+
+		msg := fmt.Sprintf("deploy contract timeout after %+v seconds, txhash is %+v", timeout, _txhash)
+		callback(nil, &_txhash, errors.New(msg))
+		doneChan <- false
+
+	}(txhash)
+	return doneChan
+}
+
+// GetContract create a contract instance according to abi json and it's deployed address
+func (c *Client) GetContract(abiJSON string, deployedOn *types.Address) (*Contract, error) {
 	var abi abi.ABI
 	err := abi.UnmarshalJSON([]byte(abiJSON))
 	if err != nil {
@@ -545,7 +673,7 @@ func (c *Client) NewContract(abiJSON string, address types.Address) (*Contract, 
 	}
 
 	// var contract IContract
-	contract := &Contract{abi, c, address}
+	contract := &Contract{abi, c, deployedOn}
 	return contract, nil
 }
 

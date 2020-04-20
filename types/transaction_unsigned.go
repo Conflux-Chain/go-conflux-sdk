@@ -15,19 +15,35 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-// UnsignedTransaction represents a transaction without signature,
-// it is the transaction information for sending transaction.
-type UnsignedTransaction struct {
-	From         *Address
-	To           *Address
-	Nonce        uint64
-	GasPrice     *hexutil.Big
-	Gas          uint64
-	Value        *hexutil.Big
-	Data         []byte
+// UnsignedTransactionBase represents a transaction without signature and Data.
+type UnsignedTransactionBase struct {
+	From *Address
+	// To       *Address
+	Nonce    uint64
+	GasPrice *hexutil.Big
+	Gas      uint64
+	Value    *hexutil.Big
+	// Data         []byte
 	StorageLimit *hexutil.Big
 	EpochHeight  *hexutil.Big
 	ChainID      uint64
+}
+
+// UnsignedTransaction represents a transaction without signature,
+// it is the transaction information for sending transaction.
+type UnsignedTransaction struct {
+	UnsignedTransactionBase
+	// From         *Address
+	To *Address
+	// Nonce        uint64
+	// GasPrice     *hexutil.Big
+	// Gas          uint64
+	// Value        *hexutil.Big
+
+	// StorageLimit *hexutil.Big
+	// EpochHeight  *hexutil.Big
+	// ChainID      uint64
+	Data hexutil.Bytes
 }
 
 // unsignedTransactionForRlp is a intermediate struct for encoding rlp data
@@ -147,15 +163,17 @@ func (tx *unsignedTransactionForRlp) toUnsignedTransaction() *UnsignedTransactio
 	epochHeight := hexutil.Big(*tx.EpochHeight)
 
 	return &UnsignedTransaction{
-		From:         nil,
-		To:           &to,
-		Nonce:        tx.Nonce.Uint64(),
-		GasPrice:     &gasPrice,
-		Gas:          tx.Gas.Uint64(),
-		Value:        &value,
-		Data:         tx.Data,
-		StorageLimit: &storageLimit,
-		EpochHeight:  &epochHeight,
-		ChainID:      tx.ChainID.Uint64(),
+		UnsignedTransactionBase: UnsignedTransactionBase{
+			From:         nil,
+			Nonce:        tx.Nonce.Uint64(),
+			GasPrice:     &gasPrice,
+			Gas:          tx.Gas.Uint64(),
+			Value:        &value,
+			StorageLimit: &storageLimit,
+			EpochHeight:  &epochHeight,
+			ChainID:      tx.ChainID.Uint64(),
+		},
+		To:   &to,
+		Data: tx.Data,
 	}
 }

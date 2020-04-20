@@ -7,6 +7,7 @@ package types
 import (
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -19,8 +20,22 @@ func NewAddress(hexAddress string) *Address {
 	return &addr
 }
 
+func (address *Address) String() string {
+	return string(*address)
+}
+
+// ToCommonAddress convert address to common.Address
+func (address *Address) ToCommonAddress() *common.Address {
+	newAddress := common.HexToAddress(string(*address))
+	return &newAddress
+}
+
 // Hash represents the 32 byte Keccak256 hash of arbitrary data in HEX format.
 type Hash string
+
+func (hash *Hash) String() string {
+	return string(*hash)
+}
 
 // Bloom is a hash type with 256 bytes.
 type Bloom string

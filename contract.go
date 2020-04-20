@@ -5,23 +5,24 @@
 package sdk
 
 import (
-	"errors"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 )
 
-// Contract ...
+// Contract represents a smart contract
 type Contract struct {
 	ABI     abi.ABI
-	Client  *Client
-	Address types.Address
+	Client  ClientOperator
+	Address *types.Address
 }
 
-// GetData ...
+// GetData return packed byte array of contract method and arguments
 func (c *Contract) GetData(method string, args ...interface{}) (*[]byte, error) {
-	packed, err := c.ABI.Pack(method, args)
+	packed, err := c.ABI.Pack(method, args...)
 	if err != nil {
 		msg := fmt.Sprintf("encode method %+v with args %+v error", method, args)
 		return nil, types.WrapError(err, msg)
@@ -30,25 +31,79 @@ func (c *Contract) GetData(method string, args ...interface{}) (*[]byte, error) 
 	return &packed, nil
 }
 
-// Call ...
-func (c *Contract) Call(callRequest types.CallRequest, method string, args ...interface{}) (interface{}, error) {
-	return nil, errors.New("not implement")
+// Call calls to the contract method and returns result
+func (c *Contract) Call(option *types.ContractMethodCallOption, resultPtr interface{}, method string, args ...interface{}) error {
 
-	// data, err := c.GetData(method, args)
-	// if err != nil {
-	// 	msg := fmt.Sprintf("get data of method %+v with args %+v error", method, args)
-	// 	return nil, types.WrapError(err, msg)
-	// }
-	// c.Client.Call()
-	// return data, nil
+	data, err := c.GetData(method, args...)
+	if err != nil {
+		msg := fmt.Sprintf("get data of method %+v with args %+v error", method, args)
+		return types.WrapError(err, msg)
+	}
+
+	tx := new(types.UnsignedTransaction)
+	if option != nil {
+		tx.UnsignedTransactionBase = option.UnsignedTransactionBase
+	}
+	tx.To = c.Address
+	tx.Data = *data
+	callRequest := new(types.CallRequest)
+	callRequest.FillByUnsignedTx(tx)
+
+	j, err := json.Marshal(callRequest)
+	fmt.Printf("callrequest of call: %s, err:%+v\n\n", j, err)
+	// var result interface{}
+	resultHexStr, err := c.Client.Call(*callRequest, types.EpochLatestState)
+
+	if len(*resultHexStr) < 2 {
+		return fmt.Errorf("call response string %v length smaller than 2", resultHexStr)
+	}
+
+	bytes, err := hex.DecodeString((*resultHexStr)[2:])
+	if err != nil {
+		msg := fmt.Sprintf("decode hex string %s to bytes error", (*resultHexStr)[2:])
+		return types.WrapError(err, msg)
+	}
+
+	err = c.ABI.Unpack(resultPtr, method, bytes)
+	if err != nil {
+		msg := fmt.Sprintf("unpack bytes {%x} to method %v output on abi %+v error", bytes, method, c.ABI)
+		return types.WrapError(err, msg)
+	}
+	// fmt.Printf("outptr:%+v", resultPtr)
+
+	return nil
 }
 
-// SendTransaction ...
-func (c *Contract) SendTransaction(callRequest types.CallRequest, method string, args ...interface{}) (*types.Hash, error) {
-	return nil, errors.New("not implement")
-
-	// data, err := c.GetData(method, args)
-	// if err != nil {
-	// 	return nil, err
+// SendTransaction sends a transaction to the contract method and returns its transaction hash
+func (c *Contract) SendTransaction(option *types.ContractMethodSendOption, method string, args ...interface{}) (*types.Hash, error) {
+	// return nil, errors.New("not implement")
+	// if tx.Data != nil {
+	// 	return nil, errors.New("please don't set data of tx, it will be created automatically according to method and args, if you have encoded data you can use Client.SendTransaction")
 	// }
+
+	data, err := c.GetData(method, args...)
+	if err != nil {
+		msg := fmt.Sprintf("get data of method %+v with args %+v error", method, args)
+		return nil, types.WrapError(err, msg)
+	}
+
+	tx := new(types.UnsignedTransaction)
+	if option != nil {
+		tx.UnsignedTransactionBase = option.UnsignedTransactionBase
+	}
+	tx.To = c.Address
+	tx.Data = *data
+
+	err = c.Client.ApplyUnsignedTransactionDefault(tx)
+	if err != nil {
+		msg := fmt.Sprintf("apply default for tx {%+v} error", tx)
+		return nil, types.WrapError(err, msg)
+	}
+
+	txhash, err := c.Client.SendTransaction(tx)
+	if err != nil {
+		msg := fmt.Sprintf("send transaction {%+v} error", tx)
+		return nil, types.WrapError(err, msg)
+	}
+	return &txhash, nil
 }

@@ -1,6 +1,8 @@
 package types
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // WrappedError for wrapping old error and new error message
 type WrappedError struct {
@@ -21,7 +23,12 @@ func WrapErrorf(err error, msgPattern string, values ...interface{}) error {
 
 // Error returns error description
 func (e WrappedError) Error() string {
-	return fmt.Sprintf("%v\n> %v", e.msg, e.err.Error())
+	var innerErrorMsg string
+	if e.err != nil {
+		innerErrorMsg = e.err.Error()
+		// reflect.TypeOf(e.err) == reflect.TypeOf(rpc.jsonError)
+	}
+	return fmt.Sprintf("%v\n> %v", e.msg, innerErrorMsg)
 }
 
 // Unwrap for getting internal error by errors.Unwrap(wrappedError)

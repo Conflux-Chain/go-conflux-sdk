@@ -12,6 +12,7 @@ import (
 	"math/big"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 )
@@ -65,4 +66,12 @@ func Keccak256(hexStr string) (string, error) {
 
 	hash := crypto.Keccak256(bytes)
 	return "0x" + hex.EncodeToString(hash), nil
+}
+
+// ToGeneralAddress convert address to general address which is starts with '0x1'
+//
+// Account address hex starts with '0x1'
+func ToGeneralAddress(address common.Address) types.Address {
+	address[0] = (address[0] & 0x0f) | 0x10
+	return types.Address(hexutil.Encode(address.Bytes()))
 }

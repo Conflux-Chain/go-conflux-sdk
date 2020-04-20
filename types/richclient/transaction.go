@@ -12,7 +12,7 @@ import (
 // Transaction represent transction information response from scan service
 type Transaction struct {
 	Hash             types.Hash    `json:"hash"`
-	Nonce            uint64        `json:"nonce"`
+	Nonce            string        `json:"nonce"`
 	BlockHash        types.Hash    `json:"blockHash,omitempty"`
 	TransactionIndex uint64        `json:"transactionIndex,omitempty"`
 	From             types.Address `json:"from"`
@@ -28,8 +28,9 @@ type Transaction struct {
 
 // TransactionList represent transaction list
 type TransactionList struct {
-	Total uint64        `json:"total"`
-	Data  []Transaction `json:"data"`
+	Total     uint64        `json:"total"`
+	ListLimit uint64        `json:"listLimit"`
+	List      []Transaction `json:"list"`
 }
 
 // ToTokenTransferEvent convert Transaction to TokenTransferEvent
@@ -55,12 +56,13 @@ func (txs *TransactionList) ToTokenTransferEventList() *TokenTransferEventList {
 	var tteList TokenTransferEventList
 
 	tteList.Total = txs.Total
-	listLen := len(txs.Data)
-	tteList.ListLimit = uint64(listLen)
+	tteList.ListLimit = txs.ListLimit
+	listLen := len(txs.List)
 	tteList.List = make([]TokenTransferEvent, listLen)
 
-	for _, v := range txs.Data {
-		tteList.List = append(tteList.List, *v.ToTokenTransferEvent())
+	for i, v := range txs.List {
+		// tteList.List = append(tteList.List, *v.ToTokenTransferEvent())
+		tteList.List[i] = *v.ToTokenTransferEvent()
 	}
 	return &tteList
 }
