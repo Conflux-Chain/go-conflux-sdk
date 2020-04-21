@@ -18,7 +18,7 @@ type HTTPRequester interface {
 	Get(url string) (resp *http.Response, err error)
 }
 
-// Contractor ...
+// Contractor is interface of contract operator
 type Contractor interface {
 	GetData(method string, args ...interface{}) (*[]byte, error)
 	Call(option *types.ContractMethodCallOption, resultPtr interface{}, method string, args ...interface{}) error
@@ -43,7 +43,6 @@ type ClientOperator interface {
 	Call(request types.CallRequest, epoch *types.Epoch) (*string, error)
 	GetLogs(filter types.LogFilter) ([]types.Log, error)
 	GetTransactionByHash(txHash types.Hash) (*types.Transaction, error)
-	EstimateGas(request types.CallRequest, epoch ...*types.Epoch) (*big.Int, error)
 	EstimateGasAndCollateral(request types.CallRequest) (*types.Estimate, error)
 	GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error)
 	GetTransactionReceipt(txHash types.Hash) (*types.TransactionReceipt, error)
@@ -51,7 +50,6 @@ type ClientOperator interface {
 	ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) error
 	Debug(method string, args ...interface{}) (interface{}, error)
 	Close()
-	// NewContract(abiJSON string, tx *types.UnsignedTransaction, callback func()) (*Contract, error)
-	GetContract(abiJSON string, deployedOn *types.Address) (*Contract, error)
-	DeployContract(abiJSON string, bytecode []byte, option *types.ContractDeployOption, timeout time.Duration, callback func(deployedContract Contractor, hash *types.Hash, err error)) <-chan bool
+	GetContract(abiJSON string, deployedAt *types.Address) (*Contract, error)
+	DeployContract(abiJSON string, bytecode []byte, option *types.ContractDeployOption, timeout time.Duration, callback func(deployedContract Contractor, hash *types.Hash, err error)) <-chan struct{}
 }

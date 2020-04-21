@@ -24,7 +24,8 @@ type AccountManager struct {
 	cfxAddressDic map[string]*accounts.Account
 }
 
-// NewAccountManager creates an instance of AccountManager.
+// NewAccountManager creates an instance of AccountManager
+// based on the keystore directory "keydir".
 func NewAccountManager(keydir string) *AccountManager {
 	am := new(AccountManager)
 
@@ -32,7 +33,7 @@ func NewAccountManager(keydir string) *AccountManager {
 	am.cfxAddressDic = make(map[string]*accounts.Account)
 
 	for _, account := range am.ks.Accounts() {
-		cfxAddress := utils.ToGeneralAddress(account.Address)
+		cfxAddress := utils.ToCfxGeneralAddress(account.Address)
 		tmp := account
 		am.cfxAddressDic[string(cfxAddress)] = &tmp
 	}
@@ -40,7 +41,7 @@ func NewAccountManager(keydir string) *AccountManager {
 	return am
 }
 
-// Create creates a new account.
+// Create creates a new account and puts the keystore file into keystore directory
 func (m *AccountManager) Create(passphrase string) (types.Address, error) {
 	account, err := m.ks.NewAccount(passphrase)
 	if err != nil {
@@ -48,13 +49,13 @@ func (m *AccountManager) Create(passphrase string) (types.Address, error) {
 		return "", types.WrapError(err, msg)
 	}
 
-	cfxAddress := utils.ToGeneralAddress(account.Address)
+	cfxAddress := utils.ToCfxGeneralAddress(account.Address)
 	m.cfxAddressDic[string(cfxAddress)] = &account
 	return cfxAddress, nil
 }
 
-// Import imports account from external key file.
-// Return error if the account already exists.
+// Import imports account from external key file to keystore directory.
+// Returns error if the account already exists.
 func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (types.Address, error) {
 	keyJSON, err := ioutil.ReadFile(keyFile)
 	if err != nil {
@@ -78,12 +79,12 @@ func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (type
 		return "", types.WrapError(err, msg)
 	}
 
-	cfxAddress := utils.ToGeneralAddress(account.Address)
+	cfxAddress := utils.ToCfxGeneralAddress(account.Address)
 	m.cfxAddressDic[string(cfxAddress)] = &account
 	return cfxAddress, nil
 }
 
-// Delete deletes the specified account.
+// Delete deletes the specified account and remove the keystore file from keystore directory.
 func (m *AccountManager) Delete(address types.Address, passphrase string) error {
 	account := m.account(address)
 	return m.ks.Delete(*account, passphrase)
@@ -95,12 +96,12 @@ func (m *AccountManager) Update(address types.Address, passphrase, newPassphrase
 	return m.ks.Update(*account, passphrase, newPassphrase)
 }
 
-// List lists all accounts.
+// List lists all accounts in keystore directory.
 func (m *AccountManager) List() []types.Address {
 	result := make([]types.Address, 0)
 
 	for _, account := range m.ks.Accounts() {
-		cfxAddress := utils.ToGeneralAddress(account.Address)
+		cfxAddress := utils.ToCfxGeneralAddress(account.Address)
 		result = append(result, cfxAddress)
 	}
 
@@ -158,7 +159,7 @@ func (m *AccountManager) Lock(address types.Address) error {
 	return m.ks.Lock(common.HexToAddress(string(address)))
 }
 
-// SignTransaction signs a transaction and return its RLP encoded data.
+// SignTransaction signs tx and returns its RLP encoded data.
 func (m *AccountManager) SignTransaction(tx types.UnsignedTransaction) ([]byte, error) {
 	// tx.ApplyDefault()
 
@@ -186,8 +187,8 @@ func (m *AccountManager) SignTransaction(tx types.UnsignedTransaction) ([]byte, 
 	return encoded, nil
 }
 
-// SignTransactionWithPassphrase signs a transaction with given passphrase and return its RLP encoded data.
-func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) ([]byte, error) {
+// SignAndEcodeTransactionWithPassphrase signs tx with given passphrase and return its RLP encoded data.
+func (m *AccountManager) SignAndEcodeTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) ([]byte, error) {
 	tx.ApplyDefault()
 
 	account := m.account(*tx.From)
@@ -217,11 +218,46 @@ func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransact
 	return encoded, nil
 }
 
-// Sign return signature of transaction
+// SignTransactionWithPassphrase signs tx with given passphrase and returns a transction with signature
+func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) (*types.SignedTransaction, error) {
+	tx.ApplyDefault()
+
+	account := m.account(*tx.From)
+	if account == nil {
+		msg := fmt.Sprintf("no account of address %+v is found in keystore directory ", *tx.From)
+		return nil, errors.New(msg)
+	}
+
+	hash, err := tx.Hash()
+	if err != nil {
+		msg := fmt.Sprintf("calculate tx hash of %+v error", tx)
+		return nil, types.WrapError(err, msg)
+	}
+
+	sig, err := m.ks.SignHashWithPassphrase(*account, passphrase, hash)
+	if err != nil {
+		msg := fmt.Sprintf("sign tx hash {%+x} by account %+v with passphrase %+v error", hash, account, passphrase)
+		return nil, types.WrapError(err, msg)
+	}
+
+	signdTx := new(types.SignedTransaction)
+	signdTx.UnsignedTransaction = tx
+	signdTx.V = sig[64]
+	signdTx.R = sig[0:32]
+	signdTx.S = sig[32:64]
+
+	return signdTx, nil
+}
+
+// Sign signs tx by passphrase and returns the signature
 func (m *AccountManager) Sign(tx types.UnsignedTransaction, passphrase string) (v byte, r, s []byte, err error) {
 	tx.ApplyDefault()
 	account := m.account(*tx.From)
-	// fmt.Printf("the address %+v 's account is %+v\n\n", tx.From, account)
+	if account == nil {
+		msg := fmt.Sprintf("no account of address %+v is found in keystore directory ", *tx.From)
+		return 0, nil, nil, errors.New(msg)
+	}
+
 	hash, err := tx.Hash()
 	if err != nil {
 		msg := fmt.Sprintf("calculate tx hash of %+v error", tx)

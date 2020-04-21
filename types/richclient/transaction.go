@@ -9,7 +9,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 )
 
-// Transaction represent transction information response from scan service
+// Transaction represents transction information response from scan service
 type Transaction struct {
 	Hash             types.Hash    `json:"hash"`
 	Nonce            string        `json:"nonce"`
@@ -26,14 +26,14 @@ type Transaction struct {
 	Timestamp        uint64        `json:"timestamp"`
 }
 
-// TransactionList represent transaction list
+// TransactionList represents a list of transaction
 type TransactionList struct {
 	Total     uint64        `json:"total"`
 	ListLimit uint64        `json:"listLimit"`
 	List      []Transaction `json:"list"`
 }
 
-// ToTokenTransferEvent convert Transaction to TokenTransferEvent
+// ToTokenTransferEvent converts Transaction to TokenTransferEvent
 func (tx *Transaction) ToTokenTransferEvent() *TokenTransferEvent {
 	var tte TokenTransferEvent
 	tte.TransactionHash = tx.Hash
@@ -51,7 +51,7 @@ func (tx *Transaction) ToTokenTransferEvent() *TokenTransferEvent {
 	return &tte
 }
 
-// ToTokenTransferEventList convert TransactionList to TokenTransferEventList
+// ToTokenTransferEventList converts TransactionList to TokenTransferEventList
 func (txs *TransactionList) ToTokenTransferEventList() *TokenTransferEventList {
 	var tteList TokenTransferEventList
 
@@ -61,7 +61,6 @@ func (txs *TransactionList) ToTokenTransferEventList() *TokenTransferEventList {
 	tteList.List = make([]TokenTransferEvent, listLen)
 
 	for i, v := range txs.List {
-		// tteList.List = append(tteList.List, *v.ToTokenTransferEvent())
 		tteList.List[i] = *v.ToTokenTransferEvent()
 	}
 	return &tteList

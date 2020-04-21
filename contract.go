@@ -6,7 +6,6 @@ package sdk
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
@@ -20,7 +19,11 @@ type Contract struct {
 	Address *types.Address
 }
 
-// GetData return packed byte array of contract method and arguments
+// GetData packs the given method name to conform the ABI of the contract "c". Method call's data
+// will consist of method_id, args0, arg1, ... argN. Method id consists
+// of 4 bytes and arguments are all 32 bytes.
+// Method ids are created from the first 4 bytes of the hash of the
+// methods string signature. (signature = baz(uint32,string32))
 func (c *Contract) GetData(method string, args ...interface{}) (*[]byte, error) {
 	packed, err := c.ABI.Pack(method, args...)
 	if err != nil {
@@ -31,7 +34,9 @@ func (c *Contract) GetData(method string, args ...interface{}) (*[]byte, error) 
 	return &packed, nil
 }
 
-// Call calls to the contract method and returns result
+// Call calls to the contract method with args and fills the excuted result to the "resultPtr".
+//
+// the resultPtr should be a pointer of the method output struct type.
 func (c *Contract) Call(option *types.ContractMethodCallOption, resultPtr interface{}, method string, args ...interface{}) error {
 
 	data, err := c.GetData(method, args...)
@@ -42,16 +47,16 @@ func (c *Contract) Call(option *types.ContractMethodCallOption, resultPtr interf
 
 	tx := new(types.UnsignedTransaction)
 	if option != nil {
-		tx.UnsignedTransactionBase = option.UnsignedTransactionBase
+		tx.UnsignedTransactionBase = types.UnsignedTransactionBase(*option)
 	}
 	tx.To = c.Address
 	tx.Data = *data
 	callRequest := new(types.CallRequest)
 	callRequest.FillByUnsignedTx(tx)
 
-	j, err := json.Marshal(callRequest)
-	fmt.Printf("callrequest of call: %s, err:%+v\n\n", j, err)
-	// var result interface{}
+	// j, err := json.Marshal(callRequest)
+	// fmt.Printf("callrequest of call: %s, err:%+v\n\n", j, err)
+
 	resultHexStr, err := c.Client.Call(*callRequest, types.EpochLatestState)
 
 	if len(*resultHexStr) < 2 {
@@ -74,12 +79,8 @@ func (c *Contract) Call(option *types.ContractMethodCallOption, resultPtr interf
 	return nil
 }
 
-// SendTransaction sends a transaction to the contract method and returns its transaction hash
+// SendTransaction sends a transaction to the contract method with args and returns its transaction hash
 func (c *Contract) SendTransaction(option *types.ContractMethodSendOption, method string, args ...interface{}) (*types.Hash, error) {
-	// return nil, errors.New("not implement")
-	// if tx.Data != nil {
-	// 	return nil, errors.New("please don't set data of tx, it will be created automatically according to method and args, if you have encoded data you can use Client.SendTransaction")
-	// }
 
 	data, err := c.GetData(method, args...)
 	if err != nil {
@@ -89,7 +90,7 @@ func (c *Contract) SendTransaction(option *types.ContractMethodSendOption, metho
 
 	tx := new(types.UnsignedTransaction)
 	if option != nil {
-		tx.UnsignedTransactionBase = option.UnsignedTransactionBase
+		tx.UnsignedTransactionBase = types.UnsignedTransactionBase(*option)
 	}
 	tx.To = c.Address
 	tx.Data = *data

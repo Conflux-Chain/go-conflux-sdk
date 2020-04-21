@@ -4,6 +4,7 @@
 
 package types
 
+// signedTransactionForRlp is a intermediate struct for encoding rlp data
 type signedTransactionForRlp struct {
 	UnsignedData *unsignedTransactionForRlp
 	V            byte

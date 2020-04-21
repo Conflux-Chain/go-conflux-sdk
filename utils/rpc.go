@@ -7,7 +7,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 )
 
-// UnmarshalRPCResult unmarshal rpc result to v struct and fill in it
+// UnmarshalRPCResult unmarshals rpc result to v struct and fills in it
 func UnmarshalRPCResult(result interface{}, v interface{}) error {
 	encoded, err := json.Marshal(result)
 	if err != nil {

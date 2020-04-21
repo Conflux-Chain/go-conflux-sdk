@@ -6,17 +6,14 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-type ContractDeployOption struct {
-	UnsignedTransactionBase
-}
+// ContractDeployOption for setting option when deploying contract
+type ContractDeployOption UnsignedTransactionBase
 
-type ContractMethodCallOption struct {
-	UnsignedTransactionBase
-}
+// ContractMethodCallOption for setting option when call contract method
+type ContractMethodCallOption UnsignedTransactionBase
 
-type ContractMethodSendOption struct {
-	UnsignedTransactionBase
-}
+// ContractMethodSendOption for setting option when call contract method
+type ContractMethodSendOption UnsignedTransactionBase
 
 // CallRequest represents a request to execute contract.
 type CallRequest struct {
@@ -30,7 +27,7 @@ type CallRequest struct {
 	StorageLimit *hexutil.Big `json:"storage_limit,omitempty"`
 }
 
-// FillByUnsignedTx create CallRequest by unsigned transaction
+// FillByUnsignedTx fills CallRequest fields by tx
 func (cq *CallRequest) FillByUnsignedTx(tx *UnsignedTransaction) {
 	cq.From = tx.From
 	cq.To = tx.To

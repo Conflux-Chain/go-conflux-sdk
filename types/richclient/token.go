@@ -5,6 +5,8 @@
 package richtypes
 
 import (
+	"math/big"
+
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 )
 
@@ -23,13 +25,13 @@ type TokenWithBalance struct {
 	Balance string `json:"balance"`
 }
 
-// TokenWithBlanceList describes token with balance list
+// TokenWithBlanceList describes list of token with balance
 type TokenWithBlanceList struct {
 	Total uint64  `json:"total"`
 	List  []Token `json:"list"`
 }
 
-// TokenTransferEvent describes token transfer releated information
+// TokenTransferEvent describes token transfer event information
 type TokenTransferEvent struct {
 	Token
 	TransactionHash types.Hash    `json:"transactionHash"`
@@ -39,10 +41,10 @@ type TokenTransferEvent struct {
 	Value           string        `json:"value"`
 	Timestamp       uint64        `json:"timestamp"`
 	BlockHash       types.Hash
-	RevertRate      float32
+	RevertRate      big.Float
 }
 
-// TokenTransferEventList describes token tranfer event information list
+// TokenTransferEventList describes list of token tranfer event information
 type TokenTransferEventList struct {
 	Total     uint64               `json:"total"`
 	ListLimit uint64               `json:"listLimit"`

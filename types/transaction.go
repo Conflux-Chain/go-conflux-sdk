@@ -22,9 +22,13 @@ type TransactionCore struct {
 	ContractCreated  *Address     `json:"contractCreated,omitempty"`
 	Data             string       `json:"data"`
 	Status           *hexutil.Big `json:"status,omitempty"`
+	ChainID          *hexutil.Big `json:"chainId,omitempty"`
+	EpochHeight      *hexutil.Big `json:"epochHeight,omitempty"`
+	StorageLimit     *hexutil.Big `json:"storageLimit,omitempty"`
 }
 
 // Transaction represents a transaction with signature in Conflux.
+// it is the response from conflux node when sending rpc request, such as cfx_getTransactionByHash
 type Transaction struct {
 	TransactionCore
 	V *hexutil.Big `json:"v"`
@@ -33,6 +37,7 @@ type Transaction struct {
 }
 
 // TransactionReceipt represents the transaction execution result in Conflux.
+// it is the response from conflux node when sending rpc request, such as cfx_getTransactionReceipt
 type TransactionReceipt struct {
 	TransactionHash Hash         `json:"transactionHash"`
 	Index           uint         `json:"index"`

@@ -14,6 +14,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/Conflux-Chain/go-conflux-sdk/constants"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	richtypes "github.com/Conflux-Chain/go-conflux-sdk/types/richclient"
 	"github.com/ethereum/go-ethereum/common"
@@ -22,7 +23,8 @@ import (
 
 // RichClient contains client, cfx-scan-backend service and contract-manager service
 //
-// cfx-scan-backend service and contract-manager service are centralized service for best query performance
+// RichClient is mainly for bitpie wallet, it's methods need request centralized servers
+// cfx-scan-backend and contract-manager in order to apply good performance.
 type RichClient struct {
 	CfxScanBackend  *ScanServer
 	ContractManager *ScanServer
@@ -32,30 +34,64 @@ type RichClient struct {
 // ScanServer represents a centralized server
 type ScanServer struct {
 	Scheme        string
-	HostName      string
+	Host          string
 	HTTPRequester HTTPRequester
 }
 
-const (
-	accountBalancesPath    = "/account/token/list"
+// ServerConfig represents cfx-scan-backend and contract-manager configurations
+type ServerConfig struct {
+	CfxScanBackend         *ScanServer
+	ContractManager        *ScanServer
+	AccountBalancesPath    string
+	AccountTokenTxListPath string
+	TxListPath             string
+	ContractQueryPath      string
+}
+
+var (
+	accountBalancesPath    = "/api/account/token/list"
 	accountTokenTxListPath = "/future/transfer/list"
 	txListPath             = "/future/transaction/list"
-	contractQueryPath      = "/contract/query"
-)
+	contractQueryPath      = "/api/contract/query"
 
-// NewRichClient create new rich client
-func NewRichClient(client *Client) *RichClient {
-
-	cfxScanBackend := &ScanServer{
+	cfxScanBackend = &ScanServer{
 		Scheme:        "http",
-		HostName:      "101.201.103.131:8885", //"testnet-jsonrpc.conflux-chain.org:18084",
+		Host:          "101.201.103.131:8885", //"testnet-jsonrpc.conflux-chain.org:18084",
 		HTTPRequester: &http.Client{},
 	}
 
-	contractManager := &ScanServer{
+	contractManager = &ScanServer{
 		Scheme:        "http",
-		HostName:      "101.201.103.131:8886/api", //"13.75.69.106:8886",
+		Host:          "101.201.103.131:8886", //"13.75.69.106:8886",
 		HTTPRequester: &http.Client{},
+	}
+)
+
+// NewRichClient create new rich client with client and server config.
+//
+// The config will use default value when it is nil
+func NewRichClient(client *Client, config *ServerConfig) *RichClient {
+
+	if config != nil {
+		if config.CfxScanBackend != nil {
+			cfxScanBackend = config.CfxScanBackend
+		}
+		if config.ContractManager != nil {
+			contractManager = config.ContractManager
+		}
+
+		if config.AccountBalancesPath != "" {
+			accountBalancesPath = config.AccountBalancesPath
+		}
+		if config.AccountTokenTxListPath != "" {
+			accountTokenTxListPath = config.AccountTokenTxListPath
+		}
+		if config.TxListPath != "" {
+			txListPath = config.TxListPath
+		}
+		if config.ContractQueryPath != "" {
+			contractQueryPath = config.ContractQueryPath
+		}
 	}
 
 	richClient := RichClient{
@@ -74,7 +110,7 @@ func (s *ScanServer) URL(path string, params map[string]interface{}) string {
 		q.Add(key, fmt.Sprintf("%+v", val))
 	}
 	encodedParams := q.Encode()
-	result := fmt.Sprintf("%+v://%+v%+v?%+v", s.Scheme, s.HostName, path, encodedParams)
+	result := fmt.Sprintf("%+v://%+v%+v?%+v", s.Scheme, s.Host, path, encodedParams)
 	return result
 }
 
@@ -126,7 +162,10 @@ func (s *ScanServer) Get(path string, params map[string]interface{}, unmarshaled
 	return nil
 }
 
-// GetAccountTokenTransfers returns address releated transactions
+// GetAccountTokenTransfers returns address releated transactions,
+// the tokenIdentifier represnets the token contract address and it is optional,
+// when tokenIdentifier is specicied it returns token transfer events about the address,
+// otherwise returns transactions about main coin.
 func (rc *RichClient) GetAccountTokenTransfers(address types.Address, tokenIdentifier *types.Address, pageNumber, pageSize uint) (*richtypes.TokenTransferEventList, error) {
 	params := make(map[string]interface{})
 	params["address"] = address
@@ -158,36 +197,55 @@ func (rc *RichClient) GetAccountTokenTransfers(address types.Address, tokenIdent
 		tteList = txs.ToTokenTransferEventList()
 	}
 
-	fmt.Printf("ttelist length: %v\n\n", len(tteList.List))
+	// fmt.Printf("ttelist length: %v\n\n", len(tteList.List))
+
 	// get epoch number and revert rate of every transaction
-	var wg sync.WaitGroup
-	wg.Add(int(len(tteList.List)))
-
+	all := len(tteList.List)
+	con := constants.RpcConcurrence
+	excuted := 0
 	errorStrs := []string{}
+	for {
+		isLastLoop := (all-excuted)/con == 0
+		if isLastLoop {
+			con = all % con
+		}
 
-	for i := range tteList.List {
-		go func(_tte *richtypes.TokenTransferEvent) {
-			defer wg.Done()
+		fmt.Printf("con: %v\n", con)
+		var wg sync.WaitGroup
+		wg.Add(con)
 
-			tx, err := rc.Client.GetTransactionByHash(_tte.TransactionHash)
-			if err != nil {
-				errMsg := fmt.Sprintf("get transaction by hash %+v error: %+v", _tte.TransactionHash, err.Error())
-				errorStrs = append(errorStrs, errMsg)
-				return
-			}
+		for i := 0; i < con; i++ {
+			excuted++
+			fmt.Printf("excuted: %v,i:%v\n", excuted, i)
+			go func(_tte *richtypes.TokenTransferEvent) {
+				defer wg.Done()
 
-			block, err := rc.Client.GetBlockByHash(*tx.BlockHash)
-			if err != nil {
-				errMsg := fmt.Sprintf("get block by hash %+v error: %+v", tx.BlockHash, err.Error())
-				errorStrs = append(errorStrs, errMsg)
-				return
-			}
+				//for getting block hash
+				tx, err := rc.Client.GetTransactionByHash(_tte.TransactionHash)
+				if err != nil {
+					errMsg := fmt.Sprintf("get transaction by hash %+v error: %+v", _tte.TransactionHash, err.Error())
+					errorStrs = append(errorStrs, errMsg)
+					return
+				}
 
-			_tte.BlockHash = block.Hash
-			_tte.RevertRate = 0
-		}(&tteList.List[i])
+				//for getting revert rate
+				rate, err := rc.Client.GetTransactionRevertRateByHash(_tte.TransactionHash)
+				if err != nil {
+					errMsg := fmt.Sprintf("get transaction revert rate by hash %+v error: %+v", _tte.TransactionHash, err.Error())
+					errorStrs = append(errorStrs, errMsg)
+					return
+				}
+
+				_tte.BlockHash = *tx.BlockHash
+				_tte.RevertRate = *rate
+			}(&tteList.List[i])
+		}
+		wg.Wait()
+
+		if isLastLoop {
+			break
+		}
 	}
-	wg.Wait()
 
 	if len(errorStrs) > 0 {
 		joinedErr := strings.Join(errorStrs, "\n")
@@ -197,7 +255,9 @@ func (rc *RichClient) GetAccountTokenTransfers(address types.Address, tokenIdent
 	return tteList, nil
 }
 
-// CreateSendTokenTransaction create unsigned transaction according to input params
+// CreateSendTokenTransaction creates unsigned transaction for sending token according to input params,
+// the tokenIdentifier represnets the token contract address.
+// It supports erc20, erc777, fanscoin at present
 func (rc *RichClient) CreateSendTokenTransaction(from types.Address, to types.Address, amount *hexutil.Big, tokenIdentifier *types.Address) (*types.UnsignedTransaction, error) {
 	if tokenIdentifier == nil {
 		tx, err := rc.Client.CreateUnsignedTransaction(from, to, amount, nil)
@@ -277,7 +337,7 @@ func (rc *RichClient) getDataForTransToken(contractType richtypes.ContractType, 
 	return nil, err
 }
 
-// GetTokenByIdentifier get token detail infomation by token identifier
+// GetTokenByIdentifier returns token detail infomation of token identifier
 func (rc *RichClient) GetTokenByIdentifier(tokenIdentifier types.Address) (*richtypes.Contract, error) {
 	params := make(map[string]interface{})
 	params["address"] = tokenIdentifier

@@ -15,15 +15,13 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-// UnsignedTransactionBase represents a transaction without signature and Data.
+// UnsignedTransactionBase represents a transaction without To, Data and signature
 type UnsignedTransactionBase struct {
-	From *Address
-	// To       *Address
-	Nonce    uint64
-	GasPrice *hexutil.Big
-	Gas      uint64
-	Value    *hexutil.Big
-	// Data         []byte
+	From         *Address
+	Nonce        uint64
+	GasPrice     *hexutil.Big
+	Gas          uint64
+	Value        *hexutil.Big
 	StorageLimit *hexutil.Big
 	EpochHeight  *hexutil.Big
 	ChainID      uint64
@@ -33,16 +31,7 @@ type UnsignedTransactionBase struct {
 // it is the transaction information for sending transaction.
 type UnsignedTransaction struct {
 	UnsignedTransactionBase
-	// From         *Address
-	To *Address
-	// Nonce        uint64
-	// GasPrice     *hexutil.Big
-	// Gas          uint64
-	// Value        *hexutil.Big
-
-	// StorageLimit *hexutil.Big
-	// EpochHeight  *hexutil.Big
-	// ChainID      uint64
+	To   *Address
 	Data hexutil.Bytes
 }
 
@@ -65,7 +54,7 @@ const defaultGas uint64 = 21000
 // DefaultGasPrice is the default gas price.
 var defaultGasPrice *hexutil.Big = NewBigInt(10000000000) // 10G drip
 
-// ApplyDefault apply default fields if these filed are empty
+// ApplyDefault applys default value for these fields if they are empty
 func (tx *UnsignedTransaction) ApplyDefault() {
 	if tx.GasPrice == nil {
 		tx.GasPrice = defaultGasPrice
@@ -80,9 +69,8 @@ func (tx *UnsignedTransaction) ApplyDefault() {
 	}
 }
 
-// Hash return transaction Hash
+// Hash hashs the tx by keccak256 and returns the result
 func (tx *UnsignedTransaction) Hash() ([]byte, error) {
-	// data := tx.getRlpNeedFields()
 	encoded, err := tx.Encode()
 	if err != nil {
 		msg := fmt.Sprintf("encode tx {%+v} error", tx)
@@ -92,9 +80,8 @@ func (tx *UnsignedTransaction) Hash() ([]byte, error) {
 	return crypto.Keccak256(encoded), nil
 }
 
-//Encode encode unsigned transaction and return its RLP encoded data
+//Encode encodes tx and returns its RLP encoded data
 func (tx *UnsignedTransaction) Encode() ([]byte, error) {
-	// data := tx.getRlpNeedFields()
 	data := *tx.toStructForRlp()
 	encoded, err := rlp.EncodeToBytes(data)
 	if err != nil {
@@ -104,7 +91,7 @@ func (tx *UnsignedTransaction) Encode() ([]byte, error) {
 	return encoded, nil
 }
 
-// EncodeWithSignature encode unsigned transaction with signature and return its RLP encoded data
+// EncodeWithSignature encodes tx with signature and return its RLP encoded data
 func (tx *UnsignedTransaction) EncodeWithSignature(v byte, r, s []byte) ([]byte, error) {
 	signedTx := signedTransactionForRlp{
 		UnsignedData: tx.toStructForRlp(),
@@ -122,7 +109,7 @@ func (tx *UnsignedTransaction) EncodeWithSignature(v byte, r, s []byte) ([]byte,
 	return encoded, nil
 }
 
-// Decode decode RLP encoded data to tx
+// Decode decodes RLP encoded data to tx
 func (tx *UnsignedTransaction) Decode(data []byte) error {
 	utxForRlp := new(unsignedTransactionForRlp)
 	err := rlp.DecodeBytes(data, utxForRlp)

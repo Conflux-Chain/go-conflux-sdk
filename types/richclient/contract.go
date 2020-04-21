@@ -62,6 +62,7 @@ const (
 	DEX
 )
 
+// String implements the fmt.Stringer interface
 func (c ContractType) String() string {
 	dic := make(map[ContractType]string)
 	dic[UNKNOWN] = "unknown"

@@ -37,7 +37,7 @@ func NewClient(nodeURL string) (*Client, error) {
 	}, nil
 }
 
-// SetAccountManager set account manager for sign transaction
+// SetAccountManager sets account manager for sign transaction
 func (c *Client) SetAccountManager(accountManager *AccountManager) {
 	c.accountManager = accountManager
 }
@@ -54,7 +54,7 @@ func (c *Client) GetGasPrice() (*big.Int, error) {
 	return hexutil.DecodeBig(result.(string))
 }
 
-// GetNextNonce returns the address next transaction nonce.
+// GetNextNonce returns the next transaction nonce of address
 func (c *Client) GetNextNonce(address types.Address) (uint64, error) {
 	var result interface{}
 	if err := c.rpcClient.Call(&result, "cfx_getNextNonce", address); err != nil {
@@ -90,7 +90,7 @@ func (c *Client) GetEpochNumber(epoch ...*types.Epoch) (*big.Int, error) {
 	return hexutil.DecodeBig(result.(string))
 }
 
-// GetBalance returns the balance of specified account.
+// GetBalance returns the balance of specified address at epoch.
 func (c *Client) GetBalance(address types.Address, epoch ...*types.Epoch) (*big.Int, error) {
 	var result interface{}
 
@@ -107,7 +107,7 @@ func (c *Client) GetBalance(address types.Address, epoch ...*types.Epoch) (*big.
 	return hexutil.DecodeBig(result.(string))
 }
 
-// GetCode returns the bytecodes in HEX format of specified contract.
+// GetCode returns the bytecode in HEX format of specified address at epoch.
 func (c *Client) GetCode(address types.Address, epoch ...*types.Epoch) (string, error) {
 	var result interface{}
 
@@ -124,8 +124,8 @@ func (c *Client) GetCode(address types.Address, epoch ...*types.Epoch) (string, 
 	return result.(string), nil
 }
 
-// GetBlockSummaryByHash returns the block summary of specified block hash.
-// If block not found, return nil.
+// GetBlockSummaryByHash returns the block summary of specified blockHash
+// If the block is not found, return nil.
 func (c *Client) GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockSummary, error) {
 	var result interface{}
 
@@ -147,8 +147,8 @@ func (c *Client) GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockSummar
 	return &block, nil
 }
 
-// GetBlockByHash returns the block of specified block hash.
-// If block not found, return nil.
+// GetBlockByHash returns the block of specified blockHash
+// If the block is not found, return nil.
 func (c *Client) GetBlockByHash(blockHash types.Hash) (*types.Block, error) {
 	var result interface{}
 
@@ -220,26 +220,61 @@ func (c *Client) GetBestBlockHash() (types.Hash, error) {
 	return types.Hash(result.(string)), nil
 }
 
-// GetTransactionCount returns the number of transactions sent from given address.
-// If epoch specified, returns the number of transactions in the state of specified epoch.
-// Otherwise, returns the number of transactions in latest state.
-func (c *Client) GetTransactionCount(address types.Address, epoch ...*types.Epoch) (*big.Int, error) {
+// GetTransactionConfirmRiskByHash returns the unconfirm risk coefficient of the transaction,
+// that means that the transaction has a certain chance (risk coefficient/ (2^256-1)) of being reverted
+func (c *Client) GetTransactionConfirmRiskByHash(txhash types.Hash) (*big.Int, error) {
 	var result interface{}
 
-	args := []interface{}{address}
-	if len(epoch) > 0 {
-		args = append(args, epoch[0])
-	}
+	args := []interface{}{txhash}
 
-	if err := c.rpcClient.Call(&result, "cfx_getTransactionCount", args...); err != nil {
-		msg := fmt.Sprintf("rpc cfx_getTransactionCount %+v error", args)
+	if err := c.rpcClient.Call(&result, "cfx_getConfirmationRiskByHash", args...); err != nil {
+		msg := fmt.Sprintf("rpc cfx_getConfirmationRiskByHash %+v error", args)
 		return nil, types.WrapError(err, msg)
 	}
 
 	return hexutil.DecodeBig(result.(string))
 }
 
-// SendTransaction sign and send transaction to conflux blockchain and return the transaction hash.
+// GetTransactionRevertRateByHash returns the revert rate of the transaction,
+// it's (confirm risk coefficient/ (2^256-1))
+func (c *Client) GetTransactionRevertRateByHash(txhash types.Hash) (*big.Float, error) {
+	risk, err := c.GetTransactionConfirmRiskByHash(txhash)
+	if err != nil {
+		msg := fmt.Sprintf("get confirmation risk by hash %+v error", txhash)
+		return nil, types.WrapError(err, msg)
+	}
+
+	riskFloat := new(big.Float).SetInt(risk)
+	maxUint256Float := new(big.Float).SetInt(constants.MaxUint256)
+
+	riskRate := new(big.Float).Quo(riskFloat, maxUint256Float)
+	return riskRate, nil
+}
+
+// GetTransactionsFromPool returns all pending transactions in mempool of conflux node.
+func (c *Client) GetTransactionsFromPool() (*[]types.Transaction, error) {
+	var result interface{}
+
+	if err := c.rpcClient.Call(&result, "cfx_getTransactionsFromPool"); err != nil {
+		msg := fmt.Sprintf("rpc cfx_getTransactionsFromPool error")
+		return nil, types.WrapError(err, msg)
+	}
+
+	if result == nil {
+		return nil, nil
+	}
+
+	var tx []types.Transaction
+	if err := utils.UnmarshalRPCResult(result, &tx); err != nil {
+		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
+		return nil, types.WrapError(err, msg)
+	}
+
+	return &tx, nil
+
+}
+
+// SendTransaction signs and sends transaction to conflux node and returns the transaction hash.
 func (c *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash, error) {
 
 	err := c.ApplyUnsignedTransactionDefault(tx)
@@ -284,20 +319,20 @@ func (c *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash, err
 	return txhash, nil
 }
 
-// SendRawTransaction sends signed transaction and return its hash.
+// SendRawTransaction sends signed transaction and returns its hash.
 func (c *Client) SendRawTransaction(rawData []byte) (types.Hash, error) {
 	var result interface{}
-
+	// fmt.Printf("send raw transaction %x\n", rawData)
 	if err := c.rpcClient.Call(&result, "cfx_sendRawTransaction", hexutil.Encode(rawData)); err != nil {
 		msg := fmt.Sprintf("rpc cfx_sendRawTransaction %+x error", rawData)
-		// fmt.Printf("call result when error %+v: %+v", err, result)
 		return "", types.WrapError(err, msg)
 	}
 
 	return types.Hash(result.(string)), nil
 }
 
-// SignEncodedTransactionAndSend sign RLP encoded transaction and send it, return responsed transaction.
+// SignEncodedTransactionAndSend signs RLP encoded transaction "encodedTx" by signature "r,s,v" and sends it to node,
+// and returns responsed transaction.
 func (c *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte) (*types.Transaction, error) {
 	tx := new(types.UnsignedTransaction)
 	err := tx.Decode(encodedTx)
@@ -337,7 +372,8 @@ func (c *Client) signTransactionAndSend(tx *types.UnsignedTransaction, v byte, r
 	return respondTx, nil
 }
 
-// Call executes contract but not mined into the blockchain,
+// Call executes a message call transaction "request" at specified epoch,
+// which is directly executed in the VM of the node, but never mined into the block chain
 // and returns the contract execution result.
 func (c *Client) Call(request types.CallRequest, epoch *types.Epoch) (*string, error) {
 	var rpcResult interface{}
@@ -380,8 +416,8 @@ func (c *Client) GetLogs(filter types.LogFilter) ([]types.Log, error) {
 	return log, nil
 }
 
-// GetTransactionByHash returns transaction for the specified hash.
-// If transaction not found, return nil.
+// GetTransactionByHash returns transaction for the specified txHash.
+// If the transaction is not found, return nil.
 func (c *Client) GetTransactionByHash(txHash types.Hash) (*types.Transaction, error) {
 	var result interface{}
 
@@ -403,26 +439,8 @@ func (c *Client) GetTransactionByHash(txHash types.Hash) (*types.Transaction, er
 	return &tx, nil
 }
 
-// EstimateGas estimates the consumed gas of transaction/contract execution.
-//
-// deprecated, please use EstimateGasAndCollateral instead.
-func (c *Client) EstimateGas(request types.CallRequest, epoch ...*types.Epoch) (*big.Int, error) {
-	var result interface{}
-
-	args := []interface{}{request}
-	if len(epoch) > 0 {
-		args = append(args, epoch[0])
-	}
-
-	if err := c.rpcClient.Call(&result, "cfx_estimateGas", args...); err != nil {
-		msg := fmt.Sprintf("rpc cfx_estimateGas of {%+v} error", args)
-		return nil, types.WrapError(err, msg)
-	}
-
-	return hexutil.DecodeBig(result.(string))
-}
-
-// EstimateGasAndCollateral estimates the consumed gas and storage for collateral of transaction/contract execution.
+// EstimateGasAndCollateral excutes a message call "request"
+// and returns the amount of the gas used and storage for collateral
 func (c *Client) EstimateGasAndCollateral(request types.CallRequest) (*types.Estimate, error) {
 	var result interface{}
 
@@ -441,7 +459,7 @@ func (c *Client) EstimateGasAndCollateral(request types.CallRequest) (*types.Est
 	return &estimate, nil
 }
 
-// GetBlocksByEpoch returns the blocks in the specified epoch.
+// GetBlocksByEpoch returns the blocks hash in the specified epoch.
 func (c *Client) GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error) {
 	var result interface{}
 
@@ -460,7 +478,7 @@ func (c *Client) GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error) {
 }
 
 // GetTransactionReceipt returns the receipt of specified transaction hash.
-// If receipt not found, return nil.
+// If no receipt is found, return nil.
 func (c *Client) GetTransactionReceipt(txHash types.Hash) (*types.TransactionReceipt, error) {
 	var result interface{}
 
@@ -482,7 +500,8 @@ func (c *Client) GetTransactionReceipt(txHash types.Hash) (*types.TransactionRec
 	return &receipt, nil
 }
 
-// CreateUnsignedTransaction create an UnsignedTransaction instance
+// CreateUnsignedTransaction creates an unsigned transaction by parameters,
+// and the other fields will be set to values fetched from conflux node.
 func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data *[]byte) (*types.UnsignedTransaction, error) {
 	tx := new(types.UnsignedTransaction)
 	tx.From = &from
@@ -498,7 +517,7 @@ func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address,
 	return tx, nil
 }
 
-// ApplyUnsignedTransactionDefault set default value for fields which are empty
+// ApplyUnsignedTransactionDefault set empty fields to value fetched from conflux node.
 func (c *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) error {
 
 	if c != nil {
@@ -507,7 +526,6 @@ func (c *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) 
 			if err != nil {
 				return types.WrapError(err, "get default account error")
 			}
-			// fmt.Printf("default account is: %+v\n\n", defaultAccount)
 
 			if defaultAccount == nil {
 				return errors.New("no account exist in keystore directory")
@@ -530,6 +548,7 @@ func (c *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) 
 				msg := "get gas price error"
 				return types.WrapError(err, msg)
 			}
+
 			// conflux responsed gasprice offen be 0, but the min gasprice is 1 when sending transaction, so do this
 			if gasPrice.Cmp(big.NewInt(constants.MinGasprice)) < 1 {
 				gasPrice = big.NewInt(1)
@@ -547,7 +566,7 @@ func (c *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) 
 			tx.EpochHeight = (*hexutil.Big)(epoch)
 		}
 
-		// The gas and storage limit may influnce by all fileds of transaction ,so set them in last step.
+		// The gas and storage limit may be influnced by all fileds of transaction ,so set them at last step.
 		if tx.StorageLimit == nil || tx.Gas == 0 {
 			callReq := new(types.CallRequest)
 			callReq.FillByUnsignedTx(tx)
@@ -585,33 +604,25 @@ func (c *Client) Debug(method string, args ...interface{}) (interface{}, error) 
 	return result, nil
 }
 
-// DeployContract Synchronize deploy a contract by abi, bytecode and options, returns a bool channel for notifying whether contract deploy is successful. The callback for handle
-// deploy result.
-func (c *Client) DeployContract(abiJSON string, bytecode []byte, option *types.ContractDeployOption, timeout time.Duration, callback func(deployedContract Contractor, hash *types.Hash, err error)) <-chan bool {
-	// func (c *Client) DeployContract(abiJSON string, tx *types.UnsignedTransaction, timeout time.Duration) (<-chan bool, error) {
-	doneChan := make(chan bool, 1)
+// DeployContract deploys a contract Function A deploys a contract synchronously
+// by abiJSON, bytecode and option. It returns a channel for notifying when deploy completed.
+// And the callback for handling the deploy result.
+func (c *Client) DeployContract(abiJSON string, bytecode []byte, option *types.ContractDeployOption, timeout time.Duration, callback func(deployedContract Contractor, hash *types.Hash, err error)) <-chan struct{} {
+	doneChan := make(chan struct{}, 1)
 
 	tx := new(types.UnsignedTransaction)
 	if option != nil {
-		tx.UnsignedTransactionBase = option.UnsignedTransactionBase
+		tx.UnsignedTransactionBase = types.UnsignedTransactionBase(*option)
 	}
 	tx.Data = bytecode
-
-	// if option.Data == nil {
-	// 	msg := fmt.Sprintf("the Data field of options {%+v} should be bytecode, but it is empty", option)
-	// 	callback(nil, nil, errors.New(msg))
-	// 	doneChan <- false
-	// 	return doneChan
-	// }
 
 	//deploy contract
 	txhash, err := c.SendTransaction(tx)
 	if err != nil {
 		msg := fmt.Sprintf("send transaction {%+v} error", tx)
 		callback(nil, nil, types.WrapError(err, msg))
-		doneChan <- false
+		doneChan <- struct{}{}
 		return doneChan
-		// return nil, types.WrapError(err, msg)
 	}
 
 	var abi abi.ABI
@@ -619,9 +630,8 @@ func (c *Client) DeployContract(abiJSON string, bytecode []byte, option *types.C
 	if err != nil {
 		msg := fmt.Sprintf("unmarshal json {%+v} to ABI error", abiJSON)
 		callback(nil, nil, types.WrapError(err, msg))
-		doneChan <- false
+		doneChan <- struct{}{}
 		return doneChan
-		// return nil, types.WrapError(err, msg)
 	}
 
 	// wait tx be confirmed and excute callback
@@ -635,7 +645,7 @@ func (c *Client) DeployContract(abiJSON string, bytecode []byte, option *types.C
 			if err != nil {
 				msg := fmt.Sprintf("get transaction receipt of txhash %+v error", txhash)
 				callback(nil, &_txhash, types.WrapError(err, msg))
-				doneChan <- false
+				doneChan <- struct{}{}
 				return
 			}
 
@@ -643,13 +653,13 @@ func (c *Client) DeployContract(abiJSON string, bytecode []byte, option *types.C
 				if transaction.Status.ToInt().Uint64() == 1 {
 					msg := fmt.Sprintf("transaction is packed but it is failed,the txhash is %+v", _txhash)
 					callback(nil, &_txhash, errors.New(msg))
-					doneChan <- false
+					doneChan <- struct{}{}
 					return
 				}
 
 				contract := &Contract{abi, c, transaction.ContractCreated}
 				callback(contract, &_txhash, nil)
-				doneChan <- true
+				doneChan <- struct{}{}
 				return
 			}
 			time.Sleep(3 * time.Second)
@@ -657,14 +667,14 @@ func (c *Client) DeployContract(abiJSON string, bytecode []byte, option *types.C
 
 		msg := fmt.Sprintf("deploy contract timeout after %+v seconds, txhash is %+v", timeout, _txhash)
 		callback(nil, &_txhash, errors.New(msg))
-		doneChan <- false
+		doneChan <- struct{}{}
 
 	}(txhash)
 	return doneChan
 }
 
-// GetContract create a contract instance according to abi json and it's deployed address
-func (c *Client) GetContract(abiJSON string, deployedOn *types.Address) (*Contract, error) {
+// GetContract creates a contract instance according to abi json and it's deployed address
+func (c *Client) GetContract(abiJSON string, deployedAt *types.Address) (*Contract, error) {
 	var abi abi.ABI
 	err := abi.UnmarshalJSON([]byte(abiJSON))
 	if err != nil {
@@ -672,8 +682,7 @@ func (c *Client) GetContract(abiJSON string, deployedOn *types.Address) (*Contra
 		return nil, types.WrapError(err, msg)
 	}
 
-	// var contract IContract
-	contract := &Contract{abi, c, deployedOn}
+	contract := &Contract{abi, c, deployedAt}
 	return contract, nil
 }
 

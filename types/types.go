@@ -20,11 +20,12 @@ func NewAddress(hexAddress string) *Address {
 	return &addr
 }
 
+// String implements the interface stringer
 func (address *Address) String() string {
 	return string(*address)
 }
 
-// ToCommonAddress convert address to common.Address
+// ToCommonAddress converts address to common.Address
 func (address *Address) ToCommonAddress() *common.Address {
 	newAddress := common.HexToAddress(string(*address))
 	return &newAddress
@@ -33,6 +34,7 @@ func (address *Address) ToCommonAddress() *common.Address {
 // Hash represents the 32 byte Keccak256 hash of arbitrary data in HEX format.
 type Hash string
 
+// String implements the interface stringer
 func (hash *Hash) String() string {
 	return string(*hash)
 }
