@@ -36,7 +36,6 @@ type ClientOperator interface {
 	GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary, error)
 	GetBlockByEpoch(epoch *types.Epoch) (*types.Block, error)
 	GetBestBlockHash() (types.Hash, error)
-	GetTransactionCount(address types.Address, epoch ...*types.Epoch) (*big.Int, error)
 	SendRawTransaction(rawData []byte) (types.Hash, error)
 	SendTransaction(tx *types.UnsignedTransaction) (types.Hash, error)
 	SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte) (*types.Transaction, error)
