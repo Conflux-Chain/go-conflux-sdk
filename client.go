@@ -220,28 +220,39 @@ func (c *Client) GetBestBlockHash() (types.Hash, error) {
 	return types.Hash(result.(string)), nil
 }
 
-// GetTransactionConfirmRiskByHash returns the unconfirm risk coefficient of the transaction,
-// that means that the transaction has a certain chance (risk coefficient/ (2^256-1)) of being reverted
-func (c *Client) GetTransactionConfirmRiskByHash(txhash types.Hash) (*big.Int, error) {
+// GetBlockConfirmRiskByHash indicates the risk coefficient that
+// the pivot block of the epoch where the block is located becomes an normal block.
+func (c *Client) GetBlockConfirmRiskByHash(blockHash types.Hash) (*big.Int, error) {
 	var result interface{}
 
-	args := []interface{}{txhash}
+	args := []interface{}{blockHash}
 
 	if err := c.rpcClient.Call(&result, "cfx_getConfirmationRiskByHash", args...); err != nil {
 		msg := fmt.Sprintf("rpc cfx_getConfirmationRiskByHash %+v error", args)
 		return nil, types.WrapError(err, msg)
 	}
 
+	// fmt.Printf("GetTransactionConfirmRiskByHash result:%v\n", result)
+
+	if result == nil {
+		return nil, nil
+	}
+
 	return hexutil.DecodeBig(result.(string))
 }
 
-// GetTransactionRevertRateByHash returns the revert rate of the transaction,
+// GetBlockRevertRateByHash indicates the probability that
+// the pivot block of the epoch where the block is located becomes an ordinary block.
+//
 // it's (confirm risk coefficient/ (2^256-1))
-func (c *Client) GetTransactionRevertRateByHash(txhash types.Hash) (*big.Float, error) {
-	risk, err := c.GetTransactionConfirmRiskByHash(txhash)
+func (c *Client) GetBlockRevertRateByHash(blockHash types.Hash) (*big.Float, error) {
+	risk, err := c.GetBlockConfirmRiskByHash(blockHash)
 	if err != nil {
-		msg := fmt.Sprintf("get confirmation risk by hash %+v error", txhash)
+		msg := fmt.Sprintf("get block confirmation risk by hash %+v error", blockHash)
 		return nil, types.WrapError(err, msg)
+	}
+	if risk == nil {
+		return nil, nil
 	}
 
 	riskFloat := new(big.Float).SetInt(risk)
@@ -255,8 +266,8 @@ func (c *Client) GetTransactionRevertRateByHash(txhash types.Hash) (*big.Float, 
 func (c *Client) GetTransactionsFromPool() (*[]types.Transaction, error) {
 	var result interface{}
 
-	if err := c.rpcClient.Call(&result, "cfx_getTransactionsFromPool"); err != nil {
-		msg := fmt.Sprintf("rpc cfx_getTransactionsFromPool error")
+	if err := c.rpcClient.Call(&result, "getTransactionsFromPool"); err != nil {
+		msg := fmt.Sprintf("rpc getTransactionsFromPool error")
 		return nil, types.WrapError(err, msg)
 	}
 
@@ -303,6 +314,12 @@ func (c *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash, err
 
 	//sign
 	// fmt.Printf("ready to send transaction %+v\n\n", tx)
+
+	if c.accountManager == nil {
+		msg := fmt.Sprintf("sign transaction need account manager, please call SetAccountManager to set it.")
+		return "", errors.New(msg)
+	}
+
 	rawData, err := c.accountManager.SignTransaction(*tx)
 	if err != nil {
 		msg := fmt.Sprintf("sign transaction {%+v} error", *tx)
@@ -522,15 +539,17 @@ func (c *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) 
 
 	if c != nil {
 		if tx.From == nil {
-			defaultAccount, err := c.accountManager.GetDefault()
-			if err != nil {
-				return types.WrapError(err, "get default account error")
-			}
+			if c.accountManager != nil {
+				defaultAccount, err := c.accountManager.GetDefault()
+				if err != nil {
+					return types.WrapError(err, "get default account error")
+				}
 
-			if defaultAccount == nil {
-				return errors.New("no account exist in keystore directory")
+				if defaultAccount == nil {
+					return errors.New("no account exist in keystore directory")
+				}
+				tx.From = defaultAccount
 			}
-			tx.From = defaultAccount
 		}
 
 		if tx.Nonce == 0 {

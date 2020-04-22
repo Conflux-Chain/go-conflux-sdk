@@ -24,7 +24,7 @@ import (
 // RichClient contains client, cfx-scan-backend service and contract-manager service
 //
 // RichClient is mainly for bitpie wallet, it's methods need request centralized servers
-// cfx-scan-backend and contract-manager in order to apply good performance.
+// cfx-scan-backend and contract-manager in order to apply better performance.
 type RichClient struct {
 	CfxScanBackend  *ScanServer
 	ContractManager *ScanServer
@@ -210,13 +210,12 @@ func (rc *RichClient) GetAccountTokenTransfers(address types.Address, tokenIdent
 			con = all % con
 		}
 
-		fmt.Printf("con: %v\n", con)
+		// fmt.Printf("con: %v\n", con)
 		var wg sync.WaitGroup
 		wg.Add(con)
 
 		for i := 0; i < con; i++ {
-			excuted++
-			fmt.Printf("excuted: %v,i:%v\n", excuted, i)
+
 			go func(_tte *richtypes.TokenTransferEvent) {
 				defer wg.Done()
 
@@ -228,17 +227,21 @@ func (rc *RichClient) GetAccountTokenTransfers(address types.Address, tokenIdent
 					return
 				}
 
-				//for getting revert rate
-				rate, err := rc.Client.GetTransactionRevertRateByHash(_tte.TransactionHash)
-				if err != nil {
-					errMsg := fmt.Sprintf("get transaction revert rate by hash %+v error: %+v", _tte.TransactionHash, err.Error())
-					errorStrs = append(errorStrs, errMsg)
-					return
+				if tx.BlockHash != nil {
+					//for getting revert rate
+					rate, err := rc.Client.GetBlockRevertRateByHash(*tx.BlockHash)
+					if err != nil {
+						errMsg := fmt.Sprintf("get block revert rate by hash %+v error: %+v", tx.BlockHash, err.Error())
+						errorStrs = append(errorStrs, errMsg)
+						return
+					}
+					_tte.BlockHash = *tx.BlockHash
+					_tte.RevertRate = rate
+					fmt.Printf("after set blockhash %v and rate %v\n", _tte.BlockHash, _tte.RevertRate)
 				}
 
-				_tte.BlockHash = *tx.BlockHash
-				_tte.RevertRate = *rate
-			}(&tteList.List[i])
+			}(&tteList.List[excuted])
+			excuted++
 		}
 		wg.Wait()
 

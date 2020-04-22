@@ -41,7 +41,7 @@ type TokenTransferEvent struct {
 	Value           string        `json:"value"`
 	Timestamp       uint64        `json:"timestamp"`
 	BlockHash       types.Hash
-	RevertRate      big.Float
+	RevertRate      *big.Float
 }
 
 // TokenTransferEventList describes list of token tranfer event information

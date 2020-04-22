@@ -370,7 +370,6 @@ func (c *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []
 ```
 SignEncodedTransactionAndSend signs RLP encoded transaction "encodedTx" by
 signature "r,s,v" and sends it to node, and returns responsed transaction.
-ClientOperator is interface of operate actions on client
 
 ### type Contract
 
@@ -513,3 +512,48 @@ type ServerConfig struct {
 ```
 
 ServerConfig represents cfx-scan-backend and contract-manager configurations
+
+# utils
+--
+    import "github.com/Conflux-Chain/go-conflux-sdk/utils"
+
+
+## Usage
+
+#### func  Keccak256
+
+```go
+func Keccak256(hexStr string) (string, error)
+```
+Keccak256 hashs hex string by keccak256 and returns it's hash value
+
+#### func  PrivateKeyToPublicKey
+
+```go
+func PrivateKeyToPublicKey(privateKey string) string
+```
+PrivateKeyToPublicKey calculates public key from private key
+
+#### func  PublicKeyToAddress
+
+```go
+func PublicKeyToAddress(publicKey string) types.Address
+```
+PublicKeyToAddress generate address from public key
+
+Account address in conflux starts with '0x1'
+
+#### func  ToCfxGeneralAddress
+
+```go
+func ToCfxGeneralAddress(address common.Address) types.Address
+```
+ToCfxGeneralAddress converts a normal address to conflux customerd general
+address whose hex string starts with '0x1'
+
+#### func  UnmarshalRPCResult
+
+```go
+func UnmarshalRPCResult(result interface{}, v interface{}) error
+```
+UnmarshalRPCResult unmarshals rpc result to v struct and fills in it
