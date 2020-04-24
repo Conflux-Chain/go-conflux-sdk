@@ -35,15 +35,15 @@ func (cq *CallRequest) FillByUnsignedTx(tx *UnsignedTransaction) {
 	cq.Value = tx.Value
 	cq.StorageLimit = tx.StorageLimit
 
-	if tx.Gas != 0 {
-		cq.Gas = NewBigInt(int64(tx.Gas))
+	if tx.Gas != nil {
+		cq.Gas = tx.Gas
 	}
 
 	_data := "0x" + hex.EncodeToString(tx.Data)
 	cq.Data = _data
 
-	if tx.Nonce != 0 {
-		cq.Nonce = NewBigInt(int64(tx.Nonce))
+	if tx.Nonce != nil {
+		cq.Nonce = tx.Nonce
 	}
 
 }

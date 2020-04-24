@@ -11,18 +11,19 @@ import (
 )
 
 func TestEncode(t *testing.T) {
+
 	utx := UnsignedTransaction{
 		UnsignedTransactionBase: UnsignedTransactionBase{
 			From: NewAddress("0x1cad0b19bb29d4674531d6f115237e16afce377c"),
 
-			Nonce:    16,
+			Nonce:    NewBigInt(16),
 			GasPrice: NewBigInt(32),
-			Gas:      64,
+			Gas:      NewBigInt(64),
 			Value:    NewBigInt(128),
 
 			StorageLimit: NewBigInt(256),
 			EpochHeight:  NewBigInt(512),
-			ChainID:      1024,
+			ChainID:      NewBigInt(1024),
 		},
 		To:   NewAddress("0x1cad0b19bb29d4674531d6f115237e16afce377d"),
 		Data: []byte{1, 2, 3},
@@ -40,17 +41,18 @@ func TestEncode(t *testing.T) {
 }
 
 func TestEncodeWithSignature(t *testing.T) {
+
 	utx := UnsignedTransaction{
 		UnsignedTransactionBase: UnsignedTransactionBase{
 			From:     NewAddress("0x1cad0b19bb29d4674531d6f115237e16afce377c"),
-			Nonce:    16,
+			Nonce:    NewBigInt(16),
 			GasPrice: NewBigInt(32),
-			Gas:      64,
+			Gas:      NewBigInt(64),
 			Value:    NewBigInt(128),
 
 			StorageLimit: NewBigInt(256),
 			EpochHeight:  NewBigInt(512),
-			ChainID:      1024,
+			ChainID:      NewBigInt(1024),
 		},
 		To:   NewAddress("0x1cad0b19bb29d4674531d6f115237e16afce377d"),
 		Data: []byte{1, 2, 3},
@@ -74,17 +76,18 @@ func TestEncodeWithSignature(t *testing.T) {
 func TestDecodeRlpToUnsignTransction(t *testing.T) {
 
 	rlp := []byte{231, 16, 32, 64, 148, 28, 173, 11, 25, 187, 41, 212, 103, 69, 49, 214, 241, 21, 35, 126, 22, 175, 206, 55, 125, 129, 128, 130, 1, 0, 130, 2, 0, 130, 4, 0, 131, 1, 2, 3}
+
 	expect := &UnsignedTransaction{
 		UnsignedTransactionBase: UnsignedTransactionBase{
 			From:     nil,
-			Nonce:    16,
+			Nonce:    NewBigInt(16),
 			GasPrice: NewBigInt(32),
-			Gas:      64,
+			Gas:      NewBigInt(64),
 			Value:    NewBigInt(128),
 
 			StorageLimit: NewBigInt(256),
 			EpochHeight:  NewBigInt(512),
-			ChainID:      1024,
+			ChainID:      NewBigInt(1024),
 		},
 		To:   NewAddress("0x1cad0b19bb29d4674531d6f115237e16afce377d"),
 		Data: []byte{1, 2, 3},
@@ -96,39 +99,6 @@ func TestDecodeRlpToUnsignTransction(t *testing.T) {
 	jexpect, _ := json.Marshal(expect)
 	jactual, _ := json.Marshal(actual)
 	if !reflect.DeepEqual(jexpect, jactual) {
-		t.Errorf("\njson of expect is %+v,\njson of acutal is %+v", jexpect, jactual)
-	} else {
-		return
-	}
-
-	if string(*expect.From) != string(*actual.From) {
-		t.Errorf("expect from is %+v, actual from is %+v", expect.From, actual.From)
-	}
-	if string(*expect.To) != string(*actual.To) {
-		t.Errorf("expect to is %+v, actual to is %+v", *expect.To, *actual.To)
-	}
-	if expect.Nonce != actual.Nonce {
-		t.Errorf("expect Nonce is %+v, actual Nonce is %+v", expect.Nonce, actual.Nonce)
-	}
-	if expect.GasPrice.ToInt().Cmp(actual.GasPrice.ToInt()) != 0 {
-		t.Errorf("expect GasPrice is %+v, actual GasPrice is %+v", expect.GasPrice, actual.GasPrice)
-	}
-	if expect.Gas != actual.Gas {
-		t.Errorf("expect Gas is %+v, actual Gas is %+v", expect.Gas, actual.Gas)
-	}
-	if expect.Value.ToInt().Cmp(actual.Value.ToInt()) != 0 {
-		t.Errorf("expect Value is %+v, actual Value is %+v", expect.Value, actual.Value)
-	}
-	if !reflect.DeepEqual(expect.Data, actual.Data) {
-		t.Errorf("expect Data is %+v, actual Data is %+v", expect.Data, actual.Data)
-	}
-	if expect.StorageLimit.ToInt().Cmp(actual.StorageLimit.ToInt()) != 0 {
-		t.Errorf("expect StorageLimit is %+v, actual StorageLimit is %+v", expect.StorageLimit, actual.StorageLimit)
-	}
-	if expect.EpochHeight.ToInt().Cmp(actual.EpochHeight.ToInt()) != 0 {
-		t.Errorf("expect EpochHeight is %+v, actual EpochHeight is %+v", expect.EpochHeight, actual.EpochHeight)
-	}
-	if expect.ChainID != actual.ChainID {
-		t.Errorf("expect ChainID is %+v, actual ChainID is %+v", expect.ChainID, actual.ChainID)
+		t.Errorf("\njson of expect is %+v,\njson of acutal is %+v", expect, actual)
 	}
 }

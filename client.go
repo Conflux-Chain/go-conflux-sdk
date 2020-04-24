@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"strconv"
 	"time"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/constants"
@@ -55,22 +54,23 @@ func (c *Client) GetGasPrice() (*big.Int, error) {
 }
 
 // GetNextNonce returns the next transaction nonce of address
-func (c *Client) GetNextNonce(address types.Address) (uint64, error) {
+func (c *Client) GetNextNonce(address types.Address) (*big.Int, error) {
 	var result interface{}
 	if err := c.rpcClient.Call(&result, "cfx_getNextNonce", address); err != nil {
 		msg := fmt.Sprintf("rpc request cfx_getNextNonce %+v error", address)
-		return 0, types.WrapErrorf(err, msg)
+		return nil, types.WrapErrorf(err, msg)
 	}
+	return hexutil.DecodeBig(result.(string))
 
-	// remove prefix "0x"
-	result = string([]byte(result.(string))[2:])
-	nonce, err := strconv.ParseUint(result.(string), 16, 64)
-	if err != nil {
-		msg := fmt.Sprintf("parse uint %+v error", result)
-		return 0, types.WrapError(err, msg)
-	}
+	// // remove prefix "0x"
+	// result = string([]byte(result.(string))[2:])
+	// nonce, err := strconv.ParseUint(result.(string), 16, 64)
+	// if err != nil {
+	// 	msg := fmt.Sprintf("parse uint %+v error", result)
+	// 	return 0, types.WrapError(err, msg)
+	// }
 
-	return nonce, nil
+	// return nonce, nil
 }
 
 // GetEpochNumber returns the highest or specified epoch number.
@@ -294,23 +294,25 @@ func (c *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash, err
 		return "", types.WrapError(err, msg)
 	}
 
-	//check balance, return error if balance not enough
-	epoch := types.NewEpochNumber(tx.EpochHeight.ToInt())
-	balance, err := c.GetBalance(*tx.From, epoch)
-	if err != nil {
-		msg := fmt.Sprintf("get balance of %+v at ephoc %+v error", tx.From, epoch)
-		return "", types.WrapError(err, msg)
-	}
-	need := big.NewInt(int64(tx.Gas))
-	need = need.Add(tx.StorageLimit.ToInt(), need)
-	need = need.Mul(tx.GasPrice.ToInt(), need)
-	need = need.Add(tx.Value.ToInt(), need)
-	need = need.Add(tx.StorageLimit.ToInt(), need)
+	// commet it becasue there are some contract need not pay gas.
+	//
+	// //check balance, return error if balance not enough
+	// epoch := types.NewEpochNumber(tx.EpochHeight.ToInt())
+	// balance, err := c.GetBalance(*tx.From, epoch)
+	// if err != nil {
+	// 	msg := fmt.Sprintf("get balance of %+v at ephoc %+v error", tx.From, epoch)
+	// 	return "", types.WrapError(err, msg)
+	// }
+	// need := big.NewInt(int64(tx.Gas))
+	// need = need.Add(tx.StorageLimit.ToInt(), need)
+	// need = need.Mul(tx.GasPrice.ToInt(), need)
+	// need = need.Add(tx.Value.ToInt(), need)
+	// need = need.Add(tx.StorageLimit.ToInt(), need)
 
-	if balance.Cmp(need) < 0 {
-		msg := fmt.Sprintf("out of balance, need %+v but your balance is %+v", need, balance)
-		return "", types.WrapError(err, msg)
-	}
+	// if balance.Cmp(need) < 0 {
+	// 	msg := fmt.Sprintf("out of balance, need %+v but your balance is %+v", need, balance)
+	// 	return "", types.WrapError(err, msg)
+	// }
 
 	//sign
 	// fmt.Printf("ready to send transaction %+v\n\n", tx)
@@ -552,13 +554,14 @@ func (c *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) 
 			}
 		}
 
-		if tx.Nonce == 0 {
+		if tx.Nonce == nil {
 			nonce, err := c.GetNextNonce(*tx.From)
 			if err != nil {
 				msg := fmt.Sprintf("get nonce of {%+v} error", tx.From)
 				return types.WrapError(err, msg)
 			}
-			tx.Nonce = nonce
+			tmp := hexutil.Big(*nonce)
+			tx.Nonce = &tmp
 		}
 
 		if tx.GasPrice == nil {
@@ -586,7 +589,7 @@ func (c *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) 
 		}
 
 		// The gas and storage limit may be influnced by all fileds of transaction ,so set them at last step.
-		if tx.StorageLimit == nil || tx.Gas == 0 {
+		if tx.StorageLimit == nil || tx.Gas == nil {
 			callReq := new(types.CallRequest)
 			callReq.FillByUnsignedTx(tx)
 
@@ -596,8 +599,8 @@ func (c *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) 
 				return types.WrapError(err, msg)
 			}
 
-			if tx.Gas == 0 {
-				tx.Gas = sm.GasUsed.ToInt().Uint64()
+			if tx.Gas == nil {
+				tx.Gas = sm.GasUsed
 			}
 
 			if tx.StorageLimit == nil {

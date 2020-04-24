@@ -18,13 +18,13 @@ import (
 // UnsignedTransactionBase represents a transaction without To, Data and signature
 type UnsignedTransactionBase struct {
 	From         *Address
-	Nonce        uint64
+	Nonce        *hexutil.Big
 	GasPrice     *hexutil.Big
-	Gas          uint64
+	Gas          *hexutil.Big
 	Value        *hexutil.Big
 	StorageLimit *hexutil.Big
 	EpochHeight  *hexutil.Big
-	ChainID      uint64
+	ChainID      *hexutil.Big
 }
 
 // UnsignedTransaction represents a transaction without signature,
@@ -49,7 +49,8 @@ type unsignedTransactionForRlp struct {
 }
 
 // DefaultGas is the default gas in a transaction to transfer amount without any data.
-const defaultGas uint64 = 21000
+// const defaultGas uint64 = 21000
+var defaultGas *hexutil.Big = NewBigInt(21000)
 
 // DefaultGasPrice is the default gas price.
 var defaultGasPrice *hexutil.Big = NewBigInt(10000000000) // 10G drip
@@ -60,7 +61,7 @@ func (tx *UnsignedTransaction) ApplyDefault() {
 		tx.GasPrice = defaultGasPrice
 	}
 
-	if tx.Gas == 0 {
+	if tx.Gas == nil {
 		tx.Gas = defaultGas
 	}
 
@@ -114,7 +115,7 @@ func (tx *UnsignedTransaction) Decode(data []byte) error {
 	utxForRlp := new(unsignedTransactionForRlp)
 	err := rlp.DecodeBytes(data, utxForRlp)
 	if err != nil {
-		msg := fmt.Sprintf("decode data {%+v} to rlp error", data)
+		msg := fmt.Sprintf("decode data {%+x} to rlp error", data)
 		return WrapError(err, msg)
 	}
 
@@ -130,14 +131,14 @@ func (tx *UnsignedTransaction) toStructForRlp() *unsignedTransactionForRlp {
 	}
 
 	return &unsignedTransactionForRlp{
-		Nonce:        new(big.Int).SetUint64(tx.Nonce),
+		Nonce:        tx.Nonce.ToInt(),
 		GasPrice:     tx.GasPrice.ToInt(),
-		Gas:          new(big.Int).SetUint64(tx.Gas),
+		Gas:          tx.Gas.ToInt(),
 		To:           to,
 		Value:        tx.Value.ToInt(),
 		StorageLimit: tx.StorageLimit.ToInt(),
 		EpochHeight:  tx.EpochHeight.ToInt(),
-		ChainID:      new(big.Int).SetUint64(tx.ChainID),
+		ChainID:      tx.ChainID.ToInt(),
 		Data:         tx.Data,
 	}
 }
@@ -149,16 +150,19 @@ func (tx *unsignedTransactionForRlp) toUnsignedTransaction() *UnsignedTransactio
 	storageLimit := hexutil.Big(*tx.StorageLimit)
 	epochHeight := hexutil.Big(*tx.EpochHeight)
 
+	nonce := hexutil.Big(*tx.Nonce)
+	gas := hexutil.Big(*tx.Gas)
+	chainid := hexutil.Big(*tx.ChainID)
 	return &UnsignedTransaction{
 		UnsignedTransactionBase: UnsignedTransactionBase{
 			From:         nil,
-			Nonce:        tx.Nonce.Uint64(),
+			Nonce:        &nonce,
 			GasPrice:     &gasPrice,
-			Gas:          tx.Gas.Uint64(),
+			Gas:          &gas,
 			Value:        &value,
 			StorageLimit: &storageLimit,
 			EpochHeight:  &epochHeight,
-			ChainID:      tx.ChainID.Uint64(),
+			ChainID:      &chainid,
 		},
 		To:   &to,
 		Data: tx.Data,
