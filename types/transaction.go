@@ -4,12 +4,14 @@
 
 package types
 
-import "github.com/ethereum/go-ethereum/common/hexutil"
+import (
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
 
-// Transaction represents a transaction in Conflux.
-type Transaction struct {
+// TransactionCore represents a transaction without signature in Conflux
+type TransactionCore struct {
 	Hash             Hash         `json:"hash"`
-	None             *hexutil.Big `json:"nonce"`
+	Nonce            *hexutil.Big `json:"nonce"`
 	BlockHash        *Hash        `json:"blockHash,omitempty"`
 	TransactionIndex *hexutil.Big `json:"transactionIndex,omitempty"`
 	From             Address      `json:"from"`
@@ -20,13 +22,23 @@ type Transaction struct {
 	ContractCreated  *Address     `json:"contractCreated,omitempty"`
 	Data             string       `json:"data"`
 	Status           *hexutil.Big `json:"status,omitempty"`
-	V                *hexutil.Big `json:"v"`
-	R                *hexutil.Big `json:"r"`
-	S                *hexutil.Big `json:"s"`
+	ChainID          *hexutil.Big `json:"chainId,omitempty"`
+	EpochHeight      *hexutil.Big `json:"epochHeight,omitempty"`
+	StorageLimit     *hexutil.Big `json:"storageLimit,omitempty"`
 }
 
-// Receipt represents the transaction execution result in Conflux.
-type Receipt struct {
+// Transaction represents a transaction with signature in Conflux.
+// it is the response from conflux node when sending rpc request, such as cfx_getTransactionByHash
+type Transaction struct {
+	TransactionCore
+	V *hexutil.Big `json:"v"`
+	R *hexutil.Big `json:"r"`
+	S *hexutil.Big `json:"s"`
+}
+
+// TransactionReceipt represents the transaction execution result in Conflux.
+// it is the response from conflux node when sending rpc request, such as cfx_getTransactionReceipt
+type TransactionReceipt struct {
 	TransactionHash Hash         `json:"transactionHash"`
 	Index           uint         `json:"index"`
 	BlockHash       Hash         `json:"blockHash"`
@@ -39,15 +51,4 @@ type Receipt struct {
 	LogsBloom       Bloom        `json:"logsBloom"`
 	StateRoot       Hash         `json:"stateRoot"`
 	OutcomeStatus   uint8        `json:"outcomeStatus"`
-}
-
-// CallRequest represents a request to execute contract.
-type CallRequest struct {
-	From     *Address     `json:"from,omitempty"`
-	To       *Address     `json:"to,omitempty"`
-	GasPrice *hexutil.Big `json:"gasPrice,omitempty"`
-	Gas      *hexutil.Big `json:"gas,omitempty"`
-	Value    *hexutil.Big `json:"value,omitempty"`
-	Data     *string      `json:"data,omitempty"`
-	Nonce    *hexutil.Big `json:"nonce,omitempty"`
 }

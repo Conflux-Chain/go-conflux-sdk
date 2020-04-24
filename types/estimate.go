@@ -6,7 +6,7 @@ package types
 
 import "github.com/ethereum/go-ethereum/common/hexutil"
 
-//Estimate represents estimated gas will be used and storage will be collateralized when transaction excute
+//Estimate represents estimated gas will be used and storage will be collateralized when transaction excutes
 type Estimate struct {
 	GasUsed               *hexutil.Big `json:"gasUsed"`
 	StorageCollateralized *hexutil.Big `json:"storageCollateralized"`
