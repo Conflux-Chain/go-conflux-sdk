@@ -449,10 +449,3 @@ func ToCfxGeneralAddress(address common.Address) types.Address
 ```
 ToCfxGeneralAddress converts a normal address to conflux customerd general
 address whose hex string starts with '0x1'
-
-#### func  UnmarshalRPCResult
-
-```go
-func UnmarshalRPCResult(result interface{}, v interface{}) error
-```
-UnmarshalRPCResult unmarshals rpc result to v struct and fills in it
