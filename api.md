@@ -165,6 +165,17 @@ Call executes a message call transaction "request" at specified epoch, which is
 directly executed in the VM of the node, but never mined into the block chain
 and returns the contract execution result.
 
+#### func (*Client) CallRPC
+
+```go
+func (c *Client) CallRPC(result interface{}, method string, args ...interface{}) error
+```
+CallRPC performs a JSON-RPC call with the given arguments and unmarshals into
+result if no error occurred.
+
+The result must be a pointer so that package json can unmarshal into it. You can
+also pass nil, in which case the result is ignored.
+
 #### func (*Client) Close
 
 ```go
@@ -333,14 +344,6 @@ func (c *Client) GetTransactionReceipt(txHash types.Hash) (*types.TransactionRec
 ```
 GetTransactionReceipt returns the receipt of specified transaction hash. If no
 receipt is found, return nil.
-
-#### func (*Client) GetTransactionsFromPool
-
-```go
-func (c *Client) GetTransactionsFromPool() (*[]types.Transaction, error)
-```
-GetTransactionsFromPool returns all pending transactions in mempool of conflux
-node.
 
 #### func (*Client) SendRawTransaction
 
