@@ -36,6 +36,15 @@ func NewClient(nodeURL string) (*Client, error) {
 	}, nil
 }
 
+// CallRPC performs a JSON-RPC call with the given arguments and unmarshals into
+// result if no error occurred.
+//
+// The result must be a pointer so that package json can unmarshal into it. You
+// can also pass nil, in which case the result is ignored.
+func (c *Client) CallRPC(result interface{}, method string, args ...interface{}) error {
+	return c.rpcClient.Call(result, method, args...)
+}
+
 // SetAccountManager sets account manager for sign transaction
 func (c *Client) SetAccountManager(accountManager *AccountManager) {
 	c.accountManager = accountManager
@@ -260,29 +269,6 @@ func (c *Client) GetBlockRevertRateByHash(blockHash types.Hash) (*big.Float, err
 
 	riskRate := new(big.Float).Quo(riskFloat, maxUint256Float)
 	return riskRate, nil
-}
-
-// GetTransactionsFromPool returns all pending transactions in mempool of conflux node.
-func (c *Client) GetTransactionsFromPool() (*[]types.Transaction, error) {
-	var result interface{}
-
-	if err := c.rpcClient.Call(&result, "getTransactionsFromPool"); err != nil {
-		msg := fmt.Sprintf("rpc getTransactionsFromPool error")
-		return nil, types.WrapError(err, msg)
-	}
-
-	if result == nil {
-		return nil, nil
-	}
-
-	var tx []types.Transaction
-	if err := utils.UnmarshalRPCResult(result, &tx); err != nil {
-		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
-		return nil, types.WrapError(err, msg)
-	}
-
-	return &tx, nil
-
 }
 
 // SendTransaction signs and sends transaction to conflux node and returns the transaction hash.
