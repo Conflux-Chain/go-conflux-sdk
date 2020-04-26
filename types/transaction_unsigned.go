@@ -94,20 +94,12 @@ func (tx *UnsignedTransaction) Encode() ([]byte, error) {
 
 // EncodeWithSignature encodes tx with signature and return its RLP encoded data
 func (tx *UnsignedTransaction) EncodeWithSignature(v byte, r, s []byte) ([]byte, error) {
-	signedTx := signedTransactionForRlp{
-		UnsignedData: tx.toStructForRlp(),
-		V:            v,
-		R:            r,
-		S:            s,
-	}
-
-	encoded, err := rlp.EncodeToBytes(signedTx)
-	if err != nil {
-		msg := fmt.Sprintf("encode data {%+v} to bytes error", signedTx)
-		return nil, WrapError(err, msg)
-	}
-
-	return encoded, nil
+	signedTx := new(SignedTransaction)
+	signedTx.UnsignedTransaction = *tx
+	signedTx.V = v
+	signedTx.R = r
+	signedTx.S = s
+	return signedTx.Encode()
 }
 
 // Decode decodes RLP encoded data to tx
