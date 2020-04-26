@@ -231,10 +231,10 @@ func (c *Client) GetBestBlockHash() (types.Hash, error) {
 
 // GetBlockConfirmRiskByHash indicates the risk coefficient that
 // the pivot block of the epoch where the block is located becomes an normal block.
-func (c *Client) GetBlockConfirmRiskByHash(blockHash types.Hash) (*big.Int, error) {
+func (c *Client) GetBlockConfirmRiskByHash(blockhash types.Hash) (*big.Int, error) {
 	var result interface{}
 
-	args := []interface{}{blockHash}
+	args := []interface{}{blockhash}
 
 	if err := c.rpcClient.Call(&result, "cfx_getConfirmationRiskByHash", args...); err != nil {
 		msg := fmt.Sprintf("rpc cfx_getConfirmationRiskByHash %+v error", args)
@@ -244,6 +244,16 @@ func (c *Client) GetBlockConfirmRiskByHash(blockHash types.Hash) (*big.Int, erro
 	// fmt.Printf("GetTransactionConfirmRiskByHash result:%v\n", result)
 
 	if result == nil {
+
+		block, err := c.GetBlockByHash(blockhash)
+		if err != nil {
+			msg := fmt.Sprintf("get block by hash %+v error", blockhash)
+			return nil, types.WrapError(err, msg)
+		}
+		if block != nil && block.EpochNumber != nil {
+			return big.NewInt(0), nil
+		}
+
 		return nil, nil
 	}
 
