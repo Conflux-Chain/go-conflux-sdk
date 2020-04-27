@@ -7,13 +7,42 @@ keywords:
   - go
   - sdk
 ---
+# API Reference
+## Getting Started
+The go-conflux-sdk module is a collection of packages which contain specific functionality for the conflux ecosystem.
 
-# sdk
---
-    import "github.com/Conflux-Chain/go-conflux-sdk"
+- The package `sdk` is for interacting with conflux chain, account manager and operating smart contracts
+- The package `utils` contains useful helper functions for Dapp developers.
 
+## Install
+You can get Conflux Golang API directly or use go module as below
+```
+go get github.com/Conflux-Chain/go-conflux-sdk
+```
+You can also add the Conflux Golang API into vendor folder.
+```
+govendor fetch github.com/Conflux-Chain/go-conflux-sdk
+```
 
-## Usage
+After that you need to create a client instance with node url and an account manager instance.
+```go
+//create account manager and unlock account
+am := sdk.NewAccountManager("./keystore")
+err := am.TimedUnlockDefault("password", 30 * time.Second)
+if err != nil {
+	panic(err)
+}
+
+//init client
+client, err := sdk.NewClient("http://testnet-jsonrpc.conflux-chain.org:12537")
+if err != nil {
+	panic(err)
+}
+client.SetAccountManager(am)
+```
+## package sdk
+
+ import "github.com/Conflux-Chain/go-conflux-sdk"
 
 ### type AccountManager
 
@@ -424,12 +453,11 @@ func (c *Contract) SendTransaction(option *types.ContractMethodSendOption, metho
 ```
 SendTransaction sends a transaction to the contract method with args and returns
 its transaction hash
-# utils
---
+
+## package utils
+
     import "github.com/Conflux-Chain/go-conflux-sdk/utils"
 
-
-## Usage
 
 #### func  Keccak256
 
