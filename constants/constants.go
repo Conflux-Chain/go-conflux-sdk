@@ -10,7 +10,7 @@ const (
 
 const (
 	// MinGasprice represents the mininum gasprice required by conflux chain when sending transactions
-	// the value of main net is 1G drip
+	// the value of main net is 1 Gdrip
 	MinGasprice = 1000000000
 )
 

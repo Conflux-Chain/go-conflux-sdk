@@ -19,12 +19,12 @@ type ContractMethodSendOption UnsignedTransactionBase
 type CallRequest struct {
 	From         *Address     `json:"from,omitempty"`
 	To           *Address     `json:"to,omitempty"`
-	GasPrice     *hexutil.Big `json:"gas_price,omitempty"`
+	GasPrice     *hexutil.Big `json:"gasPrice,omitempty"`
 	Gas          *hexutil.Big `json:"gas,omitempty"`
 	Value        *hexutil.Big `json:"value,omitempty"`
 	Data         string       `json:"data,omitempty"`
 	Nonce        *hexutil.Big `json:"nonce,omitempty"`
-	StorageLimit *hexutil.Big `json:"storage_limit,omitempty"`
+	StorageLimit *hexutil.Big `json:"storageLimit,omitempty"`
 }
 
 // FillByUnsignedTx fills CallRequest fields by tx
