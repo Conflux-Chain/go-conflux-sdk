@@ -7,7 +7,6 @@ keywords:
   - go
   - sdk
 ---
-[toc]
 
 # sdk
 --
