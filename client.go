@@ -569,7 +569,7 @@ func (c *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) 
 
 			// conflux responsed gasprice offen be 0, but the min gasprice is 1 when sending transaction, so do this
 			if gasPrice.Cmp(big.NewInt(constants.MinGasprice)) < 1 {
-				gasPrice = big.NewInt(1)
+				gasPrice = big.NewInt(constants.MinGasprice)
 			}
 			tmp := hexutil.Big(*gasPrice)
 			tx.GasPrice = &tmp
