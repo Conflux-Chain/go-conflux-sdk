@@ -1,4 +1,14 @@
+---
+id: go_sdk
+title: Golang SDK
+custom_edit_url: https://github.com/Conflux-Chain/go-conflux-sdk/edit/master/api.md
+keywords:
+  - conflux
+  - go
+  - sdk
+---
 [toc]
+
 # sdk
 --
     import "github.com/Conflux-Chain/go-conflux-sdk"
