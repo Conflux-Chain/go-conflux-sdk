@@ -28,7 +28,7 @@ type BlockHeader struct {
 	Size                  *hexutil.Big    `json:"size,omitempty"`
 }
 
-// BlockSummary includes block header and a list transaction hashes
+// BlockSummary includes block header and a list of transaction hashes
 type BlockSummary struct {
 	BlockHeader
 	Transactions []Hash `json:"transactions"`

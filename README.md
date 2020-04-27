@@ -14,6 +14,10 @@ You can also add the Conflux Golang API into vendor folder.
 govendor fetch github.com/Conflux-Chain/go-conflux-sdk
 ```
 
+## Usage
+
+[api document](https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/api.md)
+
 ## Manage Accounts
 Use `AccountManager` struct to manage accounts at local machine.
 - Create/Import/Update/Delete an account.
@@ -60,49 +64,121 @@ To send a transaction, you need to sign the transaction at local machine, and se
 
 	`AccountManager.SignTransactionWithPassphrase(tx UnsignedTransaction, passphrase string)`
 
-- Send a signed transaction
+- Send a unsigned transaction
 
-    `Client.SendSignedTransaction(rawData []byte)`
+    `Client.SendTransaction(tx *types.UnsignedTransaction)`
+
+- Send a encoded transaction
+
+    `Client.SendRawTransaction(rawData []byte)`
+
+- Encode a encoded unsigned transaction with signature and send transaction
+
+    `Client.SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte)`
 
 To send multiple transactions at a time, you can unlock the account at first, then send multiple transactions without passphrase. To send a single transaction, you can just only send the transaction with passphrase.
 
 ## Deploy/Call Smart Contract
-To deploy or call a smart contract, you can sign a transaction with `Data` field set in `UnsignedTransaction` struct. When deploy a smart contract, you can use ***solc*** to compile the smart contract to get the contract bytecodes, which is set to the `Data` field. To all a contract, you can import the [ABI](https://github.com/ethereum/go-ethereum/tree/master/accounts/abi) library from [go-etherem](https://github.com/ethereum/go-ethereum) to get the encoded method call, which is set to the `Data` field.
+You can use `Client.DeployContract` to deploy a contract or use `Client.GetContract` to get a contract by deployed address. Then you can use the contract instance to operate contract, there are GetData/Call/SendTransaction. Please see [api document](https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/api.md) for detail.
 
-### ABI Example
+### Contract Example
 ```go
 package main
 
 import (
-	"encoding/json"
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"math/big"
+	"time"
 
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	sdk "github.com/Conflux-Chain/go-conflux-sdk"
+	"github.com/Conflux-Chain/go-conflux-sdk/types"
 )
 
 func main() {
-	abiJSON, err := ioutil.ReadFile(`E:\solidity\SimpleStorage\SimpleStorage.abi`)
+
+	//unlock account
+	am := sdk.NewAccountManager("./keystore")
+	err := am.TimedUnlockDefault("hello", 300*time.Second)
 	if err != nil {
-		fmt.Println("failed to read ABI file:", err)
-		return
+		panic(err)
 	}
 
-	var abi abi.ABI
-	if err = json.Unmarshal(abiJSON, &abi); err != nil {
-		fmt.Println("failed to unmarshal ABI JSON:", err)
-		return
-	}
-
-	var val *big.Int = big.NewInt(6)
-	encoded, err := abi.Pack("set", val)
+	//init client
+	client, err := sdk.NewClient("http://testnet-jsonrpc.conflux-chain.org:12537")
 	if err != nil {
-		fmt.Println("failed to pack ABI:", err)
-		return
+		panic(err)
+	}
+	client.SetAccountManager(am)
+
+	//deploy contract
+	abiPath := "./contract/erc20.abi"
+	bytecodePath := "./contract/erc20.bytecode"
+	var contract *sdk.Contract
+
+	abi, err := ioutil.ReadFile(abiPath)
+	if err != nil {
+		panic(err)
 	}
 
-	fmt.Println(hexutil.Encode(encoded))
+	bytecodeHexStr, err := ioutil.ReadFile(bytecodePath)
+	if err != nil {
+		panic(err)
+	}
+
+	bytecode, err := hex.DecodeString(string(bytecodeHexStr))
+	if err != nil {
+		panic(err)
+	}
+
+	doneChan := client.DeployContract(string(abi), bytecode, nil, time.Duration(time.Second*30), func(c sdk.Contractor, txhash *types.Hash, err error) {
+		if err != nil {
+			panic(err)
+		}
+		contract = c.(*sdk.Contract)
+		fmt.Printf("deploy contract by client.DeployContract done\ncontract address: %+v\ntxhash:%v\n\n", *contract.Address, txhash)
+	})
+
+	_ = <-doneChan
+	time.Sleep(30 * time.Second)
+
+	//get data for send/call contract method
+	data, err := contract.GetData("balanceOf", contract.Address.ToCommonAddress())
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("get data of method balanceOf is: 0x%x\n\n", *data)
+
+	//call contract method
+	user := types.Address("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302")
+	balance := &struct{ Balance *big.Int }{}
+	err = contract.Call(nil, balance, "balanceOf", user.ToCommonAddress())
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("address %v balance in contract is: %+v\n\n", user, balance)
+
+	//send transction for contract method
+	to := types.Address("0x160ebef20c1f739957bf9eecd040bce699cc42c6")
+	txhash, err := contract.SendTransaction(nil, "transfer", to.ToCommonAddress(), big.NewInt(10))
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("transfer %v erc20 token to %v done, tx hash: %v\n\n", 10, to, txhash)
+
+	fmt.Println("wait for transaction be confirmed...")
+	for {
+		time.Sleep(time.Duration(1) * time.Second)
+		tx, err := client.GetTransactionByHash(*txhash)
+		if err != nil {
+			panic(err)
+		}
+		if tx.Status != nil {
+			fmt.Printf("transaction is confirmed.")
+			break
+		}
+	}
 }
 ```
