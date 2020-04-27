@@ -19,7 +19,7 @@ type ContractMethodSendOption UnsignedTransactionBase
 type CallRequest struct {
 	From         *Address     `json:"from,omitempty"`
 	To           *Address     `json:"to,omitempty"`
-	GasPrice     *hexutil.Big `json:"gasPrice,omitempty"`
+	GasPrice     *hexutil.Big `json:"gas_price,omitempty"`
 	Gas          *hexutil.Big `json:"gas,omitempty"`
 	Value        *hexutil.Big `json:"value,omitempty"`
 	Data         string       `json:"data,omitempty"`

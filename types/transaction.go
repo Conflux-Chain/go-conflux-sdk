@@ -8,8 +8,9 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// TransactionCore represents a transaction without signature in Conflux
-type TransactionCore struct {
+// Transaction represents a transaction with signature in Conflux.
+// it is the response from conflux node when sending rpc request, such as cfx_getTransactionByHash
+type Transaction struct {
 	Hash             Hash         `json:"hash"`
 	Nonce            *hexutil.Big `json:"nonce"`
 	BlockHash        *Hash        `json:"blockHash,omitempty"`
@@ -25,12 +26,8 @@ type TransactionCore struct {
 	ChainID          *hexutil.Big `json:"chainId,omitempty"`
 	EpochHeight      *hexutil.Big `json:"epochHeight,omitempty"`
 	StorageLimit     *hexutil.Big `json:"storageLimit,omitempty"`
-}
 
-// Transaction represents a transaction with signature in Conflux.
-// it is the response from conflux node when sending rpc request, such as cfx_getTransactionByHash
-type Transaction struct {
-	TransactionCore
+	//signature
 	V *hexutil.Big `json:"v"`
 	R *hexutil.Big `json:"r"`
 	S *hexutil.Big `json:"s"`

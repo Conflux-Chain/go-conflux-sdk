@@ -9,11 +9,9 @@ const (
 )
 
 const (
-	MinGasprice = 1
-)
-
-const (
-	RpcConcurrence = 10
+	// MinGasprice represents the mininum gasprice required by conflux chain when sending transactions
+	// the value of main net is 1G drip
+	MinGasprice = 1000000000
 )
 
 var (
