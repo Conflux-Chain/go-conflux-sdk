@@ -21,7 +21,7 @@ import (
 // Client represents a client to interact with Conflux blockchain.
 type Client struct {
 	rpcClient      *rpc.Client
-	accountManager *AccountManager
+	accountManager AccountManagerOperator
 }
 
 // NewClient creates a new instance of Client with specified conflux node url.
@@ -46,7 +46,7 @@ func (c *Client) CallRPC(result interface{}, method string, args ...interface{})
 }
 
 // SetAccountManager sets account manager for sign transaction
-func (c *Client) SetAccountManager(accountManager *AccountManager) {
+func (c *Client) SetAccountManager(accountManager AccountManagerOperator) {
 	c.accountManager = accountManager
 }
 
