@@ -13,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// HTTPRequester represents a http requester
+// HTTPRequester is interface for emitting a http requester
 type HTTPRequester interface {
 	Get(url string) (resp *http.Response, err error)
 }
