@@ -36,10 +36,13 @@ type ClientOperator interface {
 	GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary, error)
 	GetBlockByEpoch(epoch *types.Epoch) (*types.Block, error)
 	GetBestBlockHash() (types.Hash, error)
+	GetBlockConfirmRiskByHash(blockhash types.Hash) (*big.Int, error)
+	GetBlockRevertRateByHash(blockHash types.Hash) (*big.Float, error)
 	SendRawTransaction(rawData []byte) (types.Hash, error)
 	SendTransaction(tx *types.UnsignedTransaction) (types.Hash, error)
 	SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte) (*types.Transaction, error)
 	Call(request types.CallRequest, epoch *types.Epoch) (*string, error)
+	CallRPC(result interface{}, method string, args ...interface{}) error
 	GetLogs(filter types.LogFilter) ([]types.Log, error)
 	GetTransactionByHash(txHash types.Hash) (*types.Transaction, error)
 	EstimateGasAndCollateral(request types.CallRequest) (*types.Estimate, error)
