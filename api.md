@@ -25,6 +25,15 @@ govendor fetch github.com/Conflux-Chain/go-conflux-sdk
 ```
 
 After that you need to create a client instance with node url and an account manager instance.
+```go
+client, err := sdk.NewClient(url)
+if err != nil {
+	fmt.Println("new client error:", err)
+	return
+}
+am := sdk.NewAccountManager("./keystore")
+client.SetAccountManager(am)
+```
 ## package sdk
 ```
 import "github.com/Conflux-Chain/go-conflux-sdk"
