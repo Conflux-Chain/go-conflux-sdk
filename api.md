@@ -388,7 +388,7 @@ transaction hash.
 #### func (*Client) SetAccountManager
 
 ```go
-func (c *Client) SetAccountManager(accountManager *AccountManager)
+func (c *Client) SetAccountManager(accountManager AccountManagerOperator)
 ```
 SetAccountManager sets account manager for sign transaction
 
