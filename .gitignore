@@ -13,3 +13,6 @@
 
 # Vscode related
 .vscode/
+
+# Mac 
+.DS_Store

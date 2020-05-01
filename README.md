@@ -82,6 +82,7 @@ To send multiple transactions at a time, you can unlock the account at first, th
 You can use `Client.DeployContract` to deploy a contract or use `Client.GetContract` to get a contract by deployed address. Then you can use the contract instance to operate contract, there are GetData/Call/SendTransaction. Please see [api document](https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/api.md) for detail.
 
 ### Contract Example
+Please refernce [contract example]((https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/example/example_contract)) for all source code
 ```go
 package main
 
@@ -99,7 +100,7 @@ import (
 func main() {
 
 	//unlock account
-	am := sdk.NewAccountManager("./keystore")
+	am := sdk.NewAccountManager("../keystore")
 	err := am.TimedUnlockDefault("hello", 300*time.Second)
 	if err != nil {
 		panic(err)
@@ -113,6 +114,7 @@ func main() {
 	client.SetAccountManager(am)
 
 	//deploy contract
+	fmt.Println("start deploy contract...")
 	abiPath := "./contract/erc20.abi"
 	bytecodePath := "./contract/erc20.bytecode"
 	var contract *sdk.Contract
@@ -141,17 +143,26 @@ func main() {
 	})
 
 	_ = <-doneChan
-	time.Sleep(30 * time.Second)
+	fmt.Println("wait for epoch excution for 15 seconds...")
+	time.Sleep(15 * time.Second)
+
+	// or get contract by deployed address
+	// deployedAt := types.Address("0x8d1089f00c40dcc290968b366889e85e67024662")
+	// contract, err := client.GetContract(string(abi), &deployedAt)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	//get data for send/call contract method
-	data, err := contract.GetData("balanceOf", contract.Address.ToCommonAddress())
+	user := types.Address("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302")
+	data, err := contract.GetData("balanceOf", user.ToCommonAddress())
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("get data of method balanceOf is: 0x%x\n\n", *data)
 
 	//call contract method
-	user := types.Address("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302")
+	//Note: the output struct type need match method output type of ABI, go type "*big.Int" match abi type "uint256", go type "struct{Balance *big.Int}" match abi tuple type "(balance uint256)"
 	balance := &struct{ Balance *big.Int }{}
 	err = contract.Call(nil, balance, "balanceOf", user.ToCommonAddress())
 	if err != nil {
@@ -168,7 +179,7 @@ func main() {
 
 	fmt.Printf("transfer %v erc20 token to %v done, tx hash: %v\n\n", 10, to, txhash)
 
-	fmt.Println("wait for transaction be confirmed...")
+	fmt.Println("wait for transaction be packed...")
 	for {
 		time.Sleep(time.Duration(1) * time.Second)
 		tx, err := client.GetTransactionByHash(*txhash)
@@ -176,9 +187,10 @@ func main() {
 			panic(err)
 		}
 		if tx.Status != nil {
-			fmt.Printf("transaction is confirmed.")
+			fmt.Printf("transaction is packed.")
 			break
 		}
 	}
 }
+
 ```
