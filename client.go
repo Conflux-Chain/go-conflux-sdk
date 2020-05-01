@@ -522,7 +522,13 @@ func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address,
 	tx.From = &from
 	tx.To = &to
 	tx.Value = amount
-	tx.Data = *data
+
+	if data == nil {
+		tx.Data = []byte{}
+	} else {
+		tx.Data = *data
+	}
+
 	err := c.ApplyUnsignedTransactionDefault(tx)
 	if err != nil {
 		msg := fmt.Sprintf("apply default field of transaction {%+v} error", tx)
