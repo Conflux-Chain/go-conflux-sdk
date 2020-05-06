@@ -26,6 +26,7 @@ govendor fetch github.com/Conflux-Chain/go-conflux-sdk
 
 After that you need to create a client instance with node url and an account manager instance.
 ```go
+url:= "http://testnet-jsonrpc.conflux-chain.org:12537"
 client, err := sdk.NewClient(url)
 if err != nil {
 	fmt.Println("new client error:", err)
@@ -220,7 +221,7 @@ Close closes the client, aborting any in-flight requests.
 #### func (*Client) CreateUnsignedTransaction
 
 ```go
-func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data *[]byte) (*types.UnsignedTransaction, error)
+func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (*types.UnsignedTransaction, error)
 ```
 CreateUnsignedTransaction creates an unsigned transaction by parameters, and the
 other fields will be set to values fetched from conflux node.
@@ -434,7 +435,7 @@ the resultPtr should be a pointer of the method output struct type.
 #### func (*Contract) GetData
 
 ```go
-func (c *Contract) GetData(method string, args ...interface{}) (*[]byte, error)
+func (c *Contract) GetData(method string, args ...interface{}) ([]byte, error)
 ```
 GetData packs the given method name to conform the ABI of the contract "c".
 Method call's data will consist of method_id, args0, arg1, ... argN. Method id
