@@ -20,7 +20,7 @@ type HTTPRequester interface {
 
 // Contractor is interface of contract operator
 type Contractor interface {
-	GetData(method string, args ...interface{}) (*[]byte, error)
+	GetData(method string, args ...interface{}) ([]byte, error)
 	Call(option *types.ContractMethodCallOption, resultPtr interface{}, method string, args ...interface{}) error
 	SendTransaction(option *types.ContractMethodSendOption, method string, args ...interface{}) (*types.Hash, error)
 }
@@ -49,7 +49,7 @@ type ClientOperator interface {
 	EstimateGasAndCollateral(request types.CallRequest) (*types.Estimate, error)
 	GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error)
 	GetTransactionReceipt(txHash types.Hash) (*types.TransactionReceipt, error)
-	CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data *[]byte) (*types.UnsignedTransaction, error)
+	CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (*types.UnsignedTransaction, error)
 	ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) error
 	Debug(method string, args ...interface{}) (interface{}, error)
 	Close()

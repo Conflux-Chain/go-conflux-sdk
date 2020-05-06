@@ -517,17 +517,12 @@ func (c *Client) GetTransactionReceipt(txHash types.Hash) (*types.TransactionRec
 
 // CreateUnsignedTransaction creates an unsigned transaction by parameters,
 // and the other fields will be set to values fetched from conflux node.
-func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data *[]byte) (*types.UnsignedTransaction, error) {
+func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (*types.UnsignedTransaction, error) {
 	tx := new(types.UnsignedTransaction)
 	tx.From = &from
 	tx.To = &to
 	tx.Value = amount
-
-	if data == nil {
-		tx.Data = []byte{}
-	} else {
-		tx.Data = *data
-	}
+	tx.Data = data
 
 	err := c.ApplyUnsignedTransactionDefault(tx)
 	if err != nil {

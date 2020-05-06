@@ -24,14 +24,14 @@ type Contract struct {
 // of 4 bytes and arguments are all 32 bytes.
 // Method ids are created from the first 4 bytes of the hash of the
 // methods string signature. (signature = baz(uint32,string32))
-func (c *Contract) GetData(method string, args ...interface{}) (*[]byte, error) {
+func (c *Contract) GetData(method string, args ...interface{}) ([]byte, error) {
 	packed, err := c.ABI.Pack(method, args...)
 	if err != nil {
 		msg := fmt.Sprintf("encode method %+v with args %+v error", method, args)
 		return nil, types.WrapError(err, msg)
 	}
 
-	return &packed, nil
+	return packed, nil
 }
 
 // Call calls to the contract method with args and fills the excuted result to the "resultPtr".
@@ -50,7 +50,7 @@ func (c *Contract) Call(option *types.ContractMethodCallOption, resultPtr interf
 		tx.UnsignedTransactionBase = types.UnsignedTransactionBase(*option)
 	}
 	tx.To = c.Address
-	tx.Data = *data
+	tx.Data = data
 	callRequest := new(types.CallRequest)
 	callRequest.FillByUnsignedTx(tx)
 
@@ -93,7 +93,7 @@ func (c *Contract) SendTransaction(option *types.ContractMethodSendOption, metho
 		tx.UnsignedTransactionBase = types.UnsignedTransactionBase(*option)
 	}
 	tx.To = c.Address
-	tx.Data = *data
+	tx.Data = data
 
 	err = c.Client.ApplyUnsignedTransactionDefault(tx)
 	if err != nil {

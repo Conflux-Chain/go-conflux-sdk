@@ -73,7 +73,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("get data of method balanceOf is: 0x%x\n\n", *data)
+	fmt.Printf("get data of method balanceOf is: 0x%x\n\n", data)
 
 	//call contract method
 	//Note: the output struct type need match method output type of ABI, go type "*big.Int" match abi type "uint256", go type "struct{Balance *big.Int}" match abi tuple type "(balance uint256)"

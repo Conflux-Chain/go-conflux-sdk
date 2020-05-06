@@ -30,11 +30,12 @@ func main() {
 	//send 0.01 cfx
 	tmp, _ := new(big.Int).SetString("1000000000000000", 10)
 	value := hexutil.Big(*tmp)
-	utx, err := client.CreateUnsignedTransaction(types.Address("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"), types.Address("0x1cad0b19bb29d4674531d6f115237e16afce377d"), &value, &[]byte{})
+	utx, err := client.CreateUnsignedTransaction(types.Address("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"), types.Address("0x1cad0b19bb29d4674531d6f115237e16afce377d"), &value, nil)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("creat a new unsigned transaction %+v\n\n", utx)
+
 	txhash, err := client.SendTransaction(utx)
 	if err != nil {
 		panic(err)
