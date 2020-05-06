@@ -82,7 +82,7 @@ To send multiple transactions at a time, you can unlock the account at first, th
 You can use `Client.DeployContract` to deploy a contract or use `Client.GetContract` to get a contract by deployed address. Then you can use the contract instance to operate contract, there are GetData/Call/SendTransaction. Please see [api document](https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/api.md) for detail.
 
 ### Contract Example
-Please refernce [contract example]((https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/example/example_contract)) for all source code
+Please reference [contract example]((https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/example/example_contract)) for all source code
 ```go
 package main
 
