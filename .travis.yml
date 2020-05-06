@@ -11,5 +11,5 @@ notifications:
         recipients:
         - wangdayong228@163.com
         - resodo.liu@gmail.com
-        on_success: never # default: change
+        on_success: change # default: change
         on_failure: always # default: always
