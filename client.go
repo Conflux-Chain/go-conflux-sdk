@@ -5,6 +5,7 @@
 package sdk
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/Conflux-Chain/go-conflux-sdk/constants"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
-	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -21,7 +21,7 @@ import (
 // Client represents a client to interact with Conflux blockchain.
 type Client struct {
 	rpcClient      *rpc.Client
-	accountManager *AccountManager
+	accountManager AccountManagerOperator
 }
 
 // NewClient creates a new instance of Client with specified conflux node url.
@@ -46,7 +46,7 @@ func (c *Client) CallRPC(result interface{}, method string, args ...interface{})
 }
 
 // SetAccountManager sets account manager for sign transaction
-func (c *Client) SetAccountManager(accountManager *AccountManager) {
+func (c *Client) SetAccountManager(accountManager AccountManagerOperator) {
 	c.accountManager = accountManager
 }
 
@@ -148,7 +148,7 @@ func (c *Client) GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockSummar
 	}
 
 	var block types.BlockSummary
-	if err := utils.UnmarshalRPCResult(result, &block); err != nil {
+	if err := unmarshalRPCResult(result, &block); err != nil {
 		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
 		return nil, types.WrapError(err, msg)
 	}
@@ -171,7 +171,7 @@ func (c *Client) GetBlockByHash(blockHash types.Hash) (*types.Block, error) {
 	}
 
 	var block types.Block
-	if err := utils.UnmarshalRPCResult(result, &block); err != nil {
+	if err := unmarshalRPCResult(result, &block); err != nil {
 		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
 		return nil, types.WrapError(err, msg)
 	}
@@ -190,7 +190,7 @@ func (c *Client) GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary
 	}
 
 	var block types.BlockSummary
-	if err := utils.UnmarshalRPCResult(result, &block); err != nil {
+	if err := unmarshalRPCResult(result, &block); err != nil {
 		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
 		return nil, types.WrapError(err, msg)
 	}
@@ -209,7 +209,7 @@ func (c *Client) GetBlockByEpoch(epoch *types.Epoch) (*types.Block, error) {
 	}
 
 	var block types.Block
-	if err := utils.UnmarshalRPCResult(result, &block); err != nil {
+	if err := unmarshalRPCResult(result, &block); err != nil {
 		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
 		return nil, types.WrapError(err, msg)
 	}
@@ -406,7 +406,7 @@ func (c *Client) Call(request types.CallRequest, epoch *types.Epoch) (*string, e
 	}
 
 	var resultHexStr string
-	if err := utils.UnmarshalRPCResult(rpcResult, &resultHexStr); err != nil {
+	if err := unmarshalRPCResult(rpcResult, &resultHexStr); err != nil {
 		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", rpcResult)
 		return nil, types.WrapError(err, msg)
 	}
@@ -423,7 +423,7 @@ func (c *Client) GetLogs(filter types.LogFilter) ([]types.Log, error) {
 	}
 
 	var log []types.Log
-	if err := utils.UnmarshalRPCResult(result, &log); err != nil {
+	if err := unmarshalRPCResult(result, &log); err != nil {
 		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
 		return nil, types.WrapError(err, msg)
 	}
@@ -446,7 +446,7 @@ func (c *Client) GetTransactionByHash(txHash types.Hash) (*types.Transaction, er
 	}
 
 	var tx types.Transaction
-	if err := utils.UnmarshalRPCResult(result, &tx); err != nil {
+	if err := unmarshalRPCResult(result, &tx); err != nil {
 		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
 		return nil, types.WrapError(err, msg)
 	}
@@ -466,7 +466,7 @@ func (c *Client) EstimateGasAndCollateral(request types.CallRequest) (*types.Est
 		return nil, types.WrapError(err, msg)
 	}
 	var estimate types.Estimate
-	if err := utils.UnmarshalRPCResult(result, &estimate); err != nil {
+	if err := unmarshalRPCResult(result, &estimate); err != nil {
 		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
 		return nil, types.WrapError(err, msg)
 	}
@@ -484,7 +484,7 @@ func (c *Client) GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error) {
 	}
 
 	var blocks []types.Hash
-	if err := utils.UnmarshalRPCResult(result, &blocks); err != nil {
+	if err := unmarshalRPCResult(result, &blocks); err != nil {
 		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
 		return nil, types.WrapError(err, msg)
 	}
@@ -507,7 +507,7 @@ func (c *Client) GetTransactionReceipt(txHash types.Hash) (*types.TransactionRec
 	}
 
 	var receipt types.TransactionReceipt
-	if err := utils.UnmarshalRPCResult(result, &receipt); err != nil {
+	if err := unmarshalRPCResult(result, &receipt); err != nil {
 		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
 		return nil, types.WrapError(err, msg)
 	}
@@ -517,12 +517,13 @@ func (c *Client) GetTransactionReceipt(txHash types.Hash) (*types.TransactionRec
 
 // CreateUnsignedTransaction creates an unsigned transaction by parameters,
 // and the other fields will be set to values fetched from conflux node.
-func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data *[]byte) (*types.UnsignedTransaction, error) {
+func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (*types.UnsignedTransaction, error) {
 	tx := new(types.UnsignedTransaction)
 	tx.From = &from
 	tx.To = &to
 	tx.Value = amount
-	tx.Data = *data
+	tx.Data = data
+
 	err := c.ApplyUnsignedTransactionDefault(tx)
 	if err != nil {
 		msg := fmt.Sprintf("apply default field of transaction {%+v} error", tx)
@@ -707,4 +708,19 @@ func (c *Client) GetContract(abiJSON string, deployedAt *types.Address) (*Contra
 // Close closes the client, aborting any in-flight requests.
 func (c *Client) Close() {
 	c.rpcClient.Close()
+}
+
+func unmarshalRPCResult(result interface{}, v interface{}) error {
+	encoded, err := json.Marshal(result)
+	if err != nil {
+		msg := fmt.Sprintf("json marshal %v error", result)
+		return types.WrapError(err, msg)
+	}
+
+	if err = json.Unmarshal(encoded, v); err != nil {
+		msg := fmt.Sprintf("json unmarshal %v error", encoded)
+		return types.WrapError(err, msg)
+	}
+
+	return nil
 }

@@ -14,7 +14,7 @@ The go-conflux-sdk module is a collection of packages which contain specific fun
 - The package `sdk` is for interacting with conflux chain, account manager and operating smart contracts
 - The package `utils` contains useful helper functions for Dapp developers.
 
-## Install
+## Installation
 You can get Conflux Golang API directly or use go module as below
 ```
 go get github.com/Conflux-Chain/go-conflux-sdk
@@ -26,23 +26,20 @@ govendor fetch github.com/Conflux-Chain/go-conflux-sdk
 
 After that you need to create a client instance with node url and an account manager instance.
 ```go
-//create account manager and unlock account
+url:= "http://testnet-jsonrpc.conflux-chain.org:12537"
+client, err := sdk.NewClient(url)
+if err != nil {
+	fmt.Println("new client error:", err)
+	return
+}
 am := sdk.NewAccountManager("./keystore")
-err := am.TimedUnlockDefault("password", 30 * time.Second)
-if err != nil {
-	panic(err)
-}
-
-//init client
-client, err := sdk.NewClient("http://testnet-jsonrpc.conflux-chain.org:12537")
-if err != nil {
-	panic(err)
-}
 client.SetAccountManager(am)
 ```
 ## package sdk
+```
+import "github.com/Conflux-Chain/go-conflux-sdk"
+```
 
- import "github.com/Conflux-Chain/go-conflux-sdk"
 
 ### type AccountManager
 
@@ -224,7 +221,7 @@ Close closes the client, aborting any in-flight requests.
 #### func (*Client) CreateUnsignedTransaction
 
 ```go
-func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data *[]byte) (*types.UnsignedTransaction, error)
+func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (*types.UnsignedTransaction, error)
 ```
 CreateUnsignedTransaction creates an unsigned transaction by parameters, and the
 other fields will be set to values fetched from conflux node.
@@ -286,7 +283,7 @@ found, return nil.
 #### func (*Client) GetBlockConfirmRiskByHash
 
 ```go
-func (c *Client) GetBlockConfirmRiskByHash(blockHash types.Hash) (*big.Int, error)
+func (c *Client) GetBlockConfirmRiskByHash(blockhash types.Hash) (*big.Int, error)
 ```
 GetBlockConfirmRiskByHash indicates the risk coefficient that the pivot block of
 the epoch where the block is located becomes an normal block.
@@ -363,7 +360,7 @@ GetLogs returns logs that matching the specified filter.
 #### func (*Client) GetNextNonce
 
 ```go
-func (c *Client) GetNextNonce(address types.Address) (uint64, error)
+func (c *Client) GetNextNonce(address types.Address) (*big.Int, error)
 ```
 GetNextNonce returns the next transaction nonce of address
 
@@ -401,7 +398,7 @@ transaction hash.
 #### func (*Client) SetAccountManager
 
 ```go
-func (c *Client) SetAccountManager(accountManager *AccountManager)
+func (c *Client) SetAccountManager(accountManager AccountManagerOperator)
 ```
 SetAccountManager sets account manager for sign transaction
 
@@ -417,9 +414,9 @@ signature "r,s,v" and sends it to node, and returns responsed transaction.
 
 ```go
 type Contract struct {
-        ABI     abi.ABI
-        Client  ClientOperator
-        Address *types.Address
+	ABI     abi.ABI
+	Client  ClientOperator
+	Address *types.Address
 }
 ```
 
@@ -438,7 +435,7 @@ the resultPtr should be a pointer of the method output struct type.
 #### func (*Contract) GetData
 
 ```go
-func (c *Contract) GetData(method string, args ...interface{}) (*[]byte, error)
+func (c *Contract) GetData(method string, args ...interface{}) ([]byte, error)
 ```
 GetData packs the given method name to conform the ABI of the contract "c".
 Method call's data will consist of method_id, args0, arg1, ... argN. Method id
@@ -453,10 +450,10 @@ func (c *Contract) SendTransaction(option *types.ContractMethodSendOption, metho
 ```
 SendTransaction sends a transaction to the contract method with args and returns
 its transaction hash
-
 ## package utils
-
-    import "github.com/Conflux-Chain/go-conflux-sdk/utils"
+```
+import "github.com/Conflux-Chain/go-conflux-sdk/utils"
+```
 
 
 #### func  Keccak256

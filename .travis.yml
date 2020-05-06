@@ -1,0 +1,15 @@
+language: go
+go:
+    - 1.9.x
+    - 1.14.x
+os:
+    - linux
+    - osx
+    - windows
+notifications:
+    email:
+        recipients:
+        - wangdayong228@163.com
+        - resodo.liu@gmail.com
+        on_success: change # default: change
+        on_failure: always # default: always
