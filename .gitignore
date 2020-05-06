@@ -16,3 +16,6 @@
 
 # Mac 
 .DS_Store
+
+# go
+go.sum
