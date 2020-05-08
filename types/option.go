@@ -16,7 +16,16 @@ type ContractDeployOption struct {
 }
 
 // ContractMethodCallOption for setting option when call contract method
-type ContractMethodCallOption UnsignedTransactionBase
+type ContractMethodCallOption struct {
+	From         *Address
+	Nonce        *hexutil.Big
+	GasPrice     *hexutil.Big
+	Gas          *hexutil.Big
+	Value        *hexutil.Big
+	StorageLimit *hexutil.Big
+	ChainID      *hexutil.Big
+	Epoch        *Epoch
+}
 
 // ContractMethodSendOption for setting option when call contract method
 type ContractMethodSendOption UnsignedTransactionBase
@@ -34,22 +43,35 @@ type CallRequest struct {
 }
 
 // FillByUnsignedTx fills CallRequest fields by tx
-func (cq *CallRequest) FillByUnsignedTx(tx *UnsignedTransaction) {
-	cq.From = tx.From
-	cq.To = tx.To
-	cq.GasPrice = tx.GasPrice
-	cq.Value = tx.Value
-	cq.StorageLimit = tx.StorageLimit
+func (request *CallRequest) FillByUnsignedTx(tx *UnsignedTransaction) {
+	if tx != nil {
+		request.From = tx.From
+		request.To = tx.To
+		request.GasPrice = tx.GasPrice
+		request.Value = tx.Value
+		request.StorageLimit = tx.StorageLimit
 
-	if tx.Gas != nil {
-		cq.Gas = tx.Gas
+		if tx.Gas != nil {
+			request.Gas = tx.Gas
+		}
+
+		_data := "0x" + hex.EncodeToString(tx.Data)
+		request.Data = _data
+
+		if tx.Nonce != nil {
+			request.Nonce = tx.Nonce
+		}
 	}
+}
 
-	_data := "0x" + hex.EncodeToString(tx.Data)
-	cq.Data = _data
-
-	if tx.Nonce != nil {
-		cq.Nonce = tx.Nonce
+// FillByCallOption fills CallRequest fields by
+func (request *CallRequest) FillByCallOption(option *ContractMethodCallOption) {
+	if option != nil {
+		request.From = option.From
+		request.GasPrice = option.GasPrice
+		request.Gas = option.Gas
+		request.Value = option.Value
+		request.Nonce = option.Nonce
+		request.StorageLimit = option.StorageLimit
 	}
-
 }

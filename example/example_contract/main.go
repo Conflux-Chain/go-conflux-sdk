@@ -48,16 +48,38 @@ func main() {
 		panic(err)
 	}
 
-	doneChan := client.DeployContract(string(abi), bytecode, nil, time.Duration(time.Second*30), func(c sdk.Contractor, txhash *types.Hash, err error) {
-		if err != nil {
-			panic(err)
-		}
-		contract = c.(*sdk.Contract)
-		fmt.Printf("deploy contract by client.DeployContract done\ncontract address: %+v\ntxhash:%v\n\n", *contract.Address, txhash)
-	})
+	// doneChan := client.DeployContract(string(abi), bytecode, nil, time.Duration(time.Second*30), func(c sdk.Contractor, txhash *types.Hash, err error) {
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	contract = c.(*sdk.Contract)
+	// 	fmt.Printf("deploy contract by client.DeployContract done\ncontract address: %+v\ntxhash:%v\n\n", *contract.Address, txhash)
+	// })
+	state := client.DeployContract(nil, abi, bytecode, big.NewInt(100000), "biu", uint8(10), "BIU")
 
-	_ = <-doneChan
-	fmt.Println("wait for epoch excution for 15 seconds...")
+	_ = <-state.DoneChannel
+	// doneChan := client.DeployContract(string(abi), bytecode, nil, time.Duration(time.Second*30), func(c sdk.Contractor, txhash *types.Hash, err error) {
+	if state.Error != nil {
+		panic(state.Error)
+	}
+	contract = state.DeployedContract
+	fmt.Printf("deploy contract by client.DeployContract done\ncontract address: %+v\ntxhash:%v\n\n", contract.Address, state.TransactionHash)
+
+	// for {
+	// 	select {
+	// 	case contract := <-state.DoneChannel:
+	// 		fmt.Printf("deploy done, contract: %+v\n\n", contract)
+	// 		break
+	// 	case txhash := <-state.TransactionSended:
+	// 		fmt.Printf("tx sended, hash: %v\n\n", txhash)
+	// 	case err := <-state.Error:
+	// 		fmt.Printf("deploy error: %v\n\n", err)
+	// 		break
+	// 		// default:
+	// 		// 	fmt.Println("no signal")
+	// 	}
+	// }
+	// fmt.Println("wait for epoch excution for 15 seconds...")
 	time.Sleep(15 * time.Second)
 
 	// or get contract by deployed address
