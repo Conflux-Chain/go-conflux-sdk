@@ -45,19 +45,17 @@ func (c *Contract) Call(option *types.ContractMethodCallOption, resultPtr interf
 		return types.WrapError(err, msg)
 	}
 
-	tx := new(types.UnsignedTransaction)
-	if option != nil {
-		tx.UnsignedTransactionBase = types.UnsignedTransactionBase(*option)
-	}
-	tx.To = c.Address
-	tx.Data = data
 	callRequest := new(types.CallRequest)
-	callRequest.FillByUnsignedTx(tx)
-
+	callRequest.To = c.Address
+	callRequest.Data = "0x" + hex.EncodeToString(data)
+	callRequest.FillByCallOption(option)
 	// j, err := json.Marshal(callRequest)
 	// fmt.Printf("callrequest of call: %s, err:%+v\n\n", j, err)
-
-	resultHexStr, err := c.Client.Call(*callRequest, types.EpochLatestState)
+	var epoch *types.Epoch = nil
+	if option != nil && option.Epoch != nil {
+		epoch = option.Epoch
+	}
+	resultHexStr, err := c.Client.Call(*callRequest, epoch)
 
 	if len(*resultHexStr) < 2 {
 		return fmt.Errorf("call response string %v length smaller than 2", resultHexStr)
