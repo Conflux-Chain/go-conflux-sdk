@@ -14,3 +14,6 @@ notifications:
         - resodo.liu@gmail.com
         on_success: change # default: change
         on_failure: always # default: always
+
+env:
+    - GO111MODULE=on
