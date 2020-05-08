@@ -2,12 +2,18 @@ package types
 
 import (
 	"encoding/hex"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // ContractDeployOption for setting option when deploying contract
-type ContractDeployOption UnsignedTransactionBase
+type ContractDeployOption struct {
+	UnsignedTransactionBase
+	// TimeoutInSecond represents the timeout of deploy contract,
+	// default value is 0 which means never timeout
+	Timeout time.Duration
+}
 
 // ContractMethodCallOption for setting option when call contract method
 type ContractMethodCallOption UnsignedTransactionBase

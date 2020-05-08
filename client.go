@@ -631,7 +631,7 @@ func (c *Client) DeployContract(abiJSON string, bytecode []byte, option *types.C
 
 	tx := new(types.UnsignedTransaction)
 	if option != nil {
-		tx.UnsignedTransactionBase = types.UnsignedTransactionBase(*option)
+		tx.UnsignedTransactionBase = types.UnsignedTransactionBase(option.UnsignedTransactionBase)
 	}
 	tx.Data = bytecode
 
@@ -690,6 +690,147 @@ func (c *Client) DeployContract(abiJSON string, bytecode []byte, option *types.C
 
 	}(txhash)
 	return doneChan
+}
+
+// DeployContractWithConstructor deploys a contract Function A deploys a contract synchronously
+// by abiJSON, bytecode and option. It returns a channel for notifying when deploy completed.
+// And the callback for handling the deploy result.
+func (c *Client) DeployContractWithConstructor(option *types.ContractDeployOption, abiJSON []byte,
+	bytecode []byte, constroctorParams ...interface{}) ContractDeployState {
+	doneChan := make(chan Contract, 1)
+	errChan := make(chan error, 1)
+	hashChan := make(chan types.Hash, 1)
+
+	cds := ContractDeployState{
+		DeployDone:        doneChan,
+		TransactionSended: hashChan,
+		Error:             errChan,
+	}
+
+	//generate ABI
+	var abi abi.ABI
+	err := abi.UnmarshalJSON([]byte(abiJSON))
+	if err != nil {
+		msg := fmt.Sprintf("unmarshal json {%+v} to ABI error", abiJSON)
+		errChan <- types.WrapError(err, msg)
+		return cds
+	}
+
+	tx := new(types.UnsignedTransaction)
+	if option != nil {
+		tx.UnsignedTransactionBase = types.UnsignedTransactionBase(option.UnsignedTransactionBase)
+	}
+
+	//recreate contract bytecode with consturctor params
+	if len(constroctorParams) > 0 {
+		input, err := abi.Pack("", constroctorParams...)
+		if err != nil {
+			msg := fmt.Sprintf("encode constrctor with args %+v error", constroctorParams)
+			errChan <- types.WrapError(err, msg)
+			return cds
+		}
+
+		bytecode = append(bytecode, input...)
+	}
+	tx.Data = bytecode
+
+	//deploy contract
+	txhash, err := c.SendTransaction(tx)
+	if err != nil {
+		msg := fmt.Sprintf("send transaction {%+v} error", tx)
+		errChan <- types.WrapError(err, msg)
+		return cds
+	}
+	hashChan <- txhash
+
+	//wait packed
+	// timeoutIns := 0
+	// if option != nil {
+	// 	// timeoutIns = option.TimeoutInSecond
+	// }
+	// if timeoutIns == 0 {
+	// 	timeoutIns = 3600
+	// }
+
+	go func(_txhash types.Hash) {
+		// timeout := time.After(time.Duration(_timeoutIns) * time.Second)
+		timeout := time.After(3600 * time.Second)
+		if option != nil && option.Timeout != 0 {
+			timeout = time.After(option.Timeout)
+		}
+
+		ticker := time.Tick(2000 * time.Millisecond)
+		// Keep trying until we're time out or get a result or get an error
+		for {
+			select {
+			// Got a timeout! fail with a timeout error
+			case t := <-timeout:
+				msg := fmt.Sprintf("deploy contract time out after %v, txhash is %+v", t, _txhash)
+				errChan <- errors.New(msg)
+				return
+			// Got a tick, we should check on checkSomething()
+			case <-ticker:
+				transaction, err := c.GetTransactionByHash(txhash)
+				if err != nil {
+					msg := fmt.Sprintf("get transaction receipt of txhash %+v error", txhash)
+					errChan <- types.WrapError(err, msg)
+					return
+				}
+
+				if transaction.Status != nil {
+					if transaction.Status.ToInt().Uint64() == 1 {
+						msg := fmt.Sprintf("transaction is packed but it is failed,the txhash is %+v", _txhash)
+						errChan <- errors.New(msg)
+						return
+					}
+
+					doneChan <- Contract{abi, c, transaction.ContractCreated}
+					return
+				}
+			}
+		}
+	}(txhash)
+
+	// go func(_txhash types.Hash, timeout int) {
+	// 	sleepTime := 2
+	// 	if timeout == 0 {
+	// 		timeout = constants.MaxInt
+	// 	}
+
+	// 	loopCnt := timeout / sleepTime
+	// 	if loopCnt == 0 {
+	// 		loopCnt = 1
+	// 	}
+
+	// 	for i := 0; i < loopCnt; i++ {
+	// 		transaction, err := c.GetTransactionByHash(txhash)
+	// 		if err != nil {
+	// 			msg := fmt.Sprintf("get transaction receipt of txhash %+v error", txhash)
+	// 			ec <- errors.New(msg)
+	// 			return
+	// 		}
+
+	// 		if transaction.Status != nil {
+	// 			if transaction.Status.ToInt().Uint64() == 1 {
+	// 				msg := fmt.Sprintf("transaction is packed but it is failed,the txhash is %+v", _txhash)
+	// 				ec <- errors.New(msg)
+	// 				return
+	// 			}
+
+	// 			ddc <- Contract{abi, c, transaction.ContractCreated}
+	// 			return
+	// 		}
+	// 		time.Sleep(2 * time.Second)
+	// 	}
+
+	// 	msg := fmt.Sprintf("deploy contract timeout after %+v seconds, txhash is %+v", timeout, _txhash)
+	// 	ec <- errors.New(msg)
+	// 	return
+	// 	// callback(nil, &_txhash, errors.New(msg))
+	// 	// doneChan <- struct{}{}
+
+	// }(txhash, timeoutIns)
+	return cds
 }
 
 // GetContract creates a contract instance according to abi json and it's deployed address

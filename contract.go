@@ -19,6 +19,13 @@ type Contract struct {
 	Address *types.Address
 }
 
+// ContractDeployState for state change notification when deploying contract
+type ContractDeployState struct {
+	DeployDone        <-chan Contract
+	TransactionSended <-chan types.Hash
+	Error             <-chan error
+}
+
 // GetData packs the given method name to conform the ABI of the contract "c". Method call's data
 // will consist of method_id, args0, arg1, ... argN. Method id consists
 // of 4 bytes and arguments are all 32 bytes.
