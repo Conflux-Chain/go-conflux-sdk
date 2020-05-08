@@ -17,3 +17,10 @@ const (
 var (
 	MaxUint256, _ = new(big.Int).SetString("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", 0)
 )
+
+const (
+	MaxUint = ^uint(0)
+	MinUint = 0
+	MaxInt  = int(MaxUint >> 1)
+	MinInt  = -MaxInt - 1
+)

@@ -54,7 +54,9 @@ type ClientOperator interface {
 	Debug(method string, args ...interface{}) (interface{}, error)
 	Close()
 	GetContract(abiJSON string, deployedAt *types.Address) (*Contract, error)
-	DeployContract(abiJSON string, bytecode []byte, option *types.ContractDeployOption, timeout time.Duration, callback func(deployedContract Contractor, hash *types.Hash, err error)) <-chan struct{}
+	// DeployContract(abiJSON string, bytecode []byte, option *types.ContractDeployOption, timeout time.Duration, callback func(deployedContract Contractor, hash *types.Hash, err error)) <-chan struct{}
+	DeployContract(option *types.ContractDeployOption, abiJSON []byte,
+		bytecode []byte, constroctorParams ...interface{}) *ContractDeployResult
 }
 
 // AccountManagerOperator is interface of operate actions on account manager
