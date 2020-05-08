@@ -63,9 +63,14 @@ func (c *Client) GetGasPrice() (*big.Int, error) {
 }
 
 // GetNextNonce returns the next transaction nonce of address
-func (c *Client) GetNextNonce(address types.Address) (*big.Int, error) {
+func (c *Client) GetNextNonce(address types.Address, epoch *types.Epoch) (*big.Int, error) {
 	var result interface{}
-	if err := c.rpcClient.Call(&result, "cfx_getNextNonce", address); err != nil {
+	args := []interface{}{address}
+	if epoch != nil {
+		args = append(args, epoch)
+	}
+
+	if err := c.rpcClient.Call(&result, "cfx_getNextNonce", args...); err != nil {
 		msg := fmt.Sprintf("rpc request cfx_getNextNonce %+v error", address)
 		return nil, types.WrapErrorf(err, msg)
 	}
@@ -552,7 +557,7 @@ func (c *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) 
 		}
 
 		if tx.Nonce == nil {
-			nonce, err := c.GetNextNonce(*tx.From)
+			nonce, err := c.GetNextNonce(*tx.From, nil)
 			if err != nil {
 				msg := fmt.Sprintf("get nonce of {%+v} error", tx.From)
 				return types.WrapError(err, msg)
