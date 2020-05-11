@@ -17,7 +17,7 @@ func TestAddressIsZero(t *testing.T) {
 	if normalAddr.IsZero() {
 		t.Errorf("expect %+v be zero address", normalAddr)
 	}
-	if !(&normalAddr).IsZero() {
+	if (&normalAddr).IsZero() {
 		t.Errorf("expect %+v be zero address", &normalAddr)
 	}
 }
