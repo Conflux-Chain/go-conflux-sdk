@@ -2,12 +2,18 @@ package types
 
 import (
 	"encoding/hex"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // ContractDeployOption for setting option when deploying contract
-type ContractDeployOption UnsignedTransactionBase
+type ContractDeployOption struct {
+	UnsignedTransactionBase
+	// TimeoutInSecond represents the timeout of deploy contract,
+	// default value is 0 which means never timeout
+	Timeout time.Duration
+}
 
 // ContractMethodCallOption for setting option when call contract method
 type ContractMethodCallOption struct {
@@ -37,35 +43,35 @@ type CallRequest struct {
 }
 
 // FillByUnsignedTx fills CallRequest fields by tx
-func (cq *CallRequest) FillByUnsignedTx(tx *UnsignedTransaction) {
+func (request *CallRequest) FillByUnsignedTx(tx *UnsignedTransaction) {
 	if tx != nil {
-		cq.From = tx.From
-		cq.To = tx.To
-		cq.GasPrice = tx.GasPrice
-		cq.Value = tx.Value
-		cq.StorageLimit = tx.StorageLimit
+		request.From = tx.From
+		request.To = tx.To
+		request.GasPrice = tx.GasPrice
+		request.Value = tx.Value
+		request.StorageLimit = tx.StorageLimit
 
 		if tx.Gas != nil {
-			cq.Gas = tx.Gas
+			request.Gas = tx.Gas
 		}
 
 		_data := "0x" + hex.EncodeToString(tx.Data)
-		cq.Data = _data
+		request.Data = _data
 
 		if tx.Nonce != nil {
-			cq.Nonce = tx.Nonce
+			request.Nonce = tx.Nonce
 		}
 	}
 }
 
 // FillByCallOption fills CallRequest fields by
-func (cq *CallRequest) FillByCallOption(option *ContractMethodCallOption) {
+func (request *CallRequest) FillByCallOption(option *ContractMethodCallOption) {
 	if option != nil {
-		cq.From = option.From
-		cq.GasPrice = option.GasPrice
-		cq.Gas = option.Gas
-		cq.Value = option.Value
-		cq.Nonce = option.Nonce
-		cq.StorageLimit = option.StorageLimit
+		request.From = option.From
+		request.GasPrice = option.GasPrice
+		request.Gas = option.Gas
+		request.Value = option.Value
+		request.Nonce = option.Nonce
+		request.StorageLimit = option.StorageLimit
 	}
 }

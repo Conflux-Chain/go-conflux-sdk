@@ -2,6 +2,8 @@ package types
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 )
 
 // WrappedError for wrapping old error and new error message
@@ -25,8 +27,15 @@ func WrapErrorf(err error, msgPattern string, values ...interface{}) error {
 func (e WrappedError) Error() string {
 	var innerErrorMsg string
 	if e.err != nil {
-		innerErrorMsg = e.err.Error()
-		// reflect.TypeOf(e.err) == reflect.TypeOf(rpc.jsonError)
+		t := reflect.TypeOf(e.err).String()
+		isJSONErr := strings.Contains(t, "rpc.jsonError")
+		if isJSONErr {
+			elem := reflect.ValueOf(e.err).Elem()
+			data := elem.FieldByName("Data")
+			innerErrorMsg = fmt.Sprintf("%v, Data: %v", e.err.Error(), data)
+		} else {
+			innerErrorMsg = e.err.Error()
+		}
 	}
 	return fmt.Sprintf("%v\n> %v", e.msg, innerErrorMsg)
 }
