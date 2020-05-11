@@ -132,7 +132,7 @@ func (contract *Contract) DecodeEvent(out interface{}, event string, log types.L
 	eLog := etypes.Log{}
 	eLog.Topics = topics
 	eLog.Data, _ = hex.DecodeString(strings.Replace(log.Data, "0x", "", -1))
-	fmt.Printf("elog: %+v\n", eLog)
+	// fmt.Printf("elog: %+v\n", eLog)
 
 	addressPtr := new(common.Address)
 	if contract.Address != nil {
