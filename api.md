@@ -186,7 +186,7 @@ NewClient creates a new instance of Client with specified conflux node url.
 #### func (*Client) ApplyUnsignedTransactionDefault
 
 ```go
-func (c *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) error
+func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) error
 ```
 ApplyUnsignedTransactionDefault set empty fields to value fetched from conflux
 node.
@@ -194,7 +194,7 @@ node.
 #### func (*Client) Call
 
 ```go
-func (c *Client) Call(request types.CallRequest, epoch *types.Epoch) (*string, error)
+func (client *Client) Call(request types.CallRequest, epoch *types.Epoch) (*string, error)
 ```
 Call executes a message call transaction "request" at specified epoch, which is
 directly executed in the VM of the node, but never mined into the block chain
@@ -203,7 +203,7 @@ and returns the contract execution result.
 #### func (*Client) CallRPC
 
 ```go
-func (c *Client) CallRPC(result interface{}, method string, args ...interface{}) error
+func (client *Client) CallRPC(result interface{}, method string, args ...interface{}) error
 ```
 CallRPC performs a JSON-RPC call with the given arguments and unmarshals into
 result if no error occurred.
@@ -214,14 +214,14 @@ also pass nil, in which case the result is ignored.
 #### func (*Client) Close
 
 ```go
-func (c *Client) Close()
+func (client *Client) Close()
 ```
 Close closes the client, aborting any in-flight requests.
 
 #### func (*Client) CreateUnsignedTransaction
 
 ```go
-func (c *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (*types.UnsignedTransaction, error)
+func (client *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (*types.UnsignedTransaction, error)
 ```
 CreateUnsignedTransaction creates an unsigned transaction by parameters, and the
 other fields will be set to values fetched from conflux node.
@@ -229,23 +229,24 @@ other fields will be set to values fetched from conflux node.
 #### func (*Client) Debug
 
 ```go
-func (c *Client) Debug(method string, args ...interface{}) (interface{}, error)
+func (client *Client) Debug(method string, args ...interface{}) (interface{}, error)
 ```
 Debug calls the Conflux debug API.
 
 #### func (*Client) DeployContract
 
 ```go
-func (c *Client) DeployContract(abiJSON string, bytecode []byte, option *types.ContractDeployOption, timeout time.Duration, callback func(deployedContract Contractor, hash *types.Hash, err error)) <-chan struct{}
+func (client *Client) DeployContract(option *types.ContractDeployOption, abiJSON []byte,
+	bytecode []byte, constroctorParams ...interface{}) *ContractDeployResult
 ```
-DeployContract deploys a contract Function A deploys a contract synchronously by
-abiJSON, bytecode and option. It returns a channel for notifying when deploy
-completed. And the callback for handling the deploy result.
+DeployContract deploys a contract by abiJSON, bytecode and consturctor params.
+It returns a ContractDeployState instance which contains 3 channels for
+notifying when state changed.
 
 #### func (*Client) EstimateGasAndCollateral
 
 ```go
-func (c *Client) EstimateGasAndCollateral(request types.CallRequest) (*types.Estimate, error)
+func (client *Client) EstimateGasAndCollateral(request types.CallRequest) (*types.Estimate, error)
 ```
 EstimateGasAndCollateral excutes a message call "request" and returns the amount
 of the gas used and storage for collateral
@@ -253,21 +254,21 @@ of the gas used and storage for collateral
 #### func (*Client) GetBalance
 
 ```go
-func (c *Client) GetBalance(address types.Address, epoch ...*types.Epoch) (*big.Int, error)
+func (client *Client) GetBalance(address types.Address, epoch ...*types.Epoch) (*big.Int, error)
 ```
 GetBalance returns the balance of specified address at epoch.
 
 #### func (*Client) GetBestBlockHash
 
 ```go
-func (c *Client) GetBestBlockHash() (types.Hash, error)
+func (client *Client) GetBestBlockHash() (types.Hash, error)
 ```
 GetBestBlockHash returns the current best block hash.
 
 #### func (*Client) GetBlockByEpoch
 
 ```go
-func (c *Client) GetBlockByEpoch(epoch *types.Epoch) (*types.Block, error)
+func (client *Client) GetBlockByEpoch(epoch *types.Epoch) (*types.Block, error)
 ```
 GetBlockByEpoch returns the block of specified epoch. If the epoch is invalid,
 return the concrete error.
@@ -275,7 +276,7 @@ return the concrete error.
 #### func (*Client) GetBlockByHash
 
 ```go
-func (c *Client) GetBlockByHash(blockHash types.Hash) (*types.Block, error)
+func (client *Client) GetBlockByHash(blockHash types.Hash) (*types.Block, error)
 ```
 GetBlockByHash returns the block of specified blockHash If the block is not
 found, return nil.
@@ -283,7 +284,7 @@ found, return nil.
 #### func (*Client) GetBlockConfirmRiskByHash
 
 ```go
-func (c *Client) GetBlockConfirmRiskByHash(blockhash types.Hash) (*big.Int, error)
+func (client *Client) GetBlockConfirmRiskByHash(blockhash types.Hash) (*big.Int, error)
 ```
 GetBlockConfirmRiskByHash indicates the risk coefficient that the pivot block of
 the epoch where the block is located becomes an normal block.
@@ -291,7 +292,7 @@ the epoch where the block is located becomes an normal block.
 #### func (*Client) GetBlockRevertRateByHash
 
 ```go
-func (c *Client) GetBlockRevertRateByHash(blockHash types.Hash) (*big.Float, error)
+func (client *Client) GetBlockRevertRateByHash(blockHash types.Hash) (*big.Float, error)
 ```
 GetBlockRevertRateByHash indicates the probability that the pivot block of the
 epoch where the block is located becomes an ordinary block.
@@ -301,7 +302,7 @@ it's (confirm risk coefficient/ (2^256-1))
 #### func (*Client) GetBlockSummaryByEpoch
 
 ```go
-func (c *Client) GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary, error)
+func (client *Client) GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary, error)
 ```
 GetBlockSummaryByEpoch returns the block summary of specified epoch. If the
 epoch is invalid, return the concrete error.
@@ -309,7 +310,7 @@ epoch is invalid, return the concrete error.
 #### func (*Client) GetBlockSummaryByHash
 
 ```go
-func (c *Client) GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockSummary, error)
+func (client *Client) GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockSummary, error)
 ```
 GetBlockSummaryByHash returns the block summary of specified blockHash If the
 block is not found, return nil.
@@ -317,21 +318,21 @@ block is not found, return nil.
 #### func (*Client) GetBlocksByEpoch
 
 ```go
-func (c *Client) GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error)
+func (client *Client) GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error)
 ```
 GetBlocksByEpoch returns the blocks hash in the specified epoch.
 
 #### func (*Client) GetCode
 
 ```go
-func (c *Client) GetCode(address types.Address, epoch ...*types.Epoch) (string, error)
+func (client *Client) GetCode(address types.Address, epoch ...*types.Epoch) (string, error)
 ```
 GetCode returns the bytecode in HEX format of specified address at epoch.
 
 #### func (*Client) GetContract
 
 ```go
-func (c *Client) GetContract(abiJSON string, deployedAt *types.Address) (*Contract, error)
+func (client *Client) GetContract(abiJSON []byte, deployedAt *types.Address) (*Contract, error)
 ```
 GetContract creates a contract instance according to abi json and it's deployed
 address
@@ -339,35 +340,35 @@ address
 #### func (*Client) GetEpochNumber
 
 ```go
-func (c *Client) GetEpochNumber(epoch ...*types.Epoch) (*big.Int, error)
+func (client *Client) GetEpochNumber(epoch ...*types.Epoch) (*big.Int, error)
 ```
 GetEpochNumber returns the highest or specified epoch number.
 
 #### func (*Client) GetGasPrice
 
 ```go
-func (c *Client) GetGasPrice() (*big.Int, error)
+func (client *Client) GetGasPrice() (*big.Int, error)
 ```
 GetGasPrice returns the recent mean gas price.
 
 #### func (*Client) GetLogs
 
 ```go
-func (c *Client) GetLogs(filter types.LogFilter) ([]types.Log, error)
+func (client *Client) GetLogs(filter types.LogFilter) ([]types.Log, error)
 ```
 GetLogs returns logs that matching the specified filter.
 
 #### func (*Client) GetNextNonce
 
 ```go
-func (c *Client) GetNextNonce(address types.Address) (*big.Int, error)
+func (client *Client) GetNextNonce(address types.Address, epoch *types.Epoch) (*big.Int, error)
 ```
 GetNextNonce returns the next transaction nonce of address
 
 #### func (*Client) GetTransactionByHash
 
 ```go
-func (c *Client) GetTransactionByHash(txHash types.Hash) (*types.Transaction, error)
+func (client *Client) GetTransactionByHash(txHash types.Hash) (*types.Transaction, error)
 ```
 GetTransactionByHash returns transaction for the specified txHash. If the
 transaction is not found, return nil.
@@ -375,7 +376,7 @@ transaction is not found, return nil.
 #### func (*Client) GetTransactionReceipt
 
 ```go
-func (c *Client) GetTransactionReceipt(txHash types.Hash) (*types.TransactionReceipt, error)
+func (client *Client) GetTransactionReceipt(txHash types.Hash) (*types.TransactionReceipt, error)
 ```
 GetTransactionReceipt returns the receipt of specified transaction hash. If no
 receipt is found, return nil.
@@ -383,14 +384,14 @@ receipt is found, return nil.
 #### func (*Client) SendRawTransaction
 
 ```go
-func (c *Client) SendRawTransaction(rawData []byte) (types.Hash, error)
+func (client *Client) SendRawTransaction(rawData []byte) (types.Hash, error)
 ```
 SendRawTransaction sends signed transaction and returns its hash.
 
 #### func (*Client) SendTransaction
 
 ```go
-func (c *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash, error)
+func (client *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash, error)
 ```
 SendTransaction signs and sends transaction to conflux node and returns the
 transaction hash.
@@ -398,14 +399,14 @@ transaction hash.
 #### func (*Client) SetAccountManager
 
 ```go
-func (c *Client) SetAccountManager(accountManager AccountManagerOperator)
+func (client *Client) SetAccountManager(accountManager AccountManagerOperator)
 ```
 SetAccountManager sets account manager for sign transaction
 
 #### func (*Client) SignEncodedTransactionAndSend
 
 ```go
-func (c *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte) (*types.Transaction, error)
+func (client *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte) (*types.Transaction, error)
 ```
 SignEncodedTransactionAndSend signs RLP encoded transaction "encodedTx" by
 signature "r,s,v" and sends it to node, and returns responsed transaction.
@@ -425,17 +426,24 @@ Contract represents a smart contract
 #### func (*Contract) Call
 
 ```go
-func (c *Contract) Call(option *types.ContractMethodCallOption, resultPtr interface{}, method string, args ...interface{}) error
+func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr interface{}, method string, args ...interface{}) error
 ```
 Call calls to the contract method with args and fills the excuted result to the
 "resultPtr".
 
 the resultPtr should be a pointer of the method output struct type.
 
+#### func (*Contract) DecodeEvent
+
+```go
+func (contract *Contract) DecodeEvent(out interface{}, event string, log types.LogEntry) error
+```
+DecodeEvent unpacks a retrieved log into the provided output structure.
+
 #### func (*Contract) GetData
 
 ```go
-func (c *Contract) GetData(method string, args ...interface{}) ([]byte, error)
+func (contract *Contract) GetData(method string, args ...interface{}) ([]byte, error)
 ```
 GetData packs the given method name to conform the ABI of the contract "c".
 Method call's data will consist of method_id, args0, arg1, ... argN. Method id
@@ -446,10 +454,24 @@ baz(uint32,string32))
 #### func (*Contract) SendTransaction
 
 ```go
-func (c *Contract) SendTransaction(option *types.ContractMethodSendOption, method string, args ...interface{}) (*types.Hash, error)
+func (contract *Contract) SendTransaction(option *types.ContractMethodSendOption, method string, args ...interface{}) (*types.Hash, error)
 ```
 SendTransaction sends a transaction to the contract method with args and returns
 its transaction hash
+
+### type ContractDeployResult
+
+```go
+type ContractDeployResult struct {
+	//DoneChannel channel for notifying when contract deployed done
+	DoneChannel      <-chan struct{}
+	TransactionHash  *types.Hash
+	Error            error
+	DeployedContract *Contract
+}
+```
+
+ContractDeployResult for state change notification when deploying contract
 ## package utils
 ```
 import "github.com/Conflux-Chain/go-conflux-sdk/utils"

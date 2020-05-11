@@ -32,7 +32,7 @@ type ContractDeployResult struct {
 	DeployedContract *Contract
 }
 
-// GetData packs the given method name to conform the ABI of the contract "c". Method call's data
+// GetData packs the given method name to conform the ABI of the contract. Method call's data
 // will consist of method_id, args0, arg1, ... argN. Method id consists
 // of 4 bytes and arguments are all 32 bytes.
 // Method ids are created from the first 4 bytes of the hash of the
