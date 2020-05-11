@@ -72,7 +72,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("get data of method balanceOf is: 0x%x\n\n", data)
+	fmt.Printf("get data of method balanceOf result: 0x%x\n\n", data)
 
 	//call contract method
 	//Note: the output struct type need match method output type of ABI, go type "*big.Int" match abi type "uint256", go type "struct{Balance *big.Int}" match abi tuple type "(balance uint256)"
@@ -81,7 +81,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("address %v balance in contract is: %+v\n\n", user, balance)
+	fmt.Printf("balance of address %v in contract is: %+v\n\n", user, balance)
 
 	//send transction for contract method
 	to := types.Address("0x160ebef20c1f739957bf9eecd040bce699cc42c6")
@@ -113,7 +113,7 @@ func main() {
 	}
 	fmt.Printf("get receipt: %+v\n\n", receipt)
 
-	// decode Transfer
+	// decode Transfer Event
 	var Transfer struct {
 		From  common.Address
 		To    common.Address
@@ -124,6 +124,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("decoded event: {From: 0x%x, To: 0x%x, Value: %v} ", Transfer.From, Transfer.To, Transfer.Value)
-
+	fmt.Printf("decoded transfer event: {From: 0x%x, To: 0x%x, Value: %v} ", Transfer.From, Transfer.To, Transfer.Value)
 }

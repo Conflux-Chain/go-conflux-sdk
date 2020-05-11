@@ -96,6 +96,7 @@ import (
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 func main() {
@@ -135,17 +136,15 @@ func main() {
 		panic(err)
 	}
 
-	doneChan := client.DeployContract(string(abi), bytecode, nil, time.Duration(time.Second*30), func(c sdk.Contractor, txhash *types.Hash, err error) {
-		if err != nil {
-			panic(err)
-		}
-		contract = c.(*sdk.Contract)
-		fmt.Printf("deploy contract by client.DeployContract done\ncontract address: %+v\ntxhash:%v\n\n", *contract.Address, txhash)
-	})
+	result := client.DeployContract(nil, abi, bytecode, big.NewInt(100000), "biu", uint8(10), "BIU")
+	_ = <-result.DoneChannel
+	if result.Error != nil {
+		panic(result.Error)
+	}
+	contract = result.DeployedContract
+	fmt.Printf("deploy contract by client.DeployContract done\ncontract address: %+v\ntxhash:%v\n\n", contract.Address, result.TransactionHash)
 
-	_ = <-doneChan
-	fmt.Println("wait for epoch excution for 15 seconds...")
-	time.Sleep(15 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	// or get contract by deployed address
 	// deployedAt := types.Address("0x8d1089f00c40dcc290968b366889e85e67024662")
@@ -160,7 +159,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("get data of method balanceOf is: 0x%x\n\n", data)
+	fmt.Printf("get data of method balanceOf result: 0x%x\n\n", data)
 
 	//call contract method
 	//Note: the output struct type need match method output type of ABI, go type "*big.Int" match abi type "uint256", go type "struct{Balance *big.Int}" match abi tuple type "(balance uint256)"
@@ -169,7 +168,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("address %v balance in contract is: %+v\n\n", user, balance)
+	fmt.Printf("balance of address %v in contract is: %+v\n\n", user, balance)
 
 	//send transction for contract method
 	to := types.Address("0x160ebef20c1f739957bf9eecd040bce699cc42c6")
@@ -192,6 +191,27 @@ func main() {
 			break
 		}
 	}
+	time.Sleep(10 * time.Second)
+
+	//get event log and decode it
+	receipt, err := client.GetTransactionReceipt(*txhash)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("get receipt: %+v\n\n", receipt)
+
+	// decode Transfer Event
+	var Transfer struct {
+		From  common.Address
+		To    common.Address
+		Value *big.Int
+	}
+
+	err = contract.DecodeEvent(&Transfer, "Transfer", receipt.Logs[0])
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("decoded transfer event: {From: 0x%x, To: 0x%x, Value: %v} ", Transfer.From, Transfer.To, Transfer.Value)
 }
 
 ```
