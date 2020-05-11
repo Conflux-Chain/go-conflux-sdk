@@ -1,6 +1,10 @@
 package constants
 
-import "math/big"
+import (
+	"math/big"
+
+	"github.com/ethereum/go-ethereum/common"
+)
 
 const (
 	CFXName    = "CFX"
@@ -23,4 +27,8 @@ const (
 	MinUint = 0
 	MaxInt  = int(MaxUint >> 1)
 	MinInt  = -MaxInt - 1
+)
+
+var (
+	ZeroAddress common.Address
 )

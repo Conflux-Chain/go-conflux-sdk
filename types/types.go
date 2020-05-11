@@ -7,6 +7,7 @@ package types
 import (
 	"math/big"
 
+	"github.com/Conflux-Chain/go-conflux-sdk/constants"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -31,8 +32,21 @@ func (address *Address) ToCommonAddress() *common.Address {
 	return &newAddress
 }
 
+// IsZero returns true if the address is "0x0000000000000000000000000000000000000000"
+// or "0X0000000000000000000000000000000000000000", otherwise returns false
+func (address *Address) IsZero() bool {
+	tmp := address.ToCommonAddress()
+	return *tmp == constants.ZeroAddress
+}
+
 // Hash represents the 32 byte Keccak256 hash of arbitrary data in HEX format.
 type Hash string
+
+// ToCommonHash converts hash to common.Hash
+func (hash *Hash) ToCommonHash() *common.Hash {
+	newHash := common.HexToHash(string(*hash))
+	return &newHash
+}
 
 // String implements the interface stringer
 func (hash *Hash) String() string {

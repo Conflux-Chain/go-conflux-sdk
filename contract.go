@@ -7,9 +7,13 @@ package sdk
 import (
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	etypes "github.com/ethereum/go-ethereum/core/types"
 )
 
 // Contract represents a smart contract
@@ -58,13 +62,16 @@ func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr
 	callRequest.To = contract.Address
 	callRequest.Data = "0x" + hex.EncodeToString(data)
 	callRequest.FillByCallOption(option)
-	// j, err := json.Marshal(callRequest)
-	// fmt.Printf("callrequest of call: %s, err:%+v\n\n", j, err)
+
 	var epoch *types.Epoch = nil
 	if option != nil && option.Epoch != nil {
 		epoch = option.Epoch
 	}
 	resultHexStr, err := contract.Client.Call(*callRequest, epoch)
+	if err != nil {
+		msg := fmt.Sprintf("call {%+v} at epoch %+v error", *callRequest, epoch)
+		return types.WrapError(err, msg)
+	}
 
 	if len(*resultHexStr) < 2 {
 		return fmt.Errorf("call response string %v length smaller than 2", resultHexStr)
@@ -81,7 +88,6 @@ func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr
 		msg := fmt.Sprintf("unpack bytes {%x} to method %v output on abi %+v error", bytes, method, contract.ABI)
 		return types.WrapError(err, msg)
 	}
-	// fmt.Printf("outptr:%+v", resultPtr)
 
 	return nil
 }
@@ -114,4 +120,30 @@ func (contract *Contract) SendTransaction(option *types.ContractMethodSendOption
 		return nil, types.WrapError(err, msg)
 	}
 	return &txhash, nil
+}
+
+// DecodeEvent unpacks a retrieved log into the provided output structure.
+func (contract *Contract) DecodeEvent(out interface{}, event string, log types.LogEntry) error {
+
+	topics := make([]common.Hash, len(log.Topics))
+	for i, v := range log.Topics {
+		topics[i] = *v.ToCommonHash()
+	}
+	eLog := etypes.Log{}
+	eLog.Topics = topics
+	eLog.Data, _ = hex.DecodeString(strings.Replace(log.Data, "0x", "", -1))
+	fmt.Printf("elog: %+v\n", eLog)
+
+	addressPtr := new(common.Address)
+	if contract.Address != nil {
+		addressPtr = contract.Address.ToCommonAddress()
+	}
+
+	boundContract := bind.NewBoundContract(*addressPtr, contract.ABI, nil, nil, nil)
+	err := boundContract.UnpackLog(out, event, eLog)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

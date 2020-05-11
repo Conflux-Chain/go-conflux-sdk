@@ -32,6 +32,6 @@ type Log struct {
 	TransactionIndex    *hexutil.Big `json:"transactionIndex,omitempty"`
 	LogIndex            *hexutil.Big `json:"logIndex,omitempty"`
 	TransactionLogIndex *hexutil.Big `json:"transactionLogIndex,omitempty"`
-	Type                string       `json:"type"`
-	Removed             bool         `json:"removed"`
+	// Type                string       `json:"type"`
+	Removed bool `json:"removed"`
 }
