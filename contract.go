@@ -37,6 +37,9 @@ type ContractDeployResult struct {
 // of 4 bytes and arguments are all 32 bytes.
 // Method ids are created from the first 4 bytes of the hash of the
 // methods string signature. (signature = baz(uint32,string32))
+//
+// please refer https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/README.md to
+// get the mappings of solidity types to go types
 func (contract *Contract) GetData(method string, args ...interface{}) ([]byte, error) {
 	packed, err := contract.ABI.Pack(method, args...)
 	if err != nil {
@@ -50,6 +53,9 @@ func (contract *Contract) GetData(method string, args ...interface{}) ([]byte, e
 // Call calls to the contract method with args and fills the excuted result to the "resultPtr".
 //
 // the resultPtr should be a pointer of the method output struct type.
+//
+// please refer https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/README.md to
+// get the mappings of solidity types to go types
 func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr interface{}, method string, args ...interface{}) error {
 
 	data, err := contract.GetData(method, args...)
@@ -93,6 +99,9 @@ func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr
 }
 
 // SendTransaction sends a transaction to the contract method with args and returns its transaction hash
+//
+// please refer https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/README.md to
+// get the mappings of solidity types to go types
 func (contract *Contract) SendTransaction(option *types.ContractMethodSendOption, method string, args ...interface{}) (*types.Hash, error) {
 
 	data, err := contract.GetData(method, args...)
@@ -123,6 +132,9 @@ func (contract *Contract) SendTransaction(option *types.ContractMethodSendOption
 }
 
 // DecodeEvent unpacks a retrieved log into the provided output structure.
+//
+// please refer https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/README.md to
+// get the mappings of solidity types to go types
 func (contract *Contract) DecodeEvent(out interface{}, event string, log types.LogEntry) error {
 
 	topics := make([]common.Hash, len(log.Topics))

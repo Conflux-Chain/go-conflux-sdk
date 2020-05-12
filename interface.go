@@ -77,3 +77,8 @@ type AccountManagerOperator interface {
 	SignTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) (*types.SignedTransaction, error)
 	Sign(tx types.UnsignedTransaction, passphrase string) (v byte, r, s []byte, err error)
 }
+
+type rpcRequester interface {
+	Call(resultPtr interface{}, method string, args ...interface{}) error
+	Close()
+}

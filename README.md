@@ -215,3 +215,21 @@ func main() {
 }
 
 ```
+## Appendix
+### Mapping of solidity types to go types 
+This is a mapping table for map solidity types to go types when using contract methods GetData/Call/SendTransaction/DecodeEvent
+| solidity types                               | go types                                                                          |
+|----------------------------------------------|-----------------------------------------------------------------------------------|
+| address                                      | common.Address                                                                    |
+| uint8,uint16,uint32,uint64                   | uint8,uint16,uint32,uint64                                                        |
+| uint24,uint40,uint48,uint56,uint72...uint256 | *big.Int                                                                          |
+| int8,int16,int32,int64                       | int8,int16,int32,int64                                                            |
+| int24,int40,int48,int56,int72...int256       | *big.Int                                                                          |
+| fixed bytes (bytes1,bytes2...bytes32)        | [length]byte                                                                      |
+| fixed type T array (T[length])               | [length]TG (TG is go type matched with solidty type T)                            |
+| bytes                                        | []byte                                                                            |
+| dynamic type T array T[]                     | []TG ((TG is go type matched with solidty type T))                                |
+| function                                     | [24]byte                                                                          |
+| string                                       | string                                                                            |
+| bool                                         | bool                                                                              |
+| tuple                                        | struct  eg:[{"name": "balance","type": "uint256"}] => struct {Balance *big.Int} |
