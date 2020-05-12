@@ -694,7 +694,7 @@ func (client *Client) DeployContract(option *types.ContractDeployOption, abiJSON
 				msg := fmt.Sprintf("deploy contract time out after %v, txhash is %+v", t, txhash)
 				result.Error = errors.New(msg)
 				return
-			// Got a tick, we should check on checkSomething()
+			// Got a tick
 			case <-ticker:
 				transaction, err := client.GetTransactionByHash(txhash)
 				if err != nil {
