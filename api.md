@@ -183,6 +183,16 @@ func NewClient(nodeURL string) (*Client, error)
 ```
 NewClient creates a new instance of Client with specified conflux node url.
 
+#### func  NewClientWithRetry
+
+```go
+func NewClientWithRetry(nodeURL string, retryCount int, retryInterval time.Duration) (*Client, error)
+```
+NewClientWithRetry creates a retryable new instance of Client with specified
+conflux node url and retry options.
+
+the retryInterval will be set to 1 second if pass 0
+
 #### func (*Client) ApplyUnsignedTransactionDefault
 
 ```go
@@ -433,6 +443,10 @@ Call calls to the contract method with args and fills the excuted result to the
 
 the resultPtr should be a pointer of the method output struct type.
 
+please refer
+https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/README.md to get the
+mappings of solidity types to go types
+
 #### func (*Contract) DecodeEvent
 
 ```go
@@ -440,16 +454,24 @@ func (contract *Contract) DecodeEvent(out interface{}, event string, log types.L
 ```
 DecodeEvent unpacks a retrieved log into the provided output structure.
 
+please refer
+https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/README.md to get the
+mappings of solidity types to go types
+
 #### func (*Contract) GetData
 
 ```go
 func (contract *Contract) GetData(method string, args ...interface{}) ([]byte, error)
 ```
-GetData packs the given method name to conform the ABI of the contract "c".
-Method call's data will consist of method_id, args0, arg1, ... argN. Method id
-consists of 4 bytes and arguments are all 32 bytes. Method ids are created from
-the first 4 bytes of the hash of the methods string signature. (signature =
+GetData packs the given method name to conform the ABI of the contract. Method
+call's data will consist of method_id, args0, arg1, ... argN. Method id consists
+of 4 bytes and arguments are all 32 bytes. Method ids are created from the first
+4 bytes of the hash of the methods string signature. (signature =
 baz(uint32,string32))
+
+please refer
+https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/README.md to get the
+mappings of solidity types to go types
 
 #### func (*Contract) SendTransaction
 
@@ -458,6 +480,10 @@ func (contract *Contract) SendTransaction(option *types.ContractMethodSendOption
 ```
 SendTransaction sends a transaction to the contract method with args and returns
 its transaction hash
+
+please refer
+https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/README.md to get the
+mappings of solidity types to go types
 
 ### type ContractDeployResult
 
