@@ -20,20 +20,86 @@ import (
 
 // Client represents a client to interact with Conflux blockchain.
 type Client struct {
-	rpcClient      *rpc.Client
+	rpcRequester   rpcRequester
 	accountManager AccountManagerOperator
 }
 
 // NewClient creates a new instance of Client with specified conflux node url.
 func NewClient(nodeURL string) (*Client, error) {
-	client, err := rpc.Dial(nodeURL)
+	client, err := NewClientWithRetry(nodeURL, 0, 0)
+	return client, err
+}
+
+// NewClientWithRetry creates a retryable new instance of Client with specified conflux node url and retry options.
+//
+// the retryInterval will be set to 1 second if pass 0
+func NewClientWithRetry(nodeURL string, retryCount int, retryInterval time.Duration) (*Client, error) {
+
+	var client Client
+
+	rpcClient, err := rpc.Dial(nodeURL)
 	if err != nil {
 		return nil, types.WrapError(err, "dail failed")
 	}
 
-	return &Client{
-		rpcClient: client,
-	}, nil
+	if retryCount == 0 {
+		client.rpcRequester = rpcClient
+	} else {
+		// Interval 0 is meaningless and may lead full node busy, so default sets it to 1 second
+		if retryInterval == 0 {
+			retryInterval = time.Second
+		}
+
+		client.rpcRequester = &rpcClientWithRetry{
+			inner:      rpcClient,
+			retryCount: retryCount,
+			interval:   retryInterval,
+		}
+	}
+
+	return &client, nil
+}
+
+type rpcClientWithRetry struct {
+	inner      *rpc.Client
+	retryCount int
+	interval   time.Duration
+}
+
+func (r *rpcClientWithRetry) Call(resultPtr interface{}, method string, args ...interface{}) error {
+	err := r.inner.Call(resultPtr, method, args...)
+	if err == nil {
+		return nil
+	}
+
+	if r.retryCount <= 0 {
+		return err
+	}
+
+	remain := r.retryCount
+	remain--
+	for {
+		err = r.inner.Call(resultPtr, method, args...)
+		if err == nil {
+			return nil
+		}
+
+		remain--
+		if remain == 0 {
+			msg := fmt.Sprintf("timeout when call %v with args %v", method, args)
+			return types.WrapError(err, msg)
+		}
+
+		if r.interval > 0 {
+			time.Sleep(r.interval)
+		}
+	}
+}
+
+func (r *rpcClientWithRetry) Close() {
+	if r != nil && r.inner != nil {
+		r.inner.Close()
+	}
 }
 
 // CallRPC performs a JSON-RPC call with the given arguments and unmarshals into
@@ -42,7 +108,7 @@ func NewClient(nodeURL string) (*Client, error) {
 // The result must be a pointer so that package json can unmarshal into it. You
 // can also pass nil, in which case the result is ignored.
 func (client *Client) CallRPC(result interface{}, method string, args ...interface{}) error {
-	return client.rpcClient.Call(result, method, args...)
+	return client.rpcRequester.Call(result, method, args...)
 }
 
 // SetAccountManager sets account manager for sign transaction
@@ -54,7 +120,7 @@ func (client *Client) SetAccountManager(accountManager AccountManagerOperator) {
 func (client *Client) GetGasPrice() (*big.Int, error) {
 	var result interface{}
 
-	if err := client.rpcClient.Call(&result, "cfx_gasPrice"); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_gasPrice"); err != nil {
 		msg := "rpc request cfx_gasPrice error"
 		return nil, types.WrapError(err, msg)
 	}
@@ -70,7 +136,7 @@ func (client *Client) GetNextNonce(address types.Address, epoch *types.Epoch) (*
 		args = append(args, epoch)
 	}
 
-	if err := client.rpcClient.Call(&result, "cfx_getNextNonce", args...); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_getNextNonce", args...); err != nil {
 		msg := fmt.Sprintf("rpc request cfx_getNextNonce %+v error", address)
 		return nil, types.WrapErrorf(err, msg)
 	}
@@ -96,7 +162,7 @@ func (client *Client) GetEpochNumber(epoch ...*types.Epoch) (*big.Int, error) {
 		args = append(args, epoch[0])
 	}
 
-	if err := client.rpcClient.Call(&result, "cfx_epochNumber", args...); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_epochNumber", args...); err != nil {
 		msg := fmt.Sprintf("rpc cfx_epochNumber %+v error", args)
 		return nil, types.WrapError(err, msg)
 	}
@@ -113,7 +179,7 @@ func (client *Client) GetBalance(address types.Address, epoch ...*types.Epoch) (
 		args = append(args, epoch[0])
 	}
 
-	if err := client.rpcClient.Call(&result, "cfx_getBalance", args...); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_getBalance", args...); err != nil {
 		msg := fmt.Sprintf("rpc cfx_getBalance %+v error", args)
 		return nil, types.WrapError(err, msg)
 	}
@@ -130,7 +196,7 @@ func (client *Client) GetCode(address types.Address, epoch ...*types.Epoch) (str
 		args = append(args, epoch[0])
 	}
 
-	if err := client.rpcClient.Call(&result, "cfx_getCode", args...); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_getCode", args...); err != nil {
 		msg := fmt.Sprintf("rpc cfx_getCode %+v error", args)
 		return "", types.WrapError(err, msg)
 	}
@@ -143,7 +209,7 @@ func (client *Client) GetCode(address types.Address, epoch ...*types.Epoch) (str
 func (client *Client) GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockSummary, error) {
 	var result interface{}
 
-	if err := client.rpcClient.Call(&result, "cfx_getBlockByHash", blockHash, false); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_getBlockByHash", blockHash, false); err != nil {
 		msg := fmt.Sprintf("rpc cfx_getBlockByHash %+v error", blockHash)
 		return nil, types.WrapError(err, msg)
 	}
@@ -166,7 +232,7 @@ func (client *Client) GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockS
 func (client *Client) GetBlockByHash(blockHash types.Hash) (*types.Block, error) {
 	var result interface{}
 
-	if err := client.rpcClient.Call(&result, "cfx_getBlockByHash", blockHash, true); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_getBlockByHash", blockHash, true); err != nil {
 		msg := fmt.Sprintf("rpc cfx_getBlockByHash %+v error", blockHash)
 		return nil, types.WrapError(err, msg)
 	}
@@ -189,7 +255,7 @@ func (client *Client) GetBlockByHash(blockHash types.Hash) (*types.Block, error)
 func (client *Client) GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary, error) {
 	var result interface{}
 
-	if err := client.rpcClient.Call(&result, "cfx_getBlockByEpochNumber", epoch, false); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_getBlockByEpochNumber", epoch, false); err != nil {
 		msg := fmt.Sprintf("rpc cfx_getBlockByEpochNumber %+v error", epoch)
 		return nil, types.WrapError(err, msg)
 	}
@@ -208,7 +274,7 @@ func (client *Client) GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSu
 func (client *Client) GetBlockByEpoch(epoch *types.Epoch) (*types.Block, error) {
 	var result interface{}
 
-	if err := client.rpcClient.Call(&result, "cfx_getBlockByEpochNumber", epoch, true); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_getBlockByEpochNumber", epoch, true); err != nil {
 		msg := fmt.Sprintf("rpc cfx_getBlockByEpochNumber %+v error", epoch)
 		return nil, types.WrapError(err, msg)
 	}
@@ -226,7 +292,7 @@ func (client *Client) GetBlockByEpoch(epoch *types.Epoch) (*types.Block, error) 
 func (client *Client) GetBestBlockHash() (types.Hash, error) {
 	var result interface{}
 
-	if err := client.rpcClient.Call(&result, "cfx_getBestBlockHash"); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_getBestBlockHash"); err != nil {
 		msg := "rpc cfx_getBestBlockHash error"
 		return "", types.WrapError(err, msg)
 	}
@@ -241,7 +307,7 @@ func (client *Client) GetBlockConfirmRiskByHash(blockhash types.Hash) (*big.Int,
 
 	args := []interface{}{blockhash}
 
-	if err := client.rpcClient.Call(&result, "cfx_getConfirmationRiskByHash", args...); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_getConfirmationRiskByHash", args...); err != nil {
 		msg := fmt.Sprintf("rpc cfx_getConfirmationRiskByHash %+v error", args)
 		return nil, types.WrapError(err, msg)
 	}
@@ -343,7 +409,7 @@ func (client *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash
 func (client *Client) SendRawTransaction(rawData []byte) (types.Hash, error) {
 	var result interface{}
 	// fmt.Printf("send raw transaction %x\n", rawData)
-	if err := client.rpcClient.Call(&result, "cfx_sendRawTransaction", hexutil.Encode(rawData)); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_sendRawTransaction", hexutil.Encode(rawData)); err != nil {
 		msg := fmt.Sprintf("rpc cfx_sendRawTransaction 0x%+x error", rawData)
 		return "", types.WrapError(err, msg)
 	}
@@ -405,7 +471,7 @@ func (client *Client) Call(request types.CallRequest, epoch *types.Epoch) (*stri
 		args = append(args, epoch)
 	}
 
-	if err := client.rpcClient.Call(&rpcResult, "cfx_call", args...); err != nil {
+	if err := client.rpcRequester.Call(&rpcResult, "cfx_call", args...); err != nil {
 		msg := fmt.Sprintf("rpc cfx_call {%+v} error", args)
 		return nil, types.WrapError(err, msg)
 	}
@@ -422,7 +488,7 @@ func (client *Client) Call(request types.CallRequest, epoch *types.Epoch) (*stri
 func (client *Client) GetLogs(filter types.LogFilter) ([]types.Log, error) {
 	var result interface{}
 
-	if err := client.rpcClient.Call(&result, "cfx_getLogs", filter); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_getLogs", filter); err != nil {
 		msg := fmt.Sprintf("rpc cfx_getLogs of {%+v} error", filter)
 		return nil, types.WrapError(err, msg)
 	}
@@ -441,7 +507,7 @@ func (client *Client) GetLogs(filter types.LogFilter) ([]types.Log, error) {
 func (client *Client) GetTransactionByHash(txHash types.Hash) (*types.Transaction, error) {
 	var result interface{}
 
-	if err := client.rpcClient.Call(&result, "cfx_getTransactionByHash", txHash); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_getTransactionByHash", txHash); err != nil {
 		msg := fmt.Sprintf("rpc cfx_getTransactionByHash {%+v} error", txHash)
 		return nil, types.WrapError(err, msg)
 	}
@@ -466,7 +532,7 @@ func (client *Client) EstimateGasAndCollateral(request types.CallRequest) (*type
 
 	args := []interface{}{request}
 
-	if err := client.rpcClient.Call(&result, "cfx_estimateGasAndCollateral", args...); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_estimateGasAndCollateral", args...); err != nil {
 		msg := fmt.Sprintf("rpc cfx_estimateGasAndCollateral of {%+v} error", args)
 		return nil, types.WrapError(err, msg)
 	}
@@ -483,7 +549,7 @@ func (client *Client) EstimateGasAndCollateral(request types.CallRequest) (*type
 func (client *Client) GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error) {
 	var result interface{}
 
-	if err := client.rpcClient.Call(&result, "cfx_getBlocksByEpoch", epoch); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_getBlocksByEpoch", epoch); err != nil {
 		msg := fmt.Sprintf("rpc cfx_getBlocksByEpoch {%+v} error", epoch)
 		return nil, types.WrapError(err, msg)
 	}
@@ -502,7 +568,7 @@ func (client *Client) GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error)
 func (client *Client) GetTransactionReceipt(txHash types.Hash) (*types.TransactionReceipt, error) {
 	var result interface{}
 
-	if err := client.rpcClient.Call(&result, "cfx_getTransactionReceipt", txHash); err != nil {
+	if err := client.rpcRequester.Call(&result, "cfx_getTransactionReceipt", txHash); err != nil {
 		msg := fmt.Sprintf("rpc cfx_getTransactionReceipt of {%+v} error", txHash)
 		return nil, types.WrapError(err, msg)
 	}
@@ -620,7 +686,7 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 func (client *Client) Debug(method string, args ...interface{}) (interface{}, error) {
 	var result interface{}
 
-	if err := client.rpcClient.Call(&result, method, args...); err != nil {
+	if err := client.rpcRequester.Call(&result, method, args...); err != nil {
 		msg := fmt.Sprintf("rpc call method {%+v} with args {%+v} error", method, args)
 		return nil, types.WrapError(err, msg)
 	}
@@ -734,7 +800,7 @@ func (client *Client) GetContract(abiJSON []byte, deployedAt *types.Address) (*C
 
 // Close closes the client, aborting any in-flight requests.
 func (client *Client) Close() {
-	client.rpcClient.Close()
+	client.rpcRequester.Close()
 }
 
 func unmarshalRPCResult(result interface{}, v interface{}) error {
