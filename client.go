@@ -77,7 +77,6 @@ func (r *rpcClientWithRetry) Call(resultPtr interface{}, method string, args ...
 	}
 
 	remain := r.retryCount
-	remain--
 	for {
 		err = r.inner.Call(resultPtr, method, args...)
 		if err == nil {
