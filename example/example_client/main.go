@@ -25,11 +25,12 @@ func main() {
 		panic(err)
 	}
 	client.SetAccountManager(am)
+	fmt.Println("\n======================================")
 	fmt.Println("start excute client methods without retry")
 	run(client)
 
 	//init client with retry and excute it
-	client, err = sdk.NewClientWithRetry("http://testnet-jsonrpc.conflux-chain.org:12537", 10, 1)
+	client, err = sdk.NewClientWithRetry("http://testnet-jsonrpc.conflux-chain.org:12537", 10, time.Second)
 	if err != nil {
 		panic(err)
 	}

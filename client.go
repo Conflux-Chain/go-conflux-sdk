@@ -60,6 +60,13 @@ func NewClientWithRetry(nodeURL string, retryCount int, retryInterval time.Durat
 	return &client, nil
 }
 
+// NewClientWithRPCRequester creates client with specified rpcRequester
+func NewClientWithRPCRequester(rpcRequester rpcRequester) (*Client, error) {
+	return &Client{
+		rpcRequester: rpcRequester,
+	}, nil
+}
+
 type rpcClientWithRetry struct {
 	inner      *rpc.Client
 	retryCount int
