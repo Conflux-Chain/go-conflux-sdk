@@ -16,7 +16,8 @@ import (
 	etypes "github.com/ethereum/go-ethereum/core/types"
 )
 
-// Contract represents a smart contract
+// Contract represents a smart contract.
+// You can conveniently create contract by Client.GetContrat or Client.DeployContract.
 type Contract struct {
 	ABI     abi.ABI
 	Client  ClientOperator
@@ -30,6 +31,14 @@ type ContractDeployResult struct {
 	TransactionHash  *types.Hash
 	Error            error
 	DeployedContract *Contract
+}
+
+// NewContract creates contract by abi and deployed address
+func NewContract(abiJSON []byte, client ClientOperator, address *types.Address) (*Contract, error) {
+	if client == nil {
+		client = (*Client)(nil)
+	}
+	return client.GetContract(abiJSON, address)
 }
 
 // GetData packs the given method name to conform the ABI of the contract. Method call's data

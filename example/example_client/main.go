@@ -20,7 +20,9 @@ func main() {
 	}
 
 	//init client without retry and excute it
-	client, err := sdk.NewClient("http://testnet-jsonrpc.conflux-chain.org:12537")
+	url := "http://123.57.45.90:12537"
+	// url := "http://testnet-jsonrpc.conflux-chain.org:12537"
+	client, err := sdk.NewClient(url)
 	if err != nil {
 		panic(err)
 	}
@@ -30,7 +32,7 @@ func main() {
 	run(client)
 
 	//init client with retry and excute it
-	client, err = sdk.NewClientWithRetry("http://testnet-jsonrpc.conflux-chain.org:12537", 10, time.Second)
+	client, err = sdk.NewClientWithRetry(url, 10, time.Second)
 	if err != nil {
 		panic(err)
 	}
@@ -95,7 +97,7 @@ func run(client *sdk.Client) {
 		fmt.Printf("blocks of epoch %v:%#v\n\n", epochNumber, blocks)
 	}
 
-	blockHash := block.Hash
+	blockHash := types.Hash("0xc3d83152acdc1296845be415a0b590627ce406dc355f0479398b99ca6dbc6a79")
 	block, err = client.GetBlockByHash(blockHash)
 	if err != nil {
 		fmt.Printf("get block of hash %v error:%#v\n\n", blockHash, err)
@@ -120,7 +122,7 @@ func run(client *sdk.Client) {
 	contractAddr := *types.NewAddress("0xa70ddf9b9750c575db453eea6a041f4c8536785a")
 	code, err := client.GetCode(contractAddr)
 	if err != nil {
-		fmt.Printf("get code of address %v err: %v", contractAddr, err)
+		fmt.Printf("get code of address %v err: %v\n\n", contractAddr, err)
 	} else {
 		fmt.Printf("get code of address %v:%#v\n\n", contractAddr, code)
 	}
@@ -143,7 +145,7 @@ func run(client *sdk.Client) {
 	rawtx := signTx(client)
 	txhash, err = client.SendRawTransaction(rawtx)
 	if err != nil {
-		fmt.Printf("send Signed Transaction result error :%#v\n\n", err)
+		fmt.Printf("send Signed Transaction result error :%v\n\n", err)
 	} else {
 		fmt.Printf("send Signed Transaction result :%#v\n\n", txhash)
 	}
@@ -197,8 +199,9 @@ func run(client *sdk.Client) {
 func signTx(client *sdk.Client) []byte {
 	unSignedTx := types.UnsignedTransaction{
 		UnsignedTransactionBase: types.UnsignedTransactionBase{
-			From:  types.NewAddress("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"),
-			Value: types.NewBigInt(100),
+			From:     types.NewAddress("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"),
+			Value:    types.NewBigInt(100),
+			GasPrice: types.NewBigInt(10000000000),
 		},
 		To: types.NewAddress("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"),
 	}
@@ -216,6 +219,7 @@ func signTx(client *sdk.Client) []byte {
 }
 
 func waitTxBePacked(client *sdk.Client, txhash types.Hash) *types.Transaction {
+	fmt.Printf("wait be packed")
 	var tx *types.Transaction
 	var err error
 	for {
@@ -224,8 +228,9 @@ func waitTxBePacked(client *sdk.Client, txhash types.Hash) *types.Transaction {
 		if err != nil {
 			panic(err)
 		}
+		fmt.Print(".")
 		if tx.Status != nil {
-			fmt.Printf("transaction is packed:%+v\n\n", tx)
+			fmt.Printf("\ntransaction is packed:%+v\n\n", tx)
 			break
 		}
 	}
