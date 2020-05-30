@@ -62,8 +62,11 @@ type ClientOperator interface {
 	DeployContract(option *types.ContractDeployOption, abiJSON []byte,
 		bytecode []byte, constroctorParams ...interface{}) *ContractDeployResult
 
-	BatchGetTxByHashs(txhashs []types.Hash) ([]*types.Transaction, error)
-	BatchGetBlockRevertRates(blockhashs []*types.Hash) ([]*big.Float, error)
+	BatchGetTxByHashs(txhashs []types.Hash) (map[types.Hash]*types.Transaction, error)
+	BatchGetBlockRevertRates(blockhashs []types.Hash) (map[types.Hash]*big.Float, error)
+	BatchGetConfirmationRisk(blockhashs []types.Hash) (map[types.Hash]*big.Int, error)
+	BatchGetBlockSummarys(blockhashs []types.Hash) (map[types.Hash]*types.BlockSummary, error)
+	GetNodeURL() string
 }
 
 // AccountManagerOperator is interface of operate actions on account manager

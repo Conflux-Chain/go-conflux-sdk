@@ -138,7 +138,8 @@ func (r *rpcClientWithRetry) Close() {
 	}
 }
 
-func (client *Client) GetNodeUrl() string {
+// GetNodeURL returns node url
+func (client *Client) GetNodeURL() string {
 	return client.nodeURL
 }
 
@@ -151,6 +152,13 @@ func (client *Client) CallRPC(result interface{}, method string, args ...interfa
 	return client.rpcRequester.Call(result, method, args...)
 }
 
+// BatchCallRPC sends all given requests as a single batch and waits for the server
+// to return a response for all of them.
+//
+// In contrast to Call, BatchCall only returns I/O errors. Any error specific to
+// a request is reported through the Error field of the corresponding BatchElem.
+//
+// Note that batch calls may not be executed atomically on the server side.
 func (client *Client) BatchCallRPC(b []rpc.BatchElem) error {
 	return client.rpcRequester.BatchCall(b)
 }
@@ -281,13 +289,13 @@ func (client *Client) GetBlockByHash(blockHash types.Hash) (*types.Block, error)
 		msg := fmt.Sprintf("rpc cfx_getBlockByHash %+v error", blockHash)
 		return nil, types.WrapError(err, msg)
 	}
-	fmt.Println("get block by hash done")
+	// fmt.Println("get block by hash done")
 
 	if result == nil {
 		return nil, nil
 	}
 
-	fmt.Println("start unmarshal block result")
+	// fmt.Println("start unmarshal block result")
 
 	var block types.Block
 	if err := unmarshalRPCResult(result, &block); err != nil {
@@ -360,7 +368,7 @@ func (client *Client) GetBlockConfirmRiskByHash(blockhash types.Hash) (*big.Int,
 		return nil, types.WrapError(err, msg)
 	}
 
-	fmt.Printf("GetTransactionConfirmRiskByHash of block %v result:%v\n", blockhash, result)
+	// fmt.Printf("GetTransactionConfirmRiskByHash of block %v result:%v\n", blockhash, result)
 
 	if result == nil {
 
@@ -847,124 +855,274 @@ func (client *Client) GetContract(abiJSON []byte, deployedAt *types.Address) (*C
 }
 
 // BatchGetTxByHashs ...
-func (client *Client) BatchGetTxByHashs(txhashs []types.Hash) ([]*types.Transaction, error) {
-	bes := make([]rpc.BatchElem, len(txhashs))
-	txs := make([]types.Transaction, len(txhashs))
+func (client *Client) BatchGetTxByHashs(txhashs []types.Hash) (map[types.Hash]*types.Transaction, error) {
+
+	cache := make(map[types.Hash]*rpc.BatchElem)
+
+	// bes := make([]rpc.BatchElem, len(txhashs))
+	// txs := make([]types.Transaction, len(txhashs))
 	for i := range txhashs {
-		be := rpc.BatchElem{
-			Method: "cfx_getTransactionByHash",
-			Args:   []interface{}{txhashs[i]},
-			Result: &txs[i],
+		if cache[txhashs[i]] == nil {
+			be := rpc.BatchElem{
+				Method: "cfx_getTransactionByHash",
+				Args:   []interface{}{txhashs[i]},
+				Result: &types.Transaction{},
+			}
+			// bes[i] = be
+			cache[txhashs[i]] = &be
 		}
-		bes[i] = be
+	}
+
+	bes := make([]rpc.BatchElem, 0, len(cache))
+	for _, v := range cache {
+		bes = append(bes, *v)
 	}
 	// fmt.Printf("send BatchItems: %+v \n", bes)
 	if err := client.BatchCallRPC(bes); err != nil {
 		return nil, err
 	}
 
-	results := make([]*types.Transaction, len(txhashs))
-	for i := range txs {
-		if (txs[i] == types.Transaction{}) {
-			results[i] = nil
+	hashToTxMap := make(map[types.Hash]*types.Transaction)
+	for _, th := range txhashs {
+		be := cache[th]
+		if (be.Result == types.Transaction{}) {
+			hashToTxMap[th] = nil
 			continue
 		}
-		results[i] = &txs[i]
+		hashToTxMap[th] = be.Result.(*types.Transaction)
 	}
 
-	return results, nil
+	// results := make([]*types.Transaction, len(txhashs))
+
+	// for i := range txhashs {
+	// 	be := cache[txhashs[i]]
+	// 	if (be.Result == types.Transaction{}) {
+	// 		results[i] = nil
+	// 		continue
+	// 	}
+	// 	results[i] = be.Result.(*types.Transaction)
+	// }
+
+	return hashToTxMap, nil
+}
+
+// BatchGetBlockSummarys ...
+func (client *Client) BatchGetBlockSummarys(blockhashs []types.Hash) (map[types.Hash]*types.BlockSummary, error) {
+	cache := make(map[types.Hash]*rpc.BatchElem)
+
+	// bes := make([]rpc.BatchElem, len(txhashs))
+	// txs := make([]types.Transaction, len(txhashs))
+	for i := range blockhashs {
+		if cache[blockhashs[i]] == nil {
+			be := rpc.BatchElem{
+				Method: "cfx_getBlockByHash",
+				Args:   []interface{}{blockhashs[i], false},
+				Result: &types.BlockSummary{},
+			}
+			// bes[i] = be
+			cache[blockhashs[i]] = &be
+		}
+	}
+
+	// generate bes
+	bes := make([]rpc.BatchElem, 0, len(cache))
+	for _, v := range cache {
+		bes = append(bes, *v)
+	}
+
+	if err := client.BatchCallRPC(bes); err != nil {
+		return nil, err
+	}
+
+	hashToBlocksummaryMap := make(map[types.Hash]*types.BlockSummary)
+
+	for _, bh := range blockhashs {
+		be := cache[bh]
+		if (be.Result == types.Transaction{}) {
+			hashToBlocksummaryMap[bh] = nil
+			continue
+		}
+		hashToBlocksummaryMap[bh] = be.Result.(*types.BlockSummary)
+	}
+	return hashToBlocksummaryMap, nil
+}
+
+// BatchGetConfirmationRisk ...
+func (client *Client) BatchGetConfirmationRisk(blockhashs []types.Hash) (map[types.Hash]*big.Int, error) {
+
+	if len(blockhashs) == 0 {
+		return make(map[types.Hash]*big.Int), nil
+	}
+
+	// get risks
+	riskCache := make(map[types.Hash]*rpc.BatchElem)
+	for i := range blockhashs {
+		if riskCache[blockhashs[i]] == nil {
+			var riskStr string
+			be := rpc.BatchElem{
+				Method: "cfx_getConfirmationRiskByHash",
+				Args:   []interface{}{blockhashs[i]},
+				Result: &riskStr,
+			}
+			riskCache[blockhashs[i]] = &be
+		}
+	}
+
+	bes := make([]rpc.BatchElem, 0, len(riskCache))
+	for _, v := range riskCache {
+		bes = append(bes, *v)
+	}
+
+	if err := client.BatchCallRPC(bes); err != nil {
+		return nil, err
+	}
+
+	// get block summary of blockhashs without risk
+	noRiskBlockhashs := make([]types.Hash, 0)
+	for _, bh := range blockhashs {
+		be := riskCache[bh]
+		if len(*be.Result.(*string)) == 0 {
+			noRiskBlockhashs = append(noRiskBlockhashs, bh)
+		}
+	}
+
+	hashToBlocksummaryMap := make(map[types.Hash]*types.BlockSummary)
+	if len(noRiskBlockhashs) > 0 {
+		var err error
+		hashToBlocksummaryMap, err = client.BatchGetBlockSummarys(noRiskBlockhashs)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	hashToRiskMap := make(map[types.Hash]*big.Int)
+	for _, bh := range blockhashs {
+		be := riskCache[bh]
+		riskStr := *be.Result.(*string)
+		if len(riskStr) == 0 {
+			blkSummary := hashToBlocksummaryMap[bh]
+			if blkSummary != nil && blkSummary.EpochNumber != nil {
+				hashToRiskMap[bh] = big.NewInt(0)
+			} else {
+				hashToRiskMap[bh] = constants.MaxUint256
+			}
+			continue
+			// hashToRiskMap[bh] = nil
+			// continue
+		}
+		risk, err := hexutil.DecodeBig(riskStr)
+		if err != nil {
+			return nil, err
+		}
+		hashToRiskMap[bh] = risk
+	}
+	return hashToRiskMap, nil
 }
 
 // BatchGetBlockRevertRates ...
-func (client *Client) BatchGetBlockRevertRates(blockhashs []*types.Hash) ([]*big.Float, error) {
-
-	// fmt.Printf("start batch get block revert rate of blockhashs %v\n", blockhashs)
-	if len(blockhashs) == 0 {
-		return []*big.Float{}, nil
+func (client *Client) BatchGetBlockRevertRates(blockhashs []types.Hash) (map[types.Hash]*big.Float, error) {
+	hashToRiskMap, err := client.BatchGetConfirmationRisk(blockhashs)
+	if err != nil {
+		return nil, err
 	}
 
-	// batch get block revert rate
-	bElems := make([]rpc.BatchElem, 0, len(blockhashs))
-	risks := make([]string, len(blockhashs))
-
-	for i := range blockhashs {
-		if blockhashs[i] == nil {
-			risks[i] = hexutil.EncodeBig(constants.MaxUint256)
-			continue
-		}
-
-		be := rpc.BatchElem{
-			Method: "cfx_getConfirmationRiskByHash",
-			Args:   []interface{}{blockhashs[i]},
-			Result: &risks[i],
-		}
-		bElems = append(bElems, be)
+	hashToRevertRateMap := make(map[types.Hash]*big.Float)
+	for bh, risk := range hashToRiskMap {
+		hashToRevertRateMap[bh] = utils.CalcBlockRevertRate(risk)
 	}
-	if err := client.BatchCallRPC(bElems); err != nil {
-		msg := fmt.Sprintf("batch call cfx_getConfirmationRiskByHash with BatchItem %v error", bElems)
-		return nil, types.WrapError(err, msg)
-	}
-
-	// filter blockhashs without revert rate
-	noRiskBlockhashs := make([]*types.Hash, 0)
-	// reduplicated block hash may exists, so set the value to a slice
-	indexMap := make(map[types.Hash][]int)
-	for i := range blockhashs {
-		if len(risks[i]) == 0 {
-			noRiskBlockhashs = append(noRiskBlockhashs, blockhashs[i])
-			if indexMap[*blockhashs[i]] == nil {
-				indexMap[*blockhashs[i]] = make([]int, 0)
-			}
-			indexMap[*blockhashs[i]] = append(indexMap[*blockhashs[i]], i)
-		}
-	}
-
-	if len(noRiskBlockhashs) > 0 {
-		// get blockSummarys, if block is valid set risk to 0, otherwise set to MaxUint256
-		summarys := make([]types.BlockSummary, len(noRiskBlockhashs))
-		bElems = make([]rpc.BatchElem, len(noRiskBlockhashs))
-
-		for i := range noRiskBlockhashs {
-			be := rpc.BatchElem{
-				Method: "cfx_getBlockByHash",
-				Args:   []interface{}{*noRiskBlockhashs[i], false},
-				Result: &summarys[i],
-			}
-			bElems = append(bElems, be)
-		}
-		if err := client.BatchCallRPC(bElems); err != nil {
-			msg := fmt.Sprintf("batch call cfx_getBlockByHash with BatchItem %v error", bElems)
-			return nil, types.WrapError(err, msg)
-		}
-
-		for i := range bElems {
-			indexs := indexMap[summarys[i].Hash]
-			var risk string
-			if summarys[i].EpochNumber != nil {
-				risk = big.NewInt(0).String()
-			} else {
-				risk = constants.MaxUint256.String()
-			}
-
-			for _, iRisks := range indexs {
-				risks[iRisks] = risk
-			}
-
-		}
-	}
-
-	// calculate risk to revert rate
-	rates := make([]*big.Float, len(risks))
-	for i := range risks {
-		b, err := hexutil.DecodeBig(risks[i])
-		if err != nil {
-			msg := fmt.Sprintf("create big int by risk value %v error", risks[i])
-			return nil, types.WrapError(err, msg)
-		}
-		rates[i] = utils.CalcBlockRevertRate(b)
-	}
-	return rates, nil
+	return hashToRevertRateMap, nil
 }
+
+// // BatchGetBlockRevertRates ...
+// func (client *Client) BatchGetBlockRevertRates(blockhashs []*types.Hash) ([]*big.Float, error) {
+
+// 	// fmt.Printf("start batch get block revert rate of blockhashs %v\n", blockhashs)
+// 	if len(blockhashs) == 0 {
+// 		return []*big.Float{}, nil
+// 	}
+
+// 	// batch get block revert rate
+// 	bElems := make([]rpc.BatchElem, 0, len(blockhashs))
+// 	risks := make([]string, len(blockhashs))
+
+// 	for i := range blockhashs {
+// 		if blockhashs[i] == nil {
+// 			risks[i] = hexutil.EncodeBig(constants.MaxUint256)
+// 			continue
+// 		}
+
+// 		be := rpc.BatchElem{
+// 			Method: "cfx_getConfirmationRiskByHash",
+// 			Args:   []interface{}{blockhashs[i]},
+// 			Result: &risks[i],
+// 		}
+// 		bElems = append(bElems, be)
+// 	}
+// 	if err := client.BatchCallRPC(bElems); err != nil {
+// 		msg := fmt.Sprintf("batch call cfx_getConfirmationRiskByHash with BatchItem %v error", bElems)
+// 		return nil, types.WrapError(err, msg)
+// 	}
+
+// 	// filter blockhashs without revert rate
+// 	noRiskBlockhashs := make([]*types.Hash, 0)
+// 	// reduplicated block hash may exists, so set the value to a slice
+// 	indexMap := make(map[types.Hash][]int)
+// 	for i := range blockhashs {
+// 		if len(risks[i]) == 0 {
+// 			noRiskBlockhashs = append(noRiskBlockhashs, blockhashs[i])
+// 			if indexMap[*blockhashs[i]] == nil {
+// 				indexMap[*blockhashs[i]] = make([]int, 0)
+// 			}
+// 			indexMap[*blockhashs[i]] = append(indexMap[*blockhashs[i]], i)
+// 		}
+// 	}
+
+// 	if len(noRiskBlockhashs) > 0 {
+// 		// get blockSummarys, if block is valid set risk to 0, otherwise set to MaxUint256
+// 		summarys := make([]types.BlockSummary, len(noRiskBlockhashs))
+// 		bElems = make([]rpc.BatchElem, len(noRiskBlockhashs))
+
+// 		for i := range noRiskBlockhashs {
+// 			be := rpc.BatchElem{
+// 				Method: "cfx_getBlockByHash",
+// 				Args:   []interface{}{*noRiskBlockhashs[i], false},
+// 				Result: &summarys[i],
+// 			}
+// 			bElems = append(bElems, be)
+// 		}
+// 		if err := client.BatchCallRPC(bElems); err != nil {
+// 			msg := fmt.Sprintf("batch call cfx_getBlockByHash with BatchItem %v error", bElems)
+// 			return nil, types.WrapError(err, msg)
+// 		}
+
+// 		for i := range bElems {
+// 			indexs := indexMap[summarys[i].Hash]
+// 			var risk string
+// 			if summarys[i].EpochNumber != nil {
+// 				risk = big.NewInt(0).String()
+// 			} else {
+// 				risk = constants.MaxUint256.String()
+// 			}
+
+// 			for _, iRisks := range indexs {
+// 				risks[iRisks] = risk
+// 			}
+
+// 		}
+// 	}
+
+// 	// calculate risk to revert rate
+// 	rates := make([]*big.Float, len(risks))
+// 	for i := range risks {
+// 		b, err := hexutil.DecodeBig(risks[i])
+// 		if err != nil {
+// 			msg := fmt.Sprintf("create big int by risk value %v error", risks[i])
+// 			return nil, types.WrapError(err, msg)
+// 		}
+// 		rates[i] = utils.CalcBlockRevertRate(b)
+// 	}
+// 	return rates, nil
+// }
 
 // Close closes the client, aborting any in-flight requests.
 func (client *Client) Close() {
