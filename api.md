@@ -183,6 +183,13 @@ func NewClient(nodeURL string) (*Client, error)
 ```
 NewClient creates a new instance of Client with specified conflux node url.
 
+#### func  NewClientWithRPCRequester
+
+```go
+func NewClientWithRPCRequester(rpcRequester rpcRequester) (*Client, error)
+```
+NewClientWithRPCRequester creates client with specified rpcRequester
+
 #### func  NewClientWithRetry
 
 ```go
@@ -200,6 +207,48 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 ```
 ApplyUnsignedTransactionDefault set empty fields to value fetched from conflux
 node.
+
+#### func (*Client) BatchCallRPC
+
+```go
+func (client *Client) BatchCallRPC(b []rpc.BatchElem) error
+```
+BatchCallRPC sends all given requests as a single batch and waits for the server
+to return a response for all of them.
+
+In contrast to Call, BatchCall only returns I/O errors. Any error specific to a
+request is reported through the Error field of the corresponding BatchElem.
+
+Note that batch calls may not be executed atomically on the server side.
+
+#### func (*Client) BatchGetBlockRevertRates
+
+```go
+func (client *Client) BatchGetBlockRevertRates(blockhashs []types.Hash) (map[types.Hash]*big.Float, error)
+```
+BatchGetBlockRevertRates acquires revert rate informations in bulk by blockhashs
+
+#### func (*Client) BatchGetBlockSummarys
+
+```go
+func (client *Client) BatchGetBlockSummarys(blockhashs []types.Hash) (map[types.Hash]*types.BlockSummary, error)
+```
+BatchGetBlockSummarys requests block summary informations in bulk by blockhashs
+
+#### func (*Client) BatchGetConfirmationRisk
+
+```go
+func (client *Client) BatchGetConfirmationRisk(blockhashs []types.Hash) (map[types.Hash]*big.Int, error)
+```
+BatchGetConfirmationRisk requests confirmation risk informations in bulk by
+blockhashs
+
+#### func (*Client) BatchGetTxByHashs
+
+```go
+func (client *Client) BatchGetTxByHashs(txhashs []types.Hash) (map[types.Hash]*types.Transaction, error)
+```
+BatchGetTxByHashs requests transaction informations in bulk by txhashs
 
 #### func (*Client) Call
 
@@ -375,6 +424,13 @@ func (client *Client) GetNextNonce(address types.Address, epoch *types.Epoch) (*
 ```
 GetNextNonce returns the next transaction nonce of address
 
+#### func (*Client) GetNodeURL
+
+```go
+func (client *Client) GetNodeURL() string
+```
+GetNodeURL returns node url
+
 #### func (*Client) GetTransactionByHash
 
 ```go
@@ -431,7 +487,15 @@ type Contract struct {
 }
 ```
 
-Contract represents a smart contract
+Contract represents a smart contract. You can conveniently create contract by
+Client.GetContrat or Client.DeployContract.
+
+#### func  NewContract
+
+```go
+func NewContract(abiJSON []byte, client ClientOperator, address *types.Address) (*Contract, error)
+```
+NewContract creates contract by abi and deployed address
 
 #### func (*Contract) Call
 
@@ -503,6 +567,13 @@ ContractDeployResult for state change notification when deploying contract
 import "github.com/Conflux-Chain/go-conflux-sdk/utils"
 ```
 
+
+#### func  CalcBlockRevertRate
+
+```go
+func CalcBlockRevertRate(confirmRisk *big.Int) *big.Float
+```
+CalcBlockRevertRate calculates block revert rate
 
 #### func  Keccak256
 
