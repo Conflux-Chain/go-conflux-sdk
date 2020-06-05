@@ -221,12 +221,13 @@ request is reported through the Error field of the corresponding BatchElem.
 
 Note that batch calls may not be executed atomically on the server side.
 
-#### func (*Client) BatchGetBlockRevertRates
+#### func (*Client) BatchGetBlockConfirmationRisk
 
 ```go
-func (client *Client) BatchGetBlockRevertRates(blockhashs []types.Hash) (map[types.Hash]*big.Float, error)
+func (client *Client) BatchGetBlockConfirmationRisk(blockhashs []types.Hash) (map[types.Hash]*big.Float, error)
 ```
-BatchGetBlockRevertRates acquires revert rate informations in bulk by blockhashs
+BatchGetBlockConfirmationRisk acquires revert rate informations in bulk by
+blockhashs
 
 #### func (*Client) BatchGetBlockSummarys
 
@@ -235,13 +236,13 @@ func (client *Client) BatchGetBlockSummarys(blockhashs []types.Hash) (map[types.
 ```
 BatchGetBlockSummarys requests block summary informations in bulk by blockhashs
 
-#### func (*Client) BatchGetConfirmationRisk
+#### func (*Client) BatchGetRawBlockConfirmationRisk
 
 ```go
-func (client *Client) BatchGetConfirmationRisk(blockhashs []types.Hash) (map[types.Hash]*big.Int, error)
+func (client *Client) BatchGetRawBlockConfirmationRisk(blockhashs []types.Hash) (map[types.Hash]*big.Int, error)
 ```
-BatchGetConfirmationRisk requests confirmation risk informations in bulk by
-blockhashs
+BatchGetRawBlockConfirmationRisk requests confirmation risk informations in bulk
+by blockhashs
 
 #### func (*Client) BatchGetTxByHashs
 
@@ -340,21 +341,13 @@ func (client *Client) GetBlockByHash(blockHash types.Hash) (*types.Block, error)
 GetBlockByHash returns the block of specified blockHash If the block is not
 found, return nil.
 
-#### func (*Client) GetBlockConfirmRiskByHash
+#### func (*Client) GetBlockConfirmRisk
 
 ```go
-func (client *Client) GetBlockConfirmRiskByHash(blockhash types.Hash) (*big.Int, error)
+func (client *Client) GetBlockConfirmRisk(blockHash types.Hash) (*big.Float, error)
 ```
-GetBlockConfirmRiskByHash indicates the risk coefficient that the pivot block of
-the epoch where the block is located becomes an normal block.
-
-#### func (*Client) GetBlockRevertRateByHash
-
-```go
-func (client *Client) GetBlockRevertRateByHash(blockHash types.Hash) (*big.Float, error)
-```
-GetBlockRevertRateByHash indicates the probability that the pivot block of the
-epoch where the block is located becomes an ordinary block.
+GetBlockConfirmRisk indicates the probability that the pivot block of the epoch
+where the block is located becomes an ordinary block.
 
 it's (confirm risk coefficient/ (2^256-1))
 
@@ -430,6 +423,14 @@ GetNextNonce returns the next transaction nonce of address
 func (client *Client) GetNodeURL() string
 ```
 GetNodeURL returns node url
+
+#### func (*Client) GetRawBlockConfirmRisk
+
+```go
+func (client *Client) GetRawBlockConfirmRisk(blockhash types.Hash) (*big.Int, error)
+```
+GetRawBlockConfirmRisk indicates the risk coefficient that the pivot block of
+the epoch where the block is located becomes an normal block.
 
 #### func (*Client) GetTransactionByHash
 

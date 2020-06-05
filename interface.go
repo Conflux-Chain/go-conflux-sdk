@@ -39,8 +39,8 @@ type ClientOperator interface {
 	GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary, error)
 	GetBlockByEpoch(epoch *types.Epoch) (*types.Block, error)
 	GetBestBlockHash() (types.Hash, error)
-	GetBlockConfirmRiskByHash(blockhash types.Hash) (*big.Int, error)
-	GetBlockRevertRateByHash(blockHash types.Hash) (*big.Float, error)
+	GetRawBlockConfirmRisk(blockhash types.Hash) (*big.Int, error)
+	GetBlockConfirmRisk(blockHash types.Hash) (*big.Float, error)
 	SendRawTransaction(rawData []byte) (types.Hash, error)
 	SendTransaction(tx *types.UnsignedTransaction) (types.Hash, error)
 	SetAccountManager(accountManager AccountManagerOperator)
@@ -63,8 +63,8 @@ type ClientOperator interface {
 		bytecode []byte, constroctorParams ...interface{}) *ContractDeployResult
 
 	BatchGetTxByHashs(txhashs []types.Hash) (map[types.Hash]*types.Transaction, error)
-	BatchGetBlockRevertRates(blockhashs []types.Hash) (map[types.Hash]*big.Float, error)
-	BatchGetConfirmationRisk(blockhashs []types.Hash) (map[types.Hash]*big.Int, error)
+	BatchGetBlockConfirmationRisk(blockhashs []types.Hash) (map[types.Hash]*big.Float, error)
+	BatchGetRawBlockConfirmationRisk(blockhashs []types.Hash) (map[types.Hash]*big.Int, error)
 	BatchGetBlockSummarys(blockhashs []types.Hash) (map[types.Hash]*types.BlockSummary, error)
 	GetNodeURL() string
 }
