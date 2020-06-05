@@ -17,7 +17,7 @@ import (
 )
 
 // Contract represents a smart contract.
-// You can conveniently create contract by Client.GetContrat or Client.DeployContract.
+// You can conveniently create contract by Client.GetContract or Client.DeployContract.
 type Contract struct {
 	ABI     abi.ABI
 	Client  ClientOperator

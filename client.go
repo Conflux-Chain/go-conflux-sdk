@@ -77,23 +77,17 @@ type rpcClientWithRetry struct {
 }
 
 func (r *rpcClientWithRetry) Call(resultPtr interface{}, method string, args ...interface{}) error {
-	err := r.inner.Call(resultPtr, method, args...)
-	if err == nil {
-		return nil
-	}
-
-	if r.retryCount <= 0 {
-		return err
-	}
 
 	remain := r.retryCount
 	for {
-		if err = r.inner.Call(resultPtr, method, args...); err == nil {
+
+		err := r.inner.Call(resultPtr, method, args...)
+		if err == nil {
 			return nil
 		}
 
 		remain--
-		if remain == 0 {
+		if remain < 0 {
 			msg := fmt.Sprintf("timeout when call %v with args %v", method, args)
 			return types.WrapError(err, msg)
 		}
@@ -284,18 +278,14 @@ func (client *Client) GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockS
 func (client *Client) GetBlockByHash(blockHash types.Hash) (*types.Block, error) {
 	var result interface{}
 
-	// fmt.Println("start get block by hash in function GetBlockByHash: ", blockHash, "; client node url is", client.GetNodeUrl())
 	if err := client.rpcRequester.Call(&result, "cfx_getBlockByHash", blockHash, true); err != nil {
 		msg := fmt.Sprintf("rpc cfx_getBlockByHash %+v error", blockHash)
 		return nil, types.WrapError(err, msg)
 	}
-	// fmt.Println("get block by hash done")
 
 	if result == nil {
 		return nil, nil
 	}
-
-	// fmt.Println("start unmarshal block result")
 
 	var block types.Block
 	if err := unmarshalRPCResult(result, &block); err != nil {
@@ -368,8 +358,6 @@ func (client *Client) GetRawBlockConfirmRisk(blockhash types.Hash) (*big.Int, er
 		return nil, types.WrapError(err, msg)
 	}
 
-	// fmt.Printf("GetTransactionConfirmRiskByHash of block %v result:%v\n", blockhash, result)
-
 	if result == nil {
 
 		block, err := client.GetBlockSummaryByHash(blockhash)
@@ -438,8 +426,6 @@ func (client *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash
 	// }
 
 	//sign
-	// fmt.Printf("ready to send transaction %+v\n\n", tx)
-
 	if client.accountManager == nil {
 		msg := fmt.Sprintf("sign transaction need account manager, please call SetAccountManager to set it.")
 		return "", errors.New(msg)
@@ -451,7 +437,6 @@ func (client *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash
 		return "", types.WrapError(err, msg)
 	}
 
-	// fmt.Printf("signed raw data: %x", rawData)
 	//send raw tx
 	txhash, err := client.SendRawTransaction(rawData)
 	if err != nil {
@@ -464,7 +449,7 @@ func (client *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash
 // SendRawTransaction sends signed transaction and returns its hash.
 func (client *Client) SendRawTransaction(rawData []byte) (types.Hash, error) {
 	var result interface{}
-	// fmt.Printf("send raw transaction %x\n", rawData)
+
 	if err := client.rpcRequester.Call(&result, "cfx_sendRawTransaction", hexutil.Encode(rawData)); err != nil {
 		msg := fmt.Sprintf("rpc cfx_sendRawTransaction 0x%+x error", rawData)
 		return "", types.WrapError(err, msg)
@@ -854,18 +839,18 @@ func (client *Client) GetContract(abiJSON []byte, deployedAt *types.Address) (*C
 	return contract, nil
 }
 
-// BatchGetTxByHashs requests transaction informations in bulk by txhashs
-func (client *Client) BatchGetTxByHashs(txhashs []types.Hash) (map[types.Hash]*types.Transaction, error) {
+// BatchGetTxByHashes requests transaction informations in bulk by txhashes
+func (client *Client) BatchGetTxByHashes(txhashes []types.Hash) (map[types.Hash]*types.Transaction, error) {
 
 	cache := make(map[types.Hash]*rpc.BatchElem)
-	for i := range txhashs {
-		if cache[txhashs[i]] == nil {
+	for i := range txhashes {
+		if cache[txhashes[i]] == nil {
 			be := rpc.BatchElem{
 				Method: "cfx_getTransactionByHash",
-				Args:   []interface{}{txhashs[i]},
+				Args:   []interface{}{txhashes[i]},
 				Result: &types.Transaction{},
 			}
-			cache[txhashs[i]] = &be
+			cache[txhashes[i]] = &be
 		}
 	}
 
@@ -879,7 +864,7 @@ func (client *Client) BatchGetTxByHashs(txhashs []types.Hash) (map[types.Hash]*t
 	}
 
 	hashToTxMap := make(map[types.Hash]*types.Transaction)
-	for _, th := range txhashs {
+	for _, th := range txhashes {
 		be := cache[th]
 		if (be.Result == types.Transaction{}) {
 			hashToTxMap[th] = nil
@@ -891,18 +876,18 @@ func (client *Client) BatchGetTxByHashs(txhashs []types.Hash) (map[types.Hash]*t
 	return hashToTxMap, nil
 }
 
-// BatchGetBlockSummarys requests block summary informations in bulk by blockhashs
-func (client *Client) BatchGetBlockSummarys(blockhashs []types.Hash) (map[types.Hash]*types.BlockSummary, error) {
+// BatchGetBlockSummarys requests block summary informations in bulk by blockhashes
+func (client *Client) BatchGetBlockSummarys(blockhashes []types.Hash) (map[types.Hash]*types.BlockSummary, error) {
 	cache := make(map[types.Hash]*rpc.BatchElem)
 
-	for i := range blockhashs {
-		if cache[blockhashs[i]] == nil {
+	for i := range blockhashes {
+		if cache[blockhashes[i]] == nil {
 			be := rpc.BatchElem{
 				Method: "cfx_getBlockByHash",
-				Args:   []interface{}{blockhashs[i], false},
+				Args:   []interface{}{blockhashes[i], false},
 				Result: &types.BlockSummary{},
 			}
-			cache[blockhashs[i]] = &be
+			cache[blockhashes[i]] = &be
 		}
 	}
 
@@ -918,7 +903,7 @@ func (client *Client) BatchGetBlockSummarys(blockhashs []types.Hash) (map[types.
 
 	hashToBlocksummaryMap := make(map[types.Hash]*types.BlockSummary)
 
-	for _, bh := range blockhashs {
+	for _, bh := range blockhashes {
 		be := cache[bh]
 		if (be.Result == types.Transaction{}) {
 			hashToBlocksummaryMap[bh] = nil
@@ -929,24 +914,24 @@ func (client *Client) BatchGetBlockSummarys(blockhashs []types.Hash) (map[types.
 	return hashToBlocksummaryMap, nil
 }
 
-// BatchGetRawBlockConfirmationRisk requests confirmation risk informations in bulk by blockhashs
-func (client *Client) BatchGetRawBlockConfirmationRisk(blockhashs []types.Hash) (map[types.Hash]*big.Int, error) {
+// BatchGetRawBlockConfirmationRisk requests confirmation risk informations in bulk by blockhashes
+func (client *Client) BatchGetRawBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Int, error) {
 
-	if len(blockhashs) == 0 {
+	if len(blockhashes) == 0 {
 		return make(map[types.Hash]*big.Int), nil
 	}
 
 	// get risks
 	riskCache := make(map[types.Hash]*rpc.BatchElem)
-	for i := range blockhashs {
-		if riskCache[blockhashs[i]] == nil {
+	for i := range blockhashes {
+		if riskCache[blockhashes[i]] == nil {
 			var riskStr string
 			be := rpc.BatchElem{
 				Method: "cfx_getConfirmationRiskByHash",
-				Args:   []interface{}{blockhashs[i]},
+				Args:   []interface{}{blockhashes[i]},
 				Result: &riskStr,
 			}
-			riskCache[blockhashs[i]] = &be
+			riskCache[blockhashes[i]] = &be
 		}
 	}
 
@@ -959,26 +944,26 @@ func (client *Client) BatchGetRawBlockConfirmationRisk(blockhashs []types.Hash) 
 		return nil, err
 	}
 
-	// get block summary of blockhashs without risk
-	noRiskBlockhashs := make([]types.Hash, 0)
-	for _, bh := range blockhashs {
+	// get block summary of blockhashes without risk
+	noRiskBlockhashes := make([]types.Hash, 0)
+	for _, bh := range blockhashes {
 		be := riskCache[bh]
 		if len(*be.Result.(*string)) == 0 {
-			noRiskBlockhashs = append(noRiskBlockhashs, bh)
+			noRiskBlockhashes = append(noRiskBlockhashes, bh)
 		}
 	}
 
 	hashToBlocksummaryMap := make(map[types.Hash]*types.BlockSummary)
-	if len(noRiskBlockhashs) > 0 {
+	if len(noRiskBlockhashes) > 0 {
 		var err error
-		hashToBlocksummaryMap, err = client.BatchGetBlockSummarys(noRiskBlockhashs)
+		hashToBlocksummaryMap, err = client.BatchGetBlockSummarys(noRiskBlockhashes)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	hashToRiskMap := make(map[types.Hash]*big.Int)
-	for _, bh := range blockhashs {
+	for _, bh := range blockhashes {
 		be := riskCache[bh]
 		riskStr := *be.Result.(*string)
 		if len(riskStr) == 0 {
@@ -1001,9 +986,9 @@ func (client *Client) BatchGetRawBlockConfirmationRisk(blockhashs []types.Hash) 
 	return hashToRiskMap, nil
 }
 
-// BatchGetBlockConfirmationRisk acquires revert rate informations in bulk by blockhashs
-func (client *Client) BatchGetBlockConfirmationRisk(blockhashs []types.Hash) (map[types.Hash]*big.Float, error) {
-	hashToRiskMap, err := client.BatchGetRawBlockConfirmationRisk(blockhashs)
+// BatchGetBlockConfirmationRisk acquires revert rate informations in bulk by blockhashes
+func (client *Client) BatchGetBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Float, error) {
+	hashToRiskMap, err := client.BatchGetRawBlockConfirmationRisk(blockhashes)
 	if err != nil {
 		return nil, err
 	}

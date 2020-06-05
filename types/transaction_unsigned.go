@@ -70,7 +70,7 @@ func (tx *UnsignedTransaction) ApplyDefault() {
 	}
 }
 
-// Hash hashs the tx by keccak256 and returns the result
+// Hash hashes the tx by keccak256 and returns the result
 func (tx *UnsignedTransaction) Hash() ([]byte, error) {
 	encoded, err := tx.Encode()
 	if err != nil {

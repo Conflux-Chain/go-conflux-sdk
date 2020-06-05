@@ -62,10 +62,10 @@ type ClientOperator interface {
 	DeployContract(option *types.ContractDeployOption, abiJSON []byte,
 		bytecode []byte, constroctorParams ...interface{}) *ContractDeployResult
 
-	BatchGetTxByHashs(txhashs []types.Hash) (map[types.Hash]*types.Transaction, error)
-	BatchGetBlockConfirmationRisk(blockhashs []types.Hash) (map[types.Hash]*big.Float, error)
-	BatchGetRawBlockConfirmationRisk(blockhashs []types.Hash) (map[types.Hash]*big.Int, error)
-	BatchGetBlockSummarys(blockhashs []types.Hash) (map[types.Hash]*types.BlockSummary, error)
+	BatchGetTxByHashes(txhashes []types.Hash) (map[types.Hash]*types.Transaction, error)
+	BatchGetBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Float, error)
+	BatchGetRawBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Int, error)
+	BatchGetBlockSummarys(blockhashes []types.Hash) (map[types.Hash]*types.BlockSummary, error)
 	GetNodeURL() string
 }
 

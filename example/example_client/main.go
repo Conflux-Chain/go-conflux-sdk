@@ -172,19 +172,21 @@ func run(client *sdk.Client) {
 	}
 	time.Sleep(10 * time.Second)
 
-	blockHash = *tx.BlockHash
-	risk, err := client.GetBlockConfirmRiskByHash(blockHash)
-	if err != nil {
-		fmt.Printf("get risk of block %v error: %v\n", blockHash, err)
-	} else {
-		fmt.Printf("get risk of block %v : %v\n", blockHash, risk)
-	}
+	if tx != nil {
+		blockHash = *tx.BlockHash
+		risk, err := client.GetRawBlockConfirmRisk(blockHash)
+		if err != nil {
+			fmt.Printf("get risk of block %v error: %v\n", blockHash, err)
+		} else {
+			fmt.Printf("get risk of block %v : %v\n", blockHash, risk)
+		}
 
-	rate, err := client.GetBlockRevertRateByHash(blockHash)
-	if err != nil {
-		fmt.Printf("get revert rate of block %v error: %v\n", blockHash, err)
-	} else {
-		fmt.Printf("get revert rate of block %v : %v\n", blockHash, rate)
+		rate, err := client.GetBlockConfirmRisk(blockHash)
+		if err != nil {
+			fmt.Printf("get revert rate of block %v error: %v\n", blockHash, err)
+		} else {
+			fmt.Printf("get revert rate of block %v : %v\n", blockHash, rate)
+		}
 	}
 
 	b := new(types.Block)
@@ -202,6 +204,7 @@ func signTx(client *sdk.Client) []byte {
 			From:     types.NewAddress("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"),
 			Value:    types.NewBigInt(100),
 			GasPrice: types.NewBigInt(10000000000),
+			ChainID:  types.NewBigInt(1),
 		},
 		To: types.NewAddress("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"),
 	}

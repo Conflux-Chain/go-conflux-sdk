@@ -52,7 +52,7 @@ func PrivateKeyToPublicKey(privateKey string) string {
 	return pubKey
 }
 
-// Keccak256 hashs hex string by keccak256 and returns it's hash value
+// Keccak256 hashes hex string by keccak256 and returns it's hash value
 func Keccak256(hexStr string) (string, error) {
 	if hexStr[0:2] != "0x" {
 		return "", errors.New("input must start with 0x")
