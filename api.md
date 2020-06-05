@@ -224,32 +224,32 @@ Note that batch calls may not be executed atomically on the server side.
 #### func (*Client) BatchGetBlockConfirmationRisk
 
 ```go
-func (client *Client) BatchGetBlockConfirmationRisk(blockhashs []types.Hash) (map[types.Hash]*big.Float, error)
+func (client *Client) BatchGetBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Float, error)
 ```
 BatchGetBlockConfirmationRisk acquires revert rate informations in bulk by
-blockhashs
+blockhashes
 
 #### func (*Client) BatchGetBlockSummarys
 
 ```go
-func (client *Client) BatchGetBlockSummarys(blockhashs []types.Hash) (map[types.Hash]*types.BlockSummary, error)
+func (client *Client) BatchGetBlockSummarys(blockhashes []types.Hash) (map[types.Hash]*types.BlockSummary, error)
 ```
-BatchGetBlockSummarys requests block summary informations in bulk by blockhashs
+BatchGetBlockSummarys requests block summary informations in bulk by blockhashes
 
 #### func (*Client) BatchGetRawBlockConfirmationRisk
 
 ```go
-func (client *Client) BatchGetRawBlockConfirmationRisk(blockhashs []types.Hash) (map[types.Hash]*big.Int, error)
+func (client *Client) BatchGetRawBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Int, error)
 ```
 BatchGetRawBlockConfirmationRisk requests confirmation risk informations in bulk
-by blockhashs
+by blockhashes
 
-#### func (*Client) BatchGetTxByHashs
+#### func (*Client) BatchGetTxByHashes
 
 ```go
-func (client *Client) BatchGetTxByHashs(txhashs []types.Hash) (map[types.Hash]*types.Transaction, error)
+func (client *Client) BatchGetTxByHashes(txhashes []types.Hash) (map[types.Hash]*types.Transaction, error)
 ```
-BatchGetTxByHashs requests transaction informations in bulk by txhashs
+BatchGetTxByHashes requests transaction informations in bulk by txhashes
 
 #### func (*Client) Call
 
@@ -489,7 +489,7 @@ type Contract struct {
 ```
 
 Contract represents a smart contract. You can conveniently create contract by
-Client.GetContrat or Client.DeployContract.
+Client.GetContract or Client.DeployContract.
 
 #### func  NewContract
 
@@ -581,7 +581,7 @@ CalcBlockRevertRate calculates block revert rate
 ```go
 func Keccak256(hexStr string) (string, error)
 ```
-Keccak256 hashs hex string by keccak256 and returns it's hash value
+Keccak256 hashes hex string by keccak256 and returns it's hash value
 
 #### func  PrivateKeyToPublicKey
 
