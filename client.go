@@ -194,7 +194,7 @@ func (client *Client) GetStatus() (*types.Status, error) {
 	var result types.Status
 
 	if err := client.rpcRequester.Call(&result, "cfx_getStatus"); err != nil {
-		return nil, types.WrapErrorf(err, "rpc request cfx_getStatus %+v error")
+		return nil, types.WrapErrorf(err, "rpc request cfx_getStatus error")
 	}
 	return &result, nil
 }
