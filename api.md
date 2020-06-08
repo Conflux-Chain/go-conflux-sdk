@@ -432,6 +432,13 @@ func (client *Client) GetRawBlockConfirmationRisk(blockhash types.Hash) (*big.In
 GetRawBlockConfirmationRisk indicates the risk coefficient that the pivot block
 of the epoch where the block is located becomes a normal block.
 
+#### func (*Client) GetStatus
+
+```go
+func (client *Client) GetStatus() (*types.Status, error)
+```
+GetStatus returns chainID of connecting conflux node
+
 #### func (*Client) GetTransactionByHash
 
 ```go
