@@ -187,16 +187,16 @@ func (client *Client) GetNextNonce(address types.Address, epoch *types.Epoch) (*
 		return nil, types.WrapErrorf(err, msg)
 	}
 	return hexutil.DecodeBig(result.(string))
+}
 
-	// // remove prefix "0x"
-	// result = string([]byte(result.(string))[2:])
-	// nonce, err := strconv.ParseUint(result.(string), 16, 64)
-	// if err != nil {
-	// 	msg := fmt.Sprintf("parse uint %+v error", result)
-	// 	return 0, types.WrapError(err, msg)
-	// }
+// GetStatus returns chainID of connecting conflux node
+func (client *Client) GetStatus() (*types.Status, error) {
+	var result types.Status
 
-	// return nonce, nil
+	if err := client.rpcRequester.Call(&result, "cfx_getStatus"); err != nil {
+		return nil, types.WrapErrorf(err, "rpc request cfx_getStatus %+v error")
+	}
+	return &result, nil
 }
 
 // GetEpochNumber returns the highest or specified epoch number.
@@ -671,6 +671,15 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 			}
 			tmp := hexutil.Big(*nonce)
 			tx.Nonce = &tmp
+		}
+
+		if tx.ChainID == nil {
+			status, err := client.GetStatus()
+			if err != nil {
+				tx.ChainID = types.NewBigInt(0)
+			} else {
+				tx.ChainID = status.ChainID
+			}
 		}
 
 		if tx.GasPrice == nil {

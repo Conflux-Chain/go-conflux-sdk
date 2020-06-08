@@ -60,6 +60,13 @@ func run(client *sdk.Client) {
 		}
 	}
 
+	status, err := client.GetStatus()
+	if err != nil {
+		fmt.Printf("get status error: %v\n\n", err)
+	} else {
+		fmt.Printf("get status result: %+v\n\n", status)
+	}
+
 	addr := types.Address("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302")
 	balance, err := client.GetBalance(addr)
 	if err != nil {
@@ -204,7 +211,7 @@ func signTx(client *sdk.Client) []byte {
 			From:     types.NewAddress("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"),
 			Value:    types.NewBigInt(100),
 			GasPrice: types.NewBigInt(10000000000),
-			ChainID:  types.NewBigInt(1),
+			// ChainID:  types.NewBigInt(1),
 		},
 		To: types.NewAddress("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"),
 	}

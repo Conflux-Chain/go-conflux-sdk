@@ -31,6 +31,8 @@ type Contractor interface {
 // ClientOperator is interface of operate actions on client
 type ClientOperator interface {
 	GetGasPrice() (*big.Int, error)
+	GetNextNonce(address types.Address, epoch *types.Epoch) (*big.Int, error)
+	GetStatus() (*types.Status, error)
 	GetEpochNumber(epoch ...*types.Epoch) (*big.Int, error)
 	GetBalance(address types.Address, epoch ...*types.Epoch) (*big.Int, error)
 	GetCode(address types.Address, epoch ...*types.Epoch) (string, error)
