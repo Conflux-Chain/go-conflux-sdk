@@ -174,14 +174,14 @@ func run(client *sdk.Client) {
 
 	if tx != nil {
 		blockHash = *tx.BlockHash
-		risk, err := client.GetRawBlockConfirmRisk(blockHash)
+		risk, err := client.GetRawBlockConfirmationRisk(blockHash)
 		if err != nil {
 			fmt.Printf("get risk of block %v error: %v\n", blockHash, err)
 		} else {
 			fmt.Printf("get risk of block %v : %v\n", blockHash, risk)
 		}
 
-		rate, err := client.GetBlockConfirmRisk(blockHash)
+		rate, err := client.GetBlockConfirmationRisk(blockHash)
 		if err != nil {
 			fmt.Printf("get revert rate of block %v error: %v\n", blockHash, err)
 		} else {

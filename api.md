@@ -226,7 +226,7 @@ Note that batch calls may not be executed atomically on the server side.
 ```go
 func (client *Client) BatchGetBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Float, error)
 ```
-BatchGetBlockConfirmationRisk acquires revert rate informations in bulk by
+BatchGetBlockConfirmationRisk acquires confirmation risk informations in bulk by
 blockhashes
 
 #### func (*Client) BatchGetBlockSummarys
@@ -241,8 +241,8 @@ BatchGetBlockSummarys requests block summary informations in bulk by blockhashes
 ```go
 func (client *Client) BatchGetRawBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Int, error)
 ```
-BatchGetRawBlockConfirmationRisk requests confirmation risk informations in bulk
-by blockhashes
+BatchGetRawBlockConfirmationRisk requests raw confirmation risk informations in
+bulk by blockhashes
 
 #### func (*Client) BatchGetTxByHashes
 
@@ -341,15 +341,15 @@ func (client *Client) GetBlockByHash(blockHash types.Hash) (*types.Block, error)
 GetBlockByHash returns the block of specified blockHash If the block is not
 found, return nil.
 
-#### func (*Client) GetBlockConfirmRisk
+#### func (*Client) GetBlockConfirmationRisk
 
 ```go
-func (client *Client) GetBlockConfirmRisk(blockHash types.Hash) (*big.Float, error)
+func (client *Client) GetBlockConfirmationRisk(blockHash types.Hash) (*big.Float, error)
 ```
-GetBlockConfirmRisk indicates the probability that the pivot block of the epoch
-where the block is located becomes an ordinary block.
+GetBlockConfirmationRisk indicates the probability that the pivot block of the
+epoch where the block is located becomes a normal block.
 
-it's (confirm risk coefficient/ (2^256-1))
+it's (raw confirmation risk coefficient/ (2^256-1))
 
 #### func (*Client) GetBlockSummaryByEpoch
 
@@ -424,13 +424,13 @@ func (client *Client) GetNodeURL() string
 ```
 GetNodeURL returns node url
 
-#### func (*Client) GetRawBlockConfirmRisk
+#### func (*Client) GetRawBlockConfirmationRisk
 
 ```go
-func (client *Client) GetRawBlockConfirmRisk(blockhash types.Hash) (*big.Int, error)
+func (client *Client) GetRawBlockConfirmationRisk(blockhash types.Hash) (*big.Int, error)
 ```
-GetRawBlockConfirmRisk indicates the risk coefficient that the pivot block of
-the epoch where the block is located becomes an normal block.
+GetRawBlockConfirmationRisk indicates the risk coefficient that the pivot block
+of the epoch where the block is located becomes a normal block.
 
 #### func (*Client) GetTransactionByHash
 
@@ -569,12 +569,12 @@ import "github.com/Conflux-Chain/go-conflux-sdk/utils"
 ```
 
 
-#### func  CalcBlockRevertRate
+#### func  CalcBlockConfirmationRisk
 
 ```go
-func CalcBlockRevertRate(confirmRisk *big.Int) *big.Float
+func CalcBlockConfirmationRisk(rawConfirmationRisk *big.Int) *big.Float
 ```
-CalcBlockRevertRate calculates block revert rate
+CalcBlockConfirmationRisk calculates block revert rate
 
 #### func  Keccak256
 

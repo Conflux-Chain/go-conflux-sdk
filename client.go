@@ -346,9 +346,9 @@ func (client *Client) GetBestBlockHash() (types.Hash, error) {
 	return types.Hash(result.(string)), nil
 }
 
-// GetRawBlockConfirmRisk indicates the risk coefficient that
-// the pivot block of the epoch where the block is located becomes an normal block.
-func (client *Client) GetRawBlockConfirmRisk(blockhash types.Hash) (*big.Int, error) {
+// GetRawBlockConfirmationRisk indicates the risk coefficient that
+// the pivot block of the epoch where the block is located becomes a normal block.
+func (client *Client) GetRawBlockConfirmationRisk(blockhash types.Hash) (*big.Int, error) {
 	var result interface{}
 
 	args := []interface{}{blockhash}
@@ -375,12 +375,12 @@ func (client *Client) GetRawBlockConfirmRisk(blockhash types.Hash) (*big.Int, er
 	return hexutil.DecodeBig(result.(string))
 }
 
-// GetBlockConfirmRisk indicates the probability that
-// the pivot block of the epoch where the block is located becomes an ordinary block.
+// GetBlockConfirmationRisk indicates the probability that
+// the pivot block of the epoch where the block is located becomes a normal block.
 //
-// it's (confirm risk coefficient/ (2^256-1))
-func (client *Client) GetBlockConfirmRisk(blockHash types.Hash) (*big.Float, error) {
-	risk, err := client.GetRawBlockConfirmRisk(blockHash)
+// it's (raw confirmation risk coefficient/ (2^256-1))
+func (client *Client) GetBlockConfirmationRisk(blockHash types.Hash) (*big.Float, error) {
+	risk, err := client.GetRawBlockConfirmationRisk(blockHash)
 	if err != nil {
 		msg := fmt.Sprintf("get block confirmation risk by hash %+v error", blockHash)
 		return nil, types.WrapError(err, msg)
@@ -914,7 +914,7 @@ func (client *Client) BatchGetBlockSummarys(blockhashes []types.Hash) (map[types
 	return hashToBlocksummaryMap, nil
 }
 
-// BatchGetRawBlockConfirmationRisk requests confirmation risk informations in bulk by blockhashes
+// BatchGetRawBlockConfirmationRisk requests raw confirmation risk informations in bulk by blockhashes
 func (client *Client) BatchGetRawBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Int, error) {
 
 	if len(blockhashes) == 0 {
@@ -986,7 +986,7 @@ func (client *Client) BatchGetRawBlockConfirmationRisk(blockhashes []types.Hash)
 	return hashToRiskMap, nil
 }
 
-// BatchGetBlockConfirmationRisk acquires revert rate informations in bulk by blockhashes
+// BatchGetBlockConfirmationRisk acquires confirmation risk informations in bulk by blockhashes
 func (client *Client) BatchGetBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Float, error) {
 	hashToRiskMap, err := client.BatchGetRawBlockConfirmationRisk(blockhashes)
 	if err != nil {
@@ -995,7 +995,7 @@ func (client *Client) BatchGetBlockConfirmationRisk(blockhashes []types.Hash) (m
 
 	hashToRevertRateMap := make(map[types.Hash]*big.Float)
 	for bh, risk := range hashToRiskMap {
-		hashToRevertRateMap[bh] = utils.CalcBlockRevertRate(risk)
+		hashToRevertRateMap[bh] = utils.CalcBlockConfirmationRisk(risk)
 	}
 	return hashToRevertRateMap, nil
 }

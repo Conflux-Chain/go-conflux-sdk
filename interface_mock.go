@@ -5,6 +5,7 @@
 package sdk
 
 import (
+	rpc "github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	types "github.com/Conflux-Chain/go-conflux-sdk/types"
 	hexutil "github.com/ethereum/go-ethereum/common/hexutil"
 	gomock "github.com/golang/mock/gomock"
@@ -320,34 +321,34 @@ func (mr *MockClientOperatorMockRecorder) GetBestBlockHash() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBestBlockHash", reflect.TypeOf((*MockClientOperator)(nil).GetBestBlockHash))
 }
 
-// GetBlockConfirmRiskByHash mocks base method
-func (m *MockClientOperator) GetBlockConfirmRiskByHash(blockhash types.Hash) (*big.Int, error) {
+// GetRawBlockConfirmationRisk mocks base method
+func (m *MockClientOperator) GetRawBlockConfirmationRisk(blockhash types.Hash) (*big.Int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBlockConfirmRiskByHash", blockhash)
+	ret := m.ctrl.Call(m, "GetRawBlockConfirmationRisk", blockhash)
 	ret0, _ := ret[0].(*big.Int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetBlockConfirmRiskByHash indicates an expected call of GetBlockConfirmRiskByHash
-func (mr *MockClientOperatorMockRecorder) GetBlockConfirmRiskByHash(blockhash interface{}) *gomock.Call {
+// GetRawBlockConfirmationRisk indicates an expected call of GetRawBlockConfirmationRisk
+func (mr *MockClientOperatorMockRecorder) GetRawBlockConfirmationRisk(blockhash interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlockConfirmRiskByHash", reflect.TypeOf((*MockClientOperator)(nil).GetBlockConfirmRiskByHash), blockhash)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRawBlockConfirmationRisk", reflect.TypeOf((*MockClientOperator)(nil).GetRawBlockConfirmationRisk), blockhash)
 }
 
-// GetBlockRevertRateByHash mocks base method
-func (m *MockClientOperator) GetBlockRevertRateByHash(blockHash types.Hash) (*big.Float, error) {
+// GetBlockConfirmationRisk mocks base method
+func (m *MockClientOperator) GetBlockConfirmationRisk(blockHash types.Hash) (*big.Float, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBlockRevertRateByHash", blockHash)
+	ret := m.ctrl.Call(m, "GetBlockConfirmationRisk", blockHash)
 	ret0, _ := ret[0].(*big.Float)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetBlockRevertRateByHash indicates an expected call of GetBlockRevertRateByHash
-func (mr *MockClientOperatorMockRecorder) GetBlockRevertRateByHash(blockHash interface{}) *gomock.Call {
+// GetBlockConfirmationRisk indicates an expected call of GetBlockConfirmationRisk
+func (mr *MockClientOperatorMockRecorder) GetBlockConfirmationRisk(blockHash interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlockRevertRateByHash", reflect.TypeOf((*MockClientOperator)(nil).GetBlockRevertRateByHash), blockHash)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlockConfirmationRisk", reflect.TypeOf((*MockClientOperator)(nil).GetBlockConfirmationRisk), blockHash)
 }
 
 // SendRawTransaction mocks base method
@@ -439,6 +440,20 @@ func (mr *MockClientOperatorMockRecorder) CallRPC(result, method interface{}, ar
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{result, method}, args...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CallRPC", reflect.TypeOf((*MockClientOperator)(nil).CallRPC), varargs...)
+}
+
+// BatchCallRPC mocks base method
+func (m *MockClientOperator) BatchCallRPC(b []rpc.BatchElem) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BatchCallRPC", b)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BatchCallRPC indicates an expected call of BatchCallRPC
+func (mr *MockClientOperatorMockRecorder) BatchCallRPC(b interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchCallRPC", reflect.TypeOf((*MockClientOperator)(nil).BatchCallRPC), b)
 }
 
 // GetLogs mocks base method
@@ -609,6 +624,80 @@ func (mr *MockClientOperatorMockRecorder) DeployContract(option, abiJSON, byteco
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{option, abiJSON, bytecode}, constroctorParams...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeployContract", reflect.TypeOf((*MockClientOperator)(nil).DeployContract), varargs...)
+}
+
+// BatchGetTxByHashes mocks base method
+func (m *MockClientOperator) BatchGetTxByHashes(txhashes []types.Hash) (map[types.Hash]*types.Transaction, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BatchGetTxByHashes", txhashes)
+	ret0, _ := ret[0].(map[types.Hash]*types.Transaction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BatchGetTxByHashes indicates an expected call of BatchGetTxByHashes
+func (mr *MockClientOperatorMockRecorder) BatchGetTxByHashes(txhashes interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchGetTxByHashes", reflect.TypeOf((*MockClientOperator)(nil).BatchGetTxByHashes), txhashes)
+}
+
+// BatchGetBlockConfirmationRisk mocks base method
+func (m *MockClientOperator) BatchGetBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Float, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BatchGetBlockConfirmationRisk", blockhashes)
+	ret0, _ := ret[0].(map[types.Hash]*big.Float)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BatchGetBlockConfirmationRisk indicates an expected call of BatchGetBlockConfirmationRisk
+func (mr *MockClientOperatorMockRecorder) BatchGetBlockConfirmationRisk(blockhashes interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchGetBlockConfirmationRisk", reflect.TypeOf((*MockClientOperator)(nil).BatchGetBlockConfirmationRisk), blockhashes)
+}
+
+// BatchGetRawBlockConfirmationRisk mocks base method
+func (m *MockClientOperator) BatchGetRawBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BatchGetRawBlockConfirmationRisk", blockhashes)
+	ret0, _ := ret[0].(map[types.Hash]*big.Int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BatchGetRawBlockConfirmationRisk indicates an expected call of BatchGetRawBlockConfirmationRisk
+func (mr *MockClientOperatorMockRecorder) BatchGetRawBlockConfirmationRisk(blockhashes interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchGetRawBlockConfirmationRisk", reflect.TypeOf((*MockClientOperator)(nil).BatchGetRawBlockConfirmationRisk), blockhashes)
+}
+
+// BatchGetBlockSummarys mocks base method
+func (m *MockClientOperator) BatchGetBlockSummarys(blockhashes []types.Hash) (map[types.Hash]*types.BlockSummary, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BatchGetBlockSummarys", blockhashes)
+	ret0, _ := ret[0].(map[types.Hash]*types.BlockSummary)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BatchGetBlockSummarys indicates an expected call of BatchGetBlockSummarys
+func (mr *MockClientOperatorMockRecorder) BatchGetBlockSummarys(blockhashes interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchGetBlockSummarys", reflect.TypeOf((*MockClientOperator)(nil).BatchGetBlockSummarys), blockhashes)
+}
+
+// GetNodeURL mocks base method
+func (m *MockClientOperator) GetNodeURL() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNodeURL")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetNodeURL indicates an expected call of GetNodeURL
+func (mr *MockClientOperatorMockRecorder) GetNodeURL() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodeURL", reflect.TypeOf((*MockClientOperator)(nil).GetNodeURL))
 }
 
 // MockAccountManagerOperator is a mock of AccountManagerOperator interface
@@ -893,6 +982,20 @@ func (mr *MockrpcRequesterMockRecorder) Call(resultPtr, method interface{}, args
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{resultPtr, method}, args...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Call", reflect.TypeOf((*MockrpcRequester)(nil).Call), varargs...)
+}
+
+// BatchCall mocks base method
+func (m *MockrpcRequester) BatchCall(b []rpc.BatchElem) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BatchCall", b)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BatchCall indicates an expected call of BatchCall
+func (mr *MockrpcRequesterMockRecorder) BatchCall(b interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchCall", reflect.TypeOf((*MockrpcRequester)(nil).BatchCall), b)
 }
 
 // Close mocks base method
