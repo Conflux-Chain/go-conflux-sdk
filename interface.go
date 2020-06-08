@@ -9,8 +9,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	// rpc "github.com/ethereum/go-ethereum/rpc"
 )
 
 // HTTPRequester is interface for emitting a http requester
@@ -23,6 +25,7 @@ type Contractor interface {
 	GetData(method string, args ...interface{}) ([]byte, error)
 	Call(option *types.ContractMethodCallOption, resultPtr interface{}, method string, args ...interface{}) error
 	SendTransaction(option *types.ContractMethodSendOption, method string, args ...interface{}) (*types.Hash, error)
+	DecodeEvent(out interface{}, event string, log types.LogEntry) error
 }
 
 // ClientOperator is interface of operate actions on client
@@ -36,14 +39,15 @@ type ClientOperator interface {
 	GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary, error)
 	GetBlockByEpoch(epoch *types.Epoch) (*types.Block, error)
 	GetBestBlockHash() (types.Hash, error)
-	GetBlockConfirmRiskByHash(blockhash types.Hash) (*big.Int, error)
-	GetBlockRevertRateByHash(blockHash types.Hash) (*big.Float, error)
+	GetRawBlockConfirmationRisk(blockhash types.Hash) (*big.Int, error)
+	GetBlockConfirmationRisk(blockHash types.Hash) (*big.Float, error)
 	SendRawTransaction(rawData []byte) (types.Hash, error)
 	SendTransaction(tx *types.UnsignedTransaction) (types.Hash, error)
 	SetAccountManager(accountManager AccountManagerOperator)
 	SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte) (*types.Transaction, error)
 	Call(request types.CallRequest, epoch *types.Epoch) (*string, error)
 	CallRPC(result interface{}, method string, args ...interface{}) error
+	BatchCallRPC(b []rpc.BatchElem) error
 	GetLogs(filter types.LogFilter) ([]types.Log, error)
 	GetTransactionByHash(txHash types.Hash) (*types.Transaction, error)
 	EstimateGasAndCollateral(request types.CallRequest) (*types.Estimate, error)
@@ -57,6 +61,12 @@ type ClientOperator interface {
 	// DeployContract(abiJSON string, bytecode []byte, option *types.ContractDeployOption, timeout time.Duration, callback func(deployedContract Contractor, hash *types.Hash, err error)) <-chan struct{}
 	DeployContract(option *types.ContractDeployOption, abiJSON []byte,
 		bytecode []byte, constroctorParams ...interface{}) *ContractDeployResult
+
+	BatchGetTxByHashes(txhashes []types.Hash) (map[types.Hash]*types.Transaction, error)
+	BatchGetBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Float, error)
+	BatchGetRawBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Int, error)
+	BatchGetBlockSummarys(blockhashes []types.Hash) (map[types.Hash]*types.BlockSummary, error)
+	GetNodeURL() string
 }
 
 // AccountManagerOperator is interface of operate actions on account manager
@@ -80,5 +90,6 @@ type AccountManagerOperator interface {
 
 type rpcRequester interface {
 	Call(resultPtr interface{}, method string, args ...interface{}) error
+	BatchCall(b []rpc.BatchElem) error
 	Close()
 }

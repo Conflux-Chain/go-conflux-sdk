@@ -6,6 +6,7 @@ package types
 
 import (
 	"fmt"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -14,9 +15,9 @@ import (
 // signedTransactionForRlp is a intermediate struct for encoding rlp data
 type signedTransactionForRlp struct {
 	UnsignedData *unsignedTransactionForRlp
-	V            byte
-	R            []byte
-	S            []byte
+	V            *big.Int
+	R            *big.Int
+	S            *big.Int
 }
 
 // SignedTransaction represents a transaction with signature,
@@ -43,13 +44,7 @@ func (tx *SignedTransaction) Decode(data []byte) error {
 
 //Encode encodes tx and returns its RLP encoded data
 func (tx *SignedTransaction) Encode() ([]byte, error) {
-	txForRlp := signedTransactionForRlp{
-		UnsignedData: tx.UnsignedTransaction.toStructForRlp(),
-		V:            tx.V,
-		R:            tx.R,
-		S:            tx.S,
-	}
-
+	txForRlp := *tx.toStructForRlp()
 	encoded, err := rlp.EncodeToBytes(txForRlp)
 	if err != nil {
 		msg := fmt.Sprintf("encode data {%+v} to bytes error", txForRlp)
@@ -59,22 +54,22 @@ func (tx *SignedTransaction) Encode() ([]byte, error) {
 	return encoded, nil
 }
 
-func (tx *SignedTransaction) toStructForRlp() (*signedTransactionForRlp, error) {
+func (tx *SignedTransaction) toStructForRlp() *signedTransactionForRlp {
 	txForRlp := signedTransactionForRlp{
 		UnsignedData: tx.UnsignedTransaction.toStructForRlp(),
-		V:            tx.V,
-		R:            tx.R,
-		S:            tx.S,
+		V:            big.NewInt(int64(tx.V)),
+		R:            big.NewInt(0).SetBytes(tx.R),
+		S:            big.NewInt(0).SetBytes(tx.S),
 	}
-	return &txForRlp, nil
+	return &txForRlp
 }
 
 func (tx *signedTransactionForRlp) toSignedTransaction() *SignedTransaction {
 	unsigned := tx.UnsignedData.toUnsignedTransaction()
 	return &SignedTransaction{
 		UnsignedTransaction: *unsigned,
-		V:                   tx.V,
-		R:                   tx.R,
-		S:                   tx.S,
+		V:                   tx.V.Bytes()[0],
+		R:                   tx.R.Bytes(),
+		S:                   tx.S.Bytes(),
 	}
 }

@@ -183,6 +183,13 @@ func NewClient(nodeURL string) (*Client, error)
 ```
 NewClient creates a new instance of Client with specified conflux node url.
 
+#### func  NewClientWithRPCRequester
+
+```go
+func NewClientWithRPCRequester(rpcRequester rpcRequester) (*Client, error)
+```
+NewClientWithRPCRequester creates client with specified rpcRequester
+
 #### func  NewClientWithRetry
 
 ```go
@@ -200,6 +207,49 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 ```
 ApplyUnsignedTransactionDefault set empty fields to value fetched from conflux
 node.
+
+#### func (*Client) BatchCallRPC
+
+```go
+func (client *Client) BatchCallRPC(b []rpc.BatchElem) error
+```
+BatchCallRPC sends all given requests as a single batch and waits for the server
+to return a response for all of them.
+
+In contrast to Call, BatchCall only returns I/O errors. Any error specific to a
+request is reported through the Error field of the corresponding BatchElem.
+
+Note that batch calls may not be executed atomically on the server side.
+
+#### func (*Client) BatchGetBlockConfirmationRisk
+
+```go
+func (client *Client) BatchGetBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Float, error)
+```
+BatchGetBlockConfirmationRisk acquires confirmation risk informations in bulk by
+blockhashes
+
+#### func (*Client) BatchGetBlockSummarys
+
+```go
+func (client *Client) BatchGetBlockSummarys(blockhashes []types.Hash) (map[types.Hash]*types.BlockSummary, error)
+```
+BatchGetBlockSummarys requests block summary informations in bulk by blockhashes
+
+#### func (*Client) BatchGetRawBlockConfirmationRisk
+
+```go
+func (client *Client) BatchGetRawBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Int, error)
+```
+BatchGetRawBlockConfirmationRisk requests raw confirmation risk informations in
+bulk by blockhashes
+
+#### func (*Client) BatchGetTxByHashes
+
+```go
+func (client *Client) BatchGetTxByHashes(txhashes []types.Hash) (map[types.Hash]*types.Transaction, error)
+```
+BatchGetTxByHashes requests transaction informations in bulk by txhashes
 
 #### func (*Client) Call
 
@@ -291,23 +341,15 @@ func (client *Client) GetBlockByHash(blockHash types.Hash) (*types.Block, error)
 GetBlockByHash returns the block of specified blockHash If the block is not
 found, return nil.
 
-#### func (*Client) GetBlockConfirmRiskByHash
+#### func (*Client) GetBlockConfirmationRisk
 
 ```go
-func (client *Client) GetBlockConfirmRiskByHash(blockhash types.Hash) (*big.Int, error)
+func (client *Client) GetBlockConfirmationRisk(blockHash types.Hash) (*big.Float, error)
 ```
-GetBlockConfirmRiskByHash indicates the risk coefficient that the pivot block of
-the epoch where the block is located becomes an normal block.
+GetBlockConfirmationRisk indicates the probability that the pivot block of the
+epoch where the block is located becomes a normal block.
 
-#### func (*Client) GetBlockRevertRateByHash
-
-```go
-func (client *Client) GetBlockRevertRateByHash(blockHash types.Hash) (*big.Float, error)
-```
-GetBlockRevertRateByHash indicates the probability that the pivot block of the
-epoch where the block is located becomes an ordinary block.
-
-it's (confirm risk coefficient/ (2^256-1))
+it's (raw confirmation risk coefficient/ (2^256-1))
 
 #### func (*Client) GetBlockSummaryByEpoch
 
@@ -375,6 +417,21 @@ func (client *Client) GetNextNonce(address types.Address, epoch *types.Epoch) (*
 ```
 GetNextNonce returns the next transaction nonce of address
 
+#### func (*Client) GetNodeURL
+
+```go
+func (client *Client) GetNodeURL() string
+```
+GetNodeURL returns node url
+
+#### func (*Client) GetRawBlockConfirmationRisk
+
+```go
+func (client *Client) GetRawBlockConfirmationRisk(blockhash types.Hash) (*big.Int, error)
+```
+GetRawBlockConfirmationRisk indicates the risk coefficient that the pivot block
+of the epoch where the block is located becomes a normal block.
+
 #### func (*Client) GetTransactionByHash
 
 ```go
@@ -431,7 +488,15 @@ type Contract struct {
 }
 ```
 
-Contract represents a smart contract
+Contract represents a smart contract. You can conveniently create contract by
+Client.GetContract or Client.DeployContract.
+
+#### func  NewContract
+
+```go
+func NewContract(abiJSON []byte, client ClientOperator, address *types.Address) (*Contract, error)
+```
+NewContract creates contract by abi and deployed address
 
 #### func (*Contract) Call
 
@@ -504,12 +569,19 @@ import "github.com/Conflux-Chain/go-conflux-sdk/utils"
 ```
 
 
+#### func  CalcBlockConfirmationRisk
+
+```go
+func CalcBlockConfirmationRisk(rawConfirmationRisk *big.Int) *big.Float
+```
+CalcBlockConfirmationRisk calculates block revert rate
+
 #### func  Keccak256
 
 ```go
 func Keccak256(hexStr string) (string, error)
 ```
-Keccak256 hashs hex string by keccak256 and returns it's hash value
+Keccak256 hashes hex string by keccak256 and returns it's hash value
 
 #### func  PrivateKeyToPublicKey
 

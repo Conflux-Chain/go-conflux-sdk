@@ -62,3 +62,12 @@ func NewBigInt(x int64) *hexutil.Big {
 	n2 := hexutil.Big(*n1)
 	return &n2
 }
+
+// NewBigIntByRaw creates a hexutil.big with specified big.int value.
+func NewBigIntByRaw(x *big.Int) *hexutil.Big {
+	if x == nil {
+		return nil
+	}
+	v := hexutil.Big(*x)
+	return &v
+}

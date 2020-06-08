@@ -1,9 +1,12 @@
 mv ./interface.go ./interface.go.tmd
+mv ./interface_mock.go ./interface_mock.go.tmd
+
 godocdown -o tmp1.md
 cd ./utils && godocdown -o ../tmp2.md && cd ..
-
 cat tmp1.md tmp2.md > tmp.md
+
 mv ./interface.go.tmd ./interface.go
+mv ./interface_mock.go.tmd ./interface_mock.go 
 
 sed -i "" 's/## Usage//g' tmp.md 
 sed -i "" 's/#### type/### type/g' tmp.md
