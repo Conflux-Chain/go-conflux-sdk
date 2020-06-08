@@ -850,6 +850,9 @@ func (client *Client) GetContract(abiJSON []byte, deployedAt *types.Address) (*C
 
 // BatchGetTxByHashes requests transaction informations in bulk by txhashes
 func (client *Client) BatchGetTxByHashes(txhashes []types.Hash) (map[types.Hash]*types.Transaction, error) {
+	if txhashes == nil || len(txhashes) == 0 {
+		return make(map[types.Hash]*types.Transaction), nil
+	}
 
 	cache := make(map[types.Hash]*rpc.BatchElem)
 	for i := range txhashes {
@@ -887,6 +890,11 @@ func (client *Client) BatchGetTxByHashes(txhashes []types.Hash) (map[types.Hash]
 
 // BatchGetBlockSummarys requests block summary informations in bulk by blockhashes
 func (client *Client) BatchGetBlockSummarys(blockhashes []types.Hash) (map[types.Hash]*types.BlockSummary, error) {
+
+	if blockhashes == nil || len(blockhashes) == 0 {
+		return make(map[types.Hash]*types.BlockSummary), nil
+	}
+
 	cache := make(map[types.Hash]*rpc.BatchElem)
 
 	for i := range blockhashes {
@@ -926,7 +934,7 @@ func (client *Client) BatchGetBlockSummarys(blockhashes []types.Hash) (map[types
 // BatchGetRawBlockConfirmationRisk requests raw confirmation risk informations in bulk by blockhashes
 func (client *Client) BatchGetRawBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Int, error) {
 
-	if len(blockhashes) == 0 {
+	if blockhashes == nil || len(blockhashes) == 0 {
 		return make(map[types.Hash]*big.Int), nil
 	}
 
