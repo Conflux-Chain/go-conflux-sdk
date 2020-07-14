@@ -676,7 +676,7 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 		if tx.ChainID == nil {
 			status, err := client.GetStatus()
 			if err != nil {
-				tx.ChainID = types.NewBigInt(0)
+				tx.ChainID = types.NewUint(0)
 			} else {
 				tx.ChainID = status.ChainID
 			}
@@ -703,7 +703,8 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 				msg := fmt.Sprintf("get epoch number of {%+v} error", types.EpochLatestState)
 				return types.WrapError(err, msg)
 			}
-			tx.EpochHeight = (*hexutil.Big)(epoch)
+			// tx.EpochHeight = (*hexutil.Big)(epoch).toi
+			tx.EpochHeight = types.NewUint64(epoch.Uint64())
 		}
 
 		// The gas and storage limit may be influnced by all fileds of transaction ,so set them at last step.
@@ -722,7 +723,7 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 			}
 
 			if tx.StorageLimit == nil {
-				tx.StorageLimit = sm.StorageCollateralized
+				tx.StorageLimit = types.NewUint64(sm.StorageCollateralized.ToInt().Uint64())
 			}
 		}
 
@@ -820,7 +821,7 @@ func (client *Client) DeployContract(option *types.ContractDeployOption, abiJSON
 				}
 
 				if transaction.Status != nil {
-					if transaction.Status.ToInt().Uint64() == 1 {
+					if *transaction.Status == 1 {
 						msg := fmt.Sprintf("transaction is packed but it is failed,the txhash is %+v", txhash)
 						result.Error = errors.New(msg)
 						return
@@ -1030,7 +1031,7 @@ func unmarshalRPCResult(result interface{}, v interface{}) error {
 	}
 
 	if err = json.Unmarshal(encoded, v); err != nil {
-		msg := fmt.Sprintf("json unmarshal %v error", encoded)
+		msg := fmt.Sprintf("json unmarshal 0x%x error", encoded)
 		return types.WrapError(err, msg)
 	}
 

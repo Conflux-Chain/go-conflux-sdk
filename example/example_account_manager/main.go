@@ -96,7 +96,7 @@ func signTx() []byte {
 			Gas:         types.NewBigInt(21000),
 			GasPrice:    types.NewBigInt(100000000),
 			Nonce:       types.NewBigInt(1),
-			EpochHeight: types.NewBigInt(1),
+			EpochHeight: types.NewUint64(1),
 		},
 		To: types.NewAddress("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"),
 	}

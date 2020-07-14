@@ -2,12 +2,10 @@ package main
 
 import (
 	"fmt"
-	"math/big"
 	"time"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 func main() {
@@ -20,7 +18,9 @@ func main() {
 	}
 
 	//init client
-	client, err := sdk.NewClient("http://testnet-jsonrpc.conflux-chain.org:12537")
+	url := "http://39.97.232.99:12537"
+	// url := "http://testnet-jsonrpc.conflux-chain.org:12537"
+	client, err := sdk.NewClient(url)
 	if err != nil {
 		panic(err)
 	}
@@ -28,9 +28,8 @@ func main() {
 
 	//send transaction
 	//send 0.01 cfx
-	tmp, _ := new(big.Int).SetString("1000000000000000", 10)
-	value := hexutil.Big(*tmp)
-	utx, err := client.CreateUnsignedTransaction(types.Address("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"), types.Address("0x1cad0b19bb29d4674531d6f115237e16afce377d"), &value, nil)
+	value := types.NewBigInt(1000000000000000)
+	utx, err := client.CreateUnsignedTransaction(types.Address("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"), types.Address("0x1cad0b19bb29d4674531d6f115237e16afce377d"), value, nil)
 	if err != nil {
 		panic(err)
 	}

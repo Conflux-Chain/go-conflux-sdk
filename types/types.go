@@ -71,3 +71,15 @@ func NewBigIntByRaw(x *big.Int) *hexutil.Big {
 	v := hexutil.Big(*x)
 	return &v
 }
+
+// NewUint64 creates a hexutil.Uint64 with specified uint64 value.
+func NewUint64(x uint64) *hexutil.Uint64 {
+	n1 := hexutil.Uint64(x)
+	return &n1
+}
+
+// NewUint creates a hexutil.Uint with specified uint value.
+func NewUint(x uint) *hexutil.Uint {
+	n1 := hexutil.Uint(x)
+	return &n1
+}

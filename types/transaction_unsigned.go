@@ -22,9 +22,9 @@ type UnsignedTransactionBase struct {
 	GasPrice     *hexutil.Big
 	Gas          *hexutil.Big
 	Value        *hexutil.Big
-	StorageLimit *hexutil.Big
-	EpochHeight  *hexutil.Big
-	ChainID      *hexutil.Big
+	StorageLimit *hexutil.Uint64
+	EpochHeight  *hexutil.Uint64
+	ChainID      *hexutil.Uint
 }
 
 // UnsignedTransaction represents a transaction without signature,
@@ -42,9 +42,9 @@ type unsignedTransactionForRlp struct {
 	Gas          *big.Int
 	To           *common.Address
 	Value        *big.Int
-	StorageLimit *big.Int
-	EpochHeight  *big.Int
-	ChainID      *big.Int
+	StorageLimit *hexutil.Uint64
+	EpochHeight  *hexutil.Uint64
+	ChainID      *hexutil.Uint
 	Data         []byte
 }
 
@@ -128,9 +128,9 @@ func (tx *UnsignedTransaction) toStructForRlp() *unsignedTransactionForRlp {
 		Gas:          tx.Gas.ToInt(),
 		To:           to,
 		Value:        tx.Value.ToInt(),
-		StorageLimit: tx.StorageLimit.ToInt(),
-		EpochHeight:  tx.EpochHeight.ToInt(),
-		ChainID:      tx.ChainID.ToInt(),
+		StorageLimit: tx.StorageLimit,
+		EpochHeight:  tx.EpochHeight,
+		ChainID:      tx.ChainID,
 		Data:         tx.Data,
 	}
 }
@@ -139,12 +139,12 @@ func (tx *unsignedTransactionForRlp) toUnsignedTransaction() *UnsignedTransactio
 	to := Address(strings.ToLower(tx.To.Hex()))
 	gasPrice := hexutil.Big(*tx.GasPrice)
 	value := hexutil.Big(*tx.Value)
-	storageLimit := hexutil.Big(*tx.StorageLimit)
-	epochHeight := hexutil.Big(*tx.EpochHeight)
+	storageLimit := tx.StorageLimit
+	epochHeight := tx.EpochHeight
 
 	nonce := hexutil.Big(*tx.Nonce)
 	gas := hexutil.Big(*tx.Gas)
-	chainid := hexutil.Big(*tx.ChainID)
+	chainid := tx.ChainID
 	return &UnsignedTransaction{
 		UnsignedTransactionBase: UnsignedTransactionBase{
 			From:         nil,
@@ -152,9 +152,9 @@ func (tx *unsignedTransactionForRlp) toUnsignedTransaction() *UnsignedTransactio
 			GasPrice:     &gasPrice,
 			Gas:          &gas,
 			Value:        &value,
-			StorageLimit: &storageLimit,
-			EpochHeight:  &epochHeight,
-			ChainID:      &chainid,
+			StorageLimit: storageLimit,
+			EpochHeight:  epochHeight,
+			ChainID:      chainid,
 		},
 		To:   &to,
 		Data: tx.Data,

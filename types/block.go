@@ -15,14 +15,14 @@ type BlockHeader struct {
 	DeferredStateRoot     Hash            `json:"deferredStateRoot"`
 	DeferredReceiptsRoot  Hash            `json:"deferredReceiptsRoot"`
 	DeferredLogsBloomHash Hash            `json:"deferredLogsBloomHash"`
-	Blame                 uint32          `json:"blame"`
+	Blame                 hexutil.Uint64  `json:"blame"`
 	TransactionsRoot      Hash            `json:"transactionsRoot"`
 	EpochNumber           *hexutil.Big    `json:"epochNumber,omitempty"`
 	GasLimit              *hexutil.Big    `json:"gasLimit"`
 	Timestamp             *hexutil.Uint64 `json:"timestamp"`
 	Difficulty            *hexutil.Big    `json:"difficulty"`
+	PowQuality            *hexutil.Big    `json:"powQuality,omitempty"`
 	RefereeHashes         []Hash          `json:"refereeHashes"`
-	Stable                *bool           `json:"stable,omitempty"`
 	Adaptive              bool            `json:"adaptive"`
 	Nonce                 *hexutil.Big    `json:"nonce"`
 	Size                  *hexutil.Big    `json:"size,omitempty"`

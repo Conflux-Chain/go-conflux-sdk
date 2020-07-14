@@ -15,7 +15,7 @@ import (
 // signedTransactionForRlp is a intermediate struct for encoding rlp data
 type signedTransactionForRlp struct {
 	UnsignedData *unsignedTransactionForRlp
-	V            *big.Int
+	V            byte
 	R            *big.Int
 	S            *big.Int
 }
@@ -57,7 +57,7 @@ func (tx *SignedTransaction) Encode() ([]byte, error) {
 func (tx *SignedTransaction) toStructForRlp() *signedTransactionForRlp {
 	txForRlp := signedTransactionForRlp{
 		UnsignedData: tx.UnsignedTransaction.toStructForRlp(),
-		V:            big.NewInt(int64(tx.V)),
+		V:            tx.V,
 		R:            big.NewInt(0).SetBytes(tx.R),
 		S:            big.NewInt(0).SetBytes(tx.S),
 	}
@@ -68,7 +68,7 @@ func (tx *signedTransactionForRlp) toSignedTransaction() *SignedTransaction {
 	unsigned := tx.UnsignedData.toUnsignedTransaction()
 	return &SignedTransaction{
 		UnsignedTransaction: *unsigned,
-		V:                   tx.V.Bytes()[0],
+		V:                   tx.V,
 		R:                   tx.R.Bytes(),
 		S:                   tx.S.Bytes(),
 	}
