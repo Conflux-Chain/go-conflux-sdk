@@ -22,7 +22,7 @@ type ContractMethodCallOption struct {
 	GasPrice     *hexutil.Big
 	Gas          *hexutil.Big
 	Value        *hexutil.Big
-	StorageLimit *hexutil.Big
+	StorageLimit *hexutil.Uint64
 	ChainID      *hexutil.Big
 	Epoch        *Epoch
 }
@@ -32,14 +32,14 @@ type ContractMethodSendOption UnsignedTransactionBase
 
 // CallRequest represents a request to execute contract.
 type CallRequest struct {
-	From         *Address     `json:"from,omitempty"`
-	To           *Address     `json:"to,omitempty"`
-	GasPrice     *hexutil.Big `json:"gasPrice,omitempty"`
-	Gas          *hexutil.Big `json:"gas,omitempty"`
-	Value        *hexutil.Big `json:"value,omitempty"`
-	Data         string       `json:"data,omitempty"`
-	Nonce        *hexutil.Big `json:"nonce,omitempty"`
-	StorageLimit *hexutil.Big `json:"storageLimit,omitempty"`
+	From         *Address        `json:"from,omitempty"`
+	To           *Address        `json:"to,omitempty"`
+	GasPrice     *hexutil.Big    `json:"gasPrice,omitempty"`
+	Gas          *hexutil.Big    `json:"gas,omitempty"`
+	Value        *hexutil.Big    `json:"value,omitempty"`
+	Data         string          `json:"data,omitempty"`
+	Nonce        *hexutil.Big    `json:"nonce,omitempty"`
+	StorageLimit *hexutil.Uint64 `json:"storageLimit,omitempty"`
 }
 
 // FillByUnsignedTx fills CallRequest fields by tx

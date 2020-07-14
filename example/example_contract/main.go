@@ -22,7 +22,9 @@ func main() {
 	}
 
 	//init client
-	client, err := sdk.NewClient("http://testnet-jsonrpc.conflux-chain.org:12537")
+	// url := "http://testnet-jsonrpc.conflux-chain.org:12537"
+	url := "http://39.97.232.99:12537"
+	client, err := sdk.NewClient(url)
 	if err != nil {
 		panic(err)
 	}

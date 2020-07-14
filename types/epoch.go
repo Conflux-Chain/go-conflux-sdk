@@ -12,9 +12,11 @@ import (
 
 // Const epoch definitions
 var (
-	EpochEarliest    *Epoch = &Epoch{"earliest", nil}
-	EpochLatestState *Epoch = &Epoch{"latest_state", nil}
-	EpochLatestMined *Epoch = &Epoch{"latest_mined", nil}
+	EpochEarliest         *Epoch = &Epoch{"earliest", nil}
+	EpochLatestCheckpoint *Epoch = &Epoch{"latest_checkpoint", nil}
+	EpochLatestConfirmed  *Epoch = &Epoch{"latest_confirmed", nil}
+	EpochLatestState      *Epoch = &Epoch{"latest_state", nil}
+	EpochLatestMined      *Epoch = &Epoch{"latest_mined", nil}
 )
 
 // Epoch represents an epoch in Conflux.
