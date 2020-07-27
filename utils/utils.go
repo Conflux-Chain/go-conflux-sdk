@@ -2,6 +2,7 @@ package utils
 
 import (
 	"math/big"
+	"reflect"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/constants"
 )
@@ -12,4 +13,17 @@ func CalcBlockConfirmationRisk(rawConfirmationRisk *big.Int) *big.Float {
 	maxUint256Float := new(big.Float).SetInt(constants.MaxUint256)
 	riskRate := new(big.Float).Quo(riskFloat, maxUint256Float)
 	return riskRate
+}
+
+func IsNil(i interface{}) bool {
+
+	if i == nil {
+		return true
+	}
+
+	vi := reflect.ValueOf(i)
+	if vi.Kind() == reflect.Ptr {
+		return vi.IsNil()
+	}
+	return false
 }

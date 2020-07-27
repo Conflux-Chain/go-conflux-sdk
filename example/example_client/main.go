@@ -1,276 +1,386 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"math/big"
-	"time"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
+	"github.com/Conflux-Chain/go-conflux-sdk/example/context"
+	exampletypes "github.com/Conflux-Chain/go-conflux-sdk/example/context/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-var am *sdk.AccountManager
+var (
+	am     *sdk.AccountManager
+	client *sdk.Client
+	// retryClient    *sdk.Client
+	config         *exampletypes.Config
+	epochs         []*types.Epoch
+	defaultAccount *types.Address
+	nextNonce      *big.Int
+)
 
-func main() {
-	//unlock account
-	am = sdk.NewAccountManager("../keystore")
-	err := am.TimedUnlockDefault("hello", 300*time.Second)
-	if err != nil {
-		panic(err)
-	}
+func init() {
+	config = context.PrepareForClientExample()
+	am = config.GetAccountManager()
+	defaultAccount, _ = am.GetDefault()
+	// fmt.Printf("am in init:%v", am)
+	// client = config.GetClient()
+	// retryClient = config.GetRetryClient()
+	// fmt.Printf("retryClient:%#v\n", retryClient)
 
-	//init client without retry and excute it
-	// url := "http://123.57.45.90:12537"
-	url := "http://39.97.232.99:12537"
-	// url := "http://testnet-jsonrpc.conflux-chain.org:12537"
-	client, err := sdk.NewClient(url)
-	if err != nil {
-		panic(err)
-	}
-	client.SetAccountManager(am)
-	fmt.Println("\n======================================")
-	fmt.Println("start excute client methods without retry")
-	run(client)
-
-	//init client with retry and excute it
-	client, err = sdk.NewClientWithRetry(url, 10, time.Second)
-	if err != nil {
-		panic(err)
-	}
-	client.SetAccountManager(am)
-	fmt.Println("\n======================================")
-	fmt.Println("start excute client methods with retry")
-	run(client)
-}
-
-func run(client *sdk.Client) {
-
-	epochs := []*types.Epoch{nil,
+	epochs = []*types.Epoch{nil,
 		types.EpochEarliest,
 		types.EpochLatestCheckpoint,
 		types.EpochLatestConfirmed,
 		types.EpochLatestMined,
 		types.EpochLatestState,
 	}
+}
 
+func main() {
+
+	fmt.Println("\n=======start excute client methods without retry=========\n")
+	run(config.GetClient())
+	fmt.Println("\n=======excute client methods without retry end!==========\n")
+	// return
+
+	fmt.Println("\n=======start excute client methods with retry============\n")
+	run(config.GetRetryClient())
+	fmt.Println("\n=======excute client methods with retry end!=============\n")
+}
+
+func run(_client *sdk.Client) {
+	client = _client
+
+	getAdmin()
+	getSponsorInfo()
+	etStakingBalance()
+	getCollateralForStorage()
+	getStorageAt()
+	getStorageRoot()
+	getBlockByHashWithPivotAssumption()
+	checkBalanceAgainstTransaction()
+	getSkippedBlocksByEpoch()
+	getAccountInfo()
+	getInterestRate()
+	getAccumulateInterestRate()
+	getBlockRewardInfo()
+	getClientVersion()
+
+	getEpochNumber()
+	getGasPrice()
+	getNextNonce()
+	getStatus()
+	getBalance()
+	getBestBlockHash()
+	getBlockByEpoch()
+	getBlocksByEpoch()
+	getBlockByHash()
+	getBlockSummaryByEpoch()
+	getBlockSummaryByHash()
+	getCode()
+	getTransactionByHash()
+	getTransactionReceipt()
+	sendRawTransaction()
+	createUnsignedTransaction()
+	getRawBlockConfirmationRisk()
+	getBlockConfirmationRisk()
+	callRPC()
+}
+
+func getAdmin() {
+	result, err := client.GetAdmin(config.ERC20Address, nil)
+	printResult("GetAdmin", []interface{}{config.ERC20Address, nil}, result, err)
+}
+
+func getSponsorInfo() {
+	// result, err := client.GetSponsorInfo(*defaultAccount, nil)
+	result, err := client.GetSponsorInfo(config.ERC20Address, nil)
+	printResult("GetSponsorInfo", []interface{}{config.ERC20Address, nil}, result, err)
+}
+
+func etStakingBalance() {
+	result, err := client.GetStakingBalance(*defaultAccount, nil)
+	printResult("GetStakingBalance", []interface{}{*defaultAccount, nil}, result, err)
+}
+
+func getCollateralForStorage() {
+	result, err := client.GetCollateralForStorage(*defaultAccount, nil)
+	printResult("GetCollateralForStorage", []interface{}{*defaultAccount, nil}, result, err)
+}
+
+func getStorageAt() {
+	result, err := client.GetStorageAt(config.ERC20Address, "0x8549225e0f8e0f4a2ea0d9c0e562e986994ded65da69d91aa3768ac6da0a1635", nil)
+	printResult("GetStorageAt", []interface{}{config.ERC20Address, "0x8549225e0f8e0f4a2ea0d9c0e562e986994ded65da69d91aa3768ac6da0a1635", nil}, result, err)
+}
+
+func getStorageRoot() {
+	result, err := client.GetStorageRoot(config.ERC20Address, nil)
+	printResult("GetStorageRoot", []interface{}{config.ERC20Address, nil}, result, err)
+}
+
+func getBlockByHashWithPivotAssumption() {
+	result, err := client.GetBlockByHashWithPivotAssumption(types.Hash("0x08de0feea8cc989029f86a00ef6aabbf4de16d9bf21207c8ba9f011f10b1456d"), types.Hash("0x8cf781d04606e195f7fc5e03a73d8e2ef5bf7d9bfba11b11e73cd056f190c67a"), hexutil.Uint64(0x176334))
+	printResult("GetBlockByHashWithPivotAssumption", []interface{}{types.Hash("0x08de0feea8cc989029f86a00ef6aabbf4de16d9bf21207c8ba9f011f10b1456d"), types.Hash("0x8cf781d04606e195f7fc5e03a73d8e2ef5bf7d9bfba11b11e73cd056f190c67a"), hexutil.Uint64(0x176334)}, result, err)
+}
+
+func checkBalanceAgainstTransaction() {
+	result, err := client.CheckBalanceAgainstTransaction(*defaultAccount, config.ERC20Address, types.NewBigInt(1000), types.NewBigInt(1000), types.NewBigInt(1000), nil)
+	printResult("CheckBalanceAgainstTransaction", []interface{}{*defaultAccount, *defaultAccount, types.NewBigInt(1000), types.NewBigInt(1000), types.NewBigInt(1000), types.EpochLatestState}, result, err)
+}
+
+func getSkippedBlocksByEpoch() {
+	result, err := client.GetSkippedBlocksByEpoch(types.EpochLatestState)
+	printResult("GetSkippedBlocksByEpoch", []interface{}{nil}, result, err)
+}
+
+func getAccountInfo() {
+	result, err := client.GetAccountInfo(*defaultAccount, nil)
+	printResult("GetAccountInfo", []interface{}{*defaultAccount, nil}, result, err)
+}
+
+// GetInterestRate()
+func getInterestRate() {
+	result, err := client.GetInterestRate(nil)
+	printResult("GetInterestRate", []interface{}{nil}, result, err)
+}
+
+// GetAccumulateInterestRate()
+func getAccumulateInterestRate() {
+	result, err := client.GetAccumulateInterestRate(nil)
+	printResult("GetAccumulateInterestRate", []interface{}{nil}, result, err)
+}
+
+// GetBlockRewardInfo()
+func getBlockRewardInfo() {
+	result, err := client.GetBlockRewardInfo(types.EpochLatestState)
+	printResult("GetBlockRewardInfo", []interface{}{nil}, result, err)
+}
+
+// ClientVersion()
+func getClientVersion() {
+	result, err := client.GetClientVersion()
+	printResult("ClientVersion", []interface{}{}, result, err)
+}
+
+func getEpochNumber() {
+	fmt.Println("- start get epoch number")
 	for _, e := range epochs {
 		epochnumber, err := client.GetEpochNumber(e)
 		if err != nil {
-			fmt.Printf("get epoch %v error: %v\n\n", e, err)
+			fmt.Printf("- get epoch %v error: %v\n\n", e, err)
 		} else {
-			fmt.Printf("epoch of %v : %v\n\n", e, epochnumber)
+			fmt.Printf("	epoch of %v : %v\n\n", e, epochnumber)
 		}
 	}
+}
+
+func getGasPrice() {
 
 	gasPrice, err := client.GetGasPrice()
 	if err != nil {
-		fmt.Printf("gasprice error: %#v\n\n", err)
+		fmt.Printf("- gasprice error: %#v\n\n", err)
 	} else {
-		fmt.Printf("gasprice: %#v\n\n", gasPrice)
+		fmt.Printf("- gasprice: %#v\n\n", gasPrice)
 	}
 
+}
+
+func getNextNonce() {
+	fmt.Println("- start get nextNonce")
 	for _, e := range epochs {
-		nonce, err := client.GetNextNonce(types.Address("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"), e)
+		nonce, err := client.GetNextNonce(*defaultAccount, e)
 		if err != nil {
-			fmt.Printf("nonce of epoch %v error: %v\n\n", e, err)
+			fmt.Printf("	nonce of epoch %v error: %v\n\n", e, err)
 		} else {
-			fmt.Printf("nonce of epoch %v : %v\n\n", e, nonce)
+			fmt.Printf("	nonce of epoch %v : %v\n\n", e, nonce)
 		}
 	}
+}
 
+func getStatus() {
 	status, err := client.GetStatus()
 	if err != nil {
-		fmt.Printf("get status error: %v\n\n", err)
+		fmt.Printf("- get status error: %v\n\n", err)
 	} else {
-		fmt.Printf("get status result:\n%v\n\n", jsonFmt(status))
+		fmt.Printf("- get status result:\n%v\n\n", context.JsonFmt(status))
 	}
 
-	addr := types.Address("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302")
+}
+
+func getBalance() {
+
+	addr := *defaultAccount
 	balance, err := client.GetBalance(addr)
 	if err != nil {
-		fmt.Printf("get balance of %v: %v\n\n", addr, err)
+		fmt.Printf("- get balance of %v: %v\n\n", addr, err)
 	} else {
-		fmt.Printf("balance of %v: %#v\n\n", addr, balance)
+		fmt.Printf("- balance of %v: %#v\n\n", addr, balance)
 	}
+}
 
+func getBestBlockHash() {
 	bestBlockHash, err := client.GetBestBlockHash()
 	if err != nil {
-		fmt.Printf("get best block hash error: %v\n\n", err)
+		fmt.Printf("- get best block hash error: %v\n\n", err)
 	} else {
-		fmt.Printf("best block hash: %#v\n\n", bestBlockHash)
+		fmt.Printf("- best block hash: %#v\n\n", bestBlockHash)
 	}
+}
 
+func getBlockByEpoch() {
 	epochNumber, err := client.GetEpochNumber()
-	if err != nil {
-		fmt.Printf("get epochNumber error: %#v\n\n", err)
-	} else {
-		fmt.Printf("epochNumber: %#v\n\n", epochNumber)
-	}
-
-	epochNumber = big.NewInt(10)
 	block, err := client.GetBlockByEpoch(types.NewEpochNumber(epochNumber))
 	if err != nil {
-		fmt.Printf("get block of epoch %v error:%#v\n\n", epochNumber, err)
+		fmt.Printf("- get block of epoch %v error:%#v\n\n", epochNumber, err)
 	} else {
-		fmt.Printf("block of epoch %v:\n%v\n\n", epochNumber, jsonFmt(block))
+		fmt.Printf("- block of epoch %v:\n%v\n\n", epochNumber, context.JsonFmt(block))
 	}
+}
 
+func getBlocksByEpoch() {
+	epochNumber, err := client.GetEpochNumber()
 	blocks, err := client.GetBlocksByEpoch(types.NewEpochNumber(epochNumber))
 	if err != nil {
-		fmt.Printf("get blocks of epoch %v error:%#v\n\n", epochNumber, err)
+		fmt.Printf("- get blocks of epoch %v error:%#v\n\n", epochNumber, err)
 	} else {
-		fmt.Printf("blocks of epoch %v:%#v\n\n", epochNumber, blocks)
+		fmt.Printf("- blocks of epoch %v:%#v\n\n", epochNumber, blocks)
 	}
 
-	blockHash := types.Hash("0x9d98058ec3742cb151224275f5abf00f1ccaad1b3ced06ee8baad7dd2f3ee8c5")
-	block, err = client.GetBlockByHash(blockHash)
+}
+
+func getBlockByHash() {
+	blockHash := types.Hash(config.BlockHash)
+	block, err := client.GetBlockByHash(blockHash)
 	if err != nil {
-		fmt.Printf("get block of hash %v error:%#v\n\n", blockHash, err)
+		fmt.Printf("- get block of hash %v error:%#v\n\n", blockHash, err)
 	} else {
-		fmt.Printf("block of hash %v:\n%v\n\n", blockHash, jsonFmt(block))
+		fmt.Printf("- block of hash %v:\n%v\n\n", blockHash, context.JsonFmt(block))
 	}
+}
 
+func getBlockSummaryByEpoch() {
+	epochNumber, err := client.GetEpochNumber()
 	blockSummary, err := client.GetBlockSummaryByEpoch(types.NewEpochNumber(epochNumber))
 	if err != nil {
-		fmt.Printf("get block summary of epoch %v error:%#v\n\n", epochNumber, err)
+		fmt.Printf("- get block summary of epoch %v error:%#v\n\n", epochNumber, err)
 	} else {
-		fmt.Printf("block summary of epoch %v:\n%v\n\n", epochNumber, jsonFmt(blockSummary))
+		fmt.Printf("- block summary of epoch %v:\n%v\n\n", epochNumber, context.JsonFmt(blockSummary))
 	}
+}
 
-	blockSummary, err = client.GetBlockSummaryByHash(blockHash)
+func getBlockSummaryByHash() {
+
+	blockHash := types.Hash(config.BlockHash)
+	blockSummary, err := client.GetBlockSummaryByHash(blockHash)
 	if err != nil {
-		fmt.Printf("get block summary of block hash %v error:%#v\n\n", blockHash, err)
+		fmt.Printf("- get block summary of block hash %v error:%#v\n\n", blockHash, err)
 	} else {
-		fmt.Printf("block summary of block hash %v:\n%v\n\n", blockHash, jsonFmt(blockSummary))
+		fmt.Printf("- block summary of block hash %v:\n%v\n\n", blockHash, context.JsonFmt(blockSummary))
 	}
+}
 
-	contractAddr := *types.NewAddress("0xa70ddf9b9750c575db453eea6a041f4c8536785a")
-	code, err := client.GetCode(contractAddr)
+func getCode() {
+	contractAddr := *defaultAccount // config.ERC20Address
+	// code, err := client.GetCode(contractAddr)
+	code, err := client.GetCode(types.Address("0x19f4bcf113e0b896d9b34294fd3da86b4adf0301"))
 	if err != nil {
-		fmt.Printf("get code of address %v err: %v\n\n", contractAddr, err)
+		fmt.Printf("- get code of address %v err: %v\n\n", contractAddr, err)
 	} else {
-		fmt.Printf("get code of address %v:0x%x\n\n", contractAddr, code)
+		fmt.Printf("- get code of address %v:%v\n\n", contractAddr, code)
 	}
+}
 
-	txhash := types.Hash("0xc13a7fe8b822c2d0c86388c58f2004bdc800031274ede8486178b584c4c4cd3e")
+func getTransactionByHash() {
+	txhash := types.Hash(config.TransactionHash)
 	tx, err := client.GetTransactionByHash(txhash)
 	if err != nil {
-		fmt.Printf("get Transaction By Hash %v error:%v\n\n", txhash, err)
+		fmt.Printf("- get Transaction By Hash %v error:%v\n\n", txhash, err)
 	} else {
-		fmt.Printf("get Transaction By Hash %v:\n%v\n\n", txhash, jsonFmt(tx))
+		fmt.Printf("- get Transaction By Hash %v:\n%v\n\n", txhash, context.JsonFmt(tx))
 	}
+}
 
+func getTransactionReceipt() {
+	txhash := types.Hash(config.TransactionHash)
 	receipt, err := client.GetTransactionReceipt(txhash)
 	if err != nil {
-		fmt.Printf("transaction receipt of txhash %v error:%v\n\n", txhash, err)
+		fmt.Printf("- transaction receipt of txhash %v error:%v\n\n", txhash, err)
 	} else {
-		fmt.Printf("transaction receipt of txhash %v:\n%v\n\n", txhash, jsonFmt(receipt))
+		fmt.Printf("- transaction receipt of txhash %v:\n%v\n\n", txhash, context.JsonFmt(receipt))
 	}
+}
 
-	rawtx := signTx(client)
-	txhash, err = client.SendRawTransaction(rawtx)
+func sendRawTransaction() {
+	rawtx := context.CreateSignedTx(client)
+	txhash, err := client.SendRawTransaction(rawtx)
 	if err != nil {
-		fmt.Printf("send Signed Transaction result error :%v\n\n", err)
+		fmt.Printf("- send Signed Transaction result error :%v\n\n", err)
 	} else {
-		fmt.Printf("send Signed Transaction result :%#v\n\n", txhash)
+		fmt.Printf("- send Signed Transaction result :%#v\n\n", txhash)
 	}
 	if err == nil {
-		tx = waitTxBePacked(client, txhash)
+		context.WaitPacked(client, txhash)
 	}
-	time.Sleep(10 * time.Second)
+	// time.Sleep(10 * time.Second)
+}
 
+func createUnsignedTransaction() {
 	//send transaction
-	utx, err := client.CreateUnsignedTransaction(types.Address("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"), types.Address("0x1cad0b19bb29d4674531d6f115237e16afce377d"), types.NewBigInt(1000000), nil)
+	utx, err := client.CreateUnsignedTransaction(*defaultAccount, types.Address("0x1cad0b19bb29d4674531d6f115237e16afce377d"), types.NewBigInt(1000000), nil)
 	if err != nil {
 		panic(err)
 	} else {
-		fmt.Printf("creat a new unsigned transaction:\n%v\n\n", jsonFmt(utx))
+		fmt.Printf("- creat a new unsigned transaction:\n%v\n\n", context.JsonFmt(utx))
 	}
-	txhash, err = client.SendTransaction(utx)
+
+	txhash, err := client.SendTransaction(utx)
 	if err != nil {
-		fmt.Printf("send transaction error: %v\n\n", err)
+		fmt.Printf("- send transaction error: %v\n\n", err)
 	} else {
-		fmt.Printf("send transaction done, tx hash is: %v\n\n", txhash)
+		fmt.Printf("- send transaction done, tx hash is: %v\n\n", txhash)
 	}
 	if err == nil {
-		tx = waitTxBePacked(client, txhash)
+		context.WaitPacked(client, txhash)
 	}
-	time.Sleep(10 * time.Second)
+	// time.Sleep(10 * time.Second)
+}
 
-	if tx != nil {
-		blockHash = *tx.BlockHash
-		risk, err := client.GetRawBlockConfirmationRisk(blockHash)
-		if err != nil {
-			fmt.Printf("get risk of block %v error: %v\n", blockHash, err)
-		} else {
-			fmt.Printf("get risk of block %v : %v\n", blockHash, risk)
-		}
-
-		rate, err := client.GetBlockConfirmationRisk(blockHash)
-		if err != nil {
-			fmt.Printf("get revert rate of block %v error: %v\n", blockHash, err)
-		} else {
-			fmt.Printf("get revert rate of block %v : %v\n", blockHash, rate)
-		}
-	}
-
-	b := new(types.Block)
-	err = client.CallRPC(b, "cfx_getBlockByHash", "0x6d78977bf3882baf55ade9ffd4682754c66228bd42a6da4d2b5666544fe179bc", false)
+func getRawBlockConfirmationRisk() {
+	risk, err := client.GetRawBlockConfirmationRisk(config.BlockHash)
 	if err != nil {
-		fmt.Printf("use CallRPC get block by hash error:%+v\n\n", err)
+		fmt.Printf("- get risk of block %v error: %v\n", config.BlockHash, err)
 	} else {
-		fmt.Printf("use CallRPC get block by hash result:\n%v\n\n", jsonFmt(b))
+		fmt.Printf("- get risk of block %v : %v\n", config.BlockHash, risk)
+	}
+
+}
+
+func getBlockConfirmationRisk() {
+	rate, err := client.GetBlockConfirmationRisk(config.BlockHash)
+	if err != nil {
+		fmt.Printf("- get revert rate of block %v error: %v\n", config.BlockHash, err)
+	} else {
+		fmt.Printf("- get revert rate of block %v : %v\n", config.BlockHash, rate)
 	}
 }
 
-func signTx(client *sdk.Client) []byte {
-	unSignedTx := types.UnsignedTransaction{
-		UnsignedTransactionBase: types.UnsignedTransactionBase{
-			From:     types.NewAddress("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"),
-			Value:    types.NewBigInt(100),
-			GasPrice: types.NewBigInt(10000000000),
-			// ChainID:  types.NewBigInt(1),
-		},
-		To: types.NewAddress("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"),
-	}
-	err := client.ApplyUnsignedTransactionDefault(&unSignedTx)
+func callRPC() {
+	b := new(types.Block)
+	err := client.CallRPC(b, "cfx_getBlockByHash", config.BlockHash, true)
 	if err != nil {
-		panic(err)
+		fmt.Printf("- use CallRPC get block by hash error:%+v\n\n", err)
+	} else {
+		fmt.Printf("- use CallRPC get block by hash result:\n%v\n\n", context.JsonFmt(b))
 	}
-
-	signedTx, err := am.SignAndEcodeTransactionWithPassphrase(unSignedTx, "hello")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("signed tx %v result:\n0x%x\n\n", jsonFmt(unSignedTx), signedTx)
-	return signedTx
 }
 
-func waitTxBePacked(client *sdk.Client, txhash types.Hash) *types.Transaction {
-	fmt.Printf("wait be packed")
-	var tx *types.Transaction
-	var err error
-	for {
-		time.Sleep(time.Duration(1) * time.Second)
-		tx, err = client.GetTransactionByHash(txhash)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Print(".")
-		if tx.Status != nil {
-			fmt.Printf("\ntransaction is packed:\n%v\n\n", jsonFmt(tx))
-			break
-		}
-	}
-	return tx
-}
-
-func jsonFmt(v interface{}) string {
-	bytes, err := json.Marshal(v)
+func printResult(method string, args []interface{}, result interface{}, err error) {
 	if err != nil {
-		msg := fmt.Sprintf("json marshal error: %v", err)
-		return msg
+		fmt.Printf("- call method %v with args %+v error: %v\n\n", method, args, err)
+	} else {
+		fmt.Printf("- call method %v with args %+v result: %+v\n\n", method, args, context.JsonFmt(result))
 	}
-	return string(bytes)
 }

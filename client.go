@@ -86,7 +86,12 @@ func (r *rpcClientWithRetry) Call(resultPtr interface{}, method string, args ...
 			return nil
 		}
 
+		if types.IsRpcJsonError(err) {
+			return err
+		}
+
 		remain--
+		fmt.Printf("remain retry count: %v\n", remain)
 		if remain < 0 {
 			msg := fmt.Sprintf("timeout when call %v with args %v", method, args)
 			return types.WrapError(err, msg)
@@ -246,6 +251,7 @@ func (client *Client) GetCode(address types.Address, epoch ...*types.Epoch) (str
 		msg := fmt.Sprintf("rpc cfx_getCode %+v error", args)
 		return "", types.WrapError(err, msg)
 	}
+	// fmt.Printf("get code of %v res: %+v, result.(string) is %v\n", address, result, result.(string))
 
 	return result.(string), nil
 }
@@ -1021,6 +1027,130 @@ func (client *Client) BatchGetBlockConfirmationRisk(blockhashes []types.Hash) (m
 // Close closes the client, aborting any in-flight requests.
 func (client *Client) Close() {
 	client.rpcRequester.Close()
+}
+
+// ===new rpc===
+
+// GetAdmin returns admin of the given contract
+func (client *Client) GetAdmin(account types.Address, epoch *types.Epoch) (admin types.Address, err error) {
+	err = client.wrappedCallRPC(&admin, "cfx_getAdmin", account, epoch)
+	return
+}
+
+// GetSponsorInfo returns sponsor information of the given contract
+func (client *Client) GetSponsorInfo(contractAddress types.Address, epoch *types.Epoch) (sponsor types.SponsorInfo, err error) {
+	sponsor = types.SponsorInfo{}
+	err = client.wrappedCallRPC(&sponsor, "cfx_getSponsorInfo", contractAddress, epoch)
+	return
+}
+
+// GetStakingBalance returns balance of the given account.
+func (client *Client) GetStakingBalance(account types.Address, epoch *types.Epoch) (balance *hexutil.Big, err error) {
+	balance = types.NewBigInt(0)
+	err = client.wrappedCallRPC(balance, "cfx_getStakingBalance", account, epoch)
+	return
+}
+
+// GetCollateralForStorage returns balance of the given account.
+func (client *Client) GetCollateralForStorage(account types.Address, epoch *types.Epoch) (storage *hexutil.Big, err error) {
+	storage = types.NewBigInt(0)
+	err = client.wrappedCallRPC(storage, "cfx_getCollateralForStorage", account, epoch)
+	return
+}
+
+// GetStorageAt returns storage entries from a given contract.
+func (client *Client) GetStorageAt(address types.Address, position types.Hash, epoch *types.Epoch) (storageEntries *hexutil.Big, err error) {
+	storageEntries = types.NewBigInt(0)
+	err = client.wrappedCallRPC(storageEntries, "cfx_getStorageAt", address, position, epoch)
+	return
+}
+
+// GetStorageRoot returns storage root of given address
+func (client *Client) GetStorageRoot(address types.Address, epoch *types.Epoch) (storageRoot types.StorageRoot, err error) {
+	err = client.wrappedCallRPC(&storageRoot, "cfx_getStorageRoot", address, epoch)
+	return
+}
+
+// GetBlockByHashWithPivotAssumption returns block with given hash and pivot chain assumption.
+func (client *Client) GetBlockByHashWithPivotAssumption(blockHash types.Hash, pivotHash types.Hash, epoch hexutil.Uint64) (block types.Block, err error) {
+	err = client.wrappedCallRPC(&block, "cfx_getBlockByHashWithPivotAssumption", blockHash, pivotHash, epoch)
+	return
+}
+
+// CheckBalanceAgainstTransaction checks if user balance is enough for the transaction.
+func (client *Client) CheckBalanceAgainstTransaction(accountAddress types.Address,
+	contractAddress types.Address,
+	gasLimit *hexutil.Big,
+	gasPrice *hexutil.Big,
+	storageLimit *hexutil.Big,
+	epoch *types.Epoch) (response types.CheckBalanceAgainstTransactionResponse, err error) {
+	err = client.wrappedCallRPC(&response,
+		"cfx_checkBalanceAgainstTransaction", accountAddress, contractAddress,
+		gasLimit, gasPrice, storageLimit, epoch)
+	return
+}
+
+// GetSkippedBlocksByEpoch returns skipped block hashes of given epoch
+func (client *Client) GetSkippedBlocksByEpoch(epoch *types.Epoch) (blockHashs []types.Hash, err error) {
+	blockHashs = make([]types.Hash, 0)
+	err = client.wrappedCallRPC(&blockHashs, "cfx_getSkippedBlocksByEpoch", epoch)
+	return
+}
+
+// GetAccountInfo returns account related states of the given account
+func (client *Client) GetAccountInfo(account types.Address, epoch *types.Epoch) (accountInfo types.AccountInfo, err error) {
+	err = client.wrappedCallRPC(&accountInfo, "cfx_getAccount", account, epoch)
+	return
+}
+
+// GetInterestRate returns interest rate of the given epoch
+func (client *Client) GetInterestRate(epoch *types.Epoch) (intersetRate *hexutil.Big, err error) {
+	intersetRate = types.NewBigInt(0)
+	err = client.wrappedCallRPC(intersetRate, "cfx_getInterestRate", epoch)
+	return
+}
+
+// GetAccumulateInterestRate returns accumulate interest rate of the given epoch
+func (client *Client) GetAccumulateInterestRate(epoch *types.Epoch) (intersetRate *hexutil.Big, err error) {
+	intersetRate = types.NewBigInt(0)
+	err = client.wrappedCallRPC(intersetRate, "cfx_getAccumulateInterestRate", epoch)
+	return
+}
+
+// GetBlockRewardInfo returns block reward information in an epoch
+func (client *Client) GetBlockRewardInfo(epoch *types.Epoch) (rewardInfo []types.RewardInfo, err error) {
+	err = client.wrappedCallRPC(&rewardInfo, "cfx_getBlockRewardInfo", epoch)
+	return
+}
+
+// GetClientVersion returns the client version as a string
+func (client *Client) GetClientVersion() (clientVersion string, err error) {
+	err = client.wrappedCallRPC(&clientVersion, "cfx_clientVersion")
+	return
+}
+
+// === helper methods ===
+
+func (client *Client) wrappedCallRPC(result interface{}, method string, args ...interface{}) error {
+	fmtedArgs := genRPCParams(args...)
+	if err := client.CallRPC(result, method, fmtedArgs...); err != nil {
+		msg := fmt.Sprintf("rpc request method: %v with args: %v error\n", method, fmtedArgs)
+		return types.WrapError(err, msg)
+	}
+	// fmt.Printf("rpcRequesterCall method %+v with args %+v: %+v\n", method, fmtedArgs, result)
+	return nil
+}
+
+func genRPCParams(args ...interface{}) []interface{} {
+	params := []interface{}{}
+	for i := range args {
+		// fmt.Printf("args %v:%v\n", i, args[i])
+		if !utils.IsNil(args[i]) {
+			// fmt.Printf("args %v:%v is not nil\n", i, args[i])
+			params = append(params, args[i])
+		}
+	}
+	return params
 }
 
 func unmarshalRPCResult(result interface{}, v interface{}) error {

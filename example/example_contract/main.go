@@ -5,35 +5,25 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/big"
+	"path"
+	"runtime"
 	"time"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
+	"github.com/Conflux-Chain/go-conflux-sdk/example/context"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 
 func main() {
-
-	//unlock account
-	am := sdk.NewAccountManager("../keystore")
-	err := am.TimedUnlockDefault("hello", 300*time.Second)
-	if err != nil {
-		panic(err)
-	}
-
-	//init client
-	// url := "http://testnet-jsonrpc.conflux-chain.org:12537"
-	url := "http://39.97.232.99:12537"
-	client, err := sdk.NewClient(url)
-	if err != nil {
-		panic(err)
-	}
-	client.SetAccountManager(am)
+	config := context.PrepareForContractExample()
+	client := config.GetClient()
+	currentDir := getCurrentDir()
 
 	//deploy contract
 	fmt.Println("start deploy contract...")
-	abiPath := "./contract/erc20.abi"
-	bytecodePath := "./contract/erc20.bytecode"
+	abiPath := path.Join(currentDir, "./contract/erc20.abi")
+	bytecodePath := path.Join(currentDir, "./contract/erc20.bytecode")
 	var contract *sdk.Contract
 
 	abi, err := ioutil.ReadFile(abiPath)
@@ -94,18 +84,9 @@ func main() {
 
 	fmt.Printf("transfer %v erc20 token to %v done, tx hash: %v\n\n", 10, to, txhash)
 
-	fmt.Println("wait for transaction be packed...")
-	for {
-		time.Sleep(time.Duration(1) * time.Second)
-		tx, err := client.GetTransactionByHash(*txhash)
-		if err != nil {
-			panic(err)
-		}
-		if tx.Status != nil {
-			fmt.Printf("transaction is packed.")
-			break
-		}
-	}
+	context.WaitPacked(client, *txhash)
+
+	fmt.Println("wait be excuted")
 	time.Sleep(10 * time.Second)
 
 	//get event log and decode it
@@ -113,7 +94,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("get receipt: %+v\n\n", receipt)
 
 	// decode Transfer Event
 	var Transfer struct {
@@ -122,9 +102,22 @@ func main() {
 		Value *big.Int
 	}
 
+	if receipt == nil || len(receipt.Logs) == 0 {
+		panic(fmt.Errorf("receipt is nil or no logs in receipt, receipt: %v", receipt))
+	}
+
 	err = contract.DecodeEvent(&Transfer, "Transfer", receipt.Logs[0])
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("decoded transfer event: {From: 0x%x, To: 0x%x, Value: %v} ", Transfer.From, Transfer.To, Transfer.Value)
+	fmt.Printf("decoded transfer event: {From: 0x%x, To: 0x%x, Value: %v} \n", Transfer.From, Transfer.To, Transfer.Value)
+}
+
+func getCurrentDir() string {
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("get current file path error")
+	}
+	currentDir := path.Join(filename, "../")
+	return currentDir
 }
