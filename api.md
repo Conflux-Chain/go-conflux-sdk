@@ -271,6 +271,19 @@ result if no error occurred.
 The result must be a pointer so that package json can unmarshal into it. You can
 also pass nil, in which case the result is ignored.
 
+#### func (*Client) CheckBalanceAgainstTransaction
+
+```go
+func (client *Client) CheckBalanceAgainstTransaction(accountAddress types.Address,
+	contractAddress types.Address,
+	gasLimit *hexutil.Big,
+	gasPrice *hexutil.Big,
+	storageLimit *hexutil.Big,
+	epoch *types.Epoch) (response types.CheckBalanceAgainstTransactionResponse, err error)
+```
+CheckBalanceAgainstTransaction checks if user balance is enough for the
+transaction.
+
 #### func (*Client) Close
 
 ```go
@@ -311,6 +324,27 @@ func (client *Client) EstimateGasAndCollateral(request types.CallRequest) (*type
 EstimateGasAndCollateral excutes a message call "request" and returns the amount
 of the gas used and storage for collateral
 
+#### func (*Client) GetAccountInfo
+
+```go
+func (client *Client) GetAccountInfo(account types.Address, epoch *types.Epoch) (accountInfo types.AccountInfo, err error)
+```
+GetAccountInfo returns account related states of the given account
+
+#### func (*Client) GetAccumulateInterestRate
+
+```go
+func (client *Client) GetAccumulateInterestRate(epoch *types.Epoch) (intersetRate *hexutil.Big, err error)
+```
+GetAccumulateInterestRate returns accumulate interest rate of the given epoch
+
+#### func (*Client) GetAdmin
+
+```go
+func (client *Client) GetAdmin(account types.Address, epoch *types.Epoch) (admin types.Address, err error)
+```
+GetAdmin returns admin of the given contract
+
 #### func (*Client) GetBalance
 
 ```go
@@ -341,6 +375,14 @@ func (client *Client) GetBlockByHash(blockHash types.Hash) (*types.Block, error)
 GetBlockByHash returns the block of specified blockHash If the block is not
 found, return nil.
 
+#### func (*Client) GetBlockByHashWithPivotAssumption
+
+```go
+func (client *Client) GetBlockByHashWithPivotAssumption(blockHash types.Hash, pivotHash types.Hash, epoch hexutil.Uint64) (block types.Block, err error)
+```
+GetBlockByHashWithPivotAssumption returns block with given hash and pivot chain
+assumption.
+
 #### func (*Client) GetBlockConfirmationRisk
 
 ```go
@@ -350,6 +392,13 @@ GetBlockConfirmationRisk indicates the probability that the pivot block of the
 epoch where the block is located becomes a normal block.
 
 it's (raw confirmation risk coefficient/ (2^256-1))
+
+#### func (*Client) GetBlockRewardInfo
+
+```go
+func (client *Client) GetBlockRewardInfo(epoch *types.Epoch) (rewardInfo []types.RewardInfo, err error)
+```
+GetBlockRewardInfo returns block reward information in an epoch
 
 #### func (*Client) GetBlockSummaryByEpoch
 
@@ -374,12 +423,26 @@ func (client *Client) GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error)
 ```
 GetBlocksByEpoch returns the blocks hash in the specified epoch.
 
+#### func (*Client) GetClientVersion
+
+```go
+func (client *Client) GetClientVersion() (clientVersion string, err error)
+```
+GetClientVersion returns the client version as a string
+
 #### func (*Client) GetCode
 
 ```go
 func (client *Client) GetCode(address types.Address, epoch ...*types.Epoch) (string, error)
 ```
 GetCode returns the bytecode in HEX format of specified address at epoch.
+
+#### func (*Client) GetCollateralForStorage
+
+```go
+func (client *Client) GetCollateralForStorage(account types.Address, epoch *types.Epoch) (storage *hexutil.Big, err error)
+```
+GetCollateralForStorage returns balance of the given account.
 
 #### func (*Client) GetContract
 
@@ -402,6 +465,13 @@ GetEpochNumber returns the highest or specified epoch number.
 func (client *Client) GetGasPrice() (*big.Int, error)
 ```
 GetGasPrice returns the recent mean gas price.
+
+#### func (*Client) GetInterestRate
+
+```go
+func (client *Client) GetInterestRate(epoch *types.Epoch) (intersetRate *hexutil.Big, err error)
+```
+GetInterestRate returns interest rate of the given epoch
 
 #### func (*Client) GetLogs
 
@@ -432,12 +502,47 @@ func (client *Client) GetRawBlockConfirmationRisk(blockhash types.Hash) (*big.In
 GetRawBlockConfirmationRisk indicates the risk coefficient that the pivot block
 of the epoch where the block is located becomes a normal block.
 
+#### func (*Client) GetSkippedBlocksByEpoch
+
+```go
+func (client *Client) GetSkippedBlocksByEpoch(epoch *types.Epoch) (blockHashs []types.Hash, err error)
+```
+GetSkippedBlocksByEpoch returns skipped block hashes of given epoch
+
+#### func (*Client) GetSponsorInfo
+
+```go
+func (client *Client) GetSponsorInfo(contractAddress types.Address, epoch *types.Epoch) (sponsor types.SponsorInfo, err error)
+```
+GetSponsorInfo returns sponsor information of the given contract
+
+#### func (*Client) GetStakingBalance
+
+```go
+func (client *Client) GetStakingBalance(account types.Address, epoch *types.Epoch) (balance *hexutil.Big, err error)
+```
+GetStakingBalance returns balance of the given account.
+
 #### func (*Client) GetStatus
 
 ```go
 func (client *Client) GetStatus() (*types.Status, error)
 ```
 GetStatus returns chainID of connecting conflux node
+
+#### func (*Client) GetStorageAt
+
+```go
+func (client *Client) GetStorageAt(address types.Address, position types.Hash, epoch *types.Epoch) (storageEntries *hexutil.Big, err error)
+```
+GetStorageAt returns storage entries from a given contract.
+
+#### func (*Client) GetStorageRoot
+
+```go
+func (client *Client) GetStorageRoot(address types.Address, epoch *types.Epoch) (storageRoot types.StorageRoot, err error)
+```
+GetStorageRoot returns storage root of given address
 
 #### func (*Client) GetTransactionByHash
 
@@ -582,6 +687,13 @@ import "github.com/Conflux-Chain/go-conflux-sdk/utils"
 func CalcBlockConfirmationRisk(rawConfirmationRisk *big.Int) *big.Float
 ```
 CalcBlockConfirmationRisk calculates block revert rate
+
+#### func  IsNil
+
+```go
+func IsNil(i interface{}) bool
+```
+IsNil sepecialy checks if interface object is nil
 
 #### func  Keccak256
 
