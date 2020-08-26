@@ -22,18 +22,40 @@ func WrapErrorf(err error, msgPattern string, values ...interface{}) error {
 	return WrappedError{msg, err}
 }
 
+// IsRpcJsonError returns true if err is rpc error
+func IsRpcJsonError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	t := reflect.TypeOf(err).String()
+	isJSONErr := t == "*rpc.jsonError"
+	if isJSONErr {
+		return true
+	}
+
+	isWrappedError := t == "types.WrappedError"
+	if isWrappedError {
+		err = err.(WrappedError).Unwrap()
+		return IsRpcJsonError(err)
+	}
+	return false
+}
+
 // Error returns error description
 func (e WrappedError) Error() string {
 	var innerErrorMsg string
 	if e.err != nil {
+		innerErrorMsg = e.err.Error()
+
 		t := reflect.TypeOf(e.err).String()
 		isJSONErr := t == "*rpc.jsonError"
 		if isJSONErr {
 			elem := reflect.ValueOf(e.err).Elem()
 			data := elem.FieldByName("Data")
-			innerErrorMsg = fmt.Sprintf("%v, Data: %v", e.err.Error(), data)
-		} else {
-			innerErrorMsg = e.err.Error()
+			if !data.IsNil() {
+				innerErrorMsg = fmt.Sprintf("%v, Data: %v", e.err.Error(), data)
+			}
 		}
 	}
 	return fmt.Sprintf("%v\n> %v", e.msg, innerErrorMsg)
