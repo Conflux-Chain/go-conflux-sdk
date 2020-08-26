@@ -45,7 +45,8 @@ func WaitPacked(client *sdk.Client, txhash types.Hash) *types.Transaction {
 func CreateSignedTx(client *sdk.Client) []byte {
 	unSignedTx := types.UnsignedTransaction{
 		UnsignedTransactionBase: types.UnsignedTransactionBase{
-			From:  types.NewAddress("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"),
+			// From:  types.NewAddress("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"),
+			From:  defaultAccount,
 			Value: types.NewBigInt(100),
 			// GasPrice: types.NewBigInt(10000000000),
 			// ChainID:  types.NewBigInt(1),

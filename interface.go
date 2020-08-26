@@ -31,7 +31,7 @@ type Contractor interface {
 // ClientOperator is interface of operate actions on client
 type ClientOperator interface {
 	GetGasPrice() (*big.Int, error)
-	GetNextNonce(address types.Address, epoch *types.Epoch) (*big.Int, error)
+	GetNextNonce(address types.Address, epoch ...*types.Epoch) (*big.Int, error)
 	GetStatus() (*types.Status, error)
 	GetEpochNumber(epoch ...*types.Epoch) (*big.Int, error)
 	GetBalance(address types.Address, epoch ...*types.Epoch) (*big.Int, error)
@@ -69,6 +69,28 @@ type ClientOperator interface {
 	BatchGetRawBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Int, error)
 	BatchGetBlockSummarys(blockhashes []types.Hash) (map[types.Hash]*types.BlockSummary, error)
 	GetNodeURL() string
+
+	GetAdmin(contractAddress types.Address, epoch ...*types.Epoch) (admin types.Address, err error)
+	GetSponsorInfo(contractAddress types.Address, epoch ...*types.Epoch) (sponsor types.SponsorInfo, err error)
+	GetStakingBalance(account types.Address, epoch ...*types.Epoch) (balance *hexutil.Big, err error)
+	GetCollateralForStorage(account types.Address, epoch ...*types.Epoch) (storage *hexutil.Big, err error)
+	GetStorageAt(address types.Address, position types.Hash, epoch ...*types.Epoch) (storageEntries *hexutil.Big, err error)
+	GetStorageRoot(address types.Address, epoch ...*types.Epoch) (storageRoot types.StorageRoot, err error)
+	GetBlockByHashWithPivotAssumption(blockHash types.Hash, pivotHash types.Hash, epoch hexutil.Uint64) (block types.Block, err error)
+	CheckBalanceAgainstTransaction(accountAddress types.Address,
+		contractAddress types.Address,
+		gasLimit *hexutil.Big,
+		gasPrice *hexutil.Big,
+		storageLimit *hexutil.Big,
+		epoch ...*types.Epoch) (response types.CheckBalanceAgainstTransactionResponse, err error)
+	GetSkippedBlocksByEpoch(epoch *types.Epoch) (blockHashs []types.Hash, err error)
+	GetAccountInfo(account types.Address, epoch ...*types.Epoch) (accountInfo types.AccountInfo, err error)
+	GetInterestRate(epoch ...*types.Epoch) (intersetRate *hexutil.Big, err error)
+	GetAccumulateInterestRate(epoch ...*types.Epoch) (intersetRate *hexutil.Big, err error)
+	GetBlockRewardInfo(epoch ...*types.Epoch) (rewardInfo []types.RewardInfo, err error)
+	GetClientVersion() (clientVersion string, err error)
+	WaitForTransationBePacked(txhash types.Hash) *types.Transaction
+	WaitForTransationReceipt(txhash types.Hash) *types.TransactionReceipt
 }
 
 // AccountManagerOperator is interface of operate actions on account manager
