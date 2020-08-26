@@ -54,21 +54,6 @@ func main() {
 func run(_client *sdk.Client) {
 	client = _client
 
-	getAdmin()
-	getSponsorInfo()
-	etStakingBalance()
-	getCollateralForStorage()
-	getStorageAt()
-	getStorageRoot()
-	getBlockByHashWithPivotAssumption()
-	checkBalanceAgainstTransaction()
-	getSkippedBlocksByEpoch()
-	getAccountInfo()
-	getInterestRate()
-	getAccumulateInterestRate()
-	getBlockRewardInfo()
-	getClientVersion()
-
 	getEpochNumber()
 	getGasPrice()
 	getNextNonce()
@@ -88,6 +73,21 @@ func run(_client *sdk.Client) {
 	getRawBlockConfirmationRisk()
 	getBlockConfirmationRisk()
 	callRPC()
+
+	getAdmin()
+	getSponsorInfo()
+	etStakingBalance()
+	getCollateralForStorage()
+	getStorageAt()
+	getStorageRoot()
+	getBlockByHashWithPivotAssumption()
+	checkBalanceAgainstTransaction()
+	getSkippedBlocksByEpoch()
+	getAccountInfo()
+	getInterestRate()
+	getAccumulateInterestRate()
+	getBlockRewardInfo()
+	getClientVersion()
 }
 
 func getAdmin() {
