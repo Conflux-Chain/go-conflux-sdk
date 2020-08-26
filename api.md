@@ -341,7 +341,7 @@ GetAccumulateInterestRate returns accumulate interest rate of the given epoch
 #### func (*Client) GetAdmin
 
 ```go
-func (client *Client) GetAdmin(account types.Address, epoch *types.Epoch) (admin types.Address, err error)
+func (client *Client) GetAdmin(contractAddress types.Address, epoch *types.Epoch) (admin types.Address, err error)
 ```
 GetAdmin returns admin of the given contract
 
@@ -589,6 +589,20 @@ func (client *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r,
 ```
 SignEncodedTransactionAndSend signs RLP encoded transaction "encodedTx" by
 signature "r,s,v" and sends it to node, and returns responsed transaction.
+
+#### func (*Client) WaitForTransationBePacked
+
+```go
+func (client *Client) WaitForTransationBePacked(txhash types.Hash) *types.Transaction
+```
+WaitForTransationBePacked returns transaction when it is packed
+
+#### func (*Client) WaitForTransationReceipt
+
+```go
+func (client *Client) WaitForTransationReceipt(txhash types.Hash) *types.TransactionReceipt
+```
+WaitForTransationReceipt waits for transaction receipt valid
 
 ### type Contract
 

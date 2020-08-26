@@ -91,7 +91,7 @@ func (r *rpcClientWithRetry) Call(resultPtr interface{}, method string, args ...
 		}
 
 		remain--
-		fmt.Printf("remain retry count: %v\n", remain)
+		// fmt.Printf("remain retry count: %v\n", remain)
 		if remain < 0 {
 			msg := fmt.Sprintf("timeout when call %v with args %v", method, args)
 			return types.WrapError(err, msg)
@@ -1032,8 +1032,8 @@ func (client *Client) Close() {
 // ===new rpc===
 
 // GetAdmin returns admin of the given contract
-func (client *Client) GetAdmin(account types.Address, epoch *types.Epoch) (admin types.Address, err error) {
-	err = client.wrappedCallRPC(&admin, "cfx_getAdmin", account, epoch)
+func (client *Client) GetAdmin(contractAddress types.Address, epoch *types.Epoch) (admin types.Address, err error) {
+	err = client.wrappedCallRPC(&admin, "cfx_getAdmin", contractAddress, epoch)
 	return
 }
 
@@ -1130,6 +1130,45 @@ func (client *Client) GetClientVersion() (clientVersion string, err error) {
 }
 
 // === helper methods ===
+
+// WaitForTransationBePacked returns transaction when it is packed
+func (client *Client) WaitForTransationBePacked(txhash types.Hash) *types.Transaction {
+	fmt.Printf("wait for transaction %v be packed\n", txhash)
+	var tx *types.Transaction
+	for {
+		time.Sleep(time.Duration(1) * time.Second)
+		var err error
+		tx, err = client.GetTransactionByHash(txhash)
+		if err != nil {
+			panic(err)
+		}
+
+		if tx.Status != nil {
+			// fmt.Printf("transaction is packed:%+v\n\n", JsonFmt(tx))
+			break
+		}
+	}
+	return tx
+}
+
+// WaitForTransationReceipt waits for transaction receipt valid
+func (client *Client) WaitForTransationReceipt(txhash types.Hash) *types.TransactionReceipt {
+	fmt.Printf("wait for transaction %v be packed\n", txhash)
+	var txReceipt *types.TransactionReceipt
+	for {
+		time.Sleep(time.Duration(1) * time.Second)
+		var err error
+		txReceipt, err = client.GetTransactionReceipt(txhash)
+		if err != nil {
+			panic(err)
+		}
+
+		if txReceipt != nil {
+			break
+		}
+	}
+	return txReceipt
+}
 
 func (client *Client) wrappedCallRPC(result interface{}, method string, args ...interface{}) error {
 	fmtedArgs := genRPCParams(args...)
