@@ -89,8 +89,8 @@ type ClientOperator interface {
 	GetAccumulateInterestRate(epoch ...*types.Epoch) (intersetRate *hexutil.Big, err error)
 	GetBlockRewardInfo(epoch ...*types.Epoch) (rewardInfo []types.RewardInfo, err error)
 	GetClientVersion() (clientVersion string, err error)
-	WaitForTransationBePacked(txhash types.Hash) *types.Transaction
-	WaitForTransationReceipt(txhash types.Hash) *types.TransactionReceipt
+	WaitForTransationBePacked(txhash types.Hash, duration time.Duration) (*types.Transaction, error)
+	WaitForTransationReceipt(txhash types.Hash, duration time.Duration) (*types.TransactionReceipt, error)
 }
 
 // AccountManagerOperator is interface of operate actions on account manager
