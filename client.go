@@ -1145,15 +1145,19 @@ func (client *Client) GetClientVersion() (clientVersion string, err error) {
 // === helper methods ===
 
 // WaitForTransationBePacked returns transaction when it is packed
-func (client *Client) WaitForTransationBePacked(txhash types.Hash) *types.Transaction {
-	fmt.Printf("wait for transaction %v be packed\n", txhash)
+func (client *Client) WaitForTransationBePacked(txhash types.Hash, duration time.Duration) (*types.Transaction, error) {
+	// fmt.Printf("wait for transaction %v be packed\n", txhash)
+	if duration == 0 {
+		duration = time.Second
+	}
+
 	var tx *types.Transaction
 	for {
-		time.Sleep(time.Duration(1) * time.Second)
+		time.Sleep(duration)
 		var err error
 		tx, err = client.GetTransactionByHash(txhash)
 		if err != nil {
-			panic(err)
+			return nil, types.WrapError(err, "wait for tx be packed error")
 		}
 
 		if tx.Status != nil {
@@ -1161,26 +1165,30 @@ func (client *Client) WaitForTransationBePacked(txhash types.Hash) *types.Transa
 			break
 		}
 	}
-	return tx
+	return tx, nil
 }
 
 // WaitForTransationReceipt waits for transaction receipt valid
-func (client *Client) WaitForTransationReceipt(txhash types.Hash) *types.TransactionReceipt {
-	fmt.Printf("wait for transaction %v be packed\n", txhash)
+func (client *Client) WaitForTransationReceipt(txhash types.Hash, duration time.Duration) (*types.TransactionReceipt, error) {
+	// fmt.Printf("wait for transaction %v be packed\n", txhash)
+	if duration == 0 {
+		duration = time.Second
+	}
+
 	var txReceipt *types.TransactionReceipt
 	for {
-		time.Sleep(time.Duration(1) * time.Second)
+		time.Sleep(duration)
 		var err error
 		txReceipt, err = client.GetTransactionReceipt(txhash)
 		if err != nil {
-			panic(err)
+			return nil, types.WrapError(err, "wait for tx receipt error")
 		}
 
 		if txReceipt != nil {
 			break
 		}
 	}
-	return txReceipt
+	return txReceipt, nil
 }
 
 func (client *Client) wrappedCallRPC(result interface{}, method string, args ...interface{}) error {
