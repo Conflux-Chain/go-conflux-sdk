@@ -45,7 +45,7 @@ const (
 	NormalAddress           AddressType = "Normal"
 	CustomContractAddress   AddressType = "CustomContract"
 	InternalContractAddress AddressType = "InternalContract"
-	InvalidAddress          AddressType = "Unknown"
+	InvalidAddress          AddressType = "Invalid"
 )
 
 // GetAddressType returuns the address type,
@@ -57,7 +57,7 @@ func (address *Address) GetAddressType() AddressType {
 
 	addrBytes := address.ToCommonAddress().Bytes()
 
-	flag := addrBytes[0] & 0xf0 >> 4
+	flag := addrBytes[0] >> 4
 	if flag == 0x1 {
 		return NormalAddress
 	}
