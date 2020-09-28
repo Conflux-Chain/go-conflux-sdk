@@ -42,35 +42,34 @@ func (address *Address) IsZero() bool {
 type AddressType string
 
 const (
-	NormalAddressType   AddressType = "Normal"
-	ContractAddressType AddressType = "Contract"
-	InvalidAddressType  AddressType = "Unknown"
+	NormalAddress           AddressType = "Normal"
+	CustomContractAddress   AddressType = "CustomContract"
+	InternalContractAddress AddressType = "InternalContract"
+	InvalidAddress          AddressType = "Unknown"
 )
 
 // GetAddressType returuns the address type,
 // address with prefix "0x1" is normal address and "0x8" is contract address
 func (address *Address) GetAddressType() AddressType {
 	if address == nil {
-		return InvalidAddressType
+		return InvalidAddress
 	}
 
-	flag := address.ToCommonAddress().Bytes()[0] & 0xf0 >> 4
+	addrBytes := address.ToCommonAddress().Bytes()
+
+	flag := addrBytes[0] & 0xf0 >> 4
 	if flag == 0x1 {
-		return NormalAddressType
-	} else if flag == 0x8 {
-		return ContractAddressType
-	} else {
-		return InvalidAddressType
+		return NormalAddress
+	}
+	if flag == 0x8 {
+		return CustomContractAddress
 	}
 
-	// flag := address.ToCommonAddress().Bytes()[0] & 0xf0
-	// if flag|0x10 == 0x10 {
-	// 	return NormalAddressType
-	// } else if flag|0x80 == 0x80 {
-	// 	return ContractAddressType
-	// } else {
-	// 	return InvalidAddressType
-	// }
+	if addrBytes[0] == 0x08 && addrBytes[1] == 0x88 {
+		return InternalContractAddress
+	}
+
+	return InvalidAddress
 }
 
 // Hash represents the 32 byte Keccak256 hash of arbitrary data in HEX format.
