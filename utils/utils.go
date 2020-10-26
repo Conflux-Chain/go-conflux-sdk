@@ -31,7 +31,7 @@ func IsNil(i interface{}) bool {
 }
 
 // HexStringToBytes converts hex string to bytes
-func HexStringToBytes(hexStr string) ([]byte, error) {
+func HexStringToBytes(hexStr string) (hexutil.Bytes, error) {
 	if !Has0xPrefix(hexStr) {
 		hexStr = "0x" + hexStr
 	}

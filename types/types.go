@@ -128,3 +128,8 @@ func NewUint(x uint) *hexutil.Uint {
 	n1 := hexutil.Uint(x)
 	return &n1
 }
+
+// NewBytes creates a hexutil.Bytes with specified input value.
+func NewBytes(input []byte) hexutil.Bytes {
+	return hexutil.Bytes(input)
+}
