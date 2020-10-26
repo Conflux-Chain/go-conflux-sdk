@@ -16,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 // AccountManager manages Conflux accounts.
@@ -76,6 +77,29 @@ func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (type
 	account, err := m.ks.Import(keyJSON, passphrase, newPassphrase)
 	if err != nil {
 		msg := fmt.Sprintf("import account by keystore {%+v}, passphrase %+v, new passphrase %+v error", keyJSON, passphrase, newPassphrase)
+		return "", types.WrapError(err, msg)
+	}
+
+	cfxAddress := utils.ToCfxGeneralAddress(account.Address)
+	m.cfxAddressDic[string(cfxAddress)] = &account
+	return cfxAddress, nil
+}
+
+// ImportKey import account from private key hex string and save to keystore directory
+func (m *AccountManager) ImportKey(keyString string, passphrase string) (types.Address, error) {
+	if utils.Has0xPrefix(keyString) {
+		keyString = keyString[2:]
+	}
+
+	privateKey, err := crypto.HexToECDSA(keyString)
+	if err != nil {
+		msg := fmt.Sprintf("convert hexstring %v to private key error", keyString)
+		return "", types.WrapError(err, msg)
+	}
+
+	account, err := m.ks.ImportECDSA(privateKey, passphrase)
+	if err != nil {
+		msg := fmt.Sprintf("import account by privatkey {%+v}, passphrase %+v error", keyString, passphrase)
 		return "", types.WrapError(err, msg)
 	}
 
