@@ -5,6 +5,7 @@
 package sdk
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -106,6 +107,28 @@ func (m *AccountManager) ImportKey(keyString string, passphrase string) (types.A
 	cfxAddress := utils.ToCfxGeneralAddress(account.Address)
 	m.cfxAddressDic[string(cfxAddress)] = &account
 	return cfxAddress, nil
+}
+
+// Export exports private key string of address
+func (m *AccountManager) Export(address types.Address, passphrase string) (string, error) {
+	a := m.account(address)
+	if a == nil {
+		return "", fmt.Errorf("address %v is not exist", address)
+	}
+
+	keyjson, err := m.ks.Export(*a, passphrase, passphrase)
+	if err != nil {
+		msg := fmt.Sprintf("export address %v to json error", address)
+		return "", types.WrapError(err, msg)
+	}
+
+	key, err := keystore.DecryptKey(keyjson, passphrase)
+	if err != nil {
+		return "", types.WrapError(err, "decrypt keyjson error")
+	}
+
+	keystr := hex.EncodeToString(crypto.FromECDSA(key.PrivateKey))
+	return "0x" + keystr, nil
 }
 
 // Delete deletes the specified account and remove the keystore file from keystore directory.
