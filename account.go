@@ -5,6 +5,8 @@
 package sdk
 
 import (
+	"crypto/ecdsa"
+	crand "crypto/rand"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -54,6 +56,26 @@ func (m *AccountManager) Create(passphrase string) (types.Address, error) {
 	cfxAddress := utils.ToCfxGeneralAddress(account.Address)
 	m.cfxAddressDic[string(cfxAddress)] = &account
 	return cfxAddress, nil
+}
+
+// CreateEthCompatible creates a new account compatible with eth and puts the keystore file into keystore directory
+func (m *AccountManager) CreateEthCompatible(passphrase string) (types.Address, error) {
+	for {
+		privateKeyECDSA, err := ecdsa.GenerateKey(crypto.S256(), crand.Reader)
+		if err != nil {
+			return "", err
+		}
+
+		addr := crypto.PubkeyToAddress(privateKeyECDSA.PublicKey)
+
+		if addr.Bytes()[0]&0xf0 == 0x10 {
+			account, err := m.ks.ImportECDSA(privateKeyECDSA, passphrase)
+			if err != nil {
+				return "", err
+			}
+			return *types.NewAddressFromCommon(account.Address), nil
+		}
+	}
 }
 
 // Import imports account from external key file to keystore directory.
