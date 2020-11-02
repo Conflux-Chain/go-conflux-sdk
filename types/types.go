@@ -21,6 +21,12 @@ func NewAddress(hexAddress string) *Address {
 	return &addr
 }
 
+// NewAddressFromCommon creates an address from common.Address
+func NewAddressFromCommon(address common.Address) *Address {
+	hex := hexutil.Encode(address[:])
+	return NewAddress(hex)
+}
+
 // String implements the interface stringer
 func (address *Address) String() string {
 	return string(*address)
