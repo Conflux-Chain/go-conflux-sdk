@@ -30,22 +30,22 @@ func TestGetAddressType(t *testing.T) {
 	internalContractAddr := Address("0x0888000000fa000d00e000000000000000000002")
 	invalidAddr := Address("0x3300000000fa000d00e000000000000000000000")
 
-	addressType := normalAddr.GetAddressType()
+	addressType, _ := normalAddr.GetAddressType()
 	if addressType != NormalAddress {
 		t.Errorf("expect %+v be normal address, actual is %v", normalAddr, addressType)
 	}
 
-	addressType = customContractAddr.GetAddressType()
+	addressType, _ = customContractAddr.GetAddressType()
 	if addressType != CustomContractAddress {
 		t.Errorf("expect %+v be contract address, actual is %v", customContractAddr, addressType)
 	}
 
-	addressType = internalContractAddr.GetAddressType()
+	addressType, _ = internalContractAddr.GetAddressType()
 	if addressType != InternalContractAddress {
 		t.Errorf("expect %+v be contract address, actual is %v", internalContractAddr, addressType)
 	}
 
-	addressType = invalidAddr.GetAddressType()
+	addressType, _ = invalidAddr.GetAddressType()
 	if addressType != InvalidAddress {
 		t.Errorf("expect %+v be unknown address,actual is %v", invalidAddr, addressType)
 	}

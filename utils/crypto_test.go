@@ -8,9 +8,7 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -52,8 +50,4 @@ func TestKeccak256(t *testing.T) {
 	if actual != expect {
 		t.Errorf("Test Keccak256 failed, expect %+v, actual %+v", expect, actual)
 	}
-}
-
-func TestChecksum(t *testing.T) {
-	assert.Equal(t, ChecksumAddress(addressStr), types.Address("0x1CEcb4A2922B7007E236DAF0c797dE6e55496e84"))
 }
