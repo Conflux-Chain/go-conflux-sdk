@@ -67,16 +67,17 @@ func run(_client *sdk.Client) {
 	getBlockSummaryByHash()
 	getCode()
 	getTransactionByHash()
+	estimateGasAndCollateral()
 	getTransactionReceipt()
 	sendRawTransaction()
-	createUnsignedTransaction()
+	createAndSendUnsignedTransaction()
 	getRawBlockConfirmationRisk()
 	getBlockConfirmationRisk()
 	callRPC()
 
 	getAdmin()
 	getSponsorInfo()
-	etStakingBalance()
+	getStakingBalance()
 	getCollateralForStorage()
 	getStorageAt()
 	getStorageRoot()
@@ -101,7 +102,7 @@ func getSponsorInfo() {
 	printResult("GetSponsorInfo", []interface{}{config.ERC20Address, nil}, result, err)
 }
 
-func etStakingBalance() {
+func getStakingBalance() {
 	result, err := client.GetStakingBalance(*defaultAccount, nil)
 	printResult("GetStakingBalance", []interface{}{*defaultAccount, nil}, result, err)
 }
@@ -313,6 +314,19 @@ func getTransactionReceipt() {
 	}
 }
 
+func estimateGasAndCollateral() {
+	request := types.CallRequest{
+		To:    types.NewAddress("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"),
+		Value: types.NewBigInt(1),
+	}
+	est, err := client.EstimateGasAndCollateral(request)
+	if err != nil {
+		fmt.Printf("- estimate error: %v\n\n", err)
+	} else {
+		fmt.Printf("- estimate result: %v\n\n", est)
+	}
+}
+
 func sendRawTransaction() {
 	rawtx := context.CreateSignedTx(client)
 	txhash, err := client.SendRawTransaction(rawtx)
@@ -327,7 +341,7 @@ func sendRawTransaction() {
 	// time.Sleep(10 * time.Second)
 }
 
-func createUnsignedTransaction() {
+func createAndSendUnsignedTransaction() {
 	//send transaction
 	utx, err := client.CreateUnsignedTransaction(*defaultAccount, types.Address("0x1cad0b19bb29d4674531d6f115237e16afce377d"), types.NewBigInt(1000000), nil)
 	if err != nil {

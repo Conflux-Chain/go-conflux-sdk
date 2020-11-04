@@ -5,6 +5,7 @@
 package sdk
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -16,6 +17,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 // AccountManager manages Conflux accounts.
@@ -82,6 +84,51 @@ func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (type
 	cfxAddress := utils.ToCfxGeneralAddress(account.Address)
 	m.cfxAddressDic[string(cfxAddress)] = &account
 	return cfxAddress, nil
+}
+
+// ImportKey import account from private key hex string and save to keystore directory
+func (m *AccountManager) ImportKey(keyString string, passphrase string) (types.Address, error) {
+	if utils.Has0xPrefix(keyString) {
+		keyString = keyString[2:]
+	}
+
+	privateKey, err := crypto.HexToECDSA(keyString)
+	if err != nil {
+		msg := fmt.Sprintf("convert hexstring %v to private key error", keyString)
+		return "", types.WrapError(err, msg)
+	}
+
+	account, err := m.ks.ImportECDSA(privateKey, passphrase)
+	if err != nil {
+		msg := fmt.Sprintf("import account by privatkey {%+v}, passphrase %+v error", keyString, passphrase)
+		return "", types.WrapError(err, msg)
+	}
+
+	cfxAddress := utils.ToCfxGeneralAddress(account.Address)
+	m.cfxAddressDic[string(cfxAddress)] = &account
+	return cfxAddress, nil
+}
+
+// Export exports private key string of address
+func (m *AccountManager) Export(address types.Address, passphrase string) (string, error) {
+	a := m.account(address)
+	if a == nil {
+		return "", fmt.Errorf("address %v is not exist", address)
+	}
+
+	keyjson, err := m.ks.Export(*a, passphrase, passphrase)
+	if err != nil {
+		msg := fmt.Sprintf("export address %v to json error", address)
+		return "", types.WrapError(err, msg)
+	}
+
+	key, err := keystore.DecryptKey(keyjson, passphrase)
+	if err != nil {
+		return "", types.WrapError(err, "decrypt keyjson error")
+	}
+
+	keystr := hex.EncodeToString(crypto.FromECDSA(key.PrivateKey))
+	return "0x" + keystr, nil
 }
 
 // Delete deletes the specified account and remove the keystore file from keystore directory.

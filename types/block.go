@@ -19,6 +19,7 @@ type BlockHeader struct {
 	TransactionsRoot      Hash            `json:"transactionsRoot"`
 	EpochNumber           *hexutil.Big    `json:"epochNumber,omitempty"`
 	GasLimit              *hexutil.Big    `json:"gasLimit"`
+	GasUsed               *hexutil.Big    `json:"gasUsed"`
 	Timestamp             *hexutil.Uint64 `json:"timestamp"`
 	Difficulty            *hexutil.Big    `json:"difficulty"`
 	PowQuality            *hexutil.Big    `json:"powQuality,omitempty"`

@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/constants"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // CalcBlockConfirmationRisk calculates block revert rate
@@ -27,4 +28,17 @@ func IsNil(i interface{}) bool {
 		return vi.IsNil()
 	}
 	return false
+}
+
+// HexStringToBytes converts hex string to bytes
+func HexStringToBytes(hexStr string) (hexutil.Bytes, error) {
+	if !Has0xPrefix(hexStr) {
+		hexStr = "0x" + hexStr
+	}
+	return hexutil.Decode(hexStr)
+}
+
+// Has0xPrefix returns true if input starts with '0x' or '0X'
+func Has0xPrefix(input string) bool {
+	return len(input) >= 2 && input[0] == '0' && (input[1] == 'x' || input[1] == 'X')
 }

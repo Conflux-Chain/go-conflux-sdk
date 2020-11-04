@@ -49,4 +49,5 @@ type TransactionReceipt struct {
 	LogsBloom       Bloom           `json:"logsBloom"`
 	StateRoot       Hash            `json:"stateRoot"`
 	OutcomeStatus   hexutil.Uint64  `json:"outcomeStatus"`
+	TxExecErrorMsg  string          `json:"txExecErrorMsg"`
 }

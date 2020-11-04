@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	privateKeyStr = "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-	publicKeyStr  = "0x4646ae5047316b4230d0086c8acec687f00b1cd9d1dc634f6cb358ac0a9a8ffffe77b4dd0a4bfb95851f3b7355c781dd60f8418fc8a65d14907aff47c903a559"
-	addressStr    = "0x1cad0b19bb29d4674531d6f115237e16afce377c"
+	privateKeyStr = "0xd28edbdb7bbe75787b84c5f525f47666a3274bb06561581f00839645f3c26f66"
+	publicKeyStr  = "0xc42b53ae2ef95fee489948d33df391c4a9da31b7a3e29cf772c24eb42f74e94ab3bfe00bf29a239c17786a5b921853b7c5344d36694db43aa849e401f91566a5"
+	addressStr    = "0x1cecb4a2922b7007e236daf0c797de6e55496e84"
 )
 
 func TestPublicKeyToAddress(t *testing.T) {

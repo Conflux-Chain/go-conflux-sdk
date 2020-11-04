@@ -5,11 +5,9 @@
 package utils
 
 import (
-	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"math/big"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -21,34 +19,42 @@ import (
 //
 // Account address in conflux starts with '0x1'
 func PublicKeyToAddress(publicKey string) types.Address {
-	pubKey := new(big.Int)
-	_, ok := pubKey.SetString(publicKey, 0)
-	if !ok {
-		panic("publicKey is invalid")
+
+	if Has0xPrefix(publicKey) {
+		publicKey = publicKey[2:]
 	}
 
-	val := crypto.Keccak256(pubKey.Bytes())[12:]
-	val[0] = (val[0] & 0x0f) | 0x10
-	return types.Address(hexutil.Encode(val))
+	pubKeyBytes, err := hex.DecodeString(publicKey)
+	if err != nil {
+		panic(err)
+	}
+
+	pubKeyBytes = append([]byte{0x04}, pubKeyBytes...)
+
+	pub, err := crypto.UnmarshalPubkey(pubKeyBytes)
+	if err != nil {
+		panic(err)
+	}
+
+	addr := crypto.PubkeyToAddress(*pub)
+	cfxaddr := ToCfxGeneralAddress(addr)
+	return cfxaddr
 }
 
 // PrivateKeyToPublicKey calculates public key from private key
 func PrivateKeyToPublicKey(privateKey string) string {
-	prvKey := new(big.Int)
-	_, ok := prvKey.SetString(privateKey, 0)
-	if !ok {
-		panic("privateKey is invalid.")
+	if Has0xPrefix(privateKey) {
+		privateKey = privateKey[2:]
 	}
 
-	c := crypto.S256()
-	pubKeyX, pubKeyY := c.ScalarBaseMult(prvKey.Bytes())
-	pubKeyBytes := crypto.FromECDSAPub(&ecdsa.PublicKey{
-		Curve: c,
-		X:     pubKeyX,
-		Y:     pubKeyY,
-	})
+	key, err := crypto.HexToECDSA(privateKey)
+	if err != nil {
+		panic(err)
+	}
 
+	pubKeyBytes := crypto.FromECDSAPub(&key.PublicKey)
 	pubKey := hexutil.Encode(pubKeyBytes[1:])
+
 	return pubKey
 }
 

@@ -55,6 +55,10 @@ func (address *Address) GetAddressType() AddressType {
 		return InvalidAddress
 	}
 
+	if !common.IsHexAddress(string(*address)) {
+		return InvalidAddress
+	}
+
 	addrBytes := address.ToCommonAddress().Bytes()
 
 	flag := addrBytes[0] >> 4
@@ -71,6 +75,14 @@ func (address *Address) GetAddressType() AddressType {
 
 	return InvalidAddress
 }
+
+// func (address *Address) Checksum() Address {
+// 	bytes := address.ToCommonAddress().Bytes()
+// 	hash := address.ToCommonAddress().Hash().Bytes()
+// 	for i := 0; i < len(bytes); i++ {
+// 		hash[i]>=8?"":""
+// 	}
+// }
 
 // Hash represents the 32 byte Keccak256 hash of arbitrary data in HEX format.
 type Hash string
