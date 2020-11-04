@@ -21,6 +21,12 @@ func NewAddress(hexAddress string) *Address {
 	return &addr
 }
 
+// NewAddressFromCommon creates an address from common.Address
+func NewAddressFromCommon(address common.Address) *Address {
+	hex := hexutil.Encode(address[:])
+	return NewAddress(hex)
+}
+
 // String implements the interface stringer
 func (address *Address) String() string {
 	return string(*address)
@@ -127,4 +133,9 @@ func NewUint64(x uint64) *hexutil.Uint64 {
 func NewUint(x uint) *hexutil.Uint {
 	n1 := hexutil.Uint(x)
 	return &n1
+}
+
+// NewBytes creates a hexutil.Bytes with specified input value.
+func NewBytes(input []byte) hexutil.Bytes {
+	return hexutil.Bytes(input)
 }
