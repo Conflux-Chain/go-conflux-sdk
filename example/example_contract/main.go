@@ -75,6 +75,28 @@ func main() {
 	}
 	fmt.Printf("balance of address %v in contract is: %+v\n\n", user, balance)
 
+	// name symbol decimals
+	name := ""
+	err = contract.Call(nil, &name, "name")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("name of address %v in contract is: %+v\n\n", user, name)
+
+	symbol := ""
+	err = contract.Call(nil, &symbol, "symbol")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("symbol of address %v in contract is: %+v\n\n", user, name)
+
+	decimals := uint8(0)
+	err = contract.Call(nil, &decimals, "decimals")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("decimals of address %v in contract is: %+v\n\n", user, decimals)
+
 	//send transction for contract method
 	to := types.Address("0x160ebef20c1f739957bf9eecd040bce699cc42c6")
 	txhash, err := contract.SendTransaction(nil, "transfer", to.ToCommonAddress(), big.NewInt(10))

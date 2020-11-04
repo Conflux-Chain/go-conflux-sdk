@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"time"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
@@ -133,9 +134,10 @@ func (m *AccountManager) ImportKey(keyString string, passphrase string) (types.A
 
 // Export exports private key string of address
 func (m *AccountManager) Export(address types.Address, passphrase string) (string, error) {
-	a := m.account(address)
-	if a == nil {
-		return "", fmt.Errorf("address %v is not exist", address)
+
+	a, err := m.account(address)
+	if err != nil {
+		return "", err
 	}
 
 	keyjson, err := m.ks.Export(*a, passphrase, passphrase)
@@ -155,18 +157,18 @@ func (m *AccountManager) Export(address types.Address, passphrase string) (strin
 
 // Delete deletes the specified account and remove the keystore file from keystore directory.
 func (m *AccountManager) Delete(address types.Address, passphrase string) error {
-	account := m.account(address)
-	if account == nil {
-		return nil
+	account, err := m.account(address)
+	if err != nil {
+		return err
 	}
 	return m.ks.Delete(*account, passphrase)
 }
 
 // Update updates the passphrase of specified account.
 func (m *AccountManager) Update(address types.Address, passphrase, newPassphrase string) error {
-	account := m.account(address)
-	if account == nil {
-		return types.NewAccountNotFoundError(address)
+	account, err := m.account(address)
+	if err != nil {
+		return err
 	}
 	return m.ks.Update(*account, passphrase, newPassphrase)
 }
@@ -193,16 +195,25 @@ func (m *AccountManager) GetDefault() (*types.Address, error) {
 	return nil, errors.New(msg)
 }
 
-func (m *AccountManager) account(address types.Address) *accounts.Account {
-	realAccount := m.cfxAddressDic[string(address)]
-	return realAccount
+func (m *AccountManager) account(address types.Address) (*accounts.Account, error) {
+	_, err := address.GetAddressType()
+	if err != nil {
+		return nil, err
+	}
+
+	realAccount := m.cfxAddressDic[strings.ToLower(string(address))]
+	if realAccount == nil {
+		return nil, types.NewAccountNotFoundError(address)
+	}
+
+	return realAccount, nil
 }
 
 // Unlock unlocks the specified account indefinitely.
 func (m *AccountManager) Unlock(address types.Address, passphrase string) error {
-	account := m.account(address)
-	if account == nil {
-		return types.NewAccountNotFoundError(address)
+	account, err := m.account(address)
+	if err != nil {
+		return err
 	}
 	return m.ks.Unlock(*account, passphrase)
 }
@@ -218,9 +229,9 @@ func (m *AccountManager) UnlockDefault(passphrase string) error {
 
 // TimedUnlock unlocks the specified account for a period of time.
 func (m *AccountManager) TimedUnlock(address types.Address, passphrase string, timeout time.Duration) error {
-	account := m.account(address)
-	if account == nil {
-		return types.NewAccountNotFoundError(address)
+	account, err := m.account(address)
+	if err != nil {
+		return err
 	}
 	return m.ks.TimedUnlock(*account, passphrase, timeout)
 }
@@ -246,10 +257,9 @@ func (m *AccountManager) SignTransaction(tx types.UnsignedTransaction) ([]byte, 
 		return nil, errors.New("From is empty, it is necessary for sign")
 	}
 
-	account := m.account(*tx.From)
-	// fmt.Printf("get account of address %+v is %+v\n\n", tx.From, account)
-	if account == nil {
-		return nil, types.NewAccountNotFoundError(*tx.From)
+	account, err := m.account(*tx.From)
+	if err != nil {
+		return nil, err
 	}
 
 	hash, err := tx.Hash()
@@ -280,9 +290,9 @@ func (m *AccountManager) SignAndEcodeTransactionWithPassphrase(tx types.Unsigned
 		return nil, errors.New("From is empty, it is necessary for sign")
 	}
 
-	account := m.account(*tx.From)
-	if account == nil {
-		return nil, types.NewAccountNotFoundError(*tx.From)
+	account, err := m.account(*tx.From)
+	if err != nil {
+		return nil, err
 	}
 
 	hash, err := tx.Hash()
@@ -313,9 +323,9 @@ func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransact
 		return nil, errors.New("From is empty, it is necessary for sign")
 	}
 
-	account := m.account(*tx.From)
-	if account == nil {
-		return nil, types.NewAccountNotFoundError(*tx.From)
+	account, err := m.account(*tx.From)
+	if err != nil {
+		return nil, err
 	}
 
 	hash, err := tx.Hash()
@@ -346,10 +356,9 @@ func (m *AccountManager) Sign(tx types.UnsignedTransaction, passphrase string) (
 		return 0, nil, nil, errors.New("From is empty, it is necessary for sign")
 	}
 
-	account := m.account(*tx.From)
+	account, err := m.account(*tx.From)
 	if account == nil {
-		// msg := fmt.Sprintf("no account of address %+v is found in keystore directory ", *tx.From)
-		return 0, nil, nil, types.NewAccountNotFoundError(*tx.From)
+		return 0, nil, nil, err
 	}
 
 	hash, err := tx.Hash()
