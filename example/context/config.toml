@@ -1,4 +1,4 @@
-NodeURL = "http://testnet-jsonrpc.conflux-chain.org:12537"
+NodeURL = "http://test.confluxrpc.org"
 BlockHash = "0x2dc741dfef6261a938c644ba2251b1202a2fdc125f76a9078a3b23b55f396ad2"
 TransactionHash = "0x3e4e363d84ee71d3d5152973e05c329813306458734be83af40ea6436fe214a7"
 ERC20Address = "0x860ccec253c3aa2a74433a75817d4eaf543119b6"
