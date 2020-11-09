@@ -21,6 +21,7 @@ func main() {
 	listAccount()
 	creatAccount()
 	importAccount()
+	hasChecksumChecked()
 	updateAccount()
 	deleteAccount()
 	signTx()
@@ -119,4 +120,23 @@ func decodeRawTx() {
 		return
 	}
 	fmt.Printf("decoded rawTx %x result: %+v\n\n", rawTx, tx)
+}
+
+func hasChecksumChecked() {
+	_, err := am.Export(types.Address("0x14b899ed1cd49da2c11093606465baa102662ab5"), "hello")
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = am.Export(types.Address("0x14b899eD1cD49Da2c11093606465Baa102662ab5"), "hello")
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = am.Export(types.Address("0x14b899ed1cd49Da2c11093606465Baa102662ab5"), "hello")
+	if err == nil {
+		panic("it should error because checksum fail")
+	}
+	fmt.Printf("checksum error msg: %v\n", err)
+	fmt.Printf("checksum check done\n")
 }
