@@ -23,18 +23,18 @@ func JsonFmt(v interface{}) string {
 	return str.String()
 }
 
-func WaitPacked(client *sdk.Client, txhash types.Hash) *types.Transaction {
+func WaitPacked(client *sdk.Client, txhash types.Hash) *types.TransactionReceipt {
 	fmt.Printf("wait for transaction %v be packed\n", txhash)
-	var tx *types.Transaction
+	var tx *types.TransactionReceipt
 	for {
 		time.Sleep(time.Duration(1) * time.Second)
 		var err error
-		tx, err = client.GetTransactionByHash(txhash)
+		tx, err = client.GetTransactionReceipt(txhash)
 		if err != nil {
 			panic(err)
 		}
 		fmt.Print(".")
-		if tx.Status != nil {
+		if tx != nil {
 			fmt.Printf("transaction is packed:%+v\n\n", JsonFmt(tx))
 			break
 		}

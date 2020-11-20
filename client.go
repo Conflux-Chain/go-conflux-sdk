@@ -727,11 +727,11 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 			}
 
 			if tx.Gas == nil {
-				tx.Gas = sm.GasUsed
+				tx.Gas = sm.GasLimit
 			}
 
 			if tx.StorageLimit == nil {
-				tx.StorageLimit = types.NewUint64(sm.StorageCollateralized.ToInt().Uint64())
+				tx.StorageLimit = types.NewUint64(sm.StorageCollateralized.ToInt().Uint64() * 10 / 9)
 			}
 		}
 
