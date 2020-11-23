@@ -1,4 +1,4 @@
 NodeURL = "http://test.confluxrpc.org"
-BlockHash = "0x2dc741dfef6261a938c644ba2251b1202a2fdc125f76a9078a3b23b55f396ad2"
-TransactionHash = "0x3e4e363d84ee71d3d5152973e05c329813306458734be83af40ea6436fe214a7"
-ERC20Address = "0x860ccec253c3aa2a74433a75817d4eaf543119b6"
+BlockHash = "0xda8650f7ab60467e75f47532523b86cd40aa0733e0ac64d72d027d4b790fd93c"
+TransactionHash = "0xdb70e409b6370f00bb9869d63724f05fc020fda75c9e48420e293bf4bb959b10"
+ERC20Address = "0x81aee580ed93df3f9cd673f274f23ffe0ee62cca"
