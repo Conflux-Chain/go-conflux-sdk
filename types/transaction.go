@@ -62,7 +62,7 @@ type TransactionReceipt struct {
 
 // StorageChange represents storage change information of the address
 type StorageChange struct {
-	Address *Address `json:"address"`
+	Address Address `json:"address"`
 	/// Number of storage collateral units to deposit / refund (absolute value).
 	Collaterals hexutil.Uint64 `json:"collaterals"`
 }
