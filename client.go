@@ -1142,6 +1142,22 @@ func (client *Client) GetClientVersion() (clientVersion string, err error) {
 	return
 }
 
+// GetDepositList returns deposit list of the given account.
+func (client *Client) GetDepositList(address types.Address, epoch ...*types.Epoch) (depositInfos []types.DepositInfo, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	depositInfos = make([]types.DepositInfo, 0)
+	err = client.wrappedCallRPC(&depositInfos, "cfx_getDepositList", address, realEpoch)
+	return
+}
+
+// GetVoteList returns vote list of the given account.
+func (client *Client) GetVoteList(address types.Address, epoch ...*types.Epoch) (voteStakeInfos []types.VoteStakeInfo, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	voteStakeInfos = make([]types.VoteStakeInfo, 0)
+	err = client.wrappedCallRPC(&voteStakeInfos, "cfx_getVoteList", address, realEpoch)
+	return
+}
+
 // === helper methods ===
 
 // WaitForTransationBePacked returns transaction when it is packed

@@ -50,4 +50,19 @@ type TransactionReceipt struct {
 	StateRoot       Hash            `json:"stateRoot"`
 	OutcomeStatus   hexutil.Uint64  `json:"outcomeStatus"`
 	TxExecErrorMsg  string          `json:"txExecErrorMsg"`
+	// Whether gas costs were covered by the sponsor.
+	GasCoveredBySponsor bool `json:"gasCoveredBySponsor"`
+	// Whether storage costs were covered by the sponsor.
+	StorageCoveredBySponsor bool `json:"storageCoveredBySponsor"`
+	// The amount of storage collateralized by the sender.
+	StorageCollateralized hexutil.Uint64 `json:"storageCollateralized"`
+	// Storage collaterals released during the execution of the transaction.
+	StorageReleased []StorageChange `json:"storageReleased"`
+}
+
+// StorageChange represents storage change information of the address
+type StorageChange struct {
+	Address Address `json:"address"`
+	/// Number of storage collateral units to deposit / refund (absolute value).
+	Collaterals hexutil.Uint64 `json:"collaterals"`
 }
