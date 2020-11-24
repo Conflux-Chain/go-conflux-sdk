@@ -25,7 +25,8 @@ type Epoch struct {
 	number *big.Int
 }
 
-type WebsockEpochResponse struct {
+// WebsocketEpochResponse represents result of epoch websocket subscription
+type WebsocketEpochResponse struct {
 	EpochHashesOrdered []Hash       `json:"epochHashesOrdered"`
 	EpochNumber        *hexutil.Big `json:"epochNumber"`
 }
