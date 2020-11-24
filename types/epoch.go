@@ -25,6 +25,11 @@ type Epoch struct {
 	number *big.Int
 }
 
+type WebsockEpochResponse struct {
+	EpochHashesOrdered []Hash       `json:"epochHashesOrdered"`
+	EpochNumber        *hexutil.Big `json:"epochNumber"`
+}
+
 // NewEpochNumber creates an instance of Epoch with specified number.
 func NewEpochNumber(number *big.Int) *Epoch {
 	return &Epoch{"", number}

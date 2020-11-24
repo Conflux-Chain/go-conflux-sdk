@@ -5,6 +5,7 @@
 package sdk
 
 import (
+	"context"
 	"math/big"
 	"net/http"
 	"time"
@@ -12,7 +13,6 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	// rpc "github.com/ethereum/go-ethereum/rpc"
 )
 
 // HTTPRequester is interface for emitting a http requester
@@ -115,5 +115,6 @@ type AccountManagerOperator interface {
 type rpcRequester interface {
 	Call(resultPtr interface{}, method string, args ...interface{}) error
 	BatchCall(b []rpc.BatchElem) error
+	Subscribe(ctx context.Context, namespace string, channel interface{}, args ...interface{}) (*rpc.ClientSubscription, error)
 	Close()
 }

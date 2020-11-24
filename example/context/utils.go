@@ -50,7 +50,7 @@ func CreateSignedTx(client *sdk.Client) []byte {
 			Value: types.NewBigInt(100),
 			// GasPrice: types.NewBigInt(10000000000),
 			// ChainID:  types.NewBigInt(1),
-			Nonce: getNextNonceAndIncrease(),
+			Nonce: GetNextNonceAndIncrease(),
 		},
 		To: types.NewAddress("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"),
 	}
@@ -114,7 +114,7 @@ func deployContractWithConstroctor(abiFile string, bytecodeFile string, params .
 	}
 
 	option := types.ContractDeployOption{}
-	option.Nonce = getNextNonceAndIncrease()
+	option.Nonce = GetNextNonceAndIncrease()
 	result := client.DeployContract(&option, abi, bytecode, params...)
 
 	_ = <-result.DoneChannel

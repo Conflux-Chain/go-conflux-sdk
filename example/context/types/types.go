@@ -1,6 +1,10 @@
 package exampletypes
 
 import (
+	"io/ioutil"
+	"path"
+	"runtime"
+
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 )
@@ -37,4 +41,27 @@ func (c *Config) SetRetryClient(client *sdk.Client) {
 
 func (c *Config) GetRetryClient() *sdk.Client {
 	return c.retryClient
+}
+
+func (c *Config) GetErc20Contract() (*sdk.Contract, error) {
+	currentDir := getCurrentDir()
+
+	abiPath := path.Join(currentDir, "../contract/erc20.abi")
+
+	abi, err := ioutil.ReadFile(abiPath)
+	if err != nil {
+		panic(err)
+	}
+
+	contract, err := c.GetClient().GetContract([]byte(abi), &c.ERC20Address)
+	return contract, err
+}
+
+func getCurrentDir() string {
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("get current file path error")
+	}
+	currentDir := path.Join(filename, "../")
+	return currentDir
 }
