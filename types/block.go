@@ -8,25 +8,25 @@ import "github.com/ethereum/go-ethereum/common/hexutil"
 
 // BlockHeader represents a block header in Conflux.
 type BlockHeader struct {
-	Hash                  Hash            `json:"hash"`
-	ParentHash            Hash            `json:"parentHash"`
-	Height                *hexutil.Big    `json:"height"`
-	Miner                 Address         `json:"miner"`
-	DeferredStateRoot     Hash            `json:"deferredStateRoot"`
-	DeferredReceiptsRoot  Hash            `json:"deferredReceiptsRoot"`
-	DeferredLogsBloomHash Hash            `json:"deferredLogsBloomHash"`
-	Blame                 hexutil.Uint64  `json:"blame"`
-	TransactionsRoot      Hash            `json:"transactionsRoot"`
-	EpochNumber           *hexutil.Big    `json:"epochNumber,omitempty"`
-	GasLimit              *hexutil.Big    `json:"gasLimit"`
-	GasUsed               *hexutil.Big    `json:"gasUsed"`
-	Timestamp             *hexutil.Uint64 `json:"timestamp"`
-	Difficulty            *hexutil.Big    `json:"difficulty"`
-	PowQuality            *hexutil.Big    `json:"powQuality,omitempty"`
-	RefereeHashes         []Hash          `json:"refereeHashes"`
-	Adaptive              bool            `json:"adaptive"`
-	Nonce                 *hexutil.Big    `json:"nonce"`
-	Size                  *hexutil.Big    `json:"size,omitempty"`
+	Hash                  Hash           `json:"hash"`
+	ParentHash            Hash           `json:"parentHash"`
+	Height                *hexutil.Big   `json:"height"`
+	Miner                 Address        `json:"miner"`
+	DeferredStateRoot     Hash           `json:"deferredStateRoot"`
+	DeferredReceiptsRoot  Hash           `json:"deferredReceiptsRoot"`
+	DeferredLogsBloomHash Hash           `json:"deferredLogsBloomHash"`
+	Blame                 hexutil.Uint64 `json:"blame"`
+	TransactionsRoot      Hash           `json:"transactionsRoot"`
+	EpochNumber           *hexutil.Big   `json:"epochNumber,omitempty"`
+	GasLimit              *hexutil.Big   `json:"gasLimit"`
+	GasUsed               *hexutil.Big   `json:"gasUsed"`
+	Timestamp             *hexutil.Big   `json:"timestamp"`
+	Difficulty            *hexutil.Big   `json:"difficulty"`
+	PowQuality            *hexutil.Big   `json:"powQuality,omitempty"`
+	RefereeHashes         []Hash         `json:"refereeHashes"`
+	Adaptive              bool           `json:"adaptive"`
+	Nonce                 *hexutil.Big   `json:"nonce"`
+	Size                  *hexutil.Big   `json:"size,omitempty"`
 }
 
 // BlockSummary includes block header and a list of transaction hashes

@@ -105,7 +105,7 @@ func generateBlockHashAndTxHash() {
 		if err != nil {
 			panic(err)
 		}
-		utx.Nonce = getNextNonceAndIncrease()
+		utx.Nonce = GetNextNonceAndIncrease()
 		txhash, err := client.SendTransaction(utx)
 		if err != nil {
 			panic(err)
@@ -147,7 +147,7 @@ func saveConfig() {
 	fmt.Println("- to save config done")
 }
 
-func getNextNonceAndIncrease() *hexutil.Big {
+func GetNextNonceAndIncrease() *hexutil.Big {
 	// println("current in:", nextNonce.String())
 	currentNonce := big.NewInt(0).SetBytes(nextNonce.Bytes())
 	nextNonce = nextNonce.Add(nextNonce, big.NewInt(1))

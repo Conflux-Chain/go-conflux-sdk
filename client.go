@@ -5,6 +5,7 @@
 package sdk
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -129,6 +130,10 @@ func (r *rpcClientWithRetry) BatchCall(b []rpc.BatchElem) error {
 			time.Sleep(r.interval)
 		}
 	}
+}
+
+func (r *rpcClientWithRetry) Subscribe(ctx context.Context, namespace string, channel interface{}, args ...interface{}) (*rpc.ClientSubscription, error) {
+	return r.inner.Subscribe(ctx, namespace, channel, args)
 }
 
 func (r *rpcClientWithRetry) Close() {
@@ -412,7 +417,7 @@ func (client *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash
 		msg := fmt.Sprintf("apply transaction {%+v} default fields error", *tx)
 		return "", types.WrapError(err, msg)
 	}
-
+	// fmt.Printf("tx info: %+v", tx)
 	// commet it becasue there are some contract need not pay gas.
 	//
 	// //check balance, return error if balance not enough
@@ -725,6 +730,8 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 				msg := fmt.Sprintf("get estimate gas and collateral by {%+v} error", *callReq)
 				return types.WrapError(err, msg)
 			}
+
+			// fmt.Printf("callreq, %+v,sm:%+v\n", *callReq, sm)
 
 			if tx.Gas == nil {
 				tx.Gas = sm.GasLimit
@@ -1156,6 +1163,21 @@ func (client *Client) GetVoteList(address types.Address, epoch ...*types.Epoch) 
 	voteStakeInfos = make([]types.VoteStakeInfo, 0)
 	err = client.wrappedCallRPC(&voteStakeInfos, "cfx_getVoteList", address, realEpoch)
 	return
+}
+
+// SubscribeNewHeads subscribes all new block headers participating in the consensus.
+func (client *Client) SubscribeNewHeads(channel chan types.BlockHeader) (*rpc.ClientSubscription, error) {
+	return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "newHeads")
+}
+
+// SubscribeEpochs subscribes consensus results: the total order of blocks, as expressed by a sequence of epochs.
+func (client *Client) SubscribeEpochs(channel chan types.WebsockEpochResponse) (*rpc.ClientSubscription, error) {
+	return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "epochs")
+}
+
+// SubscribeLogs subscribes all logs matching a certain filter, in order.
+func (client *Client) SubscribeLogs(channel chan types.Log, filter types.LogFilter) (*rpc.ClientSubscription, error) {
+	return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "logs", filter)
 }
 
 // === helper methods ===
