@@ -19,7 +19,7 @@ import (
 // Address represents the 20 byte address of an Conflux account in HEX format.
 type Address string
 
-// NewAddress creates a address with specified HEX string.
+// NewAddress creates an address with specified HEX string.
 func NewAddress(hexAddress string) *Address {
 	addr := Address(hexAddress)
 	return &addr

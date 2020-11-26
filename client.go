@@ -1171,7 +1171,7 @@ func (client *Client) SubscribeNewHeads(channel chan types.BlockHeader) (*rpc.Cl
 }
 
 // SubscribeEpochs subscribes consensus results: the total order of blocks, as expressed by a sequence of epochs.
-func (client *Client) SubscribeEpochs(channel chan types.WebsockEpochResponse) (*rpc.ClientSubscription, error) {
+func (client *Client) SubscribeEpochs(channel chan types.WebsocketEpochResponse) (*rpc.ClientSubscription, error) {
 	return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "epochs")
 }
 

@@ -418,7 +418,7 @@ func subscribeNewHeads() {
 
 func subscribeEpochs() {
 	fmt.Printf("- subscribe epochs\n")
-	channel := make(chan types.WebsockEpochResponse, 100)
+	channel := make(chan types.WebsocketEpochResponse, 100)
 	sub, err := client.SubscribeEpochs(channel)
 	if err != nil {
 		fmt.Printf("subscribe epoch error:%+v\n", err.Error())
