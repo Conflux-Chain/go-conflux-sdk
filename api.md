@@ -65,6 +65,14 @@ func (m *AccountManager) Create(passphrase string) (types.Address, error)
 ```
 Create creates a new account and puts the keystore file into keystore directory
 
+#### func (*AccountManager) CreateEthCompatible
+
+```go
+func (m *AccountManager) CreateEthCompatible(passphrase string) (types.Address, error)
+```
+CreateEthCompatible creates a new account compatible with eth and puts the
+keystore file into keystore directory
+
 #### func (*AccountManager) Delete
 
 ```go
@@ -72,6 +80,13 @@ func (m *AccountManager) Delete(address types.Address, passphrase string) error
 ```
 Delete deletes the specified account and remove the keystore file from keystore
 directory.
+
+#### func (*AccountManager) Export
+
+```go
+func (m *AccountManager) Export(address types.Address, passphrase string) (string, error)
+```
+Export exports private key string of address
 
 #### func (*AccountManager) GetDefault
 
@@ -87,6 +102,14 @@ func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (type
 ```
 Import imports account from external key file to keystore directory. Returns
 error if the account already exists.
+
+#### func (*AccountManager) ImportKey
+
+```go
+func (m *AccountManager) ImportKey(keyString string, passphrase string) (types.Address, error)
+```
+ImportKey import account from private key hex string and save to keystore
+directory
 
 #### func (*AccountManager) List
 
@@ -279,7 +302,7 @@ func (client *Client) CheckBalanceAgainstTransaction(accountAddress types.Addres
 	gasLimit *hexutil.Big,
 	gasPrice *hexutil.Big,
 	storageLimit *hexutil.Big,
-	epoch *types.Epoch) (response types.CheckBalanceAgainstTransactionResponse, err error)
+	epoch ...*types.Epoch) (response types.CheckBalanceAgainstTransactionResponse, err error)
 ```
 CheckBalanceAgainstTransaction checks if user balance is enough for the
 transaction.
@@ -327,21 +350,21 @@ of the gas used and storage for collateral
 #### func (*Client) GetAccountInfo
 
 ```go
-func (client *Client) GetAccountInfo(account types.Address, epoch *types.Epoch) (accountInfo types.AccountInfo, err error)
+func (client *Client) GetAccountInfo(account types.Address, epoch ...*types.Epoch) (accountInfo types.AccountInfo, err error)
 ```
 GetAccountInfo returns account related states of the given account
 
 #### func (*Client) GetAccumulateInterestRate
 
 ```go
-func (client *Client) GetAccumulateInterestRate(epoch *types.Epoch) (intersetRate *hexutil.Big, err error)
+func (client *Client) GetAccumulateInterestRate(epoch ...*types.Epoch) (intersetRate *hexutil.Big, err error)
 ```
 GetAccumulateInterestRate returns accumulate interest rate of the given epoch
 
 #### func (*Client) GetAdmin
 
 ```go
-func (client *Client) GetAdmin(contractAddress types.Address, epoch *types.Epoch) (admin types.Address, err error)
+func (client *Client) GetAdmin(contractAddress types.Address, epoch ...*types.Epoch) (admin types.Address, err error)
 ```
 GetAdmin returns admin of the given contract
 
@@ -396,7 +419,7 @@ it's (raw confirmation risk coefficient/ (2^256-1))
 #### func (*Client) GetBlockRewardInfo
 
 ```go
-func (client *Client) GetBlockRewardInfo(epoch *types.Epoch) (rewardInfo []types.RewardInfo, err error)
+func (client *Client) GetBlockRewardInfo(epoch ...*types.Epoch) (rewardInfo []types.RewardInfo, err error)
 ```
 GetBlockRewardInfo returns block reward information in an epoch
 
@@ -440,7 +463,7 @@ GetCode returns the bytecode in HEX format of specified address at epoch.
 #### func (*Client) GetCollateralForStorage
 
 ```go
-func (client *Client) GetCollateralForStorage(account types.Address, epoch *types.Epoch) (storage *hexutil.Big, err error)
+func (client *Client) GetCollateralForStorage(account types.Address, epoch ...*types.Epoch) (storage *hexutil.Big, err error)
 ```
 GetCollateralForStorage returns balance of the given account.
 
@@ -451,6 +474,13 @@ func (client *Client) GetContract(abiJSON []byte, deployedAt *types.Address) (*C
 ```
 GetContract creates a contract instance according to abi json and it's deployed
 address
+
+#### func (*Client) GetDepositList
+
+```go
+func (client *Client) GetDepositList(address types.Address, epoch ...*types.Epoch) (depositInfos []types.DepositInfo, err error)
+```
+GetDepositList returns deposit list of the given account.
 
 #### func (*Client) GetEpochNumber
 
@@ -469,7 +499,7 @@ GetGasPrice returns the recent mean gas price.
 #### func (*Client) GetInterestRate
 
 ```go
-func (client *Client) GetInterestRate(epoch *types.Epoch) (intersetRate *hexutil.Big, err error)
+func (client *Client) GetInterestRate(epoch ...*types.Epoch) (intersetRate *hexutil.Big, err error)
 ```
 GetInterestRate returns interest rate of the given epoch
 
@@ -483,7 +513,7 @@ GetLogs returns logs that matching the specified filter.
 #### func (*Client) GetNextNonce
 
 ```go
-func (client *Client) GetNextNonce(address types.Address, epoch *types.Epoch) (*big.Int, error)
+func (client *Client) GetNextNonce(address types.Address, epoch ...*types.Epoch) (*big.Int, error)
 ```
 GetNextNonce returns the next transaction nonce of address
 
@@ -512,14 +542,14 @@ GetSkippedBlocksByEpoch returns skipped block hashes of given epoch
 #### func (*Client) GetSponsorInfo
 
 ```go
-func (client *Client) GetSponsorInfo(contractAddress types.Address, epoch *types.Epoch) (sponsor types.SponsorInfo, err error)
+func (client *Client) GetSponsorInfo(contractAddress types.Address, epoch ...*types.Epoch) (sponsor types.SponsorInfo, err error)
 ```
 GetSponsorInfo returns sponsor information of the given contract
 
 #### func (*Client) GetStakingBalance
 
 ```go
-func (client *Client) GetStakingBalance(account types.Address, epoch *types.Epoch) (balance *hexutil.Big, err error)
+func (client *Client) GetStakingBalance(account types.Address, epoch ...*types.Epoch) (balance *hexutil.Big, err error)
 ```
 GetStakingBalance returns balance of the given account.
 
@@ -533,14 +563,14 @@ GetStatus returns chainID of connecting conflux node
 #### func (*Client) GetStorageAt
 
 ```go
-func (client *Client) GetStorageAt(address types.Address, position types.Hash, epoch *types.Epoch) (storageEntries *hexutil.Big, err error)
+func (client *Client) GetStorageAt(address types.Address, position types.Hash, epoch ...*types.Epoch) (storageEntries *hexutil.Big, err error)
 ```
 GetStorageAt returns storage entries from a given contract.
 
 #### func (*Client) GetStorageRoot
 
 ```go
-func (client *Client) GetStorageRoot(address types.Address, epoch *types.Epoch) (storageRoot types.StorageRoot, err error)
+func (client *Client) GetStorageRoot(address types.Address, epoch ...*types.Epoch) (storageRoot types.StorageRoot, err error)
 ```
 GetStorageRoot returns storage root of given address
 
@@ -559,6 +589,13 @@ func (client *Client) GetTransactionReceipt(txHash types.Hash) (*types.Transacti
 ```
 GetTransactionReceipt returns the receipt of specified transaction hash. If no
 receipt is found, return nil.
+
+#### func (*Client) GetVoteList
+
+```go
+func (client *Client) GetVoteList(address types.Address, epoch ...*types.Epoch) (voteStakeInfos []types.VoteStakeInfo, err error)
+```
+GetVoteList returns vote list of the given account.
 
 #### func (*Client) SendRawTransaction
 
@@ -590,17 +627,40 @@ func (client *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r,
 SignEncodedTransactionAndSend signs RLP encoded transaction "encodedTx" by
 signature "r,s,v" and sends it to node, and returns responsed transaction.
 
+#### func (*Client) SubscribeEpochs
+
+```go
+func (client *Client) SubscribeEpochs(channel chan types.WebsocketEpochResponse) (*rpc.ClientSubscription, error)
+```
+SubscribeEpochs subscribes consensus results: the total order of blocks, as
+expressed by a sequence of epochs.
+
+#### func (*Client) SubscribeLogs
+
+```go
+func (client *Client) SubscribeLogs(channel chan types.Log, filter types.LogFilter) (*rpc.ClientSubscription, error)
+```
+SubscribeLogs subscribes all logs matching a certain filter, in order.
+
+#### func (*Client) SubscribeNewHeads
+
+```go
+func (client *Client) SubscribeNewHeads(channel chan types.BlockHeader) (*rpc.ClientSubscription, error)
+```
+SubscribeNewHeads subscribes all new block headers participating in the
+consensus.
+
 #### func (*Client) WaitForTransationBePacked
 
 ```go
-func (client *Client) WaitForTransationBePacked(txhash types.Hash) *types.Transaction
+func (client *Client) WaitForTransationBePacked(txhash types.Hash, duration time.Duration) (*types.Transaction, error)
 ```
 WaitForTransationBePacked returns transaction when it is packed
 
 #### func (*Client) WaitForTransationReceipt
 
 ```go
-func (client *Client) WaitForTransationReceipt(txhash types.Hash) *types.TransactionReceipt
+func (client *Client) WaitForTransationReceipt(txhash types.Hash, duration time.Duration) (*types.TransactionReceipt, error)
 ```
 WaitForTransationReceipt waits for transaction receipt valid
 
@@ -702,6 +762,20 @@ func CalcBlockConfirmationRisk(rawConfirmationRisk *big.Int) *big.Float
 ```
 CalcBlockConfirmationRisk calculates block revert rate
 
+#### func  Has0xPrefix
+
+```go
+func Has0xPrefix(input string) bool
+```
+Has0xPrefix returns true if input starts with '0x' or '0X'
+
+#### func  HexStringToBytes
+
+```go
+func HexStringToBytes(hexStr string) (hexutil.Bytes, error)
+```
+HexStringToBytes converts hex string to bytes
+
 #### func  IsNil
 
 ```go
@@ -739,3 +813,204 @@ func ToCfxGeneralAddress(address common.Address) types.Address
 ```
 ToCfxGeneralAddress converts a normal address to conflux customerd general
 address whose hex string starts with '0x1'
+## package internalcontract
+```
+import "github.com/Conflux-Chain/go-conflux-sdk/contract_meta/internal_contract"
+```
+
+
+### type AdminControl
+
+```go
+type AdminControl struct {
+	sdk.Contract
+}
+```
+
+AdminControl contract
+
+#### func  NewAdminControl
+
+```go
+func NewAdminControl(client sdk.ClientOperator) *AdminControl
+```
+NewAdminControl gets the AdminControl contract object
+
+#### func (*AdminControl) Destroy
+
+```go
+func (ac *AdminControl) Destroy(option *types.ContractMethodSendOption, contractAddr types.Address) (*types.Hash, error)
+```
+Destroy destroies contract `contractAddr`.
+
+#### func (*AdminControl) GetAdmin
+
+```go
+func (ac *AdminControl) GetAdmin(option *types.ContractMethodCallOption, contractAddr types.Address) (result *types.Address, err error)
+```
+GetAdmin returns admin of specific contract
+
+#### func (*AdminControl) SetAdmin
+
+```go
+func (ac *AdminControl) SetAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, newAdmin types.Address) (*types.Hash, error)
+```
+SetAdmin sets the administrator of contract `contractAddr` to `newAdmin`.
+
+### type Sponsor
+
+```go
+type Sponsor struct {
+	sdk.Contract
+}
+```
+
+Sponsor represents SponsorWhitelistControl contract
+
+#### func  NewSponsor
+
+```go
+func NewSponsor(client sdk.ClientOperator) *Sponsor
+```
+NewSponsor gets the SponsorWhitelistControl contract object
+
+#### func (*Sponsor) AddPrivilegeByAdmin
+
+```go
+func (s *Sponsor) AddPrivilegeByAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, userAddresses []types.Address) (*types.Hash, error)
+```
+AddPrivilegeByAdmin for admin adds user to whitelist
+
+#### func (*Sponsor) GetSponsorForCollateral
+
+```go
+func (s *Sponsor) GetSponsorForCollateral(option *types.ContractMethodCallOption, contractAddr types.Address) (*types.Address, error)
+```
+GetSponsorForCollateral gets collateral sponsor address
+
+#### func (*Sponsor) GetSponsorForGas
+
+```go
+func (s *Sponsor) GetSponsorForGas(option *types.ContractMethodCallOption, contractAddr types.Address) (*types.Address, error)
+```
+GetSponsorForGas gets gas sponsor address of specific contract
+
+#### func (*Sponsor) GetSponsoredBalanceForCollateral
+
+```go
+func (s *Sponsor) GetSponsoredBalanceForCollateral(option *types.ContractMethodCallOption, contractAddr types.Address) (*big.Int, error)
+```
+GetSponsoredBalanceForCollateral gets current Sponsored Balance for collateral
+
+#### func (*Sponsor) GetSponsoredBalanceForGas
+
+```go
+func (s *Sponsor) GetSponsoredBalanceForGas(option *types.ContractMethodCallOption, contractAddr types.Address) (*big.Int, error)
+```
+GetSponsoredBalanceForGas gets current Sponsored Balance for gas
+
+#### func (*Sponsor) GetSponsoredGasFeeUpperBound
+
+```go
+func (s *Sponsor) GetSponsoredGasFeeUpperBound(option *types.ContractMethodCallOption, contractAddr types.Address) (*big.Int, error)
+```
+GetSponsoredGasFeeUpperBound gets current Sponsored Gas fee upper bound
+
+#### func (*Sponsor) IsAllWhitelisted
+
+```go
+func (s *Sponsor) IsAllWhitelisted(option *types.ContractMethodCallOption, contractAddr types.Address) (bool, error)
+```
+IsAllWhitelisted checks if all users are in a contract's whitelist
+
+#### func (*Sponsor) IsWhitelisted
+
+```go
+func (s *Sponsor) IsWhitelisted(option *types.ContractMethodCallOption, contractAddr types.Address, userAddr types.Address) (bool, error)
+```
+IsWhitelisted checks if a user is in a contract's whitelist
+
+#### func (*Sponsor) RemovePrivilegeByAdmin
+
+```go
+func (s *Sponsor) RemovePrivilegeByAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, userAddresses []types.Address) (*types.Hash, error)
+```
+RemovePrivilegeByAdmin for admin removes user from whitelist
+
+#### func (*Sponsor) SetSponsorForCollateral
+
+```go
+func (s *Sponsor) SetSponsorForCollateral(option *types.ContractMethodSendOption, contractAddr types.Address) (*types.Hash, error)
+```
+SetSponsorForCollateral for someone sponsor the storage collateral for contract
+`contractAddr`, it is payable
+
+#### func (*Sponsor) SetSponsorForGas
+
+```go
+func (s *Sponsor) SetSponsorForGas(option *types.ContractMethodSendOption, contractAddr types.Address, upperBound *big.Int) (*types.Hash, error)
+```
+SetSponsorForGas for someone sponsor the gas cost for contract `contractAddr`
+with an `upper_bound` for a single transaction, it is payable
+
+### type Staking
+
+```go
+type Staking struct {
+	sdk.Contract
+}
+```
+
+Staking contract
+
+#### func  NewStaking
+
+```go
+func NewStaking(client sdk.ClientOperator) *Staking
+```
+NewStaking gets the Staking contract object
+
+#### func (*Staking) Deposit
+
+```go
+func (s *Staking) Deposit(option *types.ContractMethodSendOption, amount *big.Int) (*types.Hash, error)
+```
+Deposit `amount` cfx in this contract
+
+#### func (*Staking) GetLockedStakingBalance
+
+```go
+func (ac *Staking) GetLockedStakingBalance(option *types.ContractMethodCallOption, user types.Address, blockNumber *big.Int) (*big.Int, error)
+```
+GetLockedStakingBalance returns user's locked staking balance at given
+blockNumber Note: if the blockNumber is less than the current block number,
+function will return current locked staking balance.
+
+#### func (*Staking) GetStakingBalance
+
+```go
+func (ac *Staking) GetStakingBalance(option *types.ContractMethodCallOption, user types.Address) (*big.Int, error)
+```
+GetStakingBalance returns user's staking balance
+
+#### func (*Staking) GetVotePower
+
+```go
+func (ac *Staking) GetVotePower(option *types.ContractMethodCallOption, user types.Address, blockNumber *big.Int) (*big.Int, error)
+```
+GetVotePower returns user's vote power staking balance at given blockNumber
+
+#### func (*Staking) VoteLock
+
+```go
+func (s *Staking) VoteLock(option *types.ContractMethodSendOption, amount *big.Int, unlockBlockNumber *big.Int) (*types.Hash, error)
+```
+VoteLock will locks `amount` cfx from current to next `unlockBlockNumber` blocks
+for obtain vote power
+
+#### func (*Staking) Withdraw
+
+```go
+func (s *Staking) Withdraw(option *types.ContractMethodSendOption, amount *big.Int) (*types.Hash, error)
+```
+Withdraw `amount` cfx from this contract

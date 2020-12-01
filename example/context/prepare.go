@@ -13,7 +13,6 @@ import (
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	exampletypes "github.com/Conflux-Chain/go-conflux-sdk/example/context/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 var (
@@ -31,7 +30,7 @@ func PrepareForClientExample() *exampletypes.Config {
 	getConfig()
 	initClient()
 	generateBlockHashAndTxHash()
-	deployContract()
+	deployContract(false)
 	saveConfig()
 	fmt.Println("=======prepare config done!===========\n")
 	return &config
@@ -124,14 +123,14 @@ func generateBlockHashAndTxHash() {
 	fmt.Println("- gen txhash done")
 }
 
-func deployContract() {
+func deployContract(force bool) *sdk.Contract {
 	// check erc20 and erc777 address, if len !==42 or getcode error, deploy
-	erc20Contract := DeployIfNotExist(config.ERC20Address, path.Join(currentDir, "contract/erc20.abi"), path.Join(currentDir, "contract/erc20.bytecode"))
+	erc20Contract := DeployIfNotExist(config.ERC20Address, path.Join(currentDir, "contract/erc20.abi"), path.Join(currentDir, "contract/erc20.bytecode"), force)
 	if erc20Contract != nil {
 		config.ERC20Address = *erc20Contract.Address
 	}
 	fmt.Println("- to deploy contracts if not exist done")
-
+	return erc20Contract
 }
 
 func saveConfig() {
@@ -145,12 +144,4 @@ func saveConfig() {
 		panic(err)
 	}
 	fmt.Println("- to save config done")
-}
-
-func GetNextNonceAndIncrease() *hexutil.Big {
-	// println("current in:", nextNonce.String())
-	currentNonce := big.NewInt(0).SetBytes(nextNonce.Bytes())
-	nextNonce = nextNonce.Add(nextNonce, big.NewInt(1))
-	// println("current out:", currentNonce.String())
-	return types.NewBigIntByRaw(currentNonce)
 }
