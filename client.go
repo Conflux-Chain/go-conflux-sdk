@@ -1165,6 +1165,15 @@ func (client *Client) GetVoteList(address types.Address, epoch ...*types.Epoch) 
 	return
 }
 
+// GetSupplyInfo Return information about total token supply.
+func (client *Client) GetSupplyInfo(epoch ...*types.Epoch) (info types.TokenSupplyInfo, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&info, "cfx_getSupplyInfo", realEpoch)
+	return
+}
+
+// === pub/sub ===
+
 // SubscribeNewHeads subscribes all new block headers participating in the consensus.
 func (client *Client) SubscribeNewHeads(channel chan types.BlockHeader) (*rpc.ClientSubscription, error) {
 	return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "newHeads")

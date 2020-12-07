@@ -70,3 +70,9 @@ type CheckBalanceAgainstTransactionResponse struct {
 	/// Whether the account balance is enough for this transaction.
 	IsBalanceEnough bool `json:"isBalanceEnough"`
 }
+
+type TokenSupplyInfo struct {
+	TotalIssued     *hexutil.Big `json:"totalIssued"`
+	TotalStaking    *hexutil.Big `json:"totalStaking"`
+	TotalCollateral *hexutil.Big `json:"totalCollateral"`
+}

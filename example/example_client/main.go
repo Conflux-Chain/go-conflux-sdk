@@ -70,6 +70,7 @@ func run(_client *sdk.Client) {
 	createAndSendUnsignedTransaction()
 	getRawBlockConfirmationRisk()
 	getBlockConfirmationRisk()
+	getSupplyInfo()
 	callRPC()
 
 	getAdmin()
@@ -380,6 +381,15 @@ func getBlockConfirmationRisk() {
 		fmt.Printf("- get revert rate of block %v error: %v\n", config.BlockHash, err.Error())
 	} else {
 		fmt.Printf("- get revert rate of block %v : %v\n", config.BlockHash, rate)
+	}
+}
+
+func getSupplyInfo() {
+	info, err := client.GetSupplyInfo()
+	if err != nil {
+		fmt.Printf("- get supply info error: %v\n", err.Error())
+	} else {
+		fmt.Printf("- get supply info :%v \n", context.JsonFmt(info))
 	}
 }
 
