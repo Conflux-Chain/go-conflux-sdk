@@ -1,6 +1,8 @@
 package internalcontract
 
 import (
+	"sync"
+
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -12,16 +14,16 @@ type AdminControl struct {
 }
 
 var adminControl *AdminControl
+var adminControlOnce sync.Once
 
 // NewAdminControl gets the AdminControl contract object
 func NewAdminControl(client sdk.ClientOperator) *AdminControl {
-
-	if adminControl == nil {
+	adminControlOnce.Do(func() {
 		abi := getAdminControlAbi()
 		address := getAdminControlAddress()
 		contract, _ := sdk.NewContract([]byte(abi), client, &address)
 		adminControl = &AdminControl{Contract: *contract}
-	}
+	})
 	return adminControl
 }
 

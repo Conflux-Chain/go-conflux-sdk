@@ -2,6 +2,7 @@ package internalcontract
 
 import (
 	"math/big"
+	"sync"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/example/context"
@@ -14,17 +15,17 @@ type Staking struct {
 }
 
 var staking *Staking
+var stakingOnce sync.Once
 
 // NewStaking gets the Staking contract object
 func NewStaking(client sdk.ClientOperator) *Staking {
-
-	if staking == nil {
+	stakingOnce.Do(func() {
 		abi := getStakingAbi()
 		address := getStakingAddress()
 		contract, err := sdk.NewContract([]byte(abi), client, &address)
 		context.PanicIfErr(err, "new staking panic")
 		staking = &Staking{Contract: *contract}
-	}
+	})
 	return staking
 }
 

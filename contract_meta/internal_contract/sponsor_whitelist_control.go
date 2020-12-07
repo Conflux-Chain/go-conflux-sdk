@@ -2,6 +2,7 @@ package internalcontract
 
 import (
 	"math/big"
+	"sync"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
@@ -14,15 +15,16 @@ type Sponsor struct {
 }
 
 var sponsor *Sponsor
+var sponsorOnce sync.Once
 
 // NewSponsor gets the SponsorWhitelistControl contract object
 func NewSponsor(client sdk.ClientOperator) *Sponsor {
-	if sponsor == nil {
+	sponsorOnce.Do(func() {
 		abi := getSponsorAbi()
 		address := getSponsorAddress()
 		contract, _ := sdk.NewContract([]byte(abi), client, &address)
 		sponsor = &Sponsor{Contract: *contract}
-	}
+	})
 	return sponsor
 }
 

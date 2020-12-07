@@ -22,7 +22,7 @@ func init() {
 }
 
 func main() {
-	// testAdmin()
-	// testStaking()
+	testAdmin()
+	testStaking()
 	testSponsor()
 }

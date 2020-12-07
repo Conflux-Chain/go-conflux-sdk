@@ -7,6 +7,7 @@ import (
 
 	internalcontract "github.com/Conflux-Chain/go-conflux-sdk/contract_meta/internal_contract"
 	"github.com/Conflux-Chain/go-conflux-sdk/example/context"
+	"github.com/Conflux-Chain/go-conflux-sdk/types"
 )
 
 func testStaking() {
@@ -23,7 +24,7 @@ func testStaking() {
 
 	if stakeBalance.Cmp(big.NewInt(0)) == 0 {
 		// deposit
-		txhash, err := staking.Deposit(nil, big.NewInt(2e18))
+		txhash, err := staking.Deposit(&types.ContractMethodSendOption{Nonce: context.GetNextNonceAndIncrease()}, big.NewInt(2e18))
 		context.PanicIfErr(err, "deposit panic")
 		receipt, err := client.WaitForTransationReceipt(*txhash, time.Second)
 		context.PanicIfErr(err, "wait for pack panic")
@@ -36,7 +37,7 @@ func testStaking() {
 	}
 
 	// withdraw
-	txhash, err := staking.Withdraw(nil, big.NewInt(100))
+	txhash, err := staking.Withdraw(&types.ContractMethodSendOption{Nonce: context.GetNextNonceAndIncrease()}, big.NewInt(100))
 	context.PanicIfErr(err, "withdraw panic")
 	receipt, err := client.WaitForTransationReceipt(*txhash, time.Second)
 	context.PanicIfErr(err, "wait for pack panic")
@@ -56,7 +57,7 @@ func testStaking() {
 	if lockedStakingBlance.Cmp(big.NewInt(0)) == 0 {
 		// voteLock
 		quarterBlockNumber := int64(2 * 3600 * 24 * 31 * 3)
-		txhash, err = staking.VoteLock(nil, big.NewInt(1e18), big.NewInt(quarterBlockNumber))
+		txhash, err = staking.VoteLock(&types.ContractMethodSendOption{Nonce: context.GetNextNonceAndIncrease()}, big.NewInt(1e18), big.NewInt(quarterBlockNumber))
 		context.PanicIfErr(err, "voteLock panic")
 		receipt, err = client.WaitForTransationReceipt(*txhash, time.Second)
 		context.PanicIfErr(err, "wait for pack panic")

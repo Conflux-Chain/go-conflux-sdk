@@ -24,7 +24,7 @@ func testAdmin() {
 	}
 
 	// destory
-	txhash, err := adminControl.Destroy(nil, config.ERC20Address)
+	txhash, err := adminControl.Destroy(&types.ContractMethodSendOption{Nonce: context.GetNextNonceAndIncrease()}, config.ERC20Address)
 	if err != nil {
 		fmt.Printf("detory error %v\n", err)
 		return
@@ -41,7 +41,8 @@ func testAdmin() {
 	// set admin
 	config = context.PrepareForClientExample()
 
-	txhash, err = adminControl.SetAdmin(nil, config.ERC20Address, types.Address("0x0000000000000000000000000000000000000000"))
+	txhash, err = adminControl.SetAdmin(&types.ContractMethodSendOption{Nonce: context.GetNextNonceAndIncrease()}, config.ERC20Address,
+		types.Address("0x0000000000000000000000000000000000000000"))
 	if err != nil {
 		fmt.Printf("set admin error %v\n", err)
 		return
