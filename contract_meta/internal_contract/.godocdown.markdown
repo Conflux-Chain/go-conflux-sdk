@@ -1,0 +1,5 @@
+## package {{ .Name }}
+```
+import "{{ .ImportPath }}"
+```
+{{ .EmitUsage }}

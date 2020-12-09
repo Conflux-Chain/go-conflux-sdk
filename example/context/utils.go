@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/big"
+	"path"
 	"time"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 func JsonFmt(v interface{}) string {
@@ -42,6 +44,14 @@ func WaitPacked(client *sdk.Client, txhash types.Hash) *types.TransactionReceipt
 	return tx
 }
 
+func GetNextNonceAndIncrease() *hexutil.Big {
+	// println("current in:", nextNonce.String())
+	currentNonce := big.NewInt(0).SetBytes(nextNonce.Bytes())
+	nextNonce = nextNonce.Add(nextNonce, big.NewInt(1))
+	// println("current out:", currentNonce.String())
+	return types.NewBigIntByRaw(currentNonce)
+}
+
 func CreateSignedTx(client *sdk.Client) []byte {
 	unSignedTx := types.UnsignedTransaction{
 		UnsignedTransactionBase: types.UnsignedTransactionBase{
@@ -67,7 +77,14 @@ func CreateSignedTx(client *sdk.Client) []byte {
 	return signedTx
 }
 
-func DeployIfNotExist(contractAddress types.Address, abiFilePath string, bytecodeFilePath string) *sdk.Contract {
+func DeployNewErc20() *sdk.Contract {
+	abiFilePath := path.Join(currentDir, "contract/erc20.abi")
+	bytecodeFilePath := path.Join(currentDir, "contract/erc20.bytecode")
+	contract := DeployContractWithConstroctor(abiFilePath, bytecodeFilePath, big.NewInt(100000), "biu", uint8(10), "BIU")
+	return contract
+}
+
+func DeployIfNotExist(contractAddress types.Address, abiFilePath string, bytecodeFilePath string, force bool) *sdk.Contract {
 	isAddress := len(contractAddress) == 42 && (contractAddress)[0:2] == "0x"
 	isCodeExist := false
 
@@ -80,7 +97,7 @@ func DeployIfNotExist(contractAddress types.Address, abiFilePath string, bytecod
 	}
 
 	fmt.Printf("%v isAddress:%v, isCodeExist:%v\n", contractAddress, isAddress, isCodeExist)
-	if isAddress && isCodeExist {
+	if !force && isAddress && isCodeExist {
 		abi, err := ioutil.ReadFile(abiFilePath)
 		if err != nil {
 			panic(err)
@@ -92,11 +109,11 @@ func DeployIfNotExist(contractAddress types.Address, abiFilePath string, bytecod
 		return contract
 	}
 
-	contract := deployContractWithConstroctor(abiFilePath, bytecodeFilePath, big.NewInt(100000), "biu", uint8(10), "BIU")
+	contract := DeployContractWithConstroctor(abiFilePath, bytecodeFilePath, big.NewInt(100000), "biu", uint8(10), "BIU")
 	return contract
 }
 
-func deployContractWithConstroctor(abiFile string, bytecodeFile string, params ...interface{}) *sdk.Contract {
+func DeployContractWithConstroctor(abiFile string, bytecodeFile string, params ...interface{}) *sdk.Contract {
 	fmt.Println("start deploy contract with construcotr")
 	abi, err := ioutil.ReadFile(abiFile)
 	if err != nil {
@@ -125,4 +142,11 @@ func deployContractWithConstroctor(abiFile string, bytecodeFile string, params .
 	fmt.Printf("deploy contract with abi: %v, bytecode: %v done\ncontract address: %+v\ntxhash:%v\n\n", abiFile, bytecodeFile, contract.Address, result.TransactionHash)
 
 	return contract
+}
+
+func PanicIfErr(err error, msg string) {
+	if err != nil {
+		fmt.Println(msg)
+		panic(err)
+	}
 }
