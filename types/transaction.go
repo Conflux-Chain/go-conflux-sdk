@@ -49,7 +49,7 @@ type TransactionReceipt struct {
 	LogsBloom       Bloom           `json:"logsBloom"`
 	StateRoot       Hash            `json:"stateRoot"`
 	OutcomeStatus   hexutil.Uint64  `json:"outcomeStatus"`
-	TxExecErrorMsg  string          `json:"txExecErrorMsg"`
+	TxExecErrorMsg  *string         `json:"txExecErrorMsg"`
 	// Whether gas costs were covered by the sponsor.
 	GasCoveredBySponsor bool `json:"gasCoveredBySponsor"`
 	// Whether storage costs were covered by the sponsor.
