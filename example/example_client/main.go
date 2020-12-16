@@ -469,7 +469,7 @@ func subscribeEpochs() {
 
 func subscribeLogs() {
 	fmt.Printf("- subscribe logs\n")
-	channel := make(chan types.Log, 100)
+	channel := make(chan types.SubscriptionLog, 100)
 	sub, err := client.SubscribeLogs(channel, types.LogFilter{
 		Topics: [][]types.Hash{{"0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"}}})
 	if err != nil {

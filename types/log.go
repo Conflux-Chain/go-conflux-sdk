@@ -6,7 +6,6 @@ package types
 
 import (
 	"encoding/json"
-	"errors"
 	"reflect"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -38,8 +37,6 @@ type Log struct {
 	TransactionIndex    *hexutil.Big `json:"transactionIndex,omitempty"`
 	LogIndex            *hexutil.Big `json:"logIndex,omitempty"`
 	TransactionLogIndex *hexutil.Big `json:"transactionLogIndex,omitempty"`
-	// Type                string       `json:"type"`
-	Removed bool `json:"removed"`
 }
 
 type SubscriptionLog struct {
@@ -47,13 +44,9 @@ type SubscriptionLog struct {
 	ChainReorg
 }
 
-func (s *SubscriptionLog) MarshalJSON() ([]byte, error) {
-	// var l Log
-	if !reflect.DeepEqual(s.Log, Log{}) {
-		return json.Marshal(s.Log)
-	}
+func (s SubscriptionLog) MarshalJSON() ([]byte, error) {
 	if !reflect.DeepEqual(s.ChainReorg, ChainReorg{}) {
 		return json.Marshal(s.ChainReorg)
 	}
-	return nil, errors.New("Empty log")
+	return json.Marshal(s.Log)
 }

@@ -64,22 +64,25 @@ func getConfig() {
 
 func initClient() {
 	// url := "http://testnet-jsonrpc.conflux-chain.org:12537"
+	am = sdk.NewAccountManager(path.Join(currentDir, "keystore"))
+
+	// init client
 	var err error
 	client, err = sdk.NewClient(config.NodeURL)
 	if err != nil {
 		panic(err)
 	}
+	client.SetAccountManager(am)
 	config.SetClient(client)
 
+	// init retry client
 	retryclient, err := sdk.NewClientWithRetry(config.NodeURL, 10, time.Second)
 	if err != nil {
 		panic(err)
 	}
+	retryclient.SetAccountManager(am)
 	config.SetRetryClient(retryclient)
 
-	am = sdk.NewAccountManager(path.Join(currentDir, "keystore"))
-	// fmt.Printf("am in preapre:%v", am)
-	client.SetAccountManager(am)
 	defaultAccount, err = am.GetDefault()
 	if err != nil {
 		panic(err)
@@ -130,7 +133,7 @@ func deployContract(force bool) *sdk.Contract {
 		config.ERC20Address = *erc20Contract.Address
 	}
 	if txhash != nil {
-		receipt, _ := client.GetTransactionReceipt(*txhash)
+		receipt := WaitPacked(client, *txhash)
 		config.BlockHashOfNewContract = receipt.BlockHash
 	}
 

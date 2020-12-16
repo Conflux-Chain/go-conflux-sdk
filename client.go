@@ -133,7 +133,7 @@ func (r *rpcClientWithRetry) BatchCall(b []rpc.BatchElem) error {
 }
 
 func (r *rpcClientWithRetry) Subscribe(ctx context.Context, namespace string, channel interface{}, args ...interface{}) (*rpc.ClientSubscription, error) {
-	return r.inner.Subscribe(ctx, namespace, channel, args)
+	return r.inner.Subscribe(ctx, namespace, channel, args...)
 }
 
 func (r *rpcClientWithRetry) Close() {
@@ -1191,7 +1191,7 @@ func (client *Client) SubscribeEpochs(channel chan types.WebsocketEpochResponse)
 }
 
 // SubscribeLogs subscribes all logs matching a certain filter, in order.
-func (client *Client) SubscribeLogs(channel chan types.Log, filter types.LogFilter) (*rpc.ClientSubscription, error) {
+func (client *Client) SubscribeLogs(channel chan types.SubscriptionLog, filter types.LogFilter) (*rpc.ClientSubscription, error) {
 	return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "logs", filter)
 }
 
