@@ -76,3 +76,7 @@ type TokenSupplyInfo struct {
 	TotalStaking    *hexutil.Big `json:"totalStaking"`
 	TotalCollateral *hexutil.Big `json:"totalCollateral"`
 }
+
+type ChainReorg struct {
+	RevertTo *hexutil.Big `json:"revertTo"`
+}

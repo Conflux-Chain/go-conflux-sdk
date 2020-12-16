@@ -4,7 +4,13 @@
 
 package types
 
-import "github.com/ethereum/go-ethereum/common/hexutil"
+import (
+	"encoding/json"
+	"errors"
+	"reflect"
+
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
 
 // LogFilter represents the filter of event in a smart contract.
 type LogFilter struct {
@@ -34,4 +40,20 @@ type Log struct {
 	TransactionLogIndex *hexutil.Big `json:"transactionLogIndex,omitempty"`
 	// Type                string       `json:"type"`
 	Removed bool `json:"removed"`
+}
+
+type SubscriptionLog struct {
+	Log
+	ChainReorg
+}
+
+func (s *SubscriptionLog) MarshalJSON() ([]byte, error) {
+	// var l Log
+	if !reflect.DeepEqual(s.Log, Log{}) {
+		return json.Marshal(s.Log)
+	}
+	if !reflect.DeepEqual(s.ChainReorg, ChainReorg{}) {
+		return json.Marshal(s.ChainReorg)
+	}
+	return nil, errors.New("Empty log")
 }

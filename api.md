@@ -439,6 +439,13 @@ func (client *Client) GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockS
 GetBlockSummaryByHash returns the block summary of specified blockHash If the
 block is not found, return nil.
 
+#### func (*Client) GetBlockTrace
+
+```go
+func (client *Client) GetBlockTrace(blockHash types.Hash) (trace types.LocalizedBlockTrace, err error)
+```
+GetBlockTrace returns all traces produced at given block.
+
 #### func (*Client) GetBlocksByEpoch
 
 ```go
@@ -573,6 +580,13 @@ GetStorageAt returns storage entries from a given contract.
 func (client *Client) GetStorageRoot(address types.Address, epoch ...*types.Epoch) (storageRoot types.StorageRoot, err error)
 ```
 GetStorageRoot returns storage root of given address
+
+#### func (*Client) GetSupplyInfo
+
+```go
+func (client *Client) GetSupplyInfo(epoch ...*types.Epoch) (info types.TokenSupplyInfo, err error)
+```
+GetSupplyInfo Return information about total token supply.
 
 #### func (*Client) GetTransactionByHash
 
