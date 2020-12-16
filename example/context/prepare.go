@@ -125,10 +125,15 @@ func generateBlockHashAndTxHash() {
 
 func deployContract(force bool) *sdk.Contract {
 	// check erc20 and erc777 address, if len !==42 or getcode error, deploy
-	erc20Contract := DeployIfNotExist(config.ERC20Address, path.Join(currentDir, "contract/erc20.abi"), path.Join(currentDir, "contract/erc20.bytecode"), force)
+	erc20Contract, txhash := DeployIfNotExist(config.ERC20Address, path.Join(currentDir, "contract/erc20.abi"), path.Join(currentDir, "contract/erc20.bytecode"), force)
 	if erc20Contract != nil {
 		config.ERC20Address = *erc20Contract.Address
 	}
+	if txhash != nil {
+		receipt, _ := client.GetTransactionReceipt(*txhash)
+		config.BlockHashOfNewContract = receipt.BlockHash
+	}
+
 	fmt.Println("- to deploy contracts if not exist done")
 	return erc20Contract
 }

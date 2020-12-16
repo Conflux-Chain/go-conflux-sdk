@@ -80,11 +80,11 @@ func CreateSignedTx(client *sdk.Client) []byte {
 func DeployNewErc20() *sdk.Contract {
 	abiFilePath := path.Join(currentDir, "contract/erc20.abi")
 	bytecodeFilePath := path.Join(currentDir, "contract/erc20.bytecode")
-	contract := DeployContractWithConstroctor(abiFilePath, bytecodeFilePath, big.NewInt(100000), "biu", uint8(10), "BIU")
+	contract, _ := DeployContractWithConstroctor(abiFilePath, bytecodeFilePath, big.NewInt(100000), "biu", uint8(10), "BIU")
 	return contract
 }
 
-func DeployIfNotExist(contractAddress types.Address, abiFilePath string, bytecodeFilePath string, force bool) *sdk.Contract {
+func DeployIfNotExist(contractAddress types.Address, abiFilePath string, bytecodeFilePath string, force bool) (*sdk.Contract, *types.Hash) {
 	isAddress := len(contractAddress) == 42 && (contractAddress)[0:2] == "0x"
 	isCodeExist := false
 
@@ -106,14 +106,14 @@ func DeployIfNotExist(contractAddress types.Address, abiFilePath string, bytecod
 		if err != nil {
 			panic(err)
 		}
-		return contract
+		return contract, nil
 	}
 
-	contract := DeployContractWithConstroctor(abiFilePath, bytecodeFilePath, big.NewInt(100000), "biu", uint8(10), "BIU")
-	return contract
+	contract, txhash := DeployContractWithConstroctor(abiFilePath, bytecodeFilePath, big.NewInt(100000), "biu", uint8(10), "BIU")
+	return contract, txhash
 }
 
-func DeployContractWithConstroctor(abiFile string, bytecodeFile string, params ...interface{}) *sdk.Contract {
+func DeployContractWithConstroctor(abiFile string, bytecodeFile string, params ...interface{}) (*sdk.Contract, *types.Hash) {
 	fmt.Println("start deploy contract with construcotr")
 	abi, err := ioutil.ReadFile(abiFile)
 	if err != nil {
@@ -141,7 +141,7 @@ func DeployContractWithConstroctor(abiFile string, bytecodeFile string, params .
 	contract := result.DeployedContract
 	fmt.Printf("deploy contract with abi: %v, bytecode: %v done\ncontract address: %+v\ntxhash:%v\n\n", abiFile, bytecodeFile, contract.Address, result.TransactionHash)
 
-	return contract
+	return contract, result.TransactionHash
 }
 
 func PanicIfErr(err error, msg string) {

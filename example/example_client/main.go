@@ -51,42 +51,44 @@ func main() {
 func run(_client *sdk.Client) {
 	client = _client
 
-	getEpochNumber()
-	getGasPrice()
-	getNextNonce()
-	getStatus()
-	getBalance()
-	getBestBlockHash()
-	getBlockByEpoch()
-	getBlocksByEpoch()
-	getBlockByHash()
-	getBlockSummaryByEpoch()
-	getBlockSummaryByHash()
-	getCode()
-	getTransactionByHash()
-	estimateGasAndCollateral()
-	getTransactionReceipt()
-	sendRawTransaction()
-	createAndSendUnsignedTransaction()
-	getRawBlockConfirmationRisk()
-	getBlockConfirmationRisk()
-	getSupplyInfo()
-	callRPC()
+	// getEpochNumber()
+	// getGasPrice()
+	// getNextNonce()
+	// getStatus()
+	// getBalance()
+	// getBestBlockHash()
+	// getBlockByEpoch()
+	// getBlocksByEpoch()
+	// getBlockByHash()
+	// getBlockSummaryByEpoch()
+	// getBlockSummaryByHash()
+	// getCode()
+	// getTransactionByHash()
+	// estimateGasAndCollateral()
+	// getTransactionReceipt()
+	// sendRawTransaction()
+	// createAndSendUnsignedTransaction()
+	// getRawBlockConfirmationRisk()
+	// getBlockConfirmationRisk()
+	// getSupplyInfo()
+	// callRPC()
 
-	getAdmin()
-	getSponsorInfo()
-	getStakingBalance()
-	getCollateralForStorage()
-	getStorageAt()
-	getStorageRoot()
-	getBlockByHashWithPivotAssumption()
-	checkBalanceAgainstTransaction()
-	getSkippedBlocksByEpoch()
-	getAccountInfo()
-	getInterestRate()
-	getAccumulateInterestRate()
-	getBlockRewardInfo()
-	getClientVersion()
+	// getAdmin()
+	// getSponsorInfo()
+	// getStakingBalance()
+	// getCollateralForStorage()
+	// getStorageAt()
+	// getStorageRoot()
+	// getBlockByHashWithPivotAssumption()
+	// checkBalanceAgainstTransaction()
+	// getSkippedBlocksByEpoch()
+	// getAccountInfo()
+	// getInterestRate()
+	// getAccumulateInterestRate()
+	// getBlockRewardInfo()
+	// getClientVersion()
+
+	traceBlock()
 
 	subscribeNewHeads()
 	subscribeEpochs()
@@ -390,6 +392,22 @@ func getSupplyInfo() {
 		fmt.Printf("- get supply info error: %v\n", err.Error())
 	} else {
 		fmt.Printf("- get supply info :%v \n", context.JsonFmt(info))
+	}
+}
+
+func traceBlock() {
+	traces, err := client.GetBlockTrace(config.BlockHashOfNewContract)
+	if err != nil {
+		fmt.Printf("- get block trace of create error: %v\n", err.Error())
+	} else {
+		fmt.Printf("- get block info of create: %+v", context.JsonFmt(traces))
+	}
+
+	traces, err = client.GetBlockTrace(config.BlockHash)
+	if err != nil {
+		fmt.Printf("- get block trace of call error: %v\n", err.Error())
+	} else {
+		fmt.Printf("- get block info of call: %+v", context.JsonFmt(traces))
 	}
 }
 

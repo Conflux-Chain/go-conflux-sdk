@@ -1172,6 +1172,12 @@ func (client *Client) GetSupplyInfo(epoch ...*types.Epoch) (info types.TokenSupp
 	return
 }
 
+// GetBlockTrace returns all traces produced at given block.
+func (client *Client) GetBlockTrace(blockHash types.Hash) (trace types.LocalizedBlockTrace, err error) {
+	err = client.wrappedCallRPC(&trace, "trace_block", blockHash)
+	return
+}
+
 // === pub/sub ===
 
 // SubscribeNewHeads subscribes all new block headers participating in the consensus.
