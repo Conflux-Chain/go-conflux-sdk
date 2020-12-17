@@ -1194,13 +1194,20 @@ func (client *Client) SubscribeEpochs(channel chan types.WebsocketEpochResponse)
 func (client *Client) SubscribeLogs(logChannel chan types.Log, chainReorgChannel chan types.ChainReorg, filter types.LogFilter) (*rpc.ClientSubscription, error) {
 	channel := make(chan types.SubscriptionLog, 100)
 	clientSubscrip, err := client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "logs", filter)
+	errorchan := clientSubscrip.Err()
 	go func() {
 		for {
-			subscriptionLog := <-channel
-			if subscriptionLog.IsRevertLog() {
-				chainReorgChannel <- subscriptionLog.ChainReorg
-			} else {
-				logChannel <- subscriptionLog.Log
+			select {
+			case <-errorchan:
+				close(logChannel)
+				close(chainReorgChannel)
+				return
+			case subscriptionLog := <-channel:
+				if subscriptionLog.IsRevertLog() {
+					chainReorgChannel <- subscriptionLog.ChainReorg
+				} else {
+					logChannel <- subscriptionLog.Log
+				}
 			}
 		}
 	}()
