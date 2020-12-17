@@ -1191,8 +1191,20 @@ func (client *Client) SubscribeEpochs(channel chan types.WebsocketEpochResponse)
 }
 
 // SubscribeLogs subscribes all logs matching a certain filter, in order.
-func (client *Client) SubscribeLogs(channel chan types.SubscriptionLog, filter types.LogFilter) (*rpc.ClientSubscription, error) {
-	return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "logs", filter)
+func (client *Client) SubscribeLogs(logChannel chan types.Log, chainReorgChannel chan types.ChainReorg, filter types.LogFilter) (*rpc.ClientSubscription, error) {
+	channel := make(chan types.SubscriptionLog, 100)
+	clientSubscrip, err := client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "logs", filter)
+	go func() {
+		for {
+			subscriptionLog := <-channel
+			if subscriptionLog.IsRevertLog() {
+				chainReorgChannel <- subscriptionLog.ChainReorg
+			} else {
+				logChannel <- subscriptionLog.Log
+			}
+		}
+	}()
+	return clientSubscrip, err
 }
 
 // === helper methods ===

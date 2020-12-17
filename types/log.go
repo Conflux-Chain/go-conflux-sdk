@@ -5,7 +5,6 @@
 package types
 
 import (
-	"encoding/json"
 	"reflect"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -44,9 +43,6 @@ type SubscriptionLog struct {
 	ChainReorg
 }
 
-func (s SubscriptionLog) MarshalJSON() ([]byte, error) {
-	if !reflect.DeepEqual(s.ChainReorg, ChainReorg{}) {
-		return json.Marshal(s.ChainReorg)
-	}
-	return json.Marshal(s.Log)
+func (s SubscriptionLog) IsRevertLog() bool {
+	return !reflect.DeepEqual(s.ChainReorg, ChainReorg{})
 }
