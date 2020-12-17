@@ -652,7 +652,7 @@ expressed by a sequence of epochs.
 #### func (*Client) SubscribeLogs
 
 ```go
-func (client *Client) SubscribeLogs(channel chan types.Log, filter types.LogFilter) (*rpc.ClientSubscription, error)
+func (client *Client) SubscribeLogs(logChannel chan types.Log, chainReorgChannel chan types.ChainReorg, filter types.LogFilter) (*rpc.ClientSubscription, error)
 ```
 SubscribeLogs subscribes all logs matching a certain filter, in order.
 
