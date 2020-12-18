@@ -439,6 +439,13 @@ func (client *Client) GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockS
 GetBlockSummaryByHash returns the block summary of specified blockHash If the
 block is not found, return nil.
 
+#### func (*Client) GetBlockTrace
+
+```go
+func (client *Client) GetBlockTrace(blockHash types.Hash) (trace types.LocalizedBlockTrace, err error)
+```
+GetBlockTrace returns all traces produced at given block.
+
 #### func (*Client) GetBlocksByEpoch
 
 ```go
@@ -574,6 +581,13 @@ func (client *Client) GetStorageRoot(address types.Address, epoch ...*types.Epoc
 ```
 GetStorageRoot returns storage root of given address
 
+#### func (*Client) GetSupplyInfo
+
+```go
+func (client *Client) GetSupplyInfo(epoch ...*types.Epoch) (info types.TokenSupplyInfo, err error)
+```
+GetSupplyInfo Return information about total token supply.
+
 #### func (*Client) GetTransactionByHash
 
 ```go
@@ -638,7 +652,7 @@ expressed by a sequence of epochs.
 #### func (*Client) SubscribeLogs
 
 ```go
-func (client *Client) SubscribeLogs(channel chan types.Log, filter types.LogFilter) (*rpc.ClientSubscription, error)
+func (client *Client) SubscribeLogs(logChannel chan types.Log, chainReorgChannel chan types.ChainReorg, filter types.LogFilter) (*rpc.ClientSubscription, error)
 ```
 SubscribeLogs subscribes all logs matching a certain filter, in order.
 

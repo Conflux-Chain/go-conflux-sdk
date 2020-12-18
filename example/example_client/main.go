@@ -88,6 +88,8 @@ func run(_client *sdk.Client) {
 	getBlockRewardInfo()
 	getClientVersion()
 
+	traceBlock()
+
 	subscribeNewHeads()
 	subscribeEpochs()
 	subscribeLogs()
@@ -393,6 +395,22 @@ func getSupplyInfo() {
 	}
 }
 
+func traceBlock() {
+	traces, err := client.GetBlockTrace(config.BlockHashOfNewContract)
+	if err != nil {
+		fmt.Printf("- get block trace of create error: %v\n", err.Error())
+	} else {
+		fmt.Printf("- get block info of create: %+v", context.JsonFmt(traces))
+	}
+
+	traces, err = client.GetBlockTrace(config.BlockHash)
+	if err != nil {
+		fmt.Printf("- get block trace of call error: %v\n", err.Error())
+	} else {
+		fmt.Printf("- get block info of call: %+v", context.JsonFmt(traces))
+	}
+}
+
 func callRPC() {
 	b := new(types.Block)
 	err := client.CallRPC(b, "cfx_getBlockByHash", config.BlockHash, true)
@@ -451,8 +469,9 @@ func subscribeEpochs() {
 
 func subscribeLogs() {
 	fmt.Printf("- subscribe logs\n")
-	channel := make(chan types.Log, 100)
-	sub, err := client.SubscribeLogs(channel, types.LogFilter{
+	logChannel := make(chan types.Log, 100)
+	reorgChannel := make(chan types.ChainReorg, 100)
+	sub, err := client.SubscribeLogs(logChannel, reorgChannel, types.LogFilter{
 		Topics: [][]types.Hash{{"0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"}}})
 	if err != nil {
 		fmt.Printf("subscribe log error:%+v\n", err.Error())
@@ -492,8 +511,10 @@ func subscribeLogs() {
 			fmt.Printf("subscription error:%v\n", err.Error())
 			sub.Unsubscribe()
 			return
-		case log := <-channel:
+		case log := <-logChannel:
 			fmt.Printf("received new log:%+v\n\n", log)
+		case reorg := <-reorgChannel:
+			fmt.Printf("received new log:%+v\n\n", reorg)
 		}
 	}
 	sub.Unsubscribe()

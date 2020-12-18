@@ -133,7 +133,7 @@ func (r *rpcClientWithRetry) BatchCall(b []rpc.BatchElem) error {
 }
 
 func (r *rpcClientWithRetry) Subscribe(ctx context.Context, namespace string, channel interface{}, args ...interface{}) (*rpc.ClientSubscription, error) {
-	return r.inner.Subscribe(ctx, namespace, channel, args)
+	return r.inner.Subscribe(ctx, namespace, channel, args...)
 }
 
 func (r *rpcClientWithRetry) Close() {
@@ -1172,6 +1172,12 @@ func (client *Client) GetSupplyInfo(epoch ...*types.Epoch) (info types.TokenSupp
 	return
 }
 
+// GetBlockTrace returns all traces produced at given block.
+func (client *Client) GetBlockTrace(blockHash types.Hash) (trace types.LocalizedBlockTrace, err error) {
+	err = client.wrappedCallRPC(&trace, "trace_block", blockHash)
+	return
+}
+
 // === pub/sub ===
 
 // SubscribeNewHeads subscribes all new block headers participating in the consensus.
@@ -1185,8 +1191,31 @@ func (client *Client) SubscribeEpochs(channel chan types.WebsocketEpochResponse)
 }
 
 // SubscribeLogs subscribes all logs matching a certain filter, in order.
-func (client *Client) SubscribeLogs(channel chan types.Log, filter types.LogFilter) (*rpc.ClientSubscription, error) {
-	return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "logs", filter)
+func (client *Client) SubscribeLogs(logChannel chan types.Log, chainReorgChannel chan types.ChainReorg, filter types.LogFilter) (*rpc.ClientSubscription, error) {
+	channel := make(chan types.SubscriptionLog, 100)
+	clientSubscrip, err := client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "logs", filter)
+	if err != nil {
+		return nil, err
+	}
+
+	errorchan := clientSubscrip.Err()
+	go func() {
+		for {
+			select {
+			case <-errorchan:
+				close(logChannel)
+				close(chainReorgChannel)
+				return
+			case subscriptionLog := <-channel:
+				if subscriptionLog.IsRevertLog() {
+					chainReorgChannel <- subscriptionLog.ChainReorg
+				} else {
+					logChannel <- subscriptionLog.Log
+				}
+			}
+		}
+	}()
+	return clientSubscrip, nil
 }
 
 // === helper methods ===

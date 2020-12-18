@@ -64,22 +64,25 @@ func getConfig() {
 
 func initClient() {
 	// url := "http://testnet-jsonrpc.conflux-chain.org:12537"
+	am = sdk.NewAccountManager(path.Join(currentDir, "keystore"))
+
+	// init client
 	var err error
 	client, err = sdk.NewClient(config.NodeURL)
 	if err != nil {
 		panic(err)
 	}
+	client.SetAccountManager(am)
 	config.SetClient(client)
 
+	// init retry client
 	retryclient, err := sdk.NewClientWithRetry(config.NodeURL, 10, time.Second)
 	if err != nil {
 		panic(err)
 	}
+	retryclient.SetAccountManager(am)
 	config.SetRetryClient(retryclient)
 
-	am = sdk.NewAccountManager(path.Join(currentDir, "keystore"))
-	// fmt.Printf("am in preapre:%v", am)
-	client.SetAccountManager(am)
 	defaultAccount, err = am.GetDefault()
 	if err != nil {
 		panic(err)
@@ -125,10 +128,15 @@ func generateBlockHashAndTxHash() {
 
 func deployContract(force bool) *sdk.Contract {
 	// check erc20 and erc777 address, if len !==42 or getcode error, deploy
-	erc20Contract := DeployIfNotExist(config.ERC20Address, path.Join(currentDir, "contract/erc20.abi"), path.Join(currentDir, "contract/erc20.bytecode"), force)
+	erc20Contract, txhash := DeployIfNotExist(config.ERC20Address, path.Join(currentDir, "contract/erc20.abi"), path.Join(currentDir, "contract/erc20.bytecode"), force)
 	if erc20Contract != nil {
 		config.ERC20Address = *erc20Contract.Address
 	}
+	if txhash != nil {
+		receipt := WaitPacked(client, *txhash)
+		config.BlockHashOfNewContract = receipt.BlockHash
+	}
+
 	fmt.Println("- to deploy contracts if not exist done")
 	return erc20Contract
 }

@@ -10,13 +10,14 @@ import (
 )
 
 type Config struct {
-	NodeURL         string
-	BlockHash       types.Hash
-	TransactionHash types.Hash
-	ERC20Address    types.Address
-	client          *sdk.Client
-	retryClient     *sdk.Client
-	accountManager  *sdk.AccountManager
+	NodeURL                string
+	BlockHash              types.Hash
+	TransactionHash        types.Hash
+	BlockHashOfNewContract types.Hash
+	ERC20Address           types.Address
+	client                 *sdk.Client
+	retryClient            *sdk.Client
+	accountManager         *sdk.AccountManager
 }
 
 func (c *Config) SetAccountManager(am *sdk.AccountManager) {
