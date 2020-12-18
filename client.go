@@ -1194,6 +1194,10 @@ func (client *Client) SubscribeEpochs(channel chan types.WebsocketEpochResponse)
 func (client *Client) SubscribeLogs(logChannel chan types.Log, chainReorgChannel chan types.ChainReorg, filter types.LogFilter) (*rpc.ClientSubscription, error) {
 	channel := make(chan types.SubscriptionLog, 100)
 	clientSubscrip, err := client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "logs", filter)
+	if err != nil {
+		return nil, err
+	}
+
 	errorchan := clientSubscrip.Err()
 	go func() {
 		for {
@@ -1211,7 +1215,7 @@ func (client *Client) SubscribeLogs(logChannel chan types.Log, chainReorgChannel
 			}
 		}
 	}()
-	return clientSubscrip, err
+	return clientSubscrip, nil
 }
 
 // === helper methods ===
