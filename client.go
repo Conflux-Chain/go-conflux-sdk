@@ -1198,20 +1198,16 @@ func (client *Client) SubscribeLogs(logChannel chan types.Log, chainReorgChannel
 		return nil, err
 	}
 
-	errorchan := clientSubscrip.Err()
 	go func() {
 		for {
-			select {
-			case <-errorchan:
-				close(logChannel)
-				close(chainReorgChannel)
+			subscriptionLog, isOpen := <-channel
+			if !isOpen {
 				return
-			case subscriptionLog := <-channel:
-				if subscriptionLog.IsRevertLog() {
-					chainReorgChannel <- subscriptionLog.ChainReorg
-				} else {
-					logChannel <- subscriptionLog.Log
-				}
+			}
+			if subscriptionLog.IsRevertLog() {
+				chainReorgChannel <- subscriptionLog.ChainReorg
+			} else {
+				logChannel <- subscriptionLog.Log
 			}
 		}
 	}()

@@ -435,8 +435,8 @@ func subscribeNewHeads() {
 		select {
 		case err = <-errorchan:
 			fmt.Printf("subscription new heads error:%v\n", err.Error())
-			sub.Unsubscribe()
-			return
+			// sub.Unsubscribe()
+			// return
 		case head := <-channel:
 			fmt.Printf("received new header:%+v\n", head)
 		}
@@ -458,8 +458,8 @@ func subscribeEpochs() {
 		select {
 		case err = <-errorchan:
 			fmt.Printf("subscription epoch error:%v\n", err.Error())
-			sub.Unsubscribe()
-			return
+			// sub.Unsubscribe()
+			// return
 		case epoch := <-channel:
 			fmt.Printf("received new epoch:%+v\n", epoch)
 		}
@@ -509,8 +509,8 @@ func subscribeLogs() {
 		select {
 		case err = <-errorchan:
 			fmt.Printf("subscription error:%v\n", err.Error())
-			sub.Unsubscribe()
-			return
+			// sub.Unsubscribe()
+			// return
 		case log := <-logChannel:
 			fmt.Printf("received new log:%+v\n\n", log)
 		case reorg := <-reorgChannel:
