@@ -91,6 +91,10 @@ type ClientOperator interface {
 	GetClientVersion() (clientVersion string, err error)
 	WaitForTransationBePacked(txhash types.Hash, duration time.Duration) (*types.Transaction, error)
 	WaitForTransationReceipt(txhash types.Hash, duration time.Duration) (*types.TransactionReceipt, error)
+
+	GetDepositList(address types.Address, epoch ...*types.Epoch) ([]types.DepositInfo, error)
+	GetVoteList(address types.Address, epoch ...*types.Epoch) ([]types.VoteStakeInfo, error)
+	GetBlockTrace(blockHash types.Hash) (types.LocalizedBlockTrace, error)
 }
 
 // AccountManagerOperator is interface of operate actions on account manager

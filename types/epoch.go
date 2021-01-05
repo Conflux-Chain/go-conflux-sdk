@@ -5,6 +5,7 @@
 package types
 
 import (
+	"encoding/json"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -53,4 +54,31 @@ func (e *Epoch) String() string {
 // MarshalText implements the encoding.TextMarshaler interface.
 func (e *Epoch) MarshalText() ([]byte, error) {
 	return []byte(e.String()), nil
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+func (e *Epoch) UnmarshalJSON(data []byte) error {
+	var input string
+	if err := json.Unmarshal(data, &input); err != nil {
+		return err
+	}
+
+	switch input {
+	case EpochEarliest.name, EpochLatestCheckpoint.name, EpochLatestConfirmed.name, EpochLatestState.name, EpochLatestMined.name:
+		e.name = input
+		return nil
+	default:
+		if len(input) == 66 {
+			e.name = input
+			return nil
+		}
+
+		epochNumber, err := hexutil.DecodeBig(input)
+		if err != nil {
+			return err
+		}
+
+		e.number = epochNumber
+		return nil
+	}
 }
