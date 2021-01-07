@@ -23,9 +23,9 @@ import (
 )
 
 var (
-	rpcRequestGauge        = metrics.NewRegisteredGauge("rpc/requests", nil)
-	successfulRequestGauge = metrics.NewRegisteredGauge("rpc/success", nil)
-	failedReqeustGauge     = metrics.NewRegisteredGauge("rpc/failure", nil)
+	rpcRequestGauge        = metrics.GetOrRegisterGauge("rpc/requests", nil)
+	successfulRequestGauge = metrics.GetOrRegisterGauge("rpc/success", nil)
+	failedReqeustGauge     = metrics.GetOrRegisterGauge("rpc/failure", nil)
 	rpcServingTimer        = metrics.NewRegisteredTimer("rpc/duration/all", nil)
 )
 

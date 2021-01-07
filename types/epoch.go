@@ -6,7 +6,6 @@ package types
 
 import (
 	"encoding/json"
-	"math/big"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -23,7 +22,7 @@ var (
 // Epoch represents an epoch in Conflux.
 type Epoch struct {
 	name   string
-	number *big.Int
+	number *hexutil.Big
 }
 
 // WebsocketEpochResponse represents result of epoch websocket subscription
@@ -33,7 +32,7 @@ type WebsocketEpochResponse struct {
 }
 
 // NewEpochNumber creates an instance of Epoch with specified number.
-func NewEpochNumber(number *big.Int) *Epoch {
+func NewEpochNumber(number *hexutil.Big) *Epoch {
 	return &Epoch{"", number}
 }
 
@@ -48,11 +47,24 @@ func (e *Epoch) String() string {
 		return e.name
 	}
 
-	return hexutil.EncodeBig(e.number)
+	return e.number.String()
+}
+
+// IsEqual check if e equals input
+func (e *Epoch) IsEqual(input *Epoch) bool {
+	if e == nil && input == nil {
+		return true
+	}
+	if e != nil || input != nil {
+		return false
+	}
+	isEqual := e.number.String() == input.number.String() && e.name == input.name
+	return isEqual
 }
 
 // MarshalText implements the encoding.TextMarshaler interface.
-func (e *Epoch) MarshalText() ([]byte, error) {
+func (e Epoch) MarshalText() ([]byte, error) {
+	// fmt.Println("marshal text for epoch")
 	return []byte(e.String()), nil
 }
 
@@ -78,7 +90,7 @@ func (e *Epoch) UnmarshalJSON(data []byte) error {
 			return err
 		}
 
-		e.number = epochNumber
+		e.number = NewBigIntByRaw(epochNumber)
 		return nil
 	}
 }

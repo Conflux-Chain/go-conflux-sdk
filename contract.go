@@ -88,15 +88,15 @@ func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr
 		return types.WrapError(err, msg)
 	}
 
-	if len(*resultHexStr) < 2 {
+	if len(resultHexStr) < 2 {
 		return fmt.Errorf("call response string %v length smaller than 2", resultHexStr)
 	}
 
-	bytes, err := hex.DecodeString((*resultHexStr)[2:])
-	if err != nil {
-		msg := fmt.Sprintf("decode hex string %s to bytes error", (*resultHexStr)[2:])
-		return types.WrapError(err, msg)
-	}
+	bytes := []byte(resultHexStr)
+	// if err != nil {
+	// 	msg := fmt.Sprintf("decode hex string %s to bytes error", (*resultHexStr)[2:])
+	// 	return types.WrapError(err, msg)
+	// }
 
 	err = contract.ABI.Unpack(resultPtr, method, bytes)
 	if err != nil {

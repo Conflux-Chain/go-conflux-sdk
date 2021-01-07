@@ -93,7 +93,7 @@ func (r *rpcClientWithRetry) Call(resultPtr interface{}, method string, args ...
 
 		remain--
 		// fmt.Printf("remain retry count: %v\n", remain)
-		if remain < 0 {
+		if remain == 0 {
 			msg := fmt.Sprintf("timeout when call %v with args %v", method, args)
 			return types.WrapError(err, msg)
 		}
@@ -173,219 +173,91 @@ func (client *Client) SetAccountManager(accountManager AccountManagerOperator) {
 }
 
 // GetGasPrice returns the recent mean gas price.
-func (client *Client) GetGasPrice() (*big.Int, error) {
-	var result interface{}
-
-	if err := client.rpcRequester.Call(&result, "cfx_gasPrice"); err != nil {
-		msg := "rpc request cfx_gasPrice error"
-		return nil, types.WrapError(err, msg)
-	}
-
-	return hexutil.DecodeBig(result.(string))
+func (client *Client) GetGasPrice() (gasPrice *hexutil.Big, err error) {
+	err = client.wrappedCallRPC(&gasPrice, "cfx_gasPrice")
+	return
 }
 
 // GetNextNonce returns the next transaction nonce of address
-func (client *Client) GetNextNonce(address types.Address, epoch ...*types.Epoch) (*big.Int, error) {
-	var result interface{}
-	args := []interface{}{address}
-
+func (client *Client) GetNextNonce(address types.Address, epoch ...*types.Epoch) (nonce *hexutil.Big, err error) {
 	realEpoch := get1stEpochIfy(epoch)
-	if realEpoch != nil {
-		args = append(args, realEpoch)
-	}
-
-	if err := client.rpcRequester.Call(&result, "cfx_getNextNonce", args...); err != nil {
-		msg := fmt.Sprintf("rpc request cfx_getNextNonce %+v error", address)
-		return nil, types.WrapErrorf(err, msg)
-	}
-	return hexutil.DecodeBig(result.(string))
+	err = client.wrappedCallRPC(&nonce, "cfx_getNextNonce", address, realEpoch)
+	return
 }
 
 // GetStatus returns chainID of connecting conflux node
-func (client *Client) GetStatus() (*types.Status, error) {
-	var result types.Status
-
-	if err := client.rpcRequester.Call(&result, "cfx_getStatus"); err != nil {
-		return nil, types.WrapErrorf(err, "rpc request cfx_getStatus error")
-	}
-	return &result, nil
+func (client *Client) GetStatus() (status types.Status, err error) {
+	err = client.wrappedCallRPC(&status, "cfx_getStatus")
+	return
 }
 
 // GetEpochNumber returns the highest or specified epoch number.
-func (client *Client) GetEpochNumber(epoch ...*types.Epoch) (*big.Int, error) {
-	var result interface{}
-
-	var args []interface{}
-	if len(epoch) > 0 {
-		args = append(args, epoch[0])
+func (client *Client) GetEpochNumber(epoch ...*types.Epoch) (epochNumber *hexutil.Big, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&epochNumber, "cfx_epochNumber", realEpoch)
+	if err != nil {
+		epochNumber = nil
 	}
-
-	if err := client.rpcRequester.Call(&result, "cfx_epochNumber", args...); err != nil {
-		msg := fmt.Sprintf("rpc cfx_epochNumber %+v error", args)
-		return nil, types.WrapError(err, msg)
-	}
-
-	return hexutil.DecodeBig(result.(string))
+	return
 }
 
 // GetBalance returns the balance of specified address at epoch.
-func (client *Client) GetBalance(address types.Address, epoch ...*types.Epoch) (*big.Int, error) {
-	var result interface{}
-
-	args := []interface{}{address}
-	if len(epoch) > 0 {
-		args = append(args, epoch[0])
+func (client *Client) GetBalance(address types.Address, epoch ...*types.Epoch) (balance *hexutil.Big, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&balance, "cfx_getBalance", address, realEpoch)
+	if err != nil {
+		balance = nil
 	}
-
-	if err := client.rpcRequester.Call(&result, "cfx_getBalance", args...); err != nil {
-		msg := fmt.Sprintf("rpc cfx_getBalance %+v error", args)
-		return nil, types.WrapError(err, msg)
-	}
-
-	return hexutil.DecodeBig(result.(string))
+	return
 }
 
 // GetCode returns the bytecode in HEX format of specified address at epoch.
-func (client *Client) GetCode(address types.Address, epoch ...*types.Epoch) (string, error) {
-	var result interface{}
-
-	args := []interface{}{address}
-	if len(epoch) > 0 {
-		args = append(args, epoch[0])
-	}
-
-	if err := client.rpcRequester.Call(&result, "cfx_getCode", args...); err != nil {
-		msg := fmt.Sprintf("rpc cfx_getCode %+v error", args)
-		return "", types.WrapError(err, msg)
-	}
-	// fmt.Printf("get code of %v res: %+v, result.(string) is %v\n", address, result, result.(string))
-
-	return result.(string), nil
+func (client *Client) GetCode(address types.Address, epoch ...*types.Epoch) (code string, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&code, "cfx_getCode", address, realEpoch)
+	return
 }
 
 // GetBlockSummaryByHash returns the block summary of specified blockHash
 // If the block is not found, return nil.
-func (client *Client) GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockSummary, error) {
-	var result interface{}
-
-	if err := client.rpcRequester.Call(&result, "cfx_getBlockByHash", blockHash, false); err != nil {
-		msg := fmt.Sprintf("rpc cfx_getBlockByHash %+v error", blockHash)
-		return nil, types.WrapError(err, msg)
-	}
-
-	if result == nil {
-		return nil, nil
-	}
-
-	var block types.BlockSummary
-	if err := unmarshalRPCResult(result, &block); err != nil {
-		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
-		return nil, types.WrapError(err, msg)
-	}
-
-	return &block, nil
+func (client *Client) GetBlockSummaryByHash(blockHash types.Hash) (blockSummary *types.BlockSummary, err error) {
+	err = client.wrappedCallRPC(&blockSummary, "cfx_getBlockByHash", blockHash, false)
+	return
 }
 
 // GetBlockByHash returns the block of specified blockHash
 // If the block is not found, return nil.
-func (client *Client) GetBlockByHash(blockHash types.Hash) (*types.Block, error) {
-	var result interface{}
-
-	if err := client.rpcRequester.Call(&result, "cfx_getBlockByHash", blockHash, true); err != nil {
-		msg := fmt.Sprintf("rpc cfx_getBlockByHash %+v error", blockHash)
-		return nil, types.WrapError(err, msg)
-	}
-
-	if result == nil {
-		return nil, nil
-	}
-
-	var block types.Block
-	if err := unmarshalRPCResult(result, &block); err != nil {
-		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
-		return nil, types.WrapError(err, msg)
-	}
-
-	return &block, nil
+func (client *Client) GetBlockByHash(blockHash types.Hash) (block *types.Block, err error) {
+	err = client.wrappedCallRPC(&block, "cfx_getBlockByHash", blockHash, true)
+	return
 }
 
 // GetBlockSummaryByEpoch returns the block summary of specified epoch.
 // If the epoch is invalid, return the concrete error.
-func (client *Client) GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary, error) {
-	var result interface{}
-
-	if err := client.rpcRequester.Call(&result, "cfx_getBlockByEpochNumber", epoch, false); err != nil {
-		msg := fmt.Sprintf("rpc cfx_getBlockByEpochNumber %+v error", epoch)
-		return nil, types.WrapError(err, msg)
-	}
-
-	var block types.BlockSummary
-	if err := unmarshalRPCResult(result, &block); err != nil {
-		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
-		return nil, types.WrapError(err, msg)
-	}
-
-	return &block, nil
+func (client *Client) GetBlockSummaryByEpoch(epoch *types.Epoch) (blockSummary *types.BlockSummary, err error) {
+	err = client.wrappedCallRPC(&blockSummary, "cfx_getBlockByEpochNumber", epoch, false)
+	return
 }
 
 // GetBlockByEpoch returns the block of specified epoch.
 // If the epoch is invalid, return the concrete error.
-func (client *Client) GetBlockByEpoch(epoch *types.Epoch) (*types.Block, error) {
-	var result interface{}
-
-	if err := client.rpcRequester.Call(&result, "cfx_getBlockByEpochNumber", epoch, true); err != nil {
-		msg := fmt.Sprintf("rpc cfx_getBlockByEpochNumber %+v error", epoch)
-		return nil, types.WrapError(err, msg)
-	}
-
-	var block types.Block
-	if err := unmarshalRPCResult(result, &block); err != nil {
-		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
-		return nil, types.WrapError(err, msg)
-	}
-
-	return &block, nil
+func (client *Client) GetBlockByEpoch(epoch *types.Epoch) (block *types.Block, err error) {
+	err = client.wrappedCallRPC(&block, "cfx_getBlockByEpochNumber", epoch, true)
+	return
 }
 
 // GetBestBlockHash returns the current best block hash.
-func (client *Client) GetBestBlockHash() (types.Hash, error) {
-	var result interface{}
-
-	if err := client.rpcRequester.Call(&result, "cfx_getBestBlockHash"); err != nil {
-		msg := "rpc cfx_getBestBlockHash error"
-		return "", types.WrapError(err, msg)
-	}
-
-	return types.Hash(result.(string)), nil
+func (client *Client) GetBestBlockHash() (hash types.Hash, err error) {
+	err = client.wrappedCallRPC(&hash, "cfx_getBestBlockHash")
+	return
 }
 
 // GetRawBlockConfirmationRisk indicates the risk coefficient that
 // the pivot block of the epoch where the block is located becomes a normal block.
-func (client *Client) GetRawBlockConfirmationRisk(blockhash types.Hash) (*big.Int, error) {
-	var result interface{}
-
-	args := []interface{}{blockhash}
-
-	if err := client.rpcRequester.Call(&result, "cfx_getConfirmationRiskByHash", args...); err != nil {
-		msg := fmt.Sprintf("rpc cfx_getConfirmationRiskByHash %+v error", args)
-		return nil, types.WrapError(err, msg)
-	}
-
-	if result == nil {
-
-		block, err := client.GetBlockSummaryByHash(blockhash)
-		if err != nil {
-			msg := fmt.Sprintf("get block by hash %+v error", blockhash)
-			return nil, types.WrapError(err, msg)
-		}
-		if block != nil && block.EpochNumber != nil {
-			return big.NewInt(0), nil
-		}
-
-		return constants.MaxUint256, nil
-	}
-
-	return hexutil.DecodeBig(result.(string))
+// It will return nil if block not exist
+func (client *Client) GetRawBlockConfirmationRisk(blockhash types.Hash) (risk *hexutil.Big, err error) {
+	err = client.wrappedCallRPC(&risk, "cfx_getConfirmationRiskByHash", blockhash)
+	return
 }
 
 // GetBlockConfirmationRisk indicates the probability that
@@ -402,7 +274,7 @@ func (client *Client) GetBlockConfirmationRisk(blockHash types.Hash) (*big.Float
 		return nil, nil
 	}
 
-	riskFloat := new(big.Float).SetInt(risk)
+	riskFloat := new(big.Float).SetInt(risk.ToInt())
 	maxUint256Float := new(big.Float).SetInt(constants.MaxUint256)
 
 	riskRate := new(big.Float).Quo(riskFloat, maxUint256Float)
@@ -515,129 +387,178 @@ func (client *Client) signTransactionAndSend(tx *types.UnsignedTransaction, v by
 // Call executes a message call transaction "request" at specified epoch,
 // which is directly executed in the VM of the node, but never mined into the block chain
 // and returns the contract execution result.
-func (client *Client) Call(request types.CallRequest, epoch *types.Epoch) (*string, error) {
-	var rpcResult interface{}
-
-	args := []interface{}{request}
-	// if len(epoch) > 0 {
-	if epoch != nil {
-		// args = append(args, epoch[0])
-		args = append(args, epoch)
-	}
-
-	if err := client.rpcRequester.Call(&rpcResult, "cfx_call", args...); err != nil {
-		msg := fmt.Sprintf("rpc cfx_call {%+v} error", args)
-		return nil, types.WrapError(err, msg)
-	}
-
-	var resultHexStr string
-	if err := unmarshalRPCResult(rpcResult, &resultHexStr); err != nil {
-		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", rpcResult)
-		return nil, types.WrapError(err, msg)
-	}
-	return &resultHexStr, nil
+func (client *Client) Call(request types.CallRequest, epoch *types.Epoch) (result hexutil.Bytes, err error) {
+	err = client.wrappedCallRPC(&result, "cfx_call", request, epoch)
+	return
 }
 
 // GetLogs returns logs that matching the specified filter.
-func (client *Client) GetLogs(filter types.LogFilter) ([]types.Log, error) {
-	var result interface{}
-
-	if err := client.rpcRequester.Call(&result, "cfx_getLogs", filter); err != nil {
-		msg := fmt.Sprintf("rpc cfx_getLogs of {%+v} error", filter)
-		return nil, types.WrapError(err, msg)
-	}
-
-	var log []types.Log
-	if err := unmarshalRPCResult(result, &log); err != nil {
-		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
-		return nil, types.WrapError(err, msg)
-	}
-
-	return log, nil
+func (client *Client) GetLogs(filter types.LogFilter) (logs []types.Log, err error) {
+	err = client.wrappedCallRPC(&logs, "cfx_getLogs", filter)
+	return
 }
 
 // GetTransactionByHash returns transaction for the specified txHash.
 // If the transaction is not found, return nil.
-func (client *Client) GetTransactionByHash(txHash types.Hash) (*types.Transaction, error) {
-	var result interface{}
-
-	if err := client.rpcRequester.Call(&result, "cfx_getTransactionByHash", txHash); err != nil {
-		msg := fmt.Sprintf("rpc cfx_getTransactionByHash {%+v} error", txHash)
-		return nil, types.WrapError(err, msg)
-	}
-
-	if result == nil {
-		return nil, nil
-	}
-
-	var tx types.Transaction
-	if err := unmarshalRPCResult(result, &tx); err != nil {
-		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
-		return nil, types.WrapError(err, msg)
-	}
-
-	return &tx, nil
+func (client *Client) GetTransactionByHash(txHash types.Hash) (tx *types.Transaction, err error) {
+	err = client.wrappedCallRPC(&tx, "cfx_getTransactionByHash", txHash)
+	return
 }
 
 // EstimateGasAndCollateral excutes a message call "request"
 // and returns the amount of the gas used and storage for collateral
-func (client *Client) EstimateGasAndCollateral(request types.CallRequest) (*types.Estimate, error) {
-	var result interface{}
-
-	args := []interface{}{request}
-
-	if err := client.rpcRequester.Call(&result, "cfx_estimateGasAndCollateral", args...); err != nil {
-		msg := fmt.Sprintf("rpc cfx_estimateGasAndCollateral of {%+v} error", args)
-		return nil, types.WrapError(err, msg)
-	}
-	var estimate types.Estimate
-	if err := unmarshalRPCResult(result, &estimate); err != nil {
-		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
-		return nil, types.WrapError(err, msg)
-	}
-
-	return &estimate, nil
+func (client *Client) EstimateGasAndCollateral(request types.CallRequest) (estimat types.Estimate, err error) {
+	err = client.wrappedCallRPC(&estimat, "cfx_estimateGasAndCollateral", request)
+	return
 }
 
 // GetBlocksByEpoch returns the blocks hash in the specified epoch.
-func (client *Client) GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error) {
-	var result interface{}
-
-	if err := client.rpcRequester.Call(&result, "cfx_getBlocksByEpoch", epoch); err != nil {
-		msg := fmt.Sprintf("rpc cfx_getBlocksByEpoch {%+v} error", epoch)
-		return nil, types.WrapError(err, msg)
-	}
-
-	var blocks []types.Hash
-	if err := unmarshalRPCResult(result, &blocks); err != nil {
-		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
-		return nil, types.WrapError(err, msg)
-	}
-
-	return blocks, nil
+func (client *Client) GetBlocksByEpoch(epoch *types.Epoch) (blockHashes []types.Hash, err error) {
+	err = client.wrappedCallRPC(&blockHashes, "cfx_getBlocksByEpoch", epoch)
+	return
 }
 
 // GetTransactionReceipt returns the receipt of specified transaction hash.
 // If no receipt is found, return nil.
-func (client *Client) GetTransactionReceipt(txHash types.Hash) (*types.TransactionReceipt, error) {
-	var result interface{}
+func (client *Client) GetTransactionReceipt(txHash types.Hash) (receipt *types.TransactionReceipt, err error) {
+	err = client.wrappedCallRPC(&receipt, "cfx_getTransactionReceipt", txHash)
+	return
+}
 
-	if err := client.rpcRequester.Call(&result, "cfx_getTransactionReceipt", txHash); err != nil {
-		msg := fmt.Sprintf("rpc cfx_getTransactionReceipt of {%+v} error", txHash)
-		return nil, types.WrapError(err, msg)
+// ===new rpc===
+
+// GetAdmin returns admin of the given contract, it will return nil if contract not exist
+func (client *Client) GetAdmin(contractAddress types.Address, epoch ...*types.Epoch) (admin *types.Address, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&admin, "cfx_getAdmin", contractAddress, realEpoch)
+	return
+}
+
+// GetSponsorInfo returns sponsor information of the given contract
+func (client *Client) GetSponsorInfo(contractAddress types.Address, epoch ...*types.Epoch) (sponsor types.SponsorInfo, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&sponsor, "cfx_getSponsorInfo", contractAddress, realEpoch)
+	return
+}
+
+// GetStakingBalance returns balance of the given account.
+func (client *Client) GetStakingBalance(account types.Address, epoch ...*types.Epoch) (balance *hexutil.Big, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&balance, "cfx_getStakingBalance", account, realEpoch)
+	return
+}
+
+// GetCollateralForStorage returns balance of the given account.
+func (client *Client) GetCollateralForStorage(account types.Address, epoch ...*types.Epoch) (storage *hexutil.Big, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&storage, "cfx_getCollateralForStorage", account, realEpoch)
+	return
+}
+
+// GetStorageAt returns storage entries from a given contract.
+func (client *Client) GetStorageAt(address types.Address, position types.Hash, epoch ...*types.Epoch) (storageEntries hexutil.Bytes, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&storageEntries, "cfx_getStorageAt", address, position, realEpoch)
+	return
+}
+
+// GetStorageRoot returns storage root of given address
+func (client *Client) GetStorageRoot(address types.Address, epoch ...*types.Epoch) (storageRoot *types.StorageRoot, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&storageRoot, "cfx_getStorageRoot", address, realEpoch)
+	return
+}
+
+// GetBlockByHashWithPivotAssumption returns block with given hash and pivot chain assumption.
+func (client *Client) GetBlockByHashWithPivotAssumption(blockHash types.Hash, pivotHash types.Hash, epoch hexutil.Uint64) (block types.Block, err error) {
+	err = client.wrappedCallRPC(&block, "cfx_getBlockByHashWithPivotAssumption", blockHash, pivotHash, epoch)
+	return
+}
+
+// CheckBalanceAgainstTransaction checks if user balance is enough for the transaction.
+func (client *Client) CheckBalanceAgainstTransaction(accountAddress types.Address,
+	contractAddress types.Address,
+	gasLimit *hexutil.Big,
+	gasPrice *hexutil.Big,
+	storageLimit *hexutil.Big,
+	epoch ...*types.Epoch) (response types.CheckBalanceAgainstTransactionResponse, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&response,
+		"cfx_checkBalanceAgainstTransaction", accountAddress, contractAddress,
+		gasLimit, gasPrice, storageLimit, realEpoch)
+	return
+}
+
+// GetSkippedBlocksByEpoch returns skipped block hashes of given epoch
+func (client *Client) GetSkippedBlocksByEpoch(epoch *types.Epoch) (blockHashs []types.Hash, err error) {
+	err = client.wrappedCallRPC(&blockHashs, "cfx_getSkippedBlocksByEpoch", epoch)
+	return
+}
+
+// GetAccountInfo returns account related states of the given account
+func (client *Client) GetAccountInfo(account types.Address, epoch ...*types.Epoch) (accountInfo types.AccountInfo, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&accountInfo, "cfx_getAccount", account, realEpoch)
+	return
+}
+
+// GetInterestRate returns interest rate of the given epoch
+func (client *Client) GetInterestRate(epoch ...*types.Epoch) (intersetRate *hexutil.Big, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&intersetRate, "cfx_getInterestRate", realEpoch)
+	if err != nil {
+		intersetRate = nil
 	}
+	return
+}
 
-	if result == nil {
-		return nil, nil
+// GetAccumulateInterestRate returns accumulate interest rate of the given epoch
+func (client *Client) GetAccumulateInterestRate(epoch ...*types.Epoch) (intersetRate *hexutil.Big, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&intersetRate, "cfx_getAccumulateInterestRate", realEpoch)
+	if err != nil {
+		intersetRate = nil
 	}
+	return
+}
 
-	var receipt types.TransactionReceipt
-	if err := unmarshalRPCResult(result, &receipt); err != nil {
-		msg := fmt.Sprintf("UnmarshalRPCResult %+v error", result)
-		return nil, types.WrapError(err, msg)
-	}
+// GetBlockRewardInfo returns block reward information in an epoch
+func (client *Client) GetBlockRewardInfo(epoch types.Epoch) (rewardInfo []types.RewardInfo, err error) {
+	err = client.wrappedCallRPC(&rewardInfo, "cfx_getBlockRewardInfo", epoch)
+	return
+}
 
-	return &receipt, nil
+// GetClientVersion returns the client version as a string
+func (client *Client) GetClientVersion() (clientVersion string, err error) {
+	err = client.wrappedCallRPC(&clientVersion, "cfx_clientVersion")
+	return
+}
+
+// GetDepositList returns deposit list of the given account.
+func (client *Client) GetDepositList(address types.Address, epoch ...*types.Epoch) (depositInfos []types.DepositInfo, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&depositInfos, "cfx_getDepositList", address, realEpoch)
+	return
+}
+
+// GetVoteList returns vote list of the given account.
+func (client *Client) GetVoteList(address types.Address, epoch ...*types.Epoch) (voteStakeInfos []types.VoteStakeInfo, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&voteStakeInfos, "cfx_getVoteList", address, realEpoch)
+	return
+}
+
+// GetSupplyInfo Return information about total token supply.
+func (client *Client) GetSupplyInfo(epoch ...*types.Epoch) (info types.TokenSupplyInfo, err error) {
+	realEpoch := get1stEpochIfy(epoch)
+	err = client.wrappedCallRPC(&info, "cfx_getSupplyInfo", realEpoch)
+	return
+}
+
+// GetBlockTrace returns all traces produced at given block.
+func (client *Client) GetBlockTrace(blockHash types.Hash) (trace *types.LocalizedBlockTrace, err error) {
+	err = client.wrappedCallRPC(&trace, "trace_block", blockHash)
+	return
 }
 
 // CreateUnsignedTransaction creates an unsigned transaction by parameters,
@@ -703,8 +624,8 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 			}
 
 			// conflux responsed gasprice offen be 0, but the min gasprice is 1 when sending transaction, so do this
-			if gasPrice.Cmp(big.NewInt(constants.MinGasprice)) < 1 {
-				gasPrice = big.NewInt(constants.MinGasprice)
+			if gasPrice.ToInt().Cmp(big.NewInt(constants.MinGasprice)) < 1 {
+				gasPrice = types.NewBigInt(constants.MinGasprice)
 			}
 			tmp := hexutil.Big(*gasPrice)
 			tx.GasPrice = &tmp
@@ -717,7 +638,7 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 				return types.WrapError(err, msg)
 			}
 			// tx.EpochHeight = (*hexutil.Big)(epoch).toi
-			tx.EpochHeight = types.NewUint64(epoch.Uint64())
+			tx.EpochHeight = types.NewUint64(epoch.ToInt().Uint64())
 		}
 
 		// The gas and storage limit may be influnced by all fileds of transaction ,so set them at last step.
@@ -746,18 +667,6 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 	}
 
 	return nil
-}
-
-// Debug calls the Conflux debug API.
-func (client *Client) Debug(method string, args ...interface{}) (interface{}, error) {
-	var result interface{}
-
-	if err := client.rpcRequester.Call(&result, method, args...); err != nil {
-		msg := fmt.Sprintf("rpc call method {%+v} with args {%+v} error", method, args)
-		return nil, types.WrapError(err, msg)
-	}
-
-	return result, nil
 }
 
 // DeployContract deploys a contract by abiJSON, bytecode and consturctor params.
@@ -863,6 +772,8 @@ func (client *Client) GetContract(abiJSON []byte, deployedAt *types.Address) (*C
 	contract := &Contract{abi, client, deployedAt}
 	return contract, nil
 }
+
+// =======Batch=======
 
 // BatchGetTxByHashes requests transaction informations in bulk by txhashes
 func (client *Client) BatchGetTxByHashes(txhashes []types.Hash) (map[types.Hash]*types.Transaction, error) {
@@ -1036,146 +947,6 @@ func (client *Client) BatchGetBlockConfirmationRisk(blockhashes []types.Hash) (m
 // Close closes the client, aborting any in-flight requests.
 func (client *Client) Close() {
 	client.rpcRequester.Close()
-}
-
-// ===new rpc===
-
-// GetAdmin returns admin of the given contract
-func (client *Client) GetAdmin(contractAddress types.Address, epoch ...*types.Epoch) (admin types.Address, err error) {
-	realEpoch := get1stEpochIfy(epoch)
-	err = client.wrappedCallRPC(&admin, "cfx_getAdmin", contractAddress, realEpoch)
-	return
-}
-
-// GetSponsorInfo returns sponsor information of the given contract
-func (client *Client) GetSponsorInfo(contractAddress types.Address, epoch ...*types.Epoch) (sponsor types.SponsorInfo, err error) {
-	realEpoch := get1stEpochIfy(epoch)
-	sponsor = types.SponsorInfo{}
-	err = client.wrappedCallRPC(&sponsor, "cfx_getSponsorInfo", contractAddress, realEpoch)
-	return
-}
-
-// GetStakingBalance returns balance of the given account.
-func (client *Client) GetStakingBalance(account types.Address, epoch ...*types.Epoch) (balance *hexutil.Big, err error) {
-	realEpoch := get1stEpochIfy(epoch)
-	balance = types.NewBigInt(0)
-	err = client.wrappedCallRPC(balance, "cfx_getStakingBalance", account, realEpoch)
-	return
-}
-
-// GetCollateralForStorage returns balance of the given account.
-func (client *Client) GetCollateralForStorage(account types.Address, epoch ...*types.Epoch) (storage *hexutil.Big, err error) {
-	realEpoch := get1stEpochIfy(epoch)
-	storage = types.NewBigInt(0)
-	err = client.wrappedCallRPC(storage, "cfx_getCollateralForStorage", account, realEpoch)
-	return
-}
-
-// GetStorageAt returns storage entries from a given contract.
-func (client *Client) GetStorageAt(address types.Address, position types.Hash, epoch ...*types.Epoch) (storageEntries *hexutil.Big, err error) {
-	realEpoch := get1stEpochIfy(epoch)
-	storageEntries = types.NewBigInt(0)
-	err = client.wrappedCallRPC(storageEntries, "cfx_getStorageAt", address, position, realEpoch)
-	return
-}
-
-// GetStorageRoot returns storage root of given address
-func (client *Client) GetStorageRoot(address types.Address, epoch ...*types.Epoch) (storageRoot types.StorageRoot, err error) {
-	realEpoch := get1stEpochIfy(epoch)
-	err = client.wrappedCallRPC(&storageRoot, "cfx_getStorageRoot", address, realEpoch)
-	return
-}
-
-// GetBlockByHashWithPivotAssumption returns block with given hash and pivot chain assumption.
-func (client *Client) GetBlockByHashWithPivotAssumption(blockHash types.Hash, pivotHash types.Hash, epoch hexutil.Uint64) (block types.Block, err error) {
-	err = client.wrappedCallRPC(&block, "cfx_getBlockByHashWithPivotAssumption", blockHash, pivotHash, epoch)
-	return
-}
-
-// CheckBalanceAgainstTransaction checks if user balance is enough for the transaction.
-func (client *Client) CheckBalanceAgainstTransaction(accountAddress types.Address,
-	contractAddress types.Address,
-	gasLimit *hexutil.Big,
-	gasPrice *hexutil.Big,
-	storageLimit *hexutil.Big,
-	epoch ...*types.Epoch) (response types.CheckBalanceAgainstTransactionResponse, err error) {
-	realEpoch := get1stEpochIfy(epoch)
-	err = client.wrappedCallRPC(&response,
-		"cfx_checkBalanceAgainstTransaction", accountAddress, contractAddress,
-		gasLimit, gasPrice, storageLimit, realEpoch)
-	return
-}
-
-// GetSkippedBlocksByEpoch returns skipped block hashes of given epoch
-func (client *Client) GetSkippedBlocksByEpoch(epoch *types.Epoch) (blockHashs []types.Hash, err error) {
-	blockHashs = make([]types.Hash, 0)
-	err = client.wrappedCallRPC(&blockHashs, "cfx_getSkippedBlocksByEpoch", epoch)
-	return
-}
-
-// GetAccountInfo returns account related states of the given account
-func (client *Client) GetAccountInfo(account types.Address, epoch ...*types.Epoch) (accountInfo types.AccountInfo, err error) {
-	realEpoch := get1stEpochIfy(epoch)
-	err = client.wrappedCallRPC(&accountInfo, "cfx_getAccount", account, realEpoch)
-	return
-}
-
-// GetInterestRate returns interest rate of the given epoch
-func (client *Client) GetInterestRate(epoch ...*types.Epoch) (intersetRate *hexutil.Big, err error) {
-	realEpoch := get1stEpochIfy(epoch)
-	intersetRate = types.NewBigInt(0)
-	err = client.wrappedCallRPC(intersetRate, "cfx_getInterestRate", realEpoch)
-	return
-}
-
-// GetAccumulateInterestRate returns accumulate interest rate of the given epoch
-func (client *Client) GetAccumulateInterestRate(epoch ...*types.Epoch) (intersetRate *hexutil.Big, err error) {
-	realEpoch := get1stEpochIfy(epoch)
-	intersetRate = types.NewBigInt(0)
-	err = client.wrappedCallRPC(intersetRate, "cfx_getAccumulateInterestRate", realEpoch)
-	return
-}
-
-// GetBlockRewardInfo returns block reward information in an epoch
-func (client *Client) GetBlockRewardInfo(epoch ...*types.Epoch) (rewardInfo []types.RewardInfo, err error) {
-	realEpoch := get1stEpochIfy(epoch)
-	err = client.wrappedCallRPC(&rewardInfo, "cfx_getBlockRewardInfo", realEpoch)
-	return
-}
-
-// GetClientVersion returns the client version as a string
-func (client *Client) GetClientVersion() (clientVersion string, err error) {
-	err = client.wrappedCallRPC(&clientVersion, "cfx_clientVersion")
-	return
-}
-
-// GetDepositList returns deposit list of the given account.
-func (client *Client) GetDepositList(address types.Address, epoch ...*types.Epoch) (depositInfos []types.DepositInfo, err error) {
-	realEpoch := get1stEpochIfy(epoch)
-	depositInfos = make([]types.DepositInfo, 0)
-	err = client.wrappedCallRPC(&depositInfos, "cfx_getDepositList", address, realEpoch)
-	return
-}
-
-// GetVoteList returns vote list of the given account.
-func (client *Client) GetVoteList(address types.Address, epoch ...*types.Epoch) (voteStakeInfos []types.VoteStakeInfo, err error) {
-	realEpoch := get1stEpochIfy(epoch)
-	voteStakeInfos = make([]types.VoteStakeInfo, 0)
-	err = client.wrappedCallRPC(&voteStakeInfos, "cfx_getVoteList", address, realEpoch)
-	return
-}
-
-// GetSupplyInfo Return information about total token supply.
-func (client *Client) GetSupplyInfo(epoch ...*types.Epoch) (info types.TokenSupplyInfo, err error) {
-	realEpoch := get1stEpochIfy(epoch)
-	err = client.wrappedCallRPC(&info, "cfx_getSupplyInfo", realEpoch)
-	return
-}
-
-// GetBlockTrace returns all traces produced at given block.
-func (client *Client) GetBlockTrace(blockHash types.Hash) (trace types.LocalizedBlockTrace, err error) {
-	err = client.wrappedCallRPC(&trace, "trace_block", blockHash)
-	return
 }
 
 // === pub/sub ===
