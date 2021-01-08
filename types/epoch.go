@@ -6,6 +6,7 @@ package types
 
 import (
 	"encoding/json"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -43,22 +44,43 @@ func NewEpochWithBlockHash(blockHash Hash) *Epoch {
 
 // String implements the fmt.Stringer interface
 func (e *Epoch) String() string {
-	if len(e.name) > 0 {
-		return e.name
+	if e == nil {
+		return ""
 	}
 
-	return e.number.String()
+	if e != nil && e.number != nil {
+		return e.number.String()
+	}
+
+	return e.name
 }
 
-// IsEqual check if e equals input
-func (e *Epoch) IsEqual(input *Epoch) bool {
-	if e == nil && input == nil {
+// ToInt returns epoch number in type big.Int
+func (e *Epoch) ToInt() (result *big.Int, isSuccess bool) {
+	if e == nil {
+		return nil, false
+	}
+	if e.number != nil {
+		return e.number.ToInt(), true
+	}
+	return nil, false
+}
+
+// Equals check if e equals input
+func (e *Epoch) Equals(target *Epoch) bool {
+	if e == nil && target == nil {
 		return true
 	}
-	if e != nil || input != nil {
+
+	if e == nil || target == nil {
 		return false
 	}
-	isEqual := e.number.String() == input.number.String() && e.name == input.name
+
+	isNumberEqual := (e.number == nil && target.number == nil) ||
+		(e.number != nil && target.number != nil &&
+			e.number.ToInt().Cmp(target.number.ToInt()) == 0)
+	isNameEqual := e.name == target.name
+	isEqual := isNumberEqual && isNameEqual
 	return isEqual
 }
 

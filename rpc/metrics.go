@@ -20,13 +20,16 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/metrics"
+	ethrpc "github.com/ethereum/go-ethereum/rpc"
 )
 
 var (
 	rpcRequestGauge        = metrics.GetOrRegisterGauge("rpc/requests", nil)
 	successfulRequestGauge = metrics.GetOrRegisterGauge("rpc/success", nil)
 	failedReqeustGauge     = metrics.GetOrRegisterGauge("rpc/failure", nil)
-	rpcServingTimer        = metrics.NewRegisteredTimer("rpc/duration/all", nil)
+	rpcServingTimer        = metrics.GetOrRegisterTimer("rpc/duration/all", nil)
+	// just for first import ethrpc to avoid above metrics be empty.
+	_ = ethrpc.API{}
 )
 
 func newRPCServingTimer(method string, valid bool) metrics.Timer {

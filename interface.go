@@ -52,7 +52,7 @@ type ClientOperator interface {
 	BatchCallRPC(b []rpc.BatchElem) error
 	GetLogs(filter types.LogFilter) ([]types.Log, error)
 	GetTransactionByHash(txHash types.Hash) (*types.Transaction, error)
-	EstimateGasAndCollateral(request types.CallRequest) (types.Estimate, error)
+	EstimateGasAndCollateral(request types.CallRequest, epoch ...*types.Epoch) (types.Estimate, error)
 	GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error)
 	GetTransactionReceipt(txHash types.Hash) (*types.TransactionReceipt, error)
 	CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (*types.UnsignedTransaction, error)
