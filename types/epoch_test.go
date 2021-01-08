@@ -6,14 +6,8 @@ import (
 
 func TestEpochEquals(t *testing.T) {
 
-	var a *Epoch
-	var b *Epoch
-	if !a.Equals(b) {
-		t.Errorf("expect %v equals %v", a, b)
-	}
-
-	a = &Epoch{}
-	b = &Epoch{}
+	a := &Epoch{}
+	b := &Epoch{}
 	if !a.Equals(b) {
 		t.Errorf("expect %v equals %v", a, b)
 	}
@@ -32,7 +26,7 @@ func TestEpochEquals(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	var a *Epoch
+	var a *Epoch = &Epoch{}
 	if a.String() != "" {
 		t.Errorf("expect return empty when a is nil")
 	}

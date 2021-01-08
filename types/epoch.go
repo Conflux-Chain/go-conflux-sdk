@@ -44,44 +44,42 @@ func NewEpochWithBlockHash(blockHash Hash) *Epoch {
 
 // String implements the fmt.Stringer interface
 func (e *Epoch) String() string {
-	if e == nil {
+	if len(e.name) > 0 {
+		return e.name
+	}
+	if e.number == nil {
 		return ""
 	}
-
-	if e != nil && e.number != nil {
-		return e.number.String()
-	}
-
-	return e.name
+	return e.number.String()
 }
 
 // ToInt returns epoch number in type big.Int
 func (e *Epoch) ToInt() (result *big.Int, isSuccess bool) {
-	if e == nil {
-		return nil, false
-	}
 	if e.number != nil {
 		return e.number.ToInt(), true
 	}
 	return nil, false
 }
 
-// Equals check if e equals input
+// Equals checks if e equals target
 func (e *Epoch) Equals(target *Epoch) bool {
-	if e == nil && target == nil {
-		return true
+	if e == nil {
+		panic("input could not be nil")
 	}
 
-	if e == nil || target == nil {
+	if target == nil {
 		return false
 	}
 
-	isNumberEqual := (e.number == nil && target.number == nil) ||
-		(e.number != nil && target.number != nil &&
-			e.number.ToInt().Cmp(target.number.ToInt()) == 0)
-	isNameEqual := e.name == target.name
-	isEqual := isNumberEqual && isNameEqual
-	return isEqual
+	if len(e.name) > 0 || len(target.name) > 0 {
+		return e.name == target.name
+	}
+
+	if e.number == nil || target.number == nil {
+		return e.number == target.number
+	}
+
+	return e.number.ToInt().Cmp(target.number.ToInt()) == 0
 }
 
 // MarshalText implements the encoding.TextMarshaler interface.
