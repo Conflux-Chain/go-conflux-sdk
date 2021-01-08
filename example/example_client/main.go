@@ -98,6 +98,9 @@ func run(_client *sdk.Client) {
 func getAdmin() {
 	result, err := client.GetAdmin(config.ERC20Address, nil)
 	printResult("GetAdmin", []interface{}{config.ERC20Address, nil}, result, err)
+
+	result, err = client.GetAdmin(types.Address("0x0000000000000000000000000000000000000000"), nil)
+	printResult("GetAdmin", []interface{}{types.Address("0x0000000000000000000000000000000000000000"), nil}, result, err)
 }
 
 func getSponsorInfo() {
@@ -160,8 +163,8 @@ func getAccumulateInterestRate() {
 
 // GetBlockRewardInfo()
 func getBlockRewardInfo() {
-	result, err := client.GetBlockRewardInfo(types.EpochLatestState)
-	printResult("GetBlockRewardInfo", []interface{}{nil}, result, err)
+	result, err := client.GetBlockRewardInfo(*types.EpochLatestState)
+	printResult("GetBlockRewardInfo", []interface{}{*types.EpochLatestState}, result, err)
 }
 
 // ClientVersion()
@@ -188,7 +191,7 @@ func getGasPrice() {
 	if err != nil {
 		fmt.Printf("- gasprice error: %#v\n\n", err.Error())
 	} else {
-		fmt.Printf("- gasprice: %#v\n\n", gasPrice)
+		fmt.Printf("- gasprice: %v\n\n", gasPrice.String())
 	}
 
 }
@@ -327,7 +330,7 @@ func estimateGasAndCollateral() {
 	if err != nil {
 		fmt.Printf("- estimate error: %v\n\n", err.Error())
 	} else {
-		fmt.Printf("- estimate result: %v\n\n", est)
+		fmt.Printf("- estimate result: %v\n\n", context.JsonFmt(est))
 	}
 }
 
@@ -350,10 +353,9 @@ func createAndSendUnsignedTransaction() {
 	utx, err := client.CreateUnsignedTransaction(*defaultAccount, types.Address("0x1cad0b19bb29d4674531d6f115237e16afce377d"), types.NewBigInt(1000000), nil)
 	if err != nil {
 		panic(err)
-	} else {
-		fmt.Printf("- creat a new unsigned transaction:\n%v\n\n", context.JsonFmt(utx))
 	}
 	utx.Nonce = context.GetNextNonceAndIncrease()
+	fmt.Printf("- creat a new unsigned transaction:\n%v\n\n", context.JsonFmt(utx))
 
 	txhash, err := client.SendTransaction(utx)
 	if err != nil {
@@ -369,6 +371,13 @@ func createAndSendUnsignedTransaction() {
 
 func getRawBlockConfirmationRisk() {
 	risk, err := client.GetRawBlockConfirmationRisk(config.BlockHash)
+	if err != nil {
+		fmt.Printf("- get risk of block %v error: %v\n", config.BlockHash, err.Error())
+	} else {
+		fmt.Printf("- get risk of block %v : %v\n", config.BlockHash, risk)
+	}
+
+	risk, err = client.GetRawBlockConfirmationRisk(types.Hash("0x0000000000000000000000000000000000000000000000000000000000000000"))
 	if err != nil {
 		fmt.Printf("- get risk of block %v error: %v\n", config.BlockHash, err.Error())
 	} else {
@@ -514,7 +523,7 @@ func subscribeLogs() {
 		case log := <-logChannel:
 			fmt.Printf("received new log:%+v\n\n", log)
 		case reorg := <-reorgChannel:
-			fmt.Printf("received new log:%+v\n\n", reorg)
+			fmt.Printf("received new reorg:%+v\n\n", reorg)
 		}
 	}
 	sub.Unsubscribe()

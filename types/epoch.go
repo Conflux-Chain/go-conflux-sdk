@@ -23,7 +23,7 @@ var (
 // Epoch represents an epoch in Conflux.
 type Epoch struct {
 	name   string
-	number *big.Int
+	number *hexutil.Big
 }
 
 // WebsocketEpochResponse represents result of epoch websocket subscription
@@ -33,7 +33,7 @@ type WebsocketEpochResponse struct {
 }
 
 // NewEpochNumber creates an instance of Epoch with specified number.
-func NewEpochNumber(number *big.Int) *Epoch {
+func NewEpochNumber(number *hexutil.Big) *Epoch {
 	return &Epoch{"", number}
 }
 
@@ -47,12 +47,44 @@ func (e *Epoch) String() string {
 	if len(e.name) > 0 {
 		return e.name
 	}
+	if e.number == nil {
+		return ""
+	}
+	return e.number.String()
+}
 
-	return hexutil.EncodeBig(e.number)
+// ToInt returns epoch number in type big.Int
+func (e *Epoch) ToInt() (result *big.Int, isSuccess bool) {
+	if e.number != nil {
+		return e.number.ToInt(), true
+	}
+	return nil, false
+}
+
+// Equals checks if e equals target
+func (e *Epoch) Equals(target *Epoch) bool {
+	if e == nil {
+		panic("input could not be nil")
+	}
+
+	if target == nil {
+		return false
+	}
+
+	if len(e.name) > 0 || len(target.name) > 0 {
+		return e.name == target.name
+	}
+
+	if e.number == nil || target.number == nil {
+		return e.number == target.number
+	}
+
+	return e.number.ToInt().Cmp(target.number.ToInt()) == 0
 }
 
 // MarshalText implements the encoding.TextMarshaler interface.
-func (e *Epoch) MarshalText() ([]byte, error) {
+func (e Epoch) MarshalText() ([]byte, error) {
+	// fmt.Println("marshal text for epoch")
 	return []byte(e.String()), nil
 }
 
@@ -78,7 +110,7 @@ func (e *Epoch) UnmarshalJSON(data []byte) error {
 			return err
 		}
 
-		e.number = epochNumber
+		e.number = NewBigIntByRaw(epochNumber)
 		return nil
 	}
 }

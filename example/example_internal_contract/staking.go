@@ -50,7 +50,7 @@ func testStaking() {
 
 	// getLockedStakingBalance
 	blockNumber, _ := client.GetEpochNumber()
-	lockedStakingBlance, err := staking.GetLockedStakingBalance(nil, *defaultAccount, blockNumber)
+	lockedStakingBlance, err := staking.GetLockedStakingBalance(nil, *defaultAccount, blockNumber.ToInt())
 	context.PanicIfErr(err, "getLockedStakingBalance panic")
 	fmt.Printf("currently locked staking balance is %v \n", lockedStakingBlance)
 
@@ -65,7 +65,7 @@ func testStaking() {
 	}
 
 	// getVotePower
-	power, err := staking.GetVotePower(nil, *defaultAccount, blockNumber)
+	power, err := staking.GetVotePower(nil, *defaultAccount, blockNumber.ToInt())
 	context.PanicIfErr(err, "getVotePower panic")
 	fmt.Printf("currently vote power is %v \n", power)
 

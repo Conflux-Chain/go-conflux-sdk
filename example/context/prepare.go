@@ -3,7 +3,6 @@ package context
 import (
 	"fmt"
 	"log"
-	"math/big"
 	"os"
 	"path"
 	"runtime"
@@ -13,6 +12,7 @@ import (
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	exampletypes "github.com/Conflux-Chain/go-conflux-sdk/example/context/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 var (
@@ -22,7 +22,7 @@ var (
 	configPath     string
 	am             *sdk.AccountManager
 	defaultAccount *types.Address
-	nextNonce      *big.Int
+	nextNonce      *hexutil.Big
 )
 
 func PrepareForClientExample() *exampletypes.Config {
