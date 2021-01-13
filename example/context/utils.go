@@ -46,20 +46,18 @@ func WaitPacked(client *sdk.Client, txhash types.Hash) *types.TransactionReceipt
 
 func GetNextNonceAndIncrease() *hexutil.Big {
 	// println("current in:", nextNonce.String())
-	currentNonce := big.NewInt(0).SetBytes(nextNonce.Bytes())
-	nextNonce = nextNonce.Add(nextNonce, big.NewInt(1))
+	currentNonce := types.NewBigIntByRaw(nextNonce.ToInt())
+	nextNonce = types.NewBigIntByRaw(big.NewInt(1).Add(nextNonce.ToInt(), big.NewInt(1)))
 	// println("current out:", currentNonce.String())
-	return types.NewBigIntByRaw(currentNonce)
+	// println("next out:", nextNonce.String())
+	return currentNonce
 }
 
 func CreateSignedTx(client *sdk.Client) []byte {
 	unSignedTx := types.UnsignedTransaction{
 		UnsignedTransactionBase: types.UnsignedTransactionBase{
-			// From:  types.NewAddress("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"),
 			From:  defaultAccount,
 			Value: types.NewBigInt(100),
-			// GasPrice: types.NewBigInt(10000000000),
-			// ChainID:  types.NewBigInt(1),
 			Nonce: GetNextNonceAndIncrease(),
 		},
 		To: types.NewAddress("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"),

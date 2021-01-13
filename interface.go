@@ -30,34 +30,33 @@ type Contractor interface {
 
 // ClientOperator is interface of operate actions on client
 type ClientOperator interface {
-	GetGasPrice() (*big.Int, error)
-	GetNextNonce(address types.Address, epoch ...*types.Epoch) (*big.Int, error)
-	GetStatus() (*types.Status, error)
-	GetEpochNumber(epoch ...*types.Epoch) (*big.Int, error)
-	GetBalance(address types.Address, epoch ...*types.Epoch) (*big.Int, error)
+	GetGasPrice() (*hexutil.Big, error)
+	GetNextNonce(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, error)
+	GetStatus() (types.Status, error)
+	GetEpochNumber(epoch ...*types.Epoch) (*hexutil.Big, error)
+	GetBalance(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, error)
 	GetCode(address types.Address, epoch ...*types.Epoch) (string, error)
 	GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockSummary, error)
 	GetBlockByHash(blockHash types.Hash) (*types.Block, error)
 	GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary, error)
 	GetBlockByEpoch(epoch *types.Epoch) (*types.Block, error)
 	GetBestBlockHash() (types.Hash, error)
-	GetRawBlockConfirmationRisk(blockhash types.Hash) (*big.Int, error)
+	GetRawBlockConfirmationRisk(blockhash types.Hash) (*hexutil.Big, error)
 	GetBlockConfirmationRisk(blockHash types.Hash) (*big.Float, error)
 	SendRawTransaction(rawData []byte) (types.Hash, error)
 	SendTransaction(tx *types.UnsignedTransaction) (types.Hash, error)
 	SetAccountManager(accountManager AccountManagerOperator)
 	SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte) (*types.Transaction, error)
-	Call(request types.CallRequest, epoch *types.Epoch) (*string, error)
+	Call(request types.CallRequest, epoch *types.Epoch) (hexutil.Bytes, error)
 	CallRPC(result interface{}, method string, args ...interface{}) error
 	BatchCallRPC(b []rpc.BatchElem) error
 	GetLogs(filter types.LogFilter) ([]types.Log, error)
 	GetTransactionByHash(txHash types.Hash) (*types.Transaction, error)
-	EstimateGasAndCollateral(request types.CallRequest) (*types.Estimate, error)
+	EstimateGasAndCollateral(request types.CallRequest, epoch ...*types.Epoch) (types.Estimate, error)
 	GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error)
 	GetTransactionReceipt(txHash types.Hash) (*types.TransactionReceipt, error)
 	CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (*types.UnsignedTransaction, error)
 	ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) error
-	Debug(method string, args ...interface{}) (interface{}, error)
 	Close()
 	GetContract(abiJSON []byte, deployedAt *types.Address) (*Contract, error)
 	// DeployContract(abiJSON string, bytecode []byte, option *types.ContractDeployOption, timeout time.Duration, callback func(deployedContract Contractor, hash *types.Hash, err error)) <-chan struct{}
@@ -70,12 +69,12 @@ type ClientOperator interface {
 	BatchGetBlockSummarys(blockhashes []types.Hash) (map[types.Hash]*types.BlockSummary, error)
 	GetNodeURL() string
 
-	GetAdmin(contractAddress types.Address, epoch ...*types.Epoch) (admin types.Address, err error)
+	GetAdmin(contractAddress types.Address, epoch ...*types.Epoch) (admin *types.Address, err error)
 	GetSponsorInfo(contractAddress types.Address, epoch ...*types.Epoch) (sponsor types.SponsorInfo, err error)
 	GetStakingBalance(account types.Address, epoch ...*types.Epoch) (balance *hexutil.Big, err error)
 	GetCollateralForStorage(account types.Address, epoch ...*types.Epoch) (storage *hexutil.Big, err error)
-	GetStorageAt(address types.Address, position types.Hash, epoch ...*types.Epoch) (storageEntries *hexutil.Big, err error)
-	GetStorageRoot(address types.Address, epoch ...*types.Epoch) (storageRoot types.StorageRoot, err error)
+	GetStorageAt(address types.Address, position types.Hash, epoch ...*types.Epoch) (storageEntries hexutil.Bytes, err error)
+	GetStorageRoot(address types.Address, epoch ...*types.Epoch) (storageRoot *types.StorageRoot, err error)
 	GetBlockByHashWithPivotAssumption(blockHash types.Hash, pivotHash types.Hash, epoch hexutil.Uint64) (block types.Block, err error)
 	CheckBalanceAgainstTransaction(accountAddress types.Address,
 		contractAddress types.Address,
@@ -87,14 +86,14 @@ type ClientOperator interface {
 	GetAccountInfo(account types.Address, epoch ...*types.Epoch) (accountInfo types.AccountInfo, err error)
 	GetInterestRate(epoch ...*types.Epoch) (intersetRate *hexutil.Big, err error)
 	GetAccumulateInterestRate(epoch ...*types.Epoch) (intersetRate *hexutil.Big, err error)
-	GetBlockRewardInfo(epoch ...*types.Epoch) (rewardInfo []types.RewardInfo, err error)
+	GetBlockRewardInfo(epoch types.Epoch) (rewardInfo []types.RewardInfo, err error)
 	GetClientVersion() (clientVersion string, err error)
 	WaitForTransationBePacked(txhash types.Hash, duration time.Duration) (*types.Transaction, error)
 	WaitForTransationReceipt(txhash types.Hash, duration time.Duration) (*types.TransactionReceipt, error)
 
 	GetDepositList(address types.Address, epoch ...*types.Epoch) ([]types.DepositInfo, error)
 	GetVoteList(address types.Address, epoch ...*types.Epoch) ([]types.VoteStakeInfo, error)
-	GetBlockTrace(blockHash types.Hash) (types.LocalizedBlockTrace, error)
+	GetBlockTrace(blockHash types.Hash) (*types.LocalizedBlockTrace, error)
 }
 
 // AccountManagerOperator is interface of operate actions on account manager
