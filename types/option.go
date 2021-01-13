@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/hex"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -32,12 +31,15 @@ type ContractMethodSendOption UnsignedTransactionBase
 
 // CallRequest represents a request to execute contract.
 type CallRequest struct {
-	From         *Address        `json:"from,omitempty"`
-	To           *Address        `json:"to,omitempty"`
-	GasPrice     *hexutil.Big    `json:"gasPrice,omitempty"`
-	Gas          *hexutil.Big    `json:"gas,omitempty"`
-	Value        *hexutil.Big    `json:"value,omitempty"`
-	Data         string          `json:"data,omitempty"`
+	From     *Address     `json:"from,omitempty"`
+	To       *Address     `json:"to,omitempty"`
+	GasPrice *hexutil.Big `json:"gasPrice,omitempty"`
+	Gas      *hexutil.Big `json:"gas,omitempty"`
+	Value    *hexutil.Big `json:"value,omitempty"`
+	// NOTE, cannot use *hexutil.Bytes or hexutil.Bytes here.
+	// Otherwise, hexutil.Bytes.UnmarshalJSON will called to
+	// unmarshal from nil and cause to errNonString error.
+	Data         *string         `json:"data,omitempty"`
 	Nonce        *hexutil.Big    `json:"nonce,omitempty"`
 	StorageLimit *hexutil.Uint64 `json:"storageLimit,omitempty"`
 }
@@ -55,8 +57,8 @@ func (request *CallRequest) FillByUnsignedTx(tx *UnsignedTransaction) {
 			request.Gas = tx.Gas
 		}
 
-		_data := "0x" + hex.EncodeToString(tx.Data)
-		request.Data = _data
+		hexData := tx.Data.String()
+		request.Data = &hexData
 
 		if tx.Nonce != nil {
 			request.Nonce = tx.Nonce

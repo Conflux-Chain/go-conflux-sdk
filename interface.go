@@ -25,7 +25,7 @@ type Contractor interface {
 	GetData(method string, args ...interface{}) ([]byte, error)
 	Call(option *types.ContractMethodCallOption, resultPtr interface{}, method string, args ...interface{}) error
 	SendTransaction(option *types.ContractMethodSendOption, method string, args ...interface{}) (*types.Hash, error)
-	DecodeEvent(out interface{}, event string, log types.LogEntry) error
+	DecodeEvent(out interface{}, event string, log types.Log) error
 }
 
 // ClientOperator is interface of operate actions on client

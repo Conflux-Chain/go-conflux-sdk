@@ -17,16 +17,16 @@ type BlockHeader struct {
 	DeferredLogsBloomHash Hash           `json:"deferredLogsBloomHash"`
 	Blame                 hexutil.Uint64 `json:"blame"`
 	TransactionsRoot      Hash           `json:"transactionsRoot"`
-	EpochNumber           *hexutil.Big   `json:"epochNumber,omitempty"`
+	EpochNumber           *hexutil.Big   `json:"epochNumber"`
 	GasLimit              *hexutil.Big   `json:"gasLimit"`
 	GasUsed               *hexutil.Big   `json:"gasUsed"`
 	Timestamp             *hexutil.Big   `json:"timestamp"`
 	Difficulty            *hexutil.Big   `json:"difficulty"`
-	PowQuality            *hexutil.Big   `json:"powQuality,omitempty"`
+	PowQuality            *hexutil.Big   `json:"powQuality"`
 	RefereeHashes         []Hash         `json:"refereeHashes"`
 	Adaptive              bool           `json:"adaptive"`
 	Nonce                 *hexutil.Big   `json:"nonce"`
-	Size                  *hexutil.Big   `json:"size,omitempty"`
+	Size                  *hexutil.Big   `json:"size"`
 }
 
 // BlockSummary includes block header and a list of transaction hashes

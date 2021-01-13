@@ -13,19 +13,19 @@ import (
 type Transaction struct {
 	Hash             Hash            `json:"hash"`
 	Nonce            *hexutil.Big    `json:"nonce"`
-	BlockHash        *Hash           `json:"blockHash,omitempty"`
-	TransactionIndex *hexutil.Uint64 `json:"transactionIndex,omitempty"`
+	BlockHash        *Hash           `json:"blockHash"`
+	TransactionIndex *hexutil.Uint64 `json:"transactionIndex"`
 	From             Address         `json:"from"`
-	To               *Address        `json:"to,omitempty"`
+	To               *Address        `json:"to"`
 	Value            *hexutil.Big    `json:"value"`
 	GasPrice         *hexutil.Big    `json:"gasPrice"`
 	Gas              *hexutil.Big    `json:"gas"`
-	ContractCreated  *Address        `json:"contractCreated,omitempty"`
+	ContractCreated  *Address        `json:"contractCreated"`
 	Data             string          `json:"data"`
-	StorageLimit     *hexutil.Big    `json:"storageLimit,omitempty"`
-	EpochHeight      *hexutil.Big    `json:"epochHeight,omitempty"`
-	ChainID          *hexutil.Big    `json:"chainId,omitempty"`
-	Status           *hexutil.Uint64 `json:"status,omitempty"`
+	StorageLimit     *hexutil.Big    `json:"storageLimit"`
+	EpochHeight      *hexutil.Big    `json:"epochHeight"`
+	ChainID          *hexutil.Big    `json:"chainId"`
+	Status           *hexutil.Uint64 `json:"status"`
 
 	//signature
 	V *hexutil.Big `json:"v"`
@@ -39,13 +39,13 @@ type TransactionReceipt struct {
 	TransactionHash Hash            `json:"transactionHash"`
 	Index           hexutil.Uint64  `json:"index"`
 	BlockHash       Hash            `json:"blockHash"`
-	EpochNumber     *hexutil.Uint64 `json:"epochNumber,omitempty"`
+	EpochNumber     *hexutil.Uint64 `json:"epochNumber"`
 	From            Address         `json:"from"`
-	To              *Address        `json:"to,omitempty"`
+	To              *Address        `json:"to"`
 	GasUsed         *hexutil.Big    `json:"gasUsed"`
 	GasFee          *hexutil.Big    `json:"gasFee"`
-	ContractCreated *Address        `json:"contractCreated,omitempty"`
-	Logs            []LogEntry      `json:"logs"`
+	ContractCreated *Address        `json:"contractCreated"`
+	Logs            []Log           `json:"logs"`
 	LogsBloom       Bloom           `json:"logsBloom"`
 	StateRoot       Hash            `json:"stateRoot"`
 	OutcomeStatus   hexutil.Uint64  `json:"outcomeStatus"`
