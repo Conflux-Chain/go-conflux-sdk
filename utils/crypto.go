@@ -65,7 +65,7 @@ func Keccak256(hexStr string) (string, error) {
 
 	bytes, err := hex.DecodeString(hexStr[2:])
 	if err != nil {
-		return "", errors.Wrap(err, "failed to decode hex string")
+		return "", err
 	}
 
 	hash := crypto.Keccak256(bytes)

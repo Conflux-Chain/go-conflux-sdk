@@ -320,7 +320,7 @@ func (client *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash
 	//send raw tx
 	txhash, err := client.SendRawTransaction(rawData)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to send transaction")
+		return "", errors.Wrapf(err, "failed to send transaction, raw data = 0x%+x", rawData)
 	}
 	return txhash, nil
 }
@@ -348,7 +348,7 @@ func (client *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r,
 
 	respondTx, err := client.signTransactionAndSend(tx, v, r, s)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to sign and send transaction")
+		return nil, errors.Wrapf(err, "failed to sign and send transaction %+v", tx)
 	}
 
 	return respondTx, nil
@@ -362,7 +362,7 @@ func (client *Client) signTransactionAndSend(tx *types.UnsignedTransaction, v by
 
 	hash, err := client.SendRawTransaction(rlp)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to send transaction")
+		return nil, errors.Wrapf(err, "failed to send transaction, raw data = 0x%+x", rlp)
 	}
 
 	respondTx, err := client.GetTransactionByHash(hash)
@@ -633,7 +633,7 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 
 			sm, err := client.EstimateGasAndCollateral(*callReq)
 			if err != nil {
-				return errors.Wrap(err, "failed to estimate gas and collateral")
+				return errors.Wrapf(err, "failed to estimate gas and collateral, request = %+v", *callReq)
 			}
 
 			// fmt.Printf("callreq, %+v,sm:%+v\n", *callReq, sm)
@@ -696,7 +696,7 @@ func (client *Client) DeployContract(option *types.ContractDeployOption, abiJSON
 		//deploy contract
 		txhash, err := client.SendTransaction(tx)
 		if err != nil {
-			result.Error = errors.Wrap(err, "failed to send transaction")
+			result.Error = errors.Wrapf(err, "failed to send transaction, tx = %+v", tx)
 			return
 		}
 		result.TransactionHash = &txhash

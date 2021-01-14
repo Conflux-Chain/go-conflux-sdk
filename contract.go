@@ -92,7 +92,7 @@ func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr
 
 	err = contract.ABI.Unpack(resultPtr, method, bytes)
 	if err != nil {
-		return errors.Wrap(err, "failed to decode call result")
+		return errors.Wrapf(err, "failed to decode call result, encoded data = %v", resultHexStr)
 	}
 
 	return nil
@@ -123,7 +123,7 @@ func (contract *Contract) SendTransaction(option *types.ContractMethodSendOption
 
 	txhash, err := contract.Client.SendTransaction(tx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to send transaction")
+		return nil, errors.Wrapf(err, "failed to send transaction %+v", tx)
 	}
 	return &txhash, nil
 }
