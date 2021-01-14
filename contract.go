@@ -5,14 +5,13 @@
 package sdk
 
 import (
-	"fmt"
-
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	etypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/pkg/errors"
 )
 
 // Contract represents a smart contract.
@@ -51,8 +50,7 @@ func NewContract(abiJSON []byte, client ClientOperator, address *types.Address) 
 func (contract *Contract) GetData(method string, args ...interface{}) ([]byte, error) {
 	packed, err := contract.ABI.Pack(method, args...)
 	if err != nil {
-		msg := fmt.Sprintf("encode method %+v with args %+v error", method, args)
-		return nil, types.WrapError(err, msg)
+		return nil, err
 	}
 
 	return packed, nil
@@ -68,8 +66,7 @@ func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr
 
 	data, err := contract.GetData(method, args...)
 	if err != nil {
-		msg := fmt.Sprintf("get data of method %+v with args %+v error", method, args)
-		return types.WrapError(err, msg)
+		return errors.Wrap(err, "failed to encode call data")
 	}
 
 	callRequest := new(types.CallRequest)
@@ -84,24 +81,18 @@ func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr
 	}
 	resultHexStr, err := contract.Client.Call(*callRequest, epoch)
 	if err != nil {
-		msg := fmt.Sprintf("call {%+v} at epoch %+v error", *callRequest, epoch)
-		return types.WrapError(err, msg)
+		return errors.Wrapf(err, "failed to call at epoch %v", epoch)
 	}
 
 	if len(resultHexStr) < 2 {
-		return fmt.Errorf("call response string %v length smaller than 2", resultHexStr)
+		return errors.Errorf("call response string %v length smaller than 2", resultHexStr)
 	}
 
 	bytes := []byte(resultHexStr)
-	// if err != nil {
-	// 	msg := fmt.Sprintf("decode hex string %s to bytes error", (*resultHexStr)[2:])
-	// 	return types.WrapError(err, msg)
-	// }
 
 	err = contract.ABI.Unpack(resultPtr, method, bytes)
 	if err != nil {
-		msg := fmt.Sprintf("unpack bytes {%x} to method %v output on abi %+v error", bytes, method, contract.ABI)
-		return types.WrapError(err, msg)
+		return errors.Wrap(err, "failed to decode call result")
 	}
 
 	return nil
@@ -115,8 +106,7 @@ func (contract *Contract) SendTransaction(option *types.ContractMethodSendOption
 
 	data, err := contract.GetData(method, args...)
 	if err != nil {
-		msg := fmt.Sprintf("get data of method %+v with args %+v error", method, args)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrap(err, "failed to encode call data")
 	}
 
 	tx := new(types.UnsignedTransaction)
@@ -128,14 +118,12 @@ func (contract *Contract) SendTransaction(option *types.ContractMethodSendOption
 
 	err = contract.Client.ApplyUnsignedTransactionDefault(tx)
 	if err != nil {
-		msg := fmt.Sprintf("apply default for tx {%+v} error", tx)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrap(err, errMsgApplyTxValues)
 	}
 
 	txhash, err := contract.Client.SendTransaction(tx)
 	if err != nil {
-		msg := fmt.Sprintf("send transaction {%+v} error", tx)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrap(err, "failed to send transaction")
 	}
 	return &txhash, nil
 }

@@ -5,7 +5,6 @@
 package types
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -34,8 +33,7 @@ func (tx *SignedTransaction) Decode(data []byte) error {
 	txForRlp := new(signedTransactionForRlp)
 	err := rlp.DecodeBytes(data, txForRlp)
 	if err != nil {
-		msg := fmt.Sprintf("decode data {%+x} to rlp error", data)
-		return WrapError(err, msg)
+		return err
 	}
 
 	*tx = *txForRlp.toSignedTransaction()
@@ -47,8 +45,7 @@ func (tx *SignedTransaction) Encode() ([]byte, error) {
 	txForRlp := *tx.toStructForRlp()
 	encoded, err := rlp.EncodeToBytes(txForRlp)
 	if err != nil {
-		msg := fmt.Sprintf("encode data {%+v} to bytes error", txForRlp)
-		return nil, WrapError(err, msg)
+		return nil, err
 	}
 
 	return encoded, nil

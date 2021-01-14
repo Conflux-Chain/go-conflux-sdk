@@ -6,13 +6,12 @@ package utils
 
 import (
 	"encoding/hex"
-	"errors"
-	"fmt"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/pkg/errors"
 )
 
 // PublicKeyToAddress generate address from public key
@@ -66,8 +65,7 @@ func Keccak256(hexStr string) (string, error) {
 
 	bytes, err := hex.DecodeString(hexStr[2:])
 	if err != nil {
-		msg := fmt.Sprintf("decode hex string {%+v} to bytes error", hexStr)
-		return "", types.WrapError(err, msg)
+		return "", errors.Wrap(err, "failed to decode hex string")
 	}
 
 	hash := crypto.Keccak256(bytes)
