@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -37,6 +38,16 @@ func NewEpochNumber(number *hexutil.Big) *Epoch {
 	return &Epoch{"", number}
 }
 
+// NewEpochNumberBig creates an instance of Epoch with specified big number.
+func NewEpochNumberBig(number *big.Int) *Epoch {
+	return &Epoch{"", NewBigIntByRaw(number)}
+}
+
+// NewEpochNumberUint64 creates an instance of Epoch with specified uint64 number.
+func NewEpochNumberUint64(number uint64) *Epoch {
+	return &Epoch{"", NewBigInt(number)}
+}
+
 // NewEpochWithBlockHash creates an instance of Epoch with specified block hash.
 func NewEpochWithBlockHash(blockHash Hash) *Epoch {
 	return &Epoch{string(blockHash), nil}
@@ -44,13 +55,11 @@ func NewEpochWithBlockHash(blockHash Hash) *Epoch {
 
 // String implements the fmt.Stringer interface
 func (e *Epoch) String() string {
-	if len(e.name) > 0 {
-		return e.name
+	if e.number != nil {
+		return e.number.String()
 	}
-	if e.number == nil {
-		return ""
-	}
-	return e.number.String()
+
+	return e.name
 }
 
 // ToInt returns epoch number in type big.Int
@@ -58,6 +67,11 @@ func (e *Epoch) ToInt() (result *big.Int, isSuccess bool) {
 	if e.number != nil {
 		return e.number.ToInt(), true
 	}
+
+	if e.name == EpochEarliest.name {
+		return common.Big0, true
+	}
+
 	return nil, false
 }
 
@@ -69,6 +83,10 @@ func (e *Epoch) Equals(target *Epoch) bool {
 
 	if target == nil {
 		return false
+	}
+
+	if e == target {
+		return true
 	}
 
 	if len(e.name) > 0 || len(target.name) > 0 {

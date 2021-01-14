@@ -23,17 +23,17 @@ type CallOrCreate struct {
 	/// The sending account.
 	From *Address `json:"from"`
 	/// The destination account.
-	To *Address `json:"to,omitempty"`
+	To *Address `json:"to"`
 	/// The value transferred to the destination account.
 	Value hexutil.Big `json:"value"`
 	/// The gas available for executing the call.
 	Gas hexutil.Big `json:"gas"`
 	/// The input data provided to the call.
-	Input hexutil.Bytes `json:"input,omitempty"`
+	Input hexutil.Bytes `json:"input"`
 	/// The type of the call.
-	CallType string `json:"callType,omitempty"`
+	CallType string `json:"callType"`
 	/// The init code.
-	Init hexutil.Bytes `json:"init,omitempty"`
+	Init hexutil.Bytes `json:"init"`
 }
 
 // UnmarshalJSON unmarshals Input and Init type from []byte to hexutil.Bytes

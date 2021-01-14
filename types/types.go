@@ -148,9 +148,9 @@ func (hash Hash) String() string {
 // Bloom is a hash type with 256 bytes.
 type Bloom string
 
-// NewBigInt creates a big number with specified int64 value.
-func NewBigInt(x int64) *hexutil.Big {
-	n1 := big.NewInt(x)
+// NewBigInt creates a big number with specified uint64 value.
+func NewBigInt(x uint64) *hexutil.Big {
+	n1 := new(big.Int).SetUint64(x)
 	n2 := hexutil.Big(*n1)
 	return &n2
 }

@@ -136,7 +136,7 @@ func (mr *MockContractorMockRecorder) SendTransaction(option, method interface{}
 }
 
 // DecodeEvent mocks base method
-func (m *MockContractor) DecodeEvent(out interface{}, event string, log types.LogEntry) error {
+func (m *MockContractor) DecodeEvent(out interface{}, event string, log types.Log) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DecodeEvent", out, event, log)
 	ret0, _ := ret[0].(error)

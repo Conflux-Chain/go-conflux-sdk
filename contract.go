@@ -5,14 +5,13 @@
 package sdk
 
 import (
-	"encoding/hex"
 	"fmt"
-	"strings"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	etypes "github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -75,7 +74,8 @@ func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr
 
 	callRequest := new(types.CallRequest)
 	callRequest.To = contract.Address
-	callRequest.Data = "0x" + hex.EncodeToString(data)
+	hexData := hexutil.Bytes(data).String()
+	callRequest.Data = &hexData
 	callRequest.FillByCallOption(option)
 
 	var epoch *types.Epoch = nil
@@ -144,7 +144,7 @@ func (contract *Contract) SendTransaction(option *types.ContractMethodSendOption
 //
 // please refer https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/README.md to
 // get the mappings of solidity types to go types
-func (contract *Contract) DecodeEvent(out interface{}, event string, log types.LogEntry) error {
+func (contract *Contract) DecodeEvent(out interface{}, event string, log types.Log) error {
 
 	topics := make([]common.Hash, len(log.Topics))
 	for i, v := range log.Topics {
@@ -152,7 +152,7 @@ func (contract *Contract) DecodeEvent(out interface{}, event string, log types.L
 	}
 	eLog := etypes.Log{}
 	eLog.Topics = topics
-	eLog.Data, _ = hex.DecodeString(strings.Replace(log.Data, "0x", "", -1))
+	eLog.Data = []byte(log.Data)
 	// fmt.Printf("elog: %+v\n", eLog)
 
 	addressPtr := new(common.Address)
