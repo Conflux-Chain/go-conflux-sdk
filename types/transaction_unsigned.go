@@ -5,7 +5,6 @@
 package types
 
 import (
-	"fmt"
 	"math/big"
 	"strings"
 
@@ -74,8 +73,7 @@ func (tx *UnsignedTransaction) ApplyDefault() {
 func (tx *UnsignedTransaction) Hash() ([]byte, error) {
 	encoded, err := tx.Encode()
 	if err != nil {
-		msg := fmt.Sprintf("encode tx {%+v} error", tx)
-		return nil, WrapError(err, msg)
+		return nil, err
 	}
 
 	return crypto.Keccak256(encoded), nil
@@ -86,8 +84,7 @@ func (tx *UnsignedTransaction) Encode() ([]byte, error) {
 	data := *tx.toStructForRlp()
 	encoded, err := rlp.EncodeToBytes(data)
 	if err != nil {
-		msg := fmt.Sprintf("encode data {%+v} to bytes error", data)
-		return nil, WrapError(err, msg)
+		return nil, err
 	}
 	return encoded, nil
 }
@@ -107,8 +104,7 @@ func (tx *UnsignedTransaction) Decode(data []byte) error {
 	utxForRlp := new(unsignedTransactionForRlp)
 	err := rlp.DecodeBytes(data, utxForRlp)
 	if err != nil {
-		msg := fmt.Sprintf("decode data {%+x} to rlp error", data)
-		return WrapError(err, msg)
+		return err
 	}
 
 	*tx = *utxForRlp.toUnsignedTransaction()

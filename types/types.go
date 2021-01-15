@@ -5,7 +5,6 @@
 package types
 
 import (
-	"errors"
 	"math/big"
 	"strings"
 	"unicode"
@@ -14,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/pkg/errors"
 )
 
 // Address represents the 20 byte address of an Conflux account in HEX format.
@@ -96,7 +96,7 @@ func (address Address) GetAddressType() (AddressType, error) {
 	// if not lowercase and not equal to checksum address, invalid
 	if strings.ToLower(string(address)) != address.String() {
 		if address != address.Checksum() {
-			return InvalidAddress, errors.New("address checksum fail")
+			return InvalidAddress, errors.New("invalid checksum")
 		}
 	}
 

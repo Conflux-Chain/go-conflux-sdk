@@ -13,6 +13,7 @@ require (
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/valyala/fasthttp v1.13.1
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce
+	github.com/pkg/errors v0.9.1
 )
 
 // replace github.com/ethereum/go-ethereum => ../../ethereum/go-ethereum

@@ -7,8 +7,6 @@ package sdk
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -18,7 +16,10 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/pkg/errors"
 )
+
+const errMsgApplyTxValues = "failed to apply default transaction values"
 
 // Client represents a client to interact with Conflux blockchain.
 type Client struct {
@@ -43,7 +44,7 @@ func NewClientWithRetry(nodeURL string, retryCount int, retryInterval time.Durat
 
 	rpcClient, err := rpc.Dial(nodeURL)
 	if err != nil {
-		return nil, types.WrapError(err, "dail failed")
+		return nil, errors.Wrap(err, "failed to dial to fullnode")
 	}
 
 	if retryCount == 0 {
@@ -94,8 +95,7 @@ func (r *rpcClientWithRetry) Call(resultPtr interface{}, method string, args ...
 		remain--
 		// fmt.Printf("remain retry count: %v\n", remain)
 		if remain == 0 {
-			msg := fmt.Sprintf("timeout when call %v with args %v", method, args)
-			return types.WrapError(err, msg)
+			return errors.Wrap(err, "rpc call timeout")
 		}
 
 		if r.interval > 0 {
@@ -122,8 +122,7 @@ func (r *rpcClientWithRetry) BatchCall(b []rpc.BatchElem) error {
 
 		remain--
 		if remain == 0 {
-			msg := fmt.Sprintf("timeout when batch call %+v", b)
-			return types.WrapError(err, msg)
+			return errors.Wrap(err, "batch rpc call timeout")
 		}
 
 		if r.interval > 0 {
@@ -267,8 +266,7 @@ func (client *Client) GetRawBlockConfirmationRisk(blockhash types.Hash) (risk *h
 func (client *Client) GetBlockConfirmationRisk(blockHash types.Hash) (*big.Float, error) {
 	risk, err := client.GetRawBlockConfirmationRisk(blockHash)
 	if err != nil {
-		msg := fmt.Sprintf("get block confirmation risk by hash %+v error", blockHash)
-		return nil, types.WrapError(err, msg)
+		return nil, err
 	}
 	if risk == nil {
 		return nil, nil
@@ -286,8 +284,7 @@ func (client *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash
 
 	err := client.ApplyUnsignedTransactionDefault(tx)
 	if err != nil {
-		msg := fmt.Sprintf("apply transaction {%+v} default fields error", *tx)
-		return "", types.WrapError(err, msg)
+		return "", errors.Wrap(err, errMsgApplyTxValues)
 	}
 	// fmt.Printf("tx info: %+v", tx)
 	// commet it becasue there are some contract need not pay gas.
@@ -312,21 +309,18 @@ func (client *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash
 
 	//sign
 	if client.accountManager == nil {
-		msg := fmt.Sprintf("sign transaction need account manager, please call SetAccountManager to set it.")
-		return "", errors.New(msg)
+		return "", errors.New("account manager not specified, see SetAccountManager")
 	}
 
 	rawData, err := client.accountManager.SignTransaction(*tx)
 	if err != nil {
-		msg := fmt.Sprintf("sign transaction {%+v} error", *tx)
-		return "", types.WrapError(err, msg)
+		return "", errors.Wrap(err, "failed to sign transaction")
 	}
 
 	//send raw tx
 	txhash, err := client.SendRawTransaction(rawData)
 	if err != nil {
-		msg := fmt.Sprintf("send raw transaction 0x%+x error", rawData)
-		return "", types.WrapError(err, msg)
+		return "", errors.Wrapf(err, "failed to send transaction, raw data = 0x%+x", rawData)
 	}
 	return txhash, nil
 }
@@ -336,8 +330,7 @@ func (client *Client) SendRawTransaction(rawData []byte) (types.Hash, error) {
 	var result interface{}
 
 	if err := client.rpcRequester.Call(&result, "cfx_sendRawTransaction", hexutil.Encode(rawData)); err != nil {
-		msg := fmt.Sprintf("rpc cfx_sendRawTransaction 0x%+x error", rawData)
-		return "", types.WrapError(err, msg)
+		return "", err
 	}
 
 	return types.Hash(result.(string)), nil
@@ -349,15 +342,13 @@ func (client *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r,
 	tx := new(types.UnsignedTransaction)
 	err := tx.Decode(encodedTx)
 	if err != nil {
-		msg := fmt.Sprintf("Decode rlp encoded data {%+v} to unsignTransction error", encodedTx)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrap(err, "failed to decode transaction")
 	}
 	// tx.From = from
 
 	respondTx, err := client.signTransactionAndSend(tx, v, r, s)
 	if err != nil {
-		msg := fmt.Sprintf("sign transaction and send {tx: %+v, r:%+x, s:%+x, v:%v} error", tx, r, s, v)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrapf(err, "failed to sign and send transaction %+v", tx)
 	}
 
 	return respondTx, nil
@@ -366,20 +357,17 @@ func (client *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r,
 func (client *Client) signTransactionAndSend(tx *types.UnsignedTransaction, v byte, r, s []byte) (*types.Transaction, error) {
 	rlp, err := tx.EncodeWithSignature(v, r, s)
 	if err != nil {
-		msg := fmt.Sprintf("encode tx %+v with signature { v:%+x, r:%+x, s:%v} error", tx, v, r, s)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrap(err, "failed to encode transaction with signature")
 	}
 
 	hash, err := client.SendRawTransaction(rlp)
 	if err != nil {
-		msg := fmt.Sprintf("send signed tx %+x error", rlp)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrapf(err, "failed to send transaction, raw data = 0x%+x", rlp)
 	}
 
 	respondTx, err := client.GetTransactionByHash(hash)
 	if err != nil {
-		msg := fmt.Sprintf("get transaction by hash %+v error", hash)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrapf(err, "failed to get transaction by hash %v", hash)
 	}
 	return respondTx, nil
 }
@@ -573,8 +561,7 @@ func (client *Client) CreateUnsignedTransaction(from types.Address, to types.Add
 
 	err := client.ApplyUnsignedTransactionDefault(tx)
 	if err != nil {
-		msg := fmt.Sprintf("apply default field of transaction {%+v} error", tx)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrap(err, errMsgApplyTxValues)
 	}
 
 	return tx, nil
@@ -588,11 +575,11 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 			if client.accountManager != nil {
 				defaultAccount, err := client.accountManager.GetDefault()
 				if err != nil {
-					return types.WrapError(err, "get default account error")
+					return errors.Wrap(err, "failed to get default account")
 				}
 
 				if defaultAccount == nil {
-					return errors.New("no account exist in keystore directory")
+					return errors.New("no account found")
 				}
 				tx.From = defaultAccount
 			}
@@ -601,8 +588,7 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 		if tx.Nonce == nil {
 			nonce, err := client.GetNextNonce(*tx.From, nil)
 			if err != nil {
-				msg := fmt.Sprintf("get nonce of {%+v} error", tx.From)
-				return types.WrapError(err, msg)
+				return errors.Wrap(err, "failed to get nonce")
 			}
 			tmp := hexutil.Big(*nonce)
 			tx.Nonce = &tmp
@@ -620,8 +606,7 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 		if tx.GasPrice == nil {
 			gasPrice, err := client.GetGasPrice()
 			if err != nil {
-				msg := "get gas price error"
-				return types.WrapError(err, msg)
+				return errors.Wrap(err, "failed to get gas price")
 			}
 
 			// conflux responsed gasprice offen be 0, but the min gasprice is 1 when sending transaction, so do this
@@ -635,8 +620,7 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 		if tx.EpochHeight == nil {
 			epoch, err := client.GetEpochNumber(types.EpochLatestState)
 			if err != nil {
-				msg := fmt.Sprintf("get epoch number of {%+v} error", types.EpochLatestState)
-				return types.WrapError(err, msg)
+				return errors.Wrap(err, "failed to get the latest state epoch number")
 			}
 			// tx.EpochHeight = (*hexutil.Big)(epoch).toi
 			tx.EpochHeight = types.NewUint64(epoch.ToInt().Uint64())
@@ -649,8 +633,7 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 
 			sm, err := client.EstimateGasAndCollateral(*callReq)
 			if err != nil {
-				msg := fmt.Sprintf("get estimate gas and collateral by {%+v} error", *callReq)
-				return types.WrapError(err, msg)
+				return errors.Wrapf(err, "failed to estimate gas and collateral, request = %+v", *callReq)
 			}
 
 			// fmt.Printf("callreq, %+v,sm:%+v\n", *callReq, sm)
@@ -689,8 +672,7 @@ func (client *Client) DeployContract(option *types.ContractDeployOption, abiJSON
 		var abi abi.ABI
 		err := abi.UnmarshalJSON([]byte(abiJSON))
 		if err != nil {
-			msg := fmt.Sprintf("unmarshal json {%+v} to ABI error", abiJSON)
-			result.Error = types.WrapError(err, msg)
+			result.Error = errors.Errorf("failed to unmarshal ABI: %+v", abiJSON)
 			return
 		}
 
@@ -703,8 +685,7 @@ func (client *Client) DeployContract(option *types.ContractDeployOption, abiJSON
 		if len(constroctorParams) > 0 {
 			input, err := abi.Pack("", constroctorParams...)
 			if err != nil {
-				msg := fmt.Sprintf("encode constrctor with args %+v error", constroctorParams)
-				result.Error = types.WrapError(err, msg)
+				result.Error = errors.Wrapf(err, "failed to encode constructor with args %+v", constroctorParams)
 				return
 			}
 
@@ -715,8 +696,7 @@ func (client *Client) DeployContract(option *types.ContractDeployOption, abiJSON
 		//deploy contract
 		txhash, err := client.SendTransaction(tx)
 		if err != nil {
-			msg := fmt.Sprintf("send transaction {%+v} error", tx)
-			result.Error = types.WrapError(err, msg)
+			result.Error = errors.Wrapf(err, "failed to send transaction, tx = %+v", tx)
 			return
 		}
 		result.TransactionHash = &txhash
@@ -733,22 +713,19 @@ func (client *Client) DeployContract(option *types.ContractDeployOption, abiJSON
 			select {
 			// Got a timeout! fail with a timeout error
 			case t := <-timeout:
-				msg := fmt.Sprintf("deploy contract time out after %v, txhash is %+v", t, txhash)
-				result.Error = errors.New(msg)
+				result.Error = errors.Errorf("deploy contract timeout, time = %v, txhash = %v", t, txhash)
 				return
 			// Got a tick
 			case <-ticker:
 				transaction, err := client.GetTransactionByHash(txhash)
 				if err != nil {
-					msg := fmt.Sprintf("get transaction receipt of txhash %+v error", txhash)
-					result.Error = types.WrapError(err, msg)
+					result.Error = errors.Wrapf(err, "failed to get transaction by hash %v", txhash)
 					return
 				}
 
 				if transaction.Status != nil {
 					if *transaction.Status == 1 {
-						msg := fmt.Sprintf("transaction is packed but it is failed,the txhash is %+v", txhash)
-						result.Error = errors.New(msg)
+						result.Error = errors.Errorf("transaction execution failed, hash = %v", txhash)
 						return
 					}
 
@@ -766,8 +743,7 @@ func (client *Client) GetContract(abiJSON []byte, deployedAt *types.Address) (*C
 	var abi abi.ABI
 	err := abi.UnmarshalJSON([]byte(abiJSON))
 	if err != nil {
-		msg := fmt.Sprintf("unmarshal json {%+v} to ABI error", abiJSON)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrap(err, "failed unmarshal ABI")
 	}
 
 	contract := &Contract{abi, client, deployedAt}
@@ -1001,7 +977,7 @@ func (client *Client) WaitForTransationBePacked(txhash types.Hash, duration time
 		var err error
 		tx, err = client.GetTransactionByHash(txhash)
 		if err != nil {
-			return nil, types.WrapError(err, "wait for tx be packed error")
+			return nil, errors.Wrapf(err, "failed to get transaction by hash %v", txhash)
 		}
 
 		if tx.Status != nil {
@@ -1025,7 +1001,7 @@ func (client *Client) WaitForTransationReceipt(txhash types.Hash, duration time.
 		var err error
 		txReceipt, err = client.GetTransactionReceipt(txhash)
 		if err != nil {
-			return nil, types.WrapError(err, "wait for tx receipt error")
+			return nil, errors.Wrap(err, "failed to get transaction receipt")
 		}
 
 		if txReceipt != nil {
@@ -1037,12 +1013,7 @@ func (client *Client) WaitForTransationReceipt(txhash types.Hash, duration time.
 
 func (client *Client) wrappedCallRPC(result interface{}, method string, args ...interface{}) error {
 	fmtedArgs := genRPCParams(args...)
-	if err := client.CallRPC(result, method, fmtedArgs...); err != nil {
-		msg := fmt.Sprintf("rpc request method: %v with args: %v error\n", method, fmtedArgs)
-		return types.WrapError(err, msg)
-	}
-	// fmt.Printf("rpcRequesterCall method %+v with args %+v: %+v\n", method, fmtedArgs, result)
-	return nil
+	return client.CallRPC(result, method, fmtedArgs...)
 }
 
 func genRPCParams(args ...interface{}) []interface{} {
@@ -1060,13 +1031,11 @@ func genRPCParams(args ...interface{}) []interface{} {
 func unmarshalRPCResult(result interface{}, v interface{}) error {
 	encoded, err := json.Marshal(result)
 	if err != nil {
-		msg := fmt.Sprintf("json marshal %v error", result)
-		return types.WrapError(err, msg)
+		return errors.Wrap(err, "failed to marshal RPC result to JSON")
 	}
 
 	if err = json.Unmarshal(encoded, v); err != nil {
-		msg := fmt.Sprintf("json unmarshal 0x%x error", encoded)
-		return types.WrapError(err, msg)
+		return errors.Wrap(err, "failed to unmarshal JSON to RPC result")
 	}
 
 	return nil

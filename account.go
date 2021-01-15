@@ -8,8 +8,6 @@ import (
 	"crypto/ecdsa"
 	crand "crypto/rand"
 	"encoding/hex"
-	"errors"
-	"fmt"
 	"io/ioutil"
 	"strings"
 	"time"
@@ -19,8 +17,15 @@ import (
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/pkg/errors"
+)
+
+const (
+	errMsgFromAddressEmpty = "from address not specified"
+	errMsgCalculateTxHash  = "failed to calculate tx hash"
+	errMsgSignTx           = "failed to sign tx hash"
+	errMsgEncodeSignature  = "failed to encode tx signature"
 )
 
 // AccountManager manages Conflux accounts.
@@ -50,8 +55,7 @@ func NewAccountManager(keydir string) *AccountManager {
 func (m *AccountManager) Create(passphrase string) (types.Address, error) {
 	account, err := m.ks.NewAccount(passphrase)
 	if err != nil {
-		msg := fmt.Sprintf("create account with passphrase %+v error", passphrase)
-		return "", types.WrapError(err, msg)
+		return "", err
 	}
 
 	cfxAddress := utils.ToCfxGeneralAddress(account.Address)
@@ -84,24 +88,21 @@ func (m *AccountManager) CreateEthCompatible(passphrase string) (types.Address, 
 func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (types.Address, error) {
 	keyJSON, err := ioutil.ReadFile(keyFile)
 	if err != nil {
-		msg := fmt.Sprintf("read file %+v error", keyFile)
-		return "", types.WrapError(err, msg)
+		return "", errors.Wrapf(err, "failed to read key file %v", keyFile)
 	}
 
 	key, err := keystore.DecryptKey(keyJSON, passphrase)
 	if err != nil {
-		msg := fmt.Sprintf("decrypt key %+v with passphrase %+v error", keyJSON, passphrase)
-		return "", types.WrapError(err, msg)
+		return "", errors.Wrap(err, "failed to decrypt key with passphrase")
 	}
 
 	if m.ks.HasAddress(key.Address) {
-		return "", fmt.Errorf("account already exists: %s", hexutil.Encode(key.Address.Bytes()))
+		return "", errors.Errorf("account already exists: %v", key.Address.String())
 	}
 
 	account, err := m.ks.Import(keyJSON, passphrase, newPassphrase)
 	if err != nil {
-		msg := fmt.Sprintf("import account by keystore {%+v}, passphrase %+v, new passphrase %+v error", keyJSON, passphrase, newPassphrase)
-		return "", types.WrapError(err, msg)
+		return "", errors.Wrap(err, "failed to import account into keystore")
 	}
 
 	cfxAddress := utils.ToCfxGeneralAddress(account.Address)
@@ -117,14 +118,12 @@ func (m *AccountManager) ImportKey(keyString string, passphrase string) (types.A
 
 	privateKey, err := crypto.HexToECDSA(keyString)
 	if err != nil {
-		msg := fmt.Sprintf("convert hexstring %v to private key error", keyString)
-		return "", types.WrapError(err, msg)
+		return "", errors.Wrap(err, "invalid HEX format of private key")
 	}
 
 	account, err := m.ks.ImportECDSA(privateKey, passphrase)
 	if err != nil {
-		msg := fmt.Sprintf("import account by privatkey {%+v}, passphrase %+v error", keyString, passphrase)
-		return "", types.WrapError(err, msg)
+		return "", errors.Wrap(err, "failed to import private key into keystore")
 	}
 
 	cfxAddress := utils.ToCfxGeneralAddress(account.Address)
@@ -142,13 +141,12 @@ func (m *AccountManager) Export(address types.Address, passphrase string) (strin
 
 	keyjson, err := m.ks.Export(*a, passphrase, passphrase)
 	if err != nil {
-		msg := fmt.Sprintf("export address %v to json error", address)
-		return "", types.WrapError(err, msg)
+		return "", errors.Wrap(err, "failed to export account")
 	}
 
 	key, err := keystore.DecryptKey(keyjson, passphrase)
 	if err != nil {
-		return "", types.WrapError(err, "decrypt keyjson error")
+		return "", errors.Wrap(err, "failed to decrypt key file")
 	}
 
 	keystr := hex.EncodeToString(crypto.FromECDSA(key.PrivateKey))
@@ -191,8 +189,8 @@ func (m *AccountManager) GetDefault() (*types.Address, error) {
 	if len(list) > 0 {
 		return &list[0], nil
 	}
-	msg := fmt.Sprintf("no account exist in keystore directory")
-	return nil, errors.New(msg)
+
+	return nil, errors.New("no account found")
 }
 
 func (m *AccountManager) account(address types.Address) (*accounts.Account, error) {
@@ -222,7 +220,7 @@ func (m *AccountManager) Unlock(address types.Address, passphrase string) error 
 func (m *AccountManager) UnlockDefault(passphrase string) error {
 	defaultAccount, err := m.GetDefault()
 	if err != nil {
-		return types.WrapError(err, "get default account error")
+		return err
 	}
 	return m.Unlock(*defaultAccount, passphrase)
 }
@@ -240,7 +238,7 @@ func (m *AccountManager) TimedUnlock(address types.Address, passphrase string, t
 func (m *AccountManager) TimedUnlockDefault(passphrase string, timeout time.Duration) error {
 	defaultAccount, err := m.GetDefault()
 	if err != nil {
-		return types.WrapError(err, "get default account error")
+		return err
 	}
 	return m.TimedUnlock(*defaultAccount, passphrase, timeout)
 }
@@ -254,7 +252,7 @@ func (m *AccountManager) Lock(address types.Address) error {
 func (m *AccountManager) SignTransaction(tx types.UnsignedTransaction) ([]byte, error) {
 	// tx.ApplyDefault()
 	if tx.From == nil {
-		return nil, errors.New("From is empty, it is necessary for sign")
+		return nil, errors.New(errMsgFromAddressEmpty)
 	}
 
 	account, err := m.account(*tx.From)
@@ -264,20 +262,17 @@ func (m *AccountManager) SignTransaction(tx types.UnsignedTransaction) ([]byte, 
 
 	hash, err := tx.Hash()
 	if err != nil {
-		msg := fmt.Sprintf("calculate tx hash of %+v error", tx)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrap(err, errMsgCalculateTxHash)
 	}
 
 	sig, err := m.ks.SignHash(*account, hash)
 	if err != nil {
-		msg := fmt.Sprintf("sign tx hash {%+x} by account %+v error", hash, account)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrap(err, errMsgSignTx)
 	}
 
 	encoded, err := tx.EncodeWithSignature(sig[64], sig[0:32], sig[32:64])
 	if err != nil {
-		msg := fmt.Sprintf("encode tx %+v with signature %+v error", tx, sig)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrap(err, errMsgEncodeSignature)
 	}
 
 	return encoded, nil
@@ -287,7 +282,7 @@ func (m *AccountManager) SignTransaction(tx types.UnsignedTransaction) ([]byte, 
 func (m *AccountManager) SignAndEcodeTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) ([]byte, error) {
 	// tx.ApplyDefault()
 	if tx.From == nil {
-		return nil, errors.New("From is empty, it is necessary for sign")
+		return nil, errors.New(errMsgFromAddressEmpty)
 	}
 
 	account, err := m.account(*tx.From)
@@ -297,20 +292,17 @@ func (m *AccountManager) SignAndEcodeTransactionWithPassphrase(tx types.Unsigned
 
 	hash, err := tx.Hash()
 	if err != nil {
-		msg := fmt.Sprintf("calculate tx hash of %+v error", tx)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrap(err, errMsgCalculateTxHash)
 	}
 
 	sig, err := m.ks.SignHashWithPassphrase(*account, passphrase, hash)
 	if err != nil {
-		msg := fmt.Sprintf("sign tx hash {%+x} by account %+v with passphrase %+v error", hash, account, passphrase)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrap(err, errMsgSignTx)
 	}
 
 	encoded, err := tx.EncodeWithSignature(sig[64], sig[0:32], sig[32:64])
 	if err != nil {
-		msg := fmt.Sprintf("encode tx %+v with signature %+v error", tx, sig)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrap(err, errMsgEncodeSignature)
 	}
 
 	return encoded, nil
@@ -320,7 +312,7 @@ func (m *AccountManager) SignAndEcodeTransactionWithPassphrase(tx types.Unsigned
 func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) (*types.SignedTransaction, error) {
 	// tx.ApplyDefault()
 	if tx.From == nil {
-		return nil, errors.New("From is empty, it is necessary for sign")
+		return nil, errors.New(errMsgFromAddressEmpty)
 	}
 
 	account, err := m.account(*tx.From)
@@ -330,14 +322,12 @@ func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransact
 
 	hash, err := tx.Hash()
 	if err != nil {
-		msg := fmt.Sprintf("calculate tx hash of %+v error", tx)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrap(err, errMsgCalculateTxHash)
 	}
 
 	sig, err := m.ks.SignHashWithPassphrase(*account, passphrase, hash)
 	if err != nil {
-		msg := fmt.Sprintf("sign tx hash {%+x} by account %+v with passphrase %+v error", hash, account, passphrase)
-		return nil, types.WrapError(err, msg)
+		return nil, errors.Wrap(err, errMsgSignTx)
 	}
 
 	signdTx := new(types.SignedTransaction)
@@ -353,7 +343,7 @@ func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransact
 func (m *AccountManager) Sign(tx types.UnsignedTransaction, passphrase string) (v byte, r, s []byte, err error) {
 	// tx.ApplyDefault()
 	if tx.From == nil {
-		return 0, nil, nil, errors.New("From is empty, it is necessary for sign")
+		return 0, nil, nil, errors.New(errMsgFromAddressEmpty)
 	}
 
 	account, err := m.account(*tx.From)
@@ -363,14 +353,12 @@ func (m *AccountManager) Sign(tx types.UnsignedTransaction, passphrase string) (
 
 	hash, err := tx.Hash()
 	if err != nil {
-		msg := fmt.Sprintf("calculate tx hash of %+v error", tx)
-		return 0, nil, nil, types.WrapError(err, msg)
+		return 0, nil, nil, errors.Wrap(err, errMsgCalculateTxHash)
 	}
 
 	sig, err := m.ks.SignHashWithPassphrase(*account, passphrase, hash)
 	if err != nil {
-		msg := fmt.Sprintf("sign tx hash {%+x} by account %+v with passphrase %+v error", hash, account, passphrase)
-		return 0, nil, nil, types.WrapError(err, msg)
+		return 0, nil, nil, errors.Wrap(err, errMsgSignTx)
 	}
 	v = sig[64]
 	r = sig[0:32]
