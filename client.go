@@ -28,7 +28,7 @@ type Client struct {
 	AccountManager AccountManagerOperator
 	nodeURL        string
 	rpcRequester   rpcRequester
-	chainID        uint32
+	networkID      uint32
 }
 
 type ClientOption struct {
@@ -87,13 +87,13 @@ func newClientWithRetry(nodeURL string, keystorePath string, retryCount int, ret
 		}
 	}
 
-	client.chainID, err = client.GetChainID()
+	client.networkID, err = client.GetNetworkID()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get chainID")
+		return nil, errors.Wrap(err, "failed to get networkID")
 	}
 
 	if keystorePath != "" {
-		am := NewAccountManager(keystorePath, client.chainID)
+		am := NewAccountManager(keystorePath, client.networkID)
 		client.SetAccountManager(am)
 	}
 
@@ -149,13 +149,13 @@ func (client *Client) GetStatus() (status types.Status, err error) {
 	return
 }
 
-// GetChainID returns chainID of connecting conflux node
-func (client *Client) GetChainID() (uint32, error) {
+// GetNetworkID returns networkID of connecting conflux node
+func (client *Client) GetNetworkID() (uint32, error) {
 	status, err := client.GetStatus()
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get status")
 	}
-	return uint32(*status.ChainID), nil
+	return uint32(*status.NetworkID), nil
 }
 
 // GetEpochNumber returns the highest or specified epoch number.
@@ -552,8 +552,8 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 				tx.From = defaultAccount
 			}
 		}
-		tx.From.CompleteAddressByChainID(client.chainID)
-		tx.To.CompleteAddressByChainID(client.chainID)
+		tx.From.CompleteAddressByNetworkID(client.networkID)
+		tx.To.CompleteAddressByNetworkID(client.networkID)
 
 		if tx.Nonce == nil {
 			nonce, err := client.GetNextNonce(*tx.From, nil)
@@ -996,26 +996,26 @@ func (client *Client) genRPCParams(args ...interface{}) []interface{} {
 			// fmt.Printf("typeof %v is %v\n", args[i], t)
 			if t == reflect.TypeOf(cfxaddress.Address{}) {
 				tmp := args[i].(cfxaddress.Address)
-				tmp.CompleteAddressByChainID(client.chainID)
-				// fmt.Printf("complete by chainID,%v", client.chainID)
+				tmp.CompleteAddressByNetworkID(client.networkID)
+				// fmt.Printf("complete by networkID,%v", client.networkID)
 			}
 
 			if t == reflect.TypeOf(&cfxaddress.Address{}) {
 				tmp := args[i].(*cfxaddress.Address)
-				tmp.CompleteAddressByChainID(client.chainID)
-				// fmt.Printf("complete by chainID,%v", client.chainID)
+				tmp.CompleteAddressByNetworkID(client.networkID)
+				// fmt.Printf("complete by networkID,%v", client.networkID)
 			}
 
 			if t == reflect.TypeOf(types.CallRequest{}) {
 				tmp := args[i].(types.CallRequest)
-				tmp.From.CompleteAddressByChainID(client.chainID)
-				tmp.To.CompleteAddressByChainID(client.chainID)
+				tmp.From.CompleteAddressByNetworkID(client.networkID)
+				tmp.To.CompleteAddressByNetworkID(client.networkID)
 			}
 
 			if t == reflect.TypeOf(&types.CallRequest{}) {
 				tmp := args[i].(*types.CallRequest)
-				tmp.From.CompleteAddressByChainID(client.chainID)
-				tmp.To.CompleteAddressByChainID(client.chainID)
+				tmp.From.CompleteAddressByNetworkID(client.networkID)
+				tmp.To.CompleteAddressByNetworkID(client.networkID)
 			}
 
 			params = append(params, args[i])

@@ -92,7 +92,7 @@ func NewAddressFromBase32(base32Str string) (cfxAddress Address, err error) {
 // NewAddressFromHex encode hex address with networkID to base32 address according to CIP37
 // INPUT: an addr (20-byte conflux-hex-address), a network-id (4 bytes)
 // OUTPUT: a conflux-base32-address
-func NewAddressFromHex(hexAddressStr string, chainID ...uint32) (val Address, err error) {
+func NewAddressFromHex(hexAddressStr string, networkID ...uint32) (val Address, err error) {
 	if hexAddressStr[0:2] == "0x" {
 		hexAddressStr = hexAddressStr[2:]
 	}
@@ -102,23 +102,23 @@ func NewAddressFromHex(hexAddressStr string, chainID ...uint32) (val Address, er
 		return val, errors.Wrapf(err, "failed to decode address string %x to hex", hexAddressStr)
 	}
 
-	return newAddressFromBytes(hexAddress, chainID...)
+	return newAddressFromBytes(hexAddress, networkID...)
 }
 
 // MustNewAddressFromHex ...
-func MustNewAddressFromHex(hexAddressStr string, chainID ...uint32) (val Address) {
-	addr, err := NewAddressFromHex(hexAddressStr, get1stChainIDIfy(chainID))
-	PanicIfErrf(err, "input hex address:%v, chainID:%v", hexAddressStr, chainID)
+func MustNewAddressFromHex(hexAddressStr string, networkID ...uint32) (val Address) {
+	addr, err := NewAddressFromHex(hexAddressStr, get1stNetworkIDIfy(networkID))
+	PanicIfErrf(err, "input hex address:%v, networkID:%v", hexAddressStr, networkID)
 	return addr
 }
 
 // NewAddressFromCommon creates an address from common.Address
-func NewAddressFromCommon(commonAddress common.Address, chainID ...uint32) (val Address, err error) {
-	return newAddressFromBytes(commonAddress.Bytes(), chainID...)
+func NewAddressFromCommon(commonAddress common.Address, networkID ...uint32) (val Address, err error) {
+	return newAddressFromBytes(commonAddress.Bytes(), networkID...)
 }
 
-func newAddressFromBytes(hexAddress []byte, chainID ...uint32) (val Address, err error) {
-	val.NetworkType = NewNetworkTypeByID(get1stChainIDIfy(chainID))
+func newAddressFromBytes(hexAddress []byte, networkID ...uint32) (val Address, err error) {
+	val.NetworkType = NewNetworkTypeByID(get1stNetworkIDIfy(networkID))
 	val.AddressType, err = CalcAddressType(hexAddress)
 
 	if err != nil {
@@ -143,9 +143,9 @@ func newAddressFromBytes(hexAddress []byte, chainID ...uint32) (val Address, err
 }
 
 // MustNewAddressFromCommon ...
-func MustNewAddressFromCommon(commonAddress common.Address, chainID ...uint32) (address Address) {
-	addr, err := NewAddressFromCommon(commonAddress, get1stChainIDIfy(chainID))
-	PanicIfErrf(err, "input common address:%x, chainID:%v", commonAddress, chainID)
+func MustNewAddressFromCommon(commonAddress common.Address, networkID ...uint32) (address Address) {
+	addr, err := NewAddressFromCommon(commonAddress, get1stNetworkIDIfy(networkID))
+	PanicIfErrf(err, "input common address:%x, networkID:%v", commonAddress, networkID)
 	return addr
 }
 
@@ -178,8 +178,8 @@ func (a *Address) ToHexAddress() (hexAddressStr string, networkID uint32, err er
 }
 
 // ToCommonAddress converts address to common.Address
-func (a *Address) ToCommonAddress() (address common.Address, chainID uint32, err error) {
-	hexAddr, chainID, err := a.ToHexAddress()
+func (a *Address) ToCommonAddress() (address common.Address, networkID uint32, err error) {
+	hexAddr, networkID, err := a.ToHexAddress()
 	if err != nil {
 		err = errors.Wrap(err, "failed to get hex address")
 		return
@@ -208,24 +208,24 @@ func (a *Address) MustGetCommonAddress() common.Address {
 }
 
 // CompleteAddressByClient ...
-func (a *Address) CompleteAddressByClient(client ChainIDGetter) error {
-	chainID, err := client.GetChainID()
+func (a *Address) CompleteAddressByClient(client NetworkIDGetter) error {
+	networkID, err := client.GetNetworkID()
 	if err != nil {
-		return errors.Wrapf(err, "failed to get chainID")
+		return errors.Wrapf(err, "failed to get networkID")
 	}
-	a.CompleteAddressByChainID(chainID)
+	a.CompleteAddressByNetworkID(networkID)
 	return nil
 }
 
-// CompleteAddressByChainID ...
-func (a *Address) CompleteAddressByChainID(chainID uint32) error {
+// CompleteAddressByNetworkID ...
+func (a *Address) CompleteAddressByNetworkID(networkID uint32) error {
 	if a == nil {
 		return nil
 	}
 
 	id, err := a.NetworkType.ToNetworkID()
 	if err != nil || id == 0 {
-		a.NetworkType = NewNetworkTypeByID(chainID)
+		a.NetworkType = NewNetworkTypeByID(networkID)
 		a.Checksum, err = CalcChecksum(a.NetworkType, a.Body)
 		if err != nil {
 			return errors.Wrapf(err, "failed to calc checksum by network type %v and body %v", a.NetworkType, a.Body)
@@ -280,14 +280,14 @@ func PanicIfErr(err error, msg string) {
 	}
 }
 
-func get1stChainIDIfy(chainID []uint32) uint32 {
-	if len(chainID) > 0 {
-		return chainID[0]
+func get1stNetworkIDIfy(networkID []uint32) uint32 {
+	if len(networkID) > 0 {
+		return networkID[0]
 	}
 	return 0
 }
 
-// ChainIDGetter ...
-type ChainIDGetter interface {
-	GetChainID() (uint32, error)
+// NetworkIDGetter ...
+type NetworkIDGetter interface {
+	GetNetworkID() (uint32, error)
 }

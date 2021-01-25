@@ -52,6 +52,7 @@ type Status struct {
 	BestHash        *Hash           `json:"bestHash"`
 	BlockNumber     *hexutil.Uint64 `json:"blockNumber"`
 	ChainID         *hexutil.Uint   `json:"chainId"`
+	NetworkID       *hexutil.Uint   `json:"networkId"`
 	EpochNumber     *hexutil.Uint64 `json:"epochNumber"`
 	PendingTxNumber *hexutil.Uint64 `json:"pendingTxNumber"`
 }

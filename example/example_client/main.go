@@ -352,7 +352,7 @@ func sendRawTransaction() {
 
 func createAndSendUnsignedTransaction() {
 	//send transaction
-	chainID, err := client.GetChainID()
+	chainID, err := client.GetNetworkID()
 	context.PanicIfErrf(err, "failed to get chainID")
 	utx, err := client.CreateUnsignedTransaction(*defaultAccount, cfxaddress.MustNewAddressFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d", chainID), types.NewBigInt(1000000), nil)
 	if err != nil {

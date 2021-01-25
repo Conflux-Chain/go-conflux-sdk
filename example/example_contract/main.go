@@ -59,7 +59,7 @@ func main() {
 	// }
 
 	//get data for send/call contract method
-	chainID, err := contract.Client.GetChainID()
+	chainID, err := contract.Client.GetNetworkID()
 	context.PanicIfErrf(err, "failed to get chainID")
 	user := cfxaddress.MustNewAddressFromHex("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302", chainID)
 	data, err := contract.GetData("balanceOf", user.MustGetCommonAddress())

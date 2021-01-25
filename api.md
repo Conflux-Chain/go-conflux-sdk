@@ -441,7 +441,7 @@ GetBlocksByEpoch returns the blocks hash in the specified epoch.
 #### func (*Client) GetChainID
 
 ```go
-func (client *Client) GetChainID() (uint32, error)
+func (client *Client) GetNetworkID() (uint32, error)
 ```
 GetChainID returns chainID of connecting conflux node
 

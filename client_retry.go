@@ -25,7 +25,7 @@ func (r *rpcClientWithRetry) Call(resultPtr interface{}, method string, args ...
 			return nil
 		}
 
-		if types.IsRpcJsonError(err) {
+		if types.IsRPCJSONError(err) {
 			return err
 		}
 
