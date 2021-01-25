@@ -6,14 +6,17 @@ import (
 	"github.com/pkg/errors"
 )
 
-// IsRpcJsonError returns true if err is rpc error
-func IsRpcJsonError(err error) bool {
-	// get the underlying error in case of error wrapped
-	if err = errors.Cause(err); err == nil {
+// IsRPCJSONError returns true if err is rpc error
+func IsRPCJSONError(err error) bool {
+	t := reflect.TypeOf(err).String()
+
+	if t == "*rpc.jsonError" {
+		return true
+	}
+
+	if errors.Cause(err) == err {
 		return false
 	}
 
-	t := reflect.TypeOf(err).String()
-
-	return t == "*rpc.jsonError"
+	return IsRPCJSONError(errors.Cause(err))
 }
