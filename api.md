@@ -438,13 +438,6 @@ func (client *Client) GetBlocksByEpoch(epoch *types.Epoch) (blockHashes []types.
 ```
 GetBlocksByEpoch returns the blocks hash in the specified epoch.
 
-#### func (*Client) GetChainID
-
-```go
-func (client *Client) GetNetworkID() (uint32, error)
-```
-GetChainID returns chainID of connecting conflux node
-
 #### func (*Client) GetClientVersion
 
 ```go
@@ -508,6 +501,13 @@ GetInterestRate returns interest rate of the given epoch
 func (client *Client) GetLogs(filter types.LogFilter) (logs []types.Log, err error)
 ```
 GetLogs returns logs that matching the specified filter.
+
+#### func (*Client) GetNetworkID
+
+```go
+func (client *Client) GetNetworkID() (uint32, error)
+```
+GetNetworkID returns networkID of connecting conflux node
 
 #### func (*Client) GetNextNonce
 
