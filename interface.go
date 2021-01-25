@@ -33,6 +33,7 @@ type ClientOperator interface {
 	GetGasPrice() (*hexutil.Big, error)
 	GetNextNonce(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, error)
 	GetStatus() (types.Status, error)
+	GetChainID() (uint32, error)
 	GetEpochNumber(epoch ...*types.Epoch) (*hexutil.Big, error)
 	GetBalance(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, error)
 	GetCode(address types.Address, epoch ...*types.Epoch) (string, error)

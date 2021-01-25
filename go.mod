@@ -10,10 +10,10 @@ require (
 	github.com/ethereum/go-ethereum v1.9.14
 	github.com/golang/mock v1.4.3
 	github.com/gorilla/websocket v1.4.1-0.20190629185528-ae1634f6a989
+	github.com/pkg/errors v0.9.1
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/valyala/fasthttp v1.13.1
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce
-	github.com/pkg/errors v0.9.1
 )
 
 // replace github.com/ethereum/go-ethereum => ../../ethereum/go-ethereum

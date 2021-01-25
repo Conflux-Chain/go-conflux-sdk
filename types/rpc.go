@@ -72,9 +72,10 @@ type CheckBalanceAgainstTransactionResponse struct {
 }
 
 type TokenSupplyInfo struct {
-	TotalIssued     *hexutil.Big `json:"totalIssued"`
-	TotalStaking    *hexutil.Big `json:"totalStaking"`
-	TotalCollateral *hexutil.Big `json:"totalCollateral"`
+	TotalCirculating *hexutil.Big `json:"totalCirculating"`
+	TotalIssued      *hexutil.Big `json:"totalIssued"`
+	TotalStaking     *hexutil.Big `json:"totalStaking"`
+	TotalCollateral  *hexutil.Big `json:"totalCollateral"`
 }
 
 type ChainReorg struct {

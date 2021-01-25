@@ -6,8 +6,8 @@ package types
 
 import (
 	"math/big"
-	"strings"
 
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -114,7 +114,7 @@ func (tx *UnsignedTransaction) Decode(data []byte) error {
 func (tx *UnsignedTransaction) toStructForRlp() *unsignedTransactionForRlp {
 	var to *common.Address
 	if tx.To != nil {
-		addr := common.HexToAddress(string(*tx.To))
+		addr := tx.To.MustGetCommonAddress()
 		to = &addr
 	}
 
@@ -132,7 +132,7 @@ func (tx *UnsignedTransaction) toStructForRlp() *unsignedTransactionForRlp {
 }
 
 func (tx *unsignedTransactionForRlp) toUnsignedTransaction() *UnsignedTransaction {
-	to := Address(strings.ToLower(tx.To.Hex()))
+	to := cfxaddress.MustNewAddressFromCommon(*tx.To, uint32(*tx.ChainID))
 	gasPrice := hexutil.Big(*tx.GasPrice)
 	value := hexutil.Big(*tx.Value)
 	storageLimit := tx.StorageLimit

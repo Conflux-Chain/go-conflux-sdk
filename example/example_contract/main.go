@@ -11,7 +11,7 @@ import (
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/example/context"
-	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -59,8 +59,10 @@ func main() {
 	// }
 
 	//get data for send/call contract method
-	user := types.Address("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302")
-	data, err := contract.GetData("balanceOf", user.ToCommonAddress())
+	chainID, err := contract.Client.GetChainID()
+	context.PanicIfErrf(err, "failed to get chainID")
+	user := cfxaddress.MustNewAddressFromHex("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302", chainID)
+	data, err := contract.GetData("balanceOf", user.MustGetCommonAddress())
 	if err != nil {
 		panic(err)
 	}
@@ -69,7 +71,7 @@ func main() {
 	//call contract method
 	//Note: the output struct type need match method output type of ABI, go type "*big.Int" match abi type "uint256", go type "struct{Balance *big.Int}" match abi tuple type "(balance uint256)"
 	balance := &struct{ Balance *big.Int }{}
-	err = contract.Call(nil, balance, "balanceOf", user.ToCommonAddress())
+	err = contract.Call(nil, balance, "balanceOf", user.MustGetCommonAddress())
 	if err != nil {
 		panic(err)
 	}
@@ -81,25 +83,25 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("name of address %v in contract is: %+v\n\n", user, name)
+	fmt.Printf("name of contract is: %+v\n\n", name)
 
 	symbol := ""
 	err = contract.Call(nil, &symbol, "symbol")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("symbol of address %v in contract is: %+v\n\n", user, name)
+	fmt.Printf("symbol of contract is: %+v\n\n", name)
 
 	decimals := uint8(0)
 	err = contract.Call(nil, &decimals, "decimals")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("decimals of address %v in contract is: %+v\n\n", user, decimals)
+	fmt.Printf("decimals of contract is: %+v\n\n", decimals)
 
 	//send transction for contract method
-	to := types.Address("0x160ebef20c1f739957bf9eecd040bce699cc42c6")
-	txhash, err := contract.SendTransaction(nil, "transfer", to.ToCommonAddress(), big.NewInt(10))
+	to := cfxaddress.MustNewAddressFromHex("0x160ebef20c1f739957bf9eecd040bce699cc42c6")
+	txhash, err := contract.SendTransaction(nil, "transfer", to.MustGetCommonAddress(), big.NewInt(10))
 	if err != nil {
 		panic(err)
 	}

@@ -9,14 +9,13 @@ import (
 	crand "crypto/rand"
 	"encoding/hex"
 	"io/ioutil"
-	"strings"
 	"time"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/pkg/errors"
 )
@@ -32,43 +31,44 @@ const (
 type AccountManager struct {
 	ks            *keystore.KeyStore
 	cfxAddressDic map[string]*accounts.Account
+	chainID       uint32
 }
 
 // NewAccountManager creates an instance of AccountManager
 // based on the keystore directory "keydir".
-func NewAccountManager(keydir string) *AccountManager {
+func NewAccountManager(keydir string, chainID uint32) *AccountManager {
 	am := new(AccountManager)
+	am.chainID = chainID
 
 	am.ks = keystore.NewKeyStore(keydir, keystore.StandardScryptN, keystore.StandardScryptP)
 	am.cfxAddressDic = make(map[string]*accounts.Account)
 
 	for _, account := range am.ks.Accounts() {
-		cfxAddress := utils.ToCfxGeneralAddress(account.Address)
-		tmp := account
-		am.cfxAddressDic[string(cfxAddress)] = &tmp
+		addr := getCfxUserAddress(account, chainID)
+		am.cfxAddressDic[addr.MustGetHexAddress()] = &account
 	}
 
 	return am
 }
 
 // Create creates a new account and puts the keystore file into keystore directory
-func (m *AccountManager) Create(passphrase string) (types.Address, error) {
+func (m *AccountManager) Create(passphrase string) (address types.Address, err error) {
 	account, err := m.ks.NewAccount(passphrase)
 	if err != nil {
-		return "", err
+		return address, err
 	}
 
-	cfxAddress := utils.ToCfxGeneralAddress(account.Address)
-	m.cfxAddressDic[string(cfxAddress)] = &account
-	return cfxAddress, nil
+	addr := getCfxUserAddress(account, m.chainID)
+	m.cfxAddressDic[addr.MustGetHexAddress()] = &account
+	return addr, nil
 }
 
 // CreateEthCompatible creates a new account compatible with eth and puts the keystore file into keystore directory
-func (m *AccountManager) CreateEthCompatible(passphrase string) (types.Address, error) {
+func (m *AccountManager) CreateEthCompatible(passphrase string) (address types.Address, err error) {
 	for {
 		privateKeyECDSA, err := ecdsa.GenerateKey(crypto.S256(), crand.Reader)
 		if err != nil {
-			return "", err
+			return address, err
 		}
 
 		addr := crypto.PubkeyToAddress(privateKeyECDSA.PublicKey)
@@ -76,59 +76,60 @@ func (m *AccountManager) CreateEthCompatible(passphrase string) (types.Address, 
 		if addr.Bytes()[0]&0xf0 == 0x10 {
 			account, err := m.ks.ImportECDSA(privateKeyECDSA, passphrase)
 			if err != nil {
-				return "", err
+				return address, err
 			}
-			return *types.NewAddressFromCommon(account.Address), nil
+			return cfxaddress.NewAddressFromCommon(account.Address, m.chainID)
 		}
 	}
 }
 
 // Import imports account from external key file to keystore directory.
 // Returns error if the account already exists.
-func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (types.Address, error) {
+func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (address types.Address, err error) {
 	keyJSON, err := ioutil.ReadFile(keyFile)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to read key file %v", keyFile)
+		return address, errors.Wrapf(err, "failed to read key file %v", keyFile)
 	}
 
 	key, err := keystore.DecryptKey(keyJSON, passphrase)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to decrypt key with passphrase")
+		return address, errors.Wrap(err, "failed to decrypt key with passphrase")
 	}
 
 	if m.ks.HasAddress(key.Address) {
-		return "", errors.Errorf("account already exists: %v", key.Address.String())
+		return address, errors.Errorf("account already exists: %v", keyFile)
 	}
 
 	account, err := m.ks.Import(keyJSON, passphrase, newPassphrase)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to import account into keystore")
+		return address, errors.Wrap(err, "failed to import account into keystore")
 	}
 
-	cfxAddress := utils.ToCfxGeneralAddress(account.Address)
-	m.cfxAddressDic[string(cfxAddress)] = &account
-	return cfxAddress, nil
+	address = getCfxUserAddress(account, m.chainID)
+
+	m.cfxAddressDic[address.MustGetHexAddress()] = &account
+	return
 }
 
 // ImportKey import account from private key hex string and save to keystore directory
-func (m *AccountManager) ImportKey(keyString string, passphrase string) (types.Address, error) {
+func (m *AccountManager) ImportKey(keyString string, passphrase string) (address types.Address, err error) {
 	if utils.Has0xPrefix(keyString) {
 		keyString = keyString[2:]
 	}
 
 	privateKey, err := crypto.HexToECDSA(keyString)
 	if err != nil {
-		return "", errors.Wrap(err, "invalid HEX format of private key")
+		return address, errors.Wrap(err, "invalid HEX format of private key")
 	}
 
 	account, err := m.ks.ImportECDSA(privateKey, passphrase)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to import private key into keystore")
+		return address, errors.Wrap(err, "failed to import private key into keystore")
 	}
 
-	cfxAddress := utils.ToCfxGeneralAddress(account.Address)
-	m.cfxAddressDic[string(cfxAddress)] = &account
-	return cfxAddress, nil
+	address = getCfxUserAddress(account, m.chainID)
+	m.cfxAddressDic[address.MustGetHexAddress()] = &account
+	return
 }
 
 // Export exports private key string of address
@@ -176,7 +177,9 @@ func (m *AccountManager) List() []types.Address {
 	result := make([]types.Address, 0)
 
 	for _, account := range m.ks.Accounts() {
-		cfxAddress := utils.ToCfxGeneralAddress(account.Address)
+
+		cfxAddress := getCfxUserAddress(account, m.chainID)
+		// fmt.Printf("list %v %v\n", m.chainID, cfxAddress)
 		result = append(result, cfxAddress)
 	}
 
@@ -194,12 +197,7 @@ func (m *AccountManager) GetDefault() (*types.Address, error) {
 }
 
 func (m *AccountManager) account(address types.Address) (*accounts.Account, error) {
-	_, err := address.GetAddressType()
-	if err != nil {
-		return nil, err
-	}
-
-	realAccount := m.cfxAddressDic[strings.ToLower(string(address))]
+	realAccount := m.cfxAddressDic[address.MustGetHexAddress()]
 	if realAccount == nil {
 		return nil, types.NewAccountNotFoundError(address)
 	}
@@ -245,7 +243,11 @@ func (m *AccountManager) TimedUnlockDefault(passphrase string, timeout time.Dura
 
 // Lock locks the specified account.
 func (m *AccountManager) Lock(address types.Address) error {
-	return m.ks.Lock(common.HexToAddress(string(address)))
+	common, _, err := address.ToCommonAddress()
+	if err != nil {
+		return err
+	}
+	return m.ks.Lock(common)
 }
 
 // SignTransaction signs tx and returns its RLP encoded data.
@@ -364,4 +366,10 @@ func (m *AccountManager) Sign(tx types.UnsignedTransaction, passphrase string) (
 	r = sig[0:32]
 	s = sig[32:64]
 	return v, r, s, nil
+}
+
+func getCfxUserAddress(account accounts.Account, chainID uint32) cfxaddress.Address {
+	account.Address[0] = account.Address[0]&0x1f | 0x10
+	cfxAddress := cfxaddress.MustNewAddressFromCommon(account.Address, chainID)
+	return cfxAddress
 }

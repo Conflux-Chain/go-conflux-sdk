@@ -5,31 +5,35 @@ import (
 	"time"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
+	"github.com/Conflux-Chain/go-conflux-sdk/example/context"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 )
 
 func main() {
-
-	//unlock account
-	am := sdk.NewAccountManager("../keystore")
-	err := am.TimedUnlockDefault("hello", 300*time.Second)
-	if err != nil {
-		panic(err)
-	}
 
 	//init client
 	url := "http://39.97.232.99:12537"
 	// url := "http://testnet-jsonrpc.conflux-chain.org:12537"
 	client, err := sdk.NewClient(url)
+	context.PanicIfErrf(err, "failed to new client")
+
+	status, err := client.GetStatus()
+	context.PanicIfErrf(err, "failed to get status")
+
+	//unlock account
+	am := sdk.NewAccountManager("../keystore", uint32(*status.ChainID))
+	err = am.TimedUnlockDefault("hello", 300*time.Second)
 	if err != nil {
 		panic(err)
 	}
+
 	client.SetAccountManager(am)
 
 	//send transaction
 	//send 0.01 cfx
 	value := types.NewBigInt(1000000000000000)
-	utx, err := client.CreateUnsignedTransaction(types.Address("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"), types.Address("0x1cad0b19bb29d4674531d6f115237e16afce377d"), value, nil)
+	utx, err := client.CreateUnsignedTransaction(cfxaddress.MustNewAddressFromHex("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"), cfxaddress.MustNewAddressFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d"), value, nil)
 	if err != nil {
 		panic(err)
 	}

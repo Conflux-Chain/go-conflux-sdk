@@ -8,6 +8,7 @@ import (
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 )
 
 var am *sdk.AccountManager
@@ -30,7 +31,7 @@ func main() {
 
 func initAccountManager() *sdk.AccountManager {
 	keydir := "./keystore"
-	am = sdk.NewAccountManager(keydir)
+	am = sdk.NewAccountManager(keydir, 1)
 	return am
 }
 
@@ -69,7 +70,7 @@ func importAccount() {
 }
 
 func updateAccount() {
-	address := types.Address("0x14b899ed1cd49da2c11093606465baa102662ab5")
+	address := cfxaddress.MustNewAddressFromHex("0x14b899ed1cd49da2c11093606465baa102662ab5", 1)
 	err := am.Update(address, "hello", "hello world")
 	if err != nil {
 		fmt.Printf("update address error: %v \n\n", err)
@@ -79,7 +80,7 @@ func updateAccount() {
 }
 
 func deleteAccount() {
-	address := types.Address("0x14b899ed1cd49da2c11093606465baa102662ab5")
+	address := cfxaddress.MustNewAddressFromHex("0x14b899ed1cd49da2c11093606465baa102662ab5", 1)
 	err := am.Delete(address, "hello world")
 	if err != nil {
 		fmt.Printf("delete address error: %v \n\n", err)
@@ -90,16 +91,20 @@ func deleteAccount() {
 
 func signTx() []byte {
 	am := initAccountManager()
+
+	from := cfxaddress.MustNewAddressFromHex("0x1ceb7b1c5252ae3eaaf19d3a785cfbea48cc37f7", 1)
+	to := cfxaddress.MustNewAddressFromHex("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302", 1)
 	unSignedTx := types.UnsignedTransaction{
 		UnsignedTransactionBase: types.UnsignedTransactionBase{
-			From:        types.NewAddress("0x1ceb7b1c5252ae3eaaf19d3a785cfbea48cc37f7"),
+			From:        &from,
 			Value:       types.NewBigInt(100),
 			Gas:         types.NewBigInt(21000),
 			GasPrice:    types.NewBigInt(100000000),
 			Nonce:       types.NewBigInt(1),
 			EpochHeight: types.NewUint64(1),
+			ChainID:     types.NewUint(1),
 		},
-		To: types.NewAddress("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"),
+		To: &to,
 	}
 
 	signedTx, err := am.SignAndEcodeTransactionWithPassphrase(unSignedTx, "hello")
@@ -112,7 +117,7 @@ func signTx() []byte {
 }
 
 func decodeRawTx() {
-	rawTx, _ := hex.DecodeString("f866e280018252089410f4bcf113e0b896d9b34294fd3da86b4adf0302648083025d93808080a0fab5b7bfe91ebb7367e92cff27ab153153eb80e62e28852a9c4a0cc2133a4161a048aee7e729790c72a1d75329372439b36e923ef15dbf753e66a909469d2d1a2d")
+	rawTx, _ := hex.DecodeString("f867e3018405f5e1008252089410f4bcf113e0b896d9b34294fd3da86b4adf0302648001018080a072aa2777c4b8cee3829ea3fb9658276e40cc4234eb05f176459042e48f69428da07a9bbee20b9a219907c91b562b64ee2e9456d2f280c31ce98736d0feb5e47372")
 	tx := new(types.SignedTransaction)
 	err := tx.Decode(rawTx)
 	if err != nil {
@@ -123,20 +128,13 @@ func decodeRawTx() {
 }
 
 func hasChecksumChecked() {
-	_, err := am.Export(types.Address("0x14b899ed1cd49da2c11093606465baa102662ab5"), "hello")
+	_, err := am.Export(cfxaddress.MustNewAddressFromHex("0x14b899ed1cd49da2c11093606465baa102662ab5", 1), "hello")
 	if err != nil {
 		panic(err)
 	}
 
-	_, err = am.Export(types.Address("0x14b899eD1cD49Da2c11093606465Baa102662ab5"), "hello")
+	_, err = am.Export(cfxaddress.MustNewAddressFromHex("0x14b899eD1cD49Da2c11093606465Baa102662ab5", 1), "hello")
 	if err != nil {
 		panic(err)
 	}
-
-	_, err = am.Export(types.Address("0x14b899ed1cd49Da2c11093606465Baa102662ab5"), "hello")
-	if err == nil {
-		panic("it should error because checksum fail")
-	}
-	fmt.Printf("checksum error msg: %v\n", err)
-	fmt.Printf("checksum check done\n")
 }

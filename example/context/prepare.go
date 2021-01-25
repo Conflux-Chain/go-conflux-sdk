@@ -12,36 +12,39 @@ import (
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	exampletypes "github.com/Conflux-Chain/go-conflux-sdk/example/context/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 var (
-	config         exampletypes.Config
-	client         *sdk.Client
-	currentDir     string
-	configPath     string
-	am             *sdk.AccountManager
+	config     exampletypes.Config
+	client     *sdk.Client
+	currentDir string
+	configPath string
+	// am             *sdk.AccountManager
 	defaultAccount *types.Address
 	nextNonce      *hexutil.Big
 )
 
+// PrepareForClientExample ...
 func PrepareForClientExample() *exampletypes.Config {
-	fmt.Println("=======start prepare config===========\n")
+	fmt.Printf("\n=======start prepare config===========\n")
 	getConfig()
 	initClient()
 	generateBlockHashAndTxHash()
 	deployContract(false)
 	saveConfig()
-	fmt.Println("=======prepare config done!===========\n")
+	fmt.Printf("\n=======prepare config done!===========\n")
 	return &config
 }
 
+// PrepareForContractExample ...
 func PrepareForContractExample() *exampletypes.Config {
-	fmt.Println("=======start prepare config===========\n")
+	fmt.Printf("\n=======start prepare config===========\n")
 	getConfig()
 	initClient()
 	saveConfig()
-	fmt.Println("=======prepare config done!===========\n")
+	fmt.Print("\n=======prepare config done!===========\n")
 	return &config
 }
 
@@ -59,36 +62,39 @@ func getConfig() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("- to get config done: %+v\n", JsonFmt(config))
+	fmt.Printf("- to get config done: %+v\n", JSONFmt(config))
 }
 
 func initClient() {
 	// url := "http://testnet-jsonrpc.conflux-chain.org:12537"
-	am = sdk.NewAccountManager(path.Join(currentDir, "keystore"))
 
 	// init client
 	var err error
-	client, err = sdk.NewClient(config.NodeURL)
+	option := sdk.ClientOption{
+		KeystorePath:  path.Join(currentDir, "keystore"),
+		RetryCount:    10,
+		RetryInterval: time.Second,
+	}
+	client, err = sdk.NewClient(config.NodeURL, option)
 	if err != nil {
 		panic(err)
 	}
-	client.SetAccountManager(am)
+
 	config.SetClient(client)
 
 	// init retry client
-	retryclient, err := sdk.NewClientWithRetry(config.NodeURL, 10, time.Second)
+	retryclient, err := sdk.NewClient(config.NodeURL, option)
 	if err != nil {
 		panic(err)
 	}
-	retryclient.SetAccountManager(am)
 	config.SetRetryClient(retryclient)
 
-	defaultAccount, err = am.GetDefault()
+	defaultAccount, err = client.AccountManager.GetDefault()
 	if err != nil {
 		panic(err)
 	}
-	am.UnlockDefault("hello")
-	config.SetAccountManager(am)
+	client.AccountManager.UnlockDefault("hello")
+	config.SetAccountManager(client.AccountManager)
 
 	nextNonce, err = client.GetNextNonce(*defaultAccount, nil)
 	if err != nil {
@@ -103,7 +109,7 @@ func generateBlockHashAndTxHash() {
 	block, err1 := client.GetBlockByHash(config.BlockHash)
 	tx, err2 := client.GetTransactionByHash(config.TransactionHash)
 	if block == nil || err1 != nil || tx == nil || err2 != nil {
-		utx, err := client.CreateUnsignedTransaction(*defaultAccount, *types.NewAddress("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"), types.NewBigInt(1), nil)
+		utx, err := client.CreateUnsignedTransaction(*defaultAccount, cfxaddress.MustNewAddressFromHex("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"), types.NewBigInt(1), nil)
 		if err != nil {
 			panic(err)
 		}

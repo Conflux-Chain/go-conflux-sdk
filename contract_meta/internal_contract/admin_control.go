@@ -1,11 +1,14 @@
 package internalcontract
 
 import (
+	"fmt"
 	"sync"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/pkg/errors"
 )
 
 // AdminControl contract
@@ -14,37 +17,55 @@ type AdminControl struct {
 }
 
 var adminControl *AdminControl
-var adminControlOnce sync.Once
+var adminControlMu sync.Mutex
 
 // NewAdminControl gets the AdminControl contract object
-func NewAdminControl(client sdk.ClientOperator) *AdminControl {
-	adminControlOnce.Do(func() {
+func NewAdminControl(client sdk.ClientOperator) (ac AdminControl, err error) {
+	adminControlMu.Lock()
+	defer adminControlMu.Unlock()
+	if adminControl == nil {
 		abi := getAdminControlAbi()
-		address := getAdminControlAddress()
-		contract, _ := sdk.NewContract([]byte(abi), client, &address)
+		address, e := getAdminControlAddress(client)
+		if e != nil {
+			return ac, errors.Wrap(e, "failed to get admin control contract address")
+		}
+		contract, e := sdk.NewContract([]byte(abi), client, &address)
+		if e != nil {
+			return ac, errors.Wrap(e, "failed to new admin control contract")
+		}
 		adminControl = &AdminControl{Contract: *contract}
-	})
-	return adminControl
+	}
+	if adminControl != nil {
+		ac = *adminControl
+	}
+	return
 }
 
 // Destroy destroies contract `contractAddr`.
 func (ac *AdminControl) Destroy(option *types.ContractMethodSendOption, contractAddr types.Address) (*types.Hash, error) {
-	return ac.SendTransaction(option, "destroy", contractAddr.ToCommonAddress())
+	return ac.SendTransaction(option, "destroy", contractAddr.MustGetCommonAddress())
 }
 
 // GetAdmin returns admin of specific contract
-func (ac *AdminControl) GetAdmin(option *types.ContractMethodCallOption, contractAddr types.Address) (result *types.Address, err error) {
+func (ac *AdminControl) GetAdmin(option *types.ContractMethodCallOption, contractAddr types.Address) (*types.Address, error) {
 	var tmp *common.Address = &common.Address{}
-	err = ac.Call(option, tmp, "getAdmin", contractAddr.ToCommonAddress())
+	fmt.Printf("contract addr common address: %x\n", contractAddr.MustGetCommonAddress())
+	err := ac.Call(option, tmp, "getAdmin", contractAddr.MustGetCommonAddress())
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to call getAdmin")
 	}
-	return types.NewAddressFromCommon(*tmp), nil
+
+	addr, err := cfxaddress.NewAddressFromCommon(*tmp)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to new address from common %v", *tmp)
+	}
+	err = addr.CompleteAddressByClient(ac.Client)
+	return &addr, errors.Wrapf(err, "failed to complete network type")
 }
 
 // SetAdmin sets the administrator of contract `contractAddr` to `newAdmin`.
 func (ac *AdminControl) SetAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, newAdmin types.Address) (*types.Hash, error) {
-	return ac.SendTransaction(option, "setAdmin", contractAddr.ToCommonAddress(), newAdmin.ToCommonAddress())
+	return ac.SendTransaction(option, "setAdmin", contractAddr.MustGetCommonAddress(), newAdmin.MustGetCommonAddress())
 }
 
 func getAdminControlAbi() string {
@@ -104,6 +125,8 @@ func getAdminControlAbi() string {
 `
 }
 
-func getAdminControlAddress() types.Address {
-	return types.Address("0x0888000000000000000000000000000000000000")
+func getAdminControlAddress(client sdk.ClientOperator) (types.Address, error) {
+	addr := cfxaddress.MustNewAddressFromHex("0x0888000000000000000000000000000000000000")
+	err := addr.CompleteAddressByClient(client)
+	return addr, err
 }
