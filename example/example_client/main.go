@@ -10,6 +10,7 @@ import (
 	exampletypes "github.com/Conflux-Chain/go-conflux-sdk/example/context/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -100,8 +101,8 @@ func getAdmin() {
 	result, err := client.GetAdmin(config.ERC20Address, nil)
 	printResult("GetAdmin", []interface{}{config.ERC20Address, nil}, result, err)
 
-	result, err = client.GetAdmin(cfxaddress.MustNewAddressFromHex("0x0000000000000000000000000000000000000000"), nil)
-	printResult("GetAdmin", []interface{}{cfxaddress.MustNewAddressFromHex("0x0000000000000000000000000000000000000000"), nil}, result, err)
+	result, err = client.GetAdmin(address.MustNewFromHex("0x0000000000000000000000000000000000000000"), nil)
+	printResult("GetAdmin", []interface{}{address.MustNewFromHex("0x0000000000000000000000000000000000000000"), nil}, result, err)
 }
 
 func getSponsorInfo() {
@@ -294,7 +295,7 @@ func getBlockSummaryByHash() {
 func getCode() {
 	contractAddr := *defaultAccount // config.ERC20Address
 	// code, err := client.GetCode(contractAddr)
-	code, err := client.GetCode(cfxaddress.MustNewAddressFromHex("0x19f4bcf113e0b896d9b34294fd3da86b4adf0301"))
+	code, err := client.GetCode(address.MustNewFromHex("0x19f4bcf113e0b896d9b34294fd3da86b4adf0301"))
 	if err != nil {
 		fmt.Printf("- get code of address %v err: %v\n\n", contractAddr, err.Error())
 	} else {
@@ -323,7 +324,7 @@ func getTransactionReceipt() {
 }
 
 func estimateGasAndCollateral() {
-	to := cfxaddress.MustNewAddressFromHex("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302")
+	to := cfxaddress.MustNewFromHex("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302")
 	request := types.CallRequest{
 		To:    &to,
 		Value: types.NewBigInt(1),
@@ -354,7 +355,7 @@ func createAndSendUnsignedTransaction() {
 	//send transaction
 	chainID, err := client.GetNetworkID()
 	context.PanicIfErrf(err, "failed to get chainID")
-	utx, err := client.CreateUnsignedTransaction(*defaultAccount, cfxaddress.MustNewAddressFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d", chainID), types.NewBigInt(1000000), nil)
+	utx, err := client.CreateUnsignedTransaction(*defaultAccount, cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d", chainID), types.NewBigInt(1000000), nil)
 	if err != nil {
 		panic(err)
 	}
@@ -500,7 +501,7 @@ func subscribeLogs() {
 				panic(fmt.Sprintf("get erc20 contract error: %v", err.Error()))
 			}
 			//send transction for contract method
-			to := cfxaddress.MustNewAddressFromHex("0x160ebef20c1f739957bf9eecd040bce699cc42c6")
+			to := cfxaddress.MustNewFromHex("0x160ebef20c1f739957bf9eecd040bce699cc42c6")
 			nonce := context.GetNextNonceAndIncrease()
 			txhash, err := contract.SendTransaction(&types.ContractMethodSendOption{
 				Nonce: nonce,

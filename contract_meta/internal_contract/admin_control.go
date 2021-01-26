@@ -7,6 +7,7 @@ import (
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
 )
@@ -21,9 +22,9 @@ var adminControlMu sync.Mutex
 
 // NewAdminControl gets the AdminControl contract object
 func NewAdminControl(client sdk.ClientOperator) (ac AdminControl, err error) {
-	adminControlMu.Lock()
-	defer adminControlMu.Unlock()
 	if adminControl == nil {
+		adminControlMu.Lock()
+		defer adminControlMu.Unlock()
 		abi := getAdminControlAbi()
 		address, e := getAdminControlAddress(client)
 		if e != nil {
@@ -35,10 +36,7 @@ func NewAdminControl(client sdk.ClientOperator) (ac AdminControl, err error) {
 		}
 		adminControl = &AdminControl{Contract: *contract}
 	}
-	if adminControl != nil {
-		ac = *adminControl
-	}
-	return
+	return *adminControl, nil
 }
 
 // Destroy destroies contract `contractAddr`.
@@ -55,11 +53,11 @@ func (ac *AdminControl) GetAdmin(option *types.ContractMethodCallOption, contrac
 		return nil, errors.Wrap(err, "failed to call getAdmin")
 	}
 
-	addr, err := cfxaddress.NewAddressFromCommon(*tmp)
+	addr, err := address.NewFromCommon(*tmp)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to new address from common %v", *tmp)
 	}
-	err = addr.CompleteAddressByClient(ac.Client)
+	err = addr.CompleteByClient(ac.Client)
 	return &addr, errors.Wrapf(err, "failed to complete network type")
 }
 
@@ -126,7 +124,7 @@ func getAdminControlAbi() string {
 }
 
 func getAdminControlAddress(client sdk.ClientOperator) (types.Address, error) {
-	addr := cfxaddress.MustNewAddressFromHex("0x0888000000000000000000000000000000000000")
-	err := addr.CompleteAddressByClient(client)
+	addr := cfxaddress.MustNewFromHex("0x0888000000000000000000000000000000000000")
+	err := addr.CompleteByClient(client)
 	return addr, err
 }

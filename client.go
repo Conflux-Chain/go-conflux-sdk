@@ -14,7 +14,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/constants"
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
-	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -87,7 +87,7 @@ func newClientWithRetry(nodeURL string, keystorePath string, retryCount int, ret
 		}
 	}
 
-	client.networkID, err = client.GetNetworkID()
+	_, err = client.GetNetworkID()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get networkID")
 	}
@@ -151,11 +151,16 @@ func (client *Client) GetStatus() (status types.Status, err error) {
 
 // GetNetworkID returns networkID of connecting conflux node
 func (client *Client) GetNetworkID() (uint32, error) {
+	if client.networkID != 0 {
+		return client.networkID, nil
+	}
+
 	status, err := client.GetStatus()
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get status")
 	}
-	return uint32(*status.NetworkID), nil
+	client.networkID = uint32(*status.NetworkID)
+	return client.networkID, nil
 }
 
 // GetEpochNumber returns the highest or specified epoch number.
@@ -557,8 +562,8 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 				tx.From = defaultAccount
 			}
 		}
-		tx.From.CompleteAddressByNetworkID(client.networkID)
-		tx.To.CompleteAddressByNetworkID(client.networkID)
+		tx.From.CompleteByNetworkID(client.networkID)
+		tx.To.CompleteByNetworkID(client.networkID)
 
 		if tx.Nonce == nil {
 			nonce, err := client.GetNextNonce(*tx.From, nil)
@@ -999,28 +1004,28 @@ func (client *Client) genRPCParams(args ...interface{}) []interface{} {
 			// fmt.Printf("args %v:%v is not nil\n", i, args[i])
 			t := reflect.TypeOf(args[i])
 			// fmt.Printf("typeof %v is %v\n", args[i], t)
-			if t == reflect.TypeOf(cfxaddress.Address{}) {
-				tmp := args[i].(cfxaddress.Address)
-				tmp.CompleteAddressByNetworkID(client.networkID)
+			if t == reflect.TypeOf(address.Address{}) {
+				tmp := args[i].(address.Address)
+				tmp.CompleteByNetworkID(client.networkID)
 				// fmt.Printf("complete by networkID,%v", client.networkID)
 			}
 
-			if t == reflect.TypeOf(&cfxaddress.Address{}) {
-				tmp := args[i].(*cfxaddress.Address)
-				tmp.CompleteAddressByNetworkID(client.networkID)
+			if t == reflect.TypeOf(&address.Address{}) {
+				tmp := args[i].(*address.Address)
+				tmp.CompleteByNetworkID(client.networkID)
 				// fmt.Printf("complete by networkID,%v", client.networkID)
 			}
 
 			if t == reflect.TypeOf(types.CallRequest{}) {
 				tmp := args[i].(types.CallRequest)
-				tmp.From.CompleteAddressByNetworkID(client.networkID)
-				tmp.To.CompleteAddressByNetworkID(client.networkID)
+				tmp.From.CompleteByNetworkID(client.networkID)
+				tmp.To.CompleteByNetworkID(client.networkID)
 			}
 
 			if t == reflect.TypeOf(&types.CallRequest{}) {
 				tmp := args[i].(*types.CallRequest)
-				tmp.From.CompleteAddressByNetworkID(client.networkID)
-				tmp.To.CompleteAddressByNetworkID(client.networkID)
+				tmp.From.CompleteByNetworkID(client.networkID)
+				tmp.To.CompleteByNetworkID(client.networkID)
 			}
 
 			params = append(params, args[i])

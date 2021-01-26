@@ -148,7 +148,7 @@ func (contract *Contract) DecodeEvent(out interface{}, event string, log types.L
 	addressPtr := new(common.Address)
 	if contract.Address != nil {
 		var err error
-		*addressPtr, _, err = contract.Address.ToCommonAddress()
+		*addressPtr, _, err = contract.Address.ToCommon()
 		if err != nil {
 			return errors.Wrap(err, "failed to parse contract address to hex address")
 		}

@@ -43,7 +43,7 @@ func testAdmin() {
 	config = context.PrepareForClientExample()
 
 	txhash, err = adminControl.SetAdmin(&types.ContractMethodSendOption{Nonce: context.GetNextNonceAndIncrease()}, config.ERC20Address,
-		cfxaddress.MustNewAddressFromHex("0x0000000000000000000000000000000000000000"))
+		cfxaddress.MustNewFromHex("0x0000000000000000000000000000000000000000"))
 	if err != nil {
 		fmt.Printf("set admin error %v\n", err)
 		return

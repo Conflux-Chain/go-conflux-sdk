@@ -20,9 +20,9 @@ var stakingMu sync.Mutex
 
 // NewStaking gets the Staking contract object
 func NewStaking(client sdk.ClientOperator) (s Staking, err error) {
-	stakingMu.Lock()
-	defer stakingMu.Unlock()
 	if staking == nil {
+		stakingMu.Lock()
+		defer stakingMu.Unlock()
 		abi := getStakingAbi()
 		address, e := getStakingAddress(client)
 		if e != nil {
@@ -34,10 +34,7 @@ func NewStaking(client sdk.ClientOperator) (s Staking, err error) {
 		}
 		staking = &Staking{Contract: *contract}
 	}
-	if staking != nil {
-		s = *staking
-	}
-	return
+	return *staking, nil
 }
 
 // GetStakingBalance returns user's staking balance
@@ -204,7 +201,7 @@ func getStakingAbi() string {
 }
 
 func getStakingAddress(client sdk.ClientOperator) (types.Address, error) {
-	addr := cfxaddress.MustNewAddressFromHex("0x0888000000000000000000000000000000000002")
-	err := addr.CompleteAddressByClient(client)
+	addr := cfxaddress.MustNewFromHex("0x0888000000000000000000000000000000000002")
+	err := addr.CompleteByClient(client)
 	return addr, err
 }

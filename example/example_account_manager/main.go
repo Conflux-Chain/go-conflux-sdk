@@ -9,6 +9,7 @@ import (
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 )
 
 var am *sdk.AccountManager
@@ -70,7 +71,7 @@ func importAccount() {
 }
 
 func updateAccount() {
-	address := cfxaddress.MustNewAddressFromHex("0x14b899ed1cd49da2c11093606465baa102662ab5", 1)
+	address := cfxaddress.MustNewFromHex("0x14b899ed1cd49da2c11093606465baa102662ab5", 1)
 	err := am.Update(address, "hello", "hello world")
 	if err != nil {
 		fmt.Printf("update address error: %v \n\n", err)
@@ -80,7 +81,7 @@ func updateAccount() {
 }
 
 func deleteAccount() {
-	address := cfxaddress.MustNewAddressFromHex("0x14b899ed1cd49da2c11093606465baa102662ab5", 1)
+	address := cfxaddress.MustNewFromHex("0x14b899ed1cd49da2c11093606465baa102662ab5", 1)
 	err := am.Delete(address, "hello world")
 	if err != nil {
 		fmt.Printf("delete address error: %v \n\n", err)
@@ -92,8 +93,8 @@ func deleteAccount() {
 func signTx() []byte {
 	am := initAccountManager()
 
-	from := cfxaddress.MustNewAddressFromHex("0x1ceb7b1c5252ae3eaaf19d3a785cfbea48cc37f7", 1)
-	to := cfxaddress.MustNewAddressFromHex("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302", 1)
+	from := cfxaddress.MustNewFromHex("0x1ceb7b1c5252ae3eaaf19d3a785cfbea48cc37f7", 1)
+	to := cfxaddress.MustNewFromHex("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302", 1)
 	unSignedTx := types.UnsignedTransaction{
 		UnsignedTransactionBase: types.UnsignedTransactionBase{
 			From:        &from,
@@ -128,12 +129,12 @@ func decodeRawTx() {
 }
 
 func hasChecksumChecked() {
-	_, err := am.Export(cfxaddress.MustNewAddressFromHex("0x14b899ed1cd49da2c11093606465baa102662ab5", 1), "hello")
+	_, err := am.Export(address.MustNewFromHex("0x14b899ed1cd49da2c11093606465baa102662ab5", 1), "hello")
 	if err != nil {
 		panic(err)
 	}
 
-	_, err = am.Export(cfxaddress.MustNewAddressFromHex("0x14b899eD1cD49Da2c11093606465Baa102662ab5", 1), "hello")
+	_, err = am.Export(address.MustNewFromHex("0x14b899eD1cD49Da2c11093606465Baa102662ab5", 1), "hello")
 	if err != nil {
 		panic(err)
 	}

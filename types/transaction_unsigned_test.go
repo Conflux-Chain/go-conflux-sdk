@@ -14,8 +14,8 @@ import (
 
 func TestEncode(t *testing.T) {
 
-	from := cfxaddress.MustNewAddressFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377c")
-	to := cfxaddress.MustNewAddressFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d")
+	from := cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377c")
+	to := cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d")
 	utx := UnsignedTransaction{
 		UnsignedTransactionBase: UnsignedTransactionBase{
 			From: &from,
@@ -45,8 +45,8 @@ func TestEncode(t *testing.T) {
 }
 
 func TestEncodeWithSignature(t *testing.T) {
-	from := cfxaddress.MustNewAddressFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377c")
-	to := cfxaddress.MustNewAddressFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d")
+	from := cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377c")
+	to := cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d")
 	utx := UnsignedTransaction{
 		UnsignedTransactionBase: UnsignedTransactionBase{
 			From:     &from,
@@ -82,7 +82,7 @@ func TestDecodeRlpToUnsignTransction(t *testing.T) {
 
 	rlp := []byte{231, 16, 32, 64, 148, 28, 173, 11, 25, 187, 41, 212, 103, 69, 49, 214, 241, 21, 35, 126, 22, 175, 206, 55, 125, 129, 128, 130, 1, 0, 130, 2, 0, 130, 4, 0, 131, 1, 2, 3}
 
-	expectTo := cfxaddress.MustNewAddressFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d", 1024)
+	expectTo := cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d", 1024)
 	expect := &UnsignedTransaction{
 		UnsignedTransactionBase: UnsignedTransactionBase{
 			From:     nil,

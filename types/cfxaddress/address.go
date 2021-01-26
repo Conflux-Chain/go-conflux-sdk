@@ -6,11 +6,12 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
 )
 
-// Address ...
+// Address represents
 type Address struct {
 	NetworkType NetworkType
 	AddressType AddressType
@@ -33,8 +34,8 @@ func (a *Address) Equals(target *Address) bool {
 	return reflect.DeepEqual(a, target)
 }
 
-// NewAddressFromBase32 ...
-func NewAddressFromBase32(base32Str string) (cfxAddress Address, err error) {
+// NewFromBase32 ...
+func NewFromBase32(base32Str string) (cfxAddress Address, err error) {
 	if strings.ToLower(base32Str) != base32Str && strings.ToUpper(base32Str) != base32Str {
 		return cfxAddress, errors.Errorf("not support base32 string with mix lowercase and uppercase %v", base32Str)
 	}
@@ -89,10 +90,11 @@ func NewAddressFromBase32(base32Str string) (cfxAddress Address, err error) {
 	return
 }
 
-// NewAddressFromHex encode hex address with networkID to base32 address according to CIP37
+// NewFromHex encode hex address with networkID to base32 address according to CIP37
 // INPUT: an addr (20-byte conflux-hex-address), a network-id (4 bytes)
 // OUTPUT: a conflux-base32-address
-func NewAddressFromHex(hexAddressStr string, networkID ...uint32) (val Address, err error) {
+// If not pass networkID, it will be auto completed when it could be obtained form context.
+func NewFromHex(hexAddressStr string, networkID ...uint32) (val Address, err error) {
 	if hexAddressStr[0:2] == "0x" {
 		hexAddressStr = hexAddressStr[2:]
 	}
@@ -102,22 +104,22 @@ func NewAddressFromHex(hexAddressStr string, networkID ...uint32) (val Address, 
 		return val, errors.Wrapf(err, "failed to decode address string %x to hex", hexAddressStr)
 	}
 
-	return newAddressFromBytes(hexAddress, networkID...)
+	return newFromBytes(hexAddress, networkID...)
 }
 
-// MustNewAddressFromHex ...
-func MustNewAddressFromHex(hexAddressStr string, networkID ...uint32) (val Address) {
-	addr, err := NewAddressFromHex(hexAddressStr, get1stNetworkIDIfy(networkID))
-	PanicIfErrf(err, "input hex address:%v, networkID:%v", hexAddressStr, networkID)
+// MustNewFromHex ...
+func MustNewFromHex(hexAddressStr string, networkID ...uint32) (val Address) {
+	addr, err := NewFromHex(hexAddressStr, get1stNetworkIDIfy(networkID))
+	utils.PanicIfErrf(err, "input hex address:%v, networkID:%v", hexAddressStr, networkID)
 	return addr
 }
 
-// NewAddressFromCommon creates an address from common.Address
-func NewAddressFromCommon(commonAddress common.Address, networkID ...uint32) (val Address, err error) {
-	return newAddressFromBytes(commonAddress.Bytes(), networkID...)
+// NewFromCommon creates an address from common.Address
+func NewFromCommon(commonAddress common.Address, networkID ...uint32) (val Address, err error) {
+	return newFromBytes(commonAddress.Bytes(), networkID...)
 }
 
-func newAddressFromBytes(hexAddress []byte, networkID ...uint32) (val Address, err error) {
+func newFromBytes(hexAddress []byte, networkID ...uint32) (val Address, err error) {
 	val.NetworkType = NewNetworkTypeByID(get1stNetworkIDIfy(networkID))
 	val.AddressType, err = CalcAddressType(hexAddress)
 
@@ -142,15 +144,15 @@ func newAddressFromBytes(hexAddress []byte, networkID ...uint32) (val Address, e
 	return val, nil
 }
 
-// MustNewAddressFromCommon ...
-func MustNewAddressFromCommon(commonAddress common.Address, networkID ...uint32) (address Address) {
-	addr, err := NewAddressFromCommon(commonAddress, get1stNetworkIDIfy(networkID))
-	PanicIfErrf(err, "input common address:%x, networkID:%v", commonAddress, networkID)
+// MustNewFromCommon ...
+func MustNewFromCommon(commonAddress common.Address, networkID ...uint32) (address Address) {
+	addr, err := NewFromCommon(commonAddress, get1stNetworkIDIfy(networkID))
+	utils.PanicIfErrf(err, "input common address:%x, networkID:%v", commonAddress, networkID)
 	return addr
 }
 
-// ToHexAddress ...
-func (a *Address) ToHexAddress() (hexAddressStr string, networkID uint32, err error) {
+// ToHex ...
+func (a *Address) ToHex() (hexAddressStr string, networkID uint32, err error) {
 	// verify checksum
 	var actualChecksum Checksum
 	actualChecksum, err = CalcChecksum(a.NetworkType, a.Body)
@@ -177,9 +179,9 @@ func (a *Address) ToHexAddress() (hexAddressStr string, networkID uint32, err er
 	return
 }
 
-// ToCommonAddress converts address to common.Address
-func (a *Address) ToCommonAddress() (address common.Address, networkID uint32, err error) {
-	hexAddr, networkID, err := a.ToHexAddress()
+// ToCommon converts address to common.Address
+func (a *Address) ToCommon() (address common.Address, networkID uint32, err error) {
+	hexAddr, networkID, err := a.ToHex()
 	if err != nil {
 		err = errors.Wrap(err, "failed to get hex address")
 		return
@@ -195,30 +197,30 @@ func (a *Address) ToCommonAddress() (address common.Address, networkID uint32, e
 
 // MustGetHexAddress ...
 func (a *Address) MustGetHexAddress() string {
-	addr, _, err := a.ToHexAddress()
-	PanicIfErrf(err, "failed to get hex address of %v", a)
+	addr, _, err := a.ToHex()
+	utils.PanicIfErrf(err, "failed to get hex address of %v", a)
 	return addr
 }
 
 // MustGetCommonAddress ...
 func (a *Address) MustGetCommonAddress() common.Address {
-	addr, _, err := a.ToCommonAddress()
-	PanicIfErrf(err, "failed to get common address of %v", a)
+	addr, _, err := a.ToCommon()
+	utils.PanicIfErrf(err, "failed to get common address of %v", a)
 	return addr
 }
 
-// CompleteAddressByClient ...
-func (a *Address) CompleteAddressByClient(client NetworkIDGetter) error {
+// CompleteByClient ...
+func (a *Address) CompleteByClient(client NetworkIDGetter) error {
 	networkID, err := client.GetNetworkID()
 	if err != nil {
 		return errors.Wrapf(err, "failed to get networkID")
 	}
-	a.CompleteAddressByNetworkID(networkID)
+	a.CompleteByNetworkID(networkID)
 	return nil
 }
 
-// CompleteAddressByNetworkID ...
-func (a *Address) CompleteAddressByNetworkID(networkID uint32) error {
+// CompleteByNetworkID ...
+func (a *Address) CompleteByNetworkID(networkID uint32) error {
 	if a == nil {
 		return nil
 	}
@@ -255,29 +257,12 @@ func (a *Address) UnmarshalJSON(data []byte) error {
 
 	data = data[1 : len(data)-1]
 
-	addr, err := NewAddressFromBase32(string(data))
+	addr, err := NewFromBase32(string(data))
 	if err != nil {
 		return errors.Wrapf(err, "failed to create address from base32 string %v", string(data))
 	}
 	*a = addr
 	return nil
-}
-
-// PanicIfErrf ...
-func PanicIfErrf(err error, msg string, args ...interface{}) {
-	if err != nil {
-		fmt.Printf(msg, args...)
-		fmt.Println()
-		panic(err)
-	}
-}
-
-func PanicIfErr(err error, msg string) {
-	if err != nil {
-		fmt.Printf(msg)
-		fmt.Println()
-		panic(err)
-	}
 }
 
 func get1stNetworkIDIfy(networkID []uint32) uint32 {

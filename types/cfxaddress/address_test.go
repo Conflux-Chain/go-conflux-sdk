@@ -34,7 +34,7 @@ func TestCfxAddress(t *testing.T) {
 }
 
 func TestMarshalJSON(t *testing.T) {
-	cfxAddressFromHex, e := NewAddressFromHex("1cdf3969a428a750b89b33cf93c96560e2bd17d1", 1029)
+	cfxAddressFromHex, e := NewFromHex("1cdf3969a428a750b89b33cf93c96560e2bd17d1", 1029)
 	fatalIfErr(t, e)
 	j, e := json.Marshal(cfxAddressFromHex)
 	// encoding.TextMarshaler
@@ -52,7 +52,7 @@ func TestUnmarshalJSON(t *testing.T) {
 	fatalIfErr(t, err)
 	err = json.Unmarshal([]byte("\"CFX:TYPE.USER:AASR8SNKYUYMSYF2XP369E8KPZUSFTJ14EC1N0VXJ1\""), &actual)
 	fatalIfErr(t, err)
-	expect, err := NewAddressFromHex("1cdf3969a428a750b89b33cf93c96560e2bd17d1", 1029)
+	expect, err := NewFromHex("1cdf3969a428a750b89b33cf93c96560e2bd17d1", 1029)
 	fatalIfErr(t, err)
 	if !reflect.DeepEqual(actual, expect) {
 		t.Fatalf("expect %#v, actual %#v", expect, actual)
@@ -61,11 +61,11 @@ func TestUnmarshalJSON(t *testing.T) {
 }
 
 func verify(t *testing.T, hexAddressStr string, networkID uint32, base32Address string) {
-	cfxAddressFromHex, err := NewAddressFromHex(hexAddressStr, networkID)
+	cfxAddressFromHex, err := NewFromHex(hexAddressStr, networkID)
 	fatalIfErr(t, err)
 
 	// fmt.Printf("cfxAddressFromHex %v\n", cfxAddressFromHex)
-	cfxAddressFromBase32, err := NewAddressFromBase32(base32Address)
+	cfxAddressFromBase32, err := NewFromBase32(base32Address)
 	fatalIfErr(t, err)
 
 	if !reflect.DeepEqual(cfxAddressFromHex, cfxAddressFromBase32) {

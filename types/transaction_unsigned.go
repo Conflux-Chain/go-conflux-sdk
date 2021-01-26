@@ -132,7 +132,7 @@ func (tx *UnsignedTransaction) toStructForRlp() *unsignedTransactionForRlp {
 }
 
 func (tx *unsignedTransactionForRlp) toUnsignedTransaction(networkID uint32) *UnsignedTransaction {
-	to := cfxaddress.MustNewAddressFromCommon(*tx.To, networkID)
+	to := cfxaddress.MustNewFromCommon(*tx.To, networkID)
 	gasPrice := hexutil.Big(*tx.GasPrice)
 	value := hexutil.Big(*tx.Value)
 	storageLimit := tx.StorageLimit

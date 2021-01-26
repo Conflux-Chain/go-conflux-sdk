@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"math/big"
 	"reflect"
 
@@ -41,4 +42,21 @@ func HexStringToBytes(hexStr string) (hexutil.Bytes, error) {
 // Has0xPrefix returns true if input starts with '0x' or '0X'
 func Has0xPrefix(input string) bool {
 	return len(input) >= 2 && input[0] == '0' && (input[1] == 'x' || input[1] == 'X')
+}
+
+// PanicIfErrf ...
+func PanicIfErrf(err error, msg string, args ...interface{}) {
+	if err != nil {
+		fmt.Printf(msg, args...)
+		fmt.Println()
+		panic(err)
+	}
+}
+
+func PanicIfErr(err error, msg string) {
+	if err != nil {
+		fmt.Printf(msg)
+		fmt.Println()
+		panic(err)
+	}
 }

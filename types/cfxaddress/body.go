@@ -8,16 +8,16 @@ import (
 Base32-encode address:
 To create the payload, first, concatenate the version-byte with addr to get a 21-byte array. Then, encode it left-to-right, mapping each 5-bit sequence to the corresponding ASCII character (see alphabet below). Pad to the right with zero bits to complete any unfinished chunk at the end. In our case, 21-byte payload + 2 bit 0-padding will result in a 34-byte base32-encoded string.
 
-We use the following alphabet: 0123456789abcdefghjkmnprstuvwxyz (o, i, l, q removed).
+We use the following alphabet: abcdefghjkmnprstuvwxyz0123456789 (i, l, o, q removed).
 
-0x00 => 0    0x08 => 8    0x10 => g    0x18 => s
-0x01 => 1    0x09 => 9    0x11 => h    0x19 => t
-0x02 => 2    0x0a => a    0x12 => j    0x1a => u
-0x03 => 3    0x0b => b    0x13 => k    0x1b => v
-0x04 => 4    0x0c => c    0x14 => m    0x1c => w
-0x05 => 5    0x0d => d    0x15 => n    0x1d => x
-0x06 => 6    0x0e => e    0x16 => p    0x1e => y
-0x07 => 7    0x0f => f    0x17 => r    0x1f => z
+0x00 => a    0x08 => j    0x10 => u    0x18 => 2
+0x01 => b    0x09 => k    0x11 => v    0x19 => 3
+0x02 => c    0x0a => m    0x12 => w    0x1a => 4
+0x03 => d    0x0b => n    0x13 => x    0x1b => 5
+0x04 => e    0x0c => p    0x14 => y    0x1c => 6
+0x05 => f    0x0d => r    0x15 => z    0x1d => 7
+0x06 => g    0x0e => s    0x16 => 0    0x1e => 8
+0x07 => h    0x0f => t    0x17 => 1    0x1f => 9
 */
 
 // Body reperents by 5bits byte array

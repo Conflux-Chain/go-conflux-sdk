@@ -13,6 +13,7 @@ import (
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -57,8 +58,8 @@ func GetNextNonceAndIncrease() *hexutil.Big {
 
 // CreateSignedTx ...
 func CreateSignedTx(client *sdk.Client) []byte {
-	to := cfxaddress.MustNewAddressFromHex("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302")
-	to.CompleteAddressByClient(client)
+	to := cfxaddress.MustNewFromHex("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302")
+	to.CompleteByClient(client)
 	unSignedTx := types.UnsignedTransaction{
 		UnsignedTransactionBase: types.UnsignedTransactionBase{
 			From:  defaultAccount,
@@ -91,7 +92,7 @@ func DeployNewErc20() *sdk.Contract {
 // DeployIfNotExist ...
 func DeployIfNotExist(contractAddress types.Address, abiFilePath string, bytecodeFilePath string, force bool) (*sdk.Contract, *types.Hash) {
 	// isAddress := len(contractAddress) == 42 && (contractAddress)[0:2] == "0x"
-	isContract := contractAddress.AddressType == cfxaddress.AddressTypeContract
+	isContract := contractAddress.AddressType == address.AddressTypeContract
 	isCodeExist := false
 
 	if isContract {

@@ -8,6 +8,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/example/context"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 )
 
 func main() {
@@ -33,7 +34,7 @@ func main() {
 	//send transaction
 	//send 0.01 cfx
 	value := types.NewBigInt(1000000000000000)
-	utx, err := client.CreateUnsignedTransaction(cfxaddress.MustNewAddressFromHex("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"), cfxaddress.MustNewAddressFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d"), value, nil)
+	utx, err := client.CreateUnsignedTransaction(address.MustNewFromHex("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302"), cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d"), value, nil)
 	if err != nil {
 		panic(err)
 	}

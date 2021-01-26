@@ -109,7 +109,7 @@ func generateBlockHashAndTxHash() {
 	block, err1 := client.GetBlockByHash(config.BlockHash)
 	tx, err2 := client.GetTransactionByHash(config.TransactionHash)
 	if block == nil || err1 != nil || tx == nil || err2 != nil {
-		utx, err := client.CreateUnsignedTransaction(*defaultAccount, cfxaddress.MustNewAddressFromHex("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"), types.NewBigInt(1), nil)
+		utx, err := client.CreateUnsignedTransaction(*defaultAccount, cfxaddress.MustNewFromHex("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"), types.NewBigInt(1), nil)
 		if err != nil {
 			panic(err)
 		}

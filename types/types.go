@@ -7,12 +7,12 @@ package types
 import (
 	"math/big"
 
-	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-type Address = cfxaddress.Address
+type Address = address.Address
 
 // Hash represents the 32 byte Keccak256 hash of arbitrary data in HEX format.
 type Hash string

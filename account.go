@@ -31,20 +31,20 @@ const (
 type AccountManager struct {
 	ks            *keystore.KeyStore
 	cfxAddressDic map[string]*accounts.Account
-	chainID       uint32
+	networkID     uint32
 }
 
 // NewAccountManager creates an instance of AccountManager
 // based on the keystore directory "keydir".
-func NewAccountManager(keydir string, chainID uint32) *AccountManager {
+func NewAccountManager(keydir string, networkID uint32) *AccountManager {
 	am := new(AccountManager)
-	am.chainID = chainID
+	am.networkID = networkID
 
 	am.ks = keystore.NewKeyStore(keydir, keystore.StandardScryptN, keystore.StandardScryptP)
 	am.cfxAddressDic = make(map[string]*accounts.Account)
 
 	for _, account := range am.ks.Accounts() {
-		addr := getCfxUserAddress(account, chainID)
+		addr := getCfxUserAddress(account, networkID)
 		am.cfxAddressDic[addr.MustGetHexAddress()] = &account
 	}
 
@@ -58,7 +58,7 @@ func (m *AccountManager) Create(passphrase string) (address types.Address, err e
 		return address, err
 	}
 
-	addr := getCfxUserAddress(account, m.chainID)
+	addr := getCfxUserAddress(account, m.networkID)
 	m.cfxAddressDic[addr.MustGetHexAddress()] = &account
 	return addr, nil
 }
@@ -78,7 +78,7 @@ func (m *AccountManager) CreateEthCompatible(passphrase string) (address types.A
 			if err != nil {
 				return address, err
 			}
-			return cfxaddress.NewAddressFromCommon(account.Address, m.chainID)
+			return cfxaddress.NewFromCommon(account.Address, m.networkID)
 		}
 	}
 }
@@ -105,7 +105,7 @@ func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (addr
 		return address, errors.Wrap(err, "failed to import account into keystore")
 	}
 
-	address = getCfxUserAddress(account, m.chainID)
+	address = getCfxUserAddress(account, m.networkID)
 
 	m.cfxAddressDic[address.MustGetHexAddress()] = &account
 	return
@@ -127,7 +127,7 @@ func (m *AccountManager) ImportKey(keyString string, passphrase string) (address
 		return address, errors.Wrap(err, "failed to import private key into keystore")
 	}
 
-	address = getCfxUserAddress(account, m.chainID)
+	address = getCfxUserAddress(account, m.networkID)
 	m.cfxAddressDic[address.MustGetHexAddress()] = &account
 	return
 }
@@ -178,8 +178,8 @@ func (m *AccountManager) List() []types.Address {
 
 	for _, account := range m.ks.Accounts() {
 
-		cfxAddress := getCfxUserAddress(account, m.chainID)
-		// fmt.Printf("list %v %v\n", m.chainID, cfxAddress)
+		cfxAddress := getCfxUserAddress(account, m.networkID)
+		// fmt.Printf("list %v %v\n", m.networkID, cfxAddress)
 		result = append(result, cfxAddress)
 	}
 
@@ -243,7 +243,7 @@ func (m *AccountManager) TimedUnlockDefault(passphrase string, timeout time.Dura
 
 // Lock locks the specified account.
 func (m *AccountManager) Lock(address types.Address) error {
-	common, _, err := address.ToCommonAddress()
+	common, _, err := address.ToCommon()
 	if err != nil {
 		return err
 	}
@@ -368,8 +368,8 @@ func (m *AccountManager) Sign(tx types.UnsignedTransaction, passphrase string) (
 	return v, r, s, nil
 }
 
-func getCfxUserAddress(account accounts.Account, chainID uint32) cfxaddress.Address {
+func getCfxUserAddress(account accounts.Account, networkID uint32) cfxaddress.Address {
 	account.Address[0] = account.Address[0]&0x1f | 0x10
-	cfxAddress := cfxaddress.MustNewAddressFromCommon(account.Address, chainID)
+	cfxAddress := cfxaddress.MustNewFromCommon(account.Address, networkID)
 	return cfxAddress
 }

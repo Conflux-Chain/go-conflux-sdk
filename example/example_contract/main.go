@@ -61,7 +61,7 @@ func main() {
 	//get data for send/call contract method
 	chainID, err := contract.Client.GetNetworkID()
 	context.PanicIfErrf(err, "failed to get chainID")
-	user := cfxaddress.MustNewAddressFromHex("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302", chainID)
+	user := cfxaddress.MustNewFromHex("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302", chainID)
 	data, err := contract.GetData("balanceOf", user.MustGetCommonAddress())
 	if err != nil {
 		panic(err)
@@ -100,7 +100,7 @@ func main() {
 	fmt.Printf("decimals of contract is: %+v\n\n", decimals)
 
 	//send transction for contract method
-	to := cfxaddress.MustNewAddressFromHex("0x160ebef20c1f739957bf9eecd040bce699cc42c6")
+	to := cfxaddress.MustNewFromHex("0x160ebef20c1f739957bf9eecd040bce699cc42c6")
 	txhash, err := contract.SendTransaction(nil, "transfer", to.MustGetCommonAddress(), big.NewInt(10))
 	if err != nil {
 		panic(err)

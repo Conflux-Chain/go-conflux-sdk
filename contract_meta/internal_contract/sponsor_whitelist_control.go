@@ -21,9 +21,9 @@ var sponsorMu sync.Mutex
 
 // NewSponsor gets the SponsorWhitelistControl contract object
 func NewSponsor(client sdk.ClientOperator) (s Sponsor, err error) {
-	sponsorMu.Lock()
-	defer sponsorMu.Unlock()
 	if sponsor == nil {
+		sponsorMu.Lock()
+		defer sponsorMu.Unlock()
 		abi := getSponsorAbi()
 		address, e := getSponsorHexAddress(client)
 		if e != nil {
@@ -35,10 +35,7 @@ func NewSponsor(client sdk.ClientOperator) (s Sponsor, err error) {
 		}
 		sponsor = &Sponsor{Contract: *contract}
 	}
-	if sponsor != nil {
-		s = *sponsor
-	}
-	return
+	return *sponsor, nil
 }
 
 // GetSponsorForGas gets gas sponsor address of specific contract
@@ -48,8 +45,8 @@ func (s *Sponsor) GetSponsorForGas(option *types.ContractMethodCallOption, contr
 	if err != nil {
 		return
 	}
-	address = cfxaddress.MustNewAddressFromCommon(*tmp)
-	err = address.CompleteAddressByClient(s.Client)
+	address = cfxaddress.MustNewFromCommon(*tmp)
+	err = address.CompleteByClient(s.Client)
 	return
 }
 
@@ -80,8 +77,8 @@ func (s *Sponsor) GetSponsorForCollateral(option *types.ContractMethodCallOption
 	if err != nil {
 		return
 	}
-	address = cfxaddress.MustNewAddressFromCommon(*sponsor)
-	err = address.CompleteAddressByClient(s.Client)
+	address = cfxaddress.MustNewFromCommon(*sponsor)
+	err = address.CompleteByClient(s.Client)
 	return
 }
 
@@ -381,7 +378,7 @@ func getSponsorAbi() string {
 }
 
 func getSponsorHexAddress(client sdk.ClientOperator) (types.Address, error) {
-	addr := cfxaddress.MustNewAddressFromHex("0x0888000000000000000000000000000000000001")
-	err := addr.CompleteAddressByClient(client)
+	addr := cfxaddress.MustNewFromHex("0x0888000000000000000000000000000000000001")
+	err := addr.CompleteByClient(client)
 	return addr, err
 }

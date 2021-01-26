@@ -66,7 +66,7 @@ func testSponsor() {
 	// AddPrivilegeByAdmin
 	txhash, err = sponsor.AddPrivilegeByAdmin(&types.ContractMethodSendOption{
 		Nonce: context.GetNextNonceAndIncrease()},
-		*contract.Address, []types.Address{cfxaddress.MustNewAddressFromHex("0x15294fd6b3452e657ac2424391d08250340970d4"), cfxaddress.MustNewAddressFromHex("0x1cfa93e2e549c27a84b2121c2da532e18353ec5b")})
+		*contract.Address, []types.Address{cfxaddress.MustNewFromHex("0x15294fd6b3452e657ac2424391d08250340970d4"), cfxaddress.MustNewFromHex("0x1cfa93e2e549c27a84b2121c2da532e18353ec5b")})
 	context.PanicIfErrf(err, "AddPrivilegeByAdmin panic")
 	receipt, err = client.WaitForTransationReceipt(*txhash, time.Second)
 	fmt.Printf("AddPrivilegeByAdmin is success? %v\n", receipt.OutcomeStatus == hexutil.Uint64(0))
@@ -77,14 +77,14 @@ func testSponsor() {
 	fmt.Printf("isAllWhitelisted shold be false: %v\n", isAllWhitelisted)
 
 	// IsWhitelisted
-	isWhitelisted, err := sponsor.IsWhitelisted(nil, contractAddr, cfxaddress.MustNewAddressFromHex("0x15294fd6b3452e657ac2424391d08250340970d4"))
+	isWhitelisted, err := sponsor.IsWhitelisted(nil, contractAddr, cfxaddress.MustNewFromHex("0x15294fd6b3452e657ac2424391d08250340970d4"))
 	context.PanicIfErrf(err, "IsWhitelisted panic")
 	fmt.Printf("isWhitelisted should be true: %v\n", isWhitelisted)
 
 	// RemovePrivilegeByAdmin
 	txhash, err = sponsor.RemovePrivilegeByAdmin(&types.ContractMethodSendOption{
 		Nonce: context.GetNextNonceAndIncrease()},
-		*contract.Address, []types.Address{cfxaddress.MustNewAddressFromHex("0x15294fd6b3452e657ac2424391d08250340970d4")})
+		*contract.Address, []types.Address{cfxaddress.MustNewFromHex("0x15294fd6b3452e657ac2424391d08250340970d4")})
 	context.PanicIfErrf(err, "RemovePrivilegeByAdmin panic")
 
 	receipt, err = client.WaitForTransationReceipt(*txhash, time.Second)
@@ -93,7 +93,7 @@ func testSponsor() {
 	fmt.Printf("RemovePrivilegeByAdmin is success? %v\n", receipt.OutcomeStatus == hexutil.Uint64(0))
 
 	// IsWhitelisted
-	isWhitelisted, err = sponsor.IsWhitelisted(nil, contractAddr, cfxaddress.MustNewAddressFromHex("0x15294fd6b3452e657ac2424391d08250340970d4"))
+	isWhitelisted, err = sponsor.IsWhitelisted(nil, contractAddr, cfxaddress.MustNewFromHex("0x15294fd6b3452e657ac2424391d08250340970d4"))
 	context.PanicIfErrf(err, "IsWhitelisted panic")
 	fmt.Printf("isWhitelisted should be false: %v\n", isWhitelisted)
 }
