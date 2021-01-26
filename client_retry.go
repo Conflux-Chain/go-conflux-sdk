@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
-	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/pkg/errors"
 )
 
@@ -25,7 +25,7 @@ func (r *rpcClientWithRetry) Call(resultPtr interface{}, method string, args ...
 			return nil
 		}
 
-		if types.IsRPCJSONError(err) {
+		if utils.IsRPCJSONError(err) {
 			return err
 		}
 

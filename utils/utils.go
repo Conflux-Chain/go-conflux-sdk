@@ -7,6 +7,7 @@ import (
 
 	"github.com/Conflux-Chain/go-conflux-sdk/constants"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/pkg/errors"
 )
 
 // CalcBlockConfirmationRisk calculates block revert rate
@@ -42,6 +43,12 @@ func HexStringToBytes(hexStr string) (hexutil.Bytes, error) {
 // Has0xPrefix returns true if input starts with '0x' or '0X'
 func Has0xPrefix(input string) bool {
 	return len(input) >= 2 && input[0] == '0' && (input[1] == 'x' || input[1] == 'X')
+}
+
+// IsRPCJSONError returns true if err is rpc error
+func IsRPCJSONError(err error) bool {
+	t := reflect.TypeOf(errors.Cause(err)).String()
+	return t == "*rpc.jsonError" || t == "rpc.jsonError"
 }
 
 // PanicIfErrf panic and reports error message with args
