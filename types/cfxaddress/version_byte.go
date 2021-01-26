@@ -22,7 +22,7 @@ Size bits	Hash size in bits
 By encoding the size of the hash in the version field, we ensure that it is possible to check that the length of the address is correct.
 */
 
-// VersionByte ...
+// VersionByte conmposites by type bits, address type and size bits according above description from CIP-37
 type VersionByte struct {
 	TypeBits uint8
 	// current is constant 0, it's different with AddressType defined in address_type.go
@@ -45,7 +45,7 @@ func init() {
 	hashSizeToBits[512] = 7
 }
 
-// ToByte ...
+// ToByte returns byte
 func (v VersionByte) ToByte() (byte, error) {
 	ret := v.TypeBits & 0x80
 	ret = ret | v.AddressType<<3
@@ -53,7 +53,7 @@ func (v VersionByte) ToByte() (byte, error) {
 	return ret, nil
 }
 
-// NewVersionByte ...
+// NewVersionByte creates version byte by byte
 func NewVersionByte(b byte) (vt VersionByte) {
 	vt.TypeBits = b >> 7
 	vt.AddressType = (b & 0x7f) >> 3
@@ -61,7 +61,7 @@ func NewVersionByte(b byte) (vt VersionByte) {
 	return
 }
 
-// CalcVersionByte ...
+// CalcVersionByte calculates version byte of hex address
 func CalcVersionByte(hexAddress []byte) (versionByte VersionByte, err error) {
 	versionByte.TypeBits = 0
 	versionByte.AddressType = 0

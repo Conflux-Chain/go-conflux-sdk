@@ -53,7 +53,7 @@ AccountManager manages Conflux accounts.
 #### func  NewAccountManager
 
 ```go
-func NewAccountManager(keydir string, chainID uint32) *AccountManager
+func NewAccountManager(keydir string, networkID uint32) *AccountManager
 ```
 NewAccountManager creates an instance of AccountManager based on the keystore
 directory "keydir".
@@ -807,6 +807,20 @@ IsNil sepecialy checks if interface object is nil
 func Keccak256(hexStr string) (string, error)
 ```
 Keccak256 hashes hex string by keccak256 and returns it's hash value
+
+#### func  PanicIfErr
+
+```go
+func PanicIfErr(err error, msg string)
+```
+PanicIfErr panic and reports error message
+
+#### func  PanicIfErrf
+
+```go
+func PanicIfErrf(err error, msg string, args ...interface{})
+```
+PanicIfErrf panic and reports error message with args
 
 #### func  PrivateKeyToPublicKey
 

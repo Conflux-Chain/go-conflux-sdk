@@ -17,7 +17,7 @@ Examples of valid network-prefixes: "cfx", "cfxtest", "net17"
 Examples of invalid network-prefixes: "bch", "conflux", "net1", "net1029"
 */
 
-// NetworkType ...
+// NetworkType reprents network type mapped with network-id
 type NetworkType string
 
 func (n NetworkType) String() string {
@@ -32,25 +32,19 @@ const (
 	NetworkTypeTestnetID uint32 = 1
 )
 
-// NewNetowrkType ...
-func NewNetowrkType(nt string) (NetworkType, error) {
-	if nt == NetworkTypeMainnetPrefix.String() || nt == NetworkTypeTestNetPrefix.String() {
-		return NetworkType(nt), nil
+// NewNetowrkType creates network type by string
+func NewNetowrkType(netType string) (NetworkType, error) {
+	if netType == NetworkTypeMainnetPrefix.String() || netType == NetworkTypeTestNetPrefix.String() {
+		return NetworkType(netType), nil
 	}
-	if nt[0:3] == "net" {
-		chainID, err := strconv.Atoi(nt[3:])
-		if err != nil {
-			return "", errors.Wrapf(err, "chainID %v is not uint32", chainID)
-		}
-		if chainID >= (1 << 32) {
-			return "", errors.Errorf("NetworkID %v not in range 0~0xffffffff", chainID)
-		}
-		return NetworkType(nt), nil
+	_, err := getIDWhenBeginWithNet(netType)
+	if err != nil {
+		return "", err
 	}
-	return "", errors.New("invalid network type")
+	return NetworkType(netType), nil
 }
 
-// NewNetworkTypeByID ...
+// NewNetworkTypeByID creates network type by network ID
 func NewNetworkTypeByID(networkID uint32) NetworkType {
 	var nt NetworkType
 	switch networkID {
@@ -64,7 +58,7 @@ func NewNetworkTypeByID(networkID uint32) NetworkType {
 	return nt
 }
 
-// ToNetworkID ...
+// ToNetworkID returns network ID
 func (n NetworkType) ToNetworkID() (uint32, error) {
 	switch n {
 	case NetworkTypeMainnetPrefix:
@@ -72,16 +66,21 @@ func (n NetworkType) ToNetworkID() (uint32, error) {
 	case NetworkTypeTestNetPrefix:
 		return NetworkTypeTestnetID, nil
 	default:
-		if n[0:3] == "net" {
-			netID, err := strconv.Atoi(string(n[3:]))
-			if err != nil {
-				return 0, err
-			}
-			if netID >= (1 << 32) {
-				return 0, errors.Errorf("NetworkID %v not in range 0~0xffffffff", netID)
-			}
-			return uint32(netID), nil
-		}
+		return getIDWhenBeginWithNet(string(n))
+	}
+}
+
+func getIDWhenBeginWithNet(netIDStr string) (uint32, error) {
+	if netIDStr[0:3] != "net" {
 		return 0, errors.New("Invalid network")
 	}
+
+	netID, err := strconv.Atoi(string(netIDStr[3:]))
+	if err != nil {
+		return 0, err
+	}
+	if netID >= (1 << 32) {
+		return 0, errors.Errorf("NetworkID %v not in range 0~0xffffffff", netID)
+	}
+	return uint32(netID), nil
 }

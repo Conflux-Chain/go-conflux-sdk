@@ -20,10 +20,10 @@ We use the following alphabet: abcdefghjkmnprstuvwxyz0123456789 (i, l, o, q remo
 0x07 => h    0x0f => t    0x17 => 1    0x1f => 9
 */
 
-// Body reperents by 5bits byte array
+// Body reperents 5bits byte array of concating version byte with hex address
 type Body []byte
 
-// NewBodyByString ...
+// NewBodyByString creates body by base32 string which contains version byte and hex address
 func NewBodyByString(base32Str string) (body Body, err error) {
 	for _, v := range base32Str {
 		index, ok := alphabetToIndexMap[v]
@@ -52,7 +52,7 @@ func NewBodyByHexAddress(vrsByte VersionByte, hexAddress []byte) (b Body, err er
 	return
 }
 
-// ToHexAddress ...
+// ToHexAddress decode bits5 array to version byte and hex address
 func (b Body) ToHexAddress() (vrsType VersionByte, hexAddress []byte, err error) {
 	if len(b) == 0 {
 		err = errors.New("invalid base32 body")

@@ -9,12 +9,11 @@ import (
 )
 
 /*
-[OPTIONAL] Address-type:
+[OPTIONAL] Address-type: For the null address (0x0000000000000000000000000000000000000000), address-type must be "type.null". Otherwise,
     match addr[0] & 0xf0
-        case b00000000: "type=builtin"
-        case b00010000: "type=user"
-        case b10000000: "type=contract"
-Implementations can choose to use "type=null" for the null address (0x0000000000000000000000000000000000000000).
+        case b00000000: "type.builtin"
+        case b00010000: "type.user"
+        case b10000000: "type.contract"
 */
 
 type AddressType string
@@ -26,7 +25,7 @@ const (
 	AddressTypeNull     AddressType = "null"
 )
 
-// CalcAddressType ...
+// CalcAddressType calculate address type of hexAddress
 func CalcAddressType(hexAddress []byte) (AddressType, error) {
 	nullAddr, err := hex.DecodeString("0000000000000000000000000000000000000000")
 	if err != nil {
@@ -51,7 +50,7 @@ func CalcAddressType(hexAddress []byte) (AddressType, error) {
 	return addressType, nil
 }
 
-// ToByte ...
+// ToByte returns byte represents of address type according to CIP-37
 func (a AddressType) ToByte() (byte, error) {
 	switch a {
 	case AddressTypeNull:

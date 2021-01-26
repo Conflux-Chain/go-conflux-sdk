@@ -32,10 +32,10 @@ Importantly, optional fields (like address-type) are NOT part of the checksum co
 The 40-bit number returned by PolyMod is split into eight 5-bit numbers (msb first). The payload and the checksum are then encoded according to the base32 character table.
 */
 
-// Checksum ...
+// Checksum represents by 5bits byte array
 type Checksum [8]byte
 
-// CalcChecksum ...
+// CalcChecksum calculates checksum by network type and body
 func CalcChecksum(nt NetworkType, body Body) (c Checksum, err error) {
 	var lower5bitsNettype []byte
 	for _, v := range nt.String() {
@@ -68,6 +68,7 @@ func CalcChecksum(nt NetworkType, body Body) (c Checksum, err error) {
 	return
 }
 
+// String returns base32 string of checksum according to CIP-37
 func (c Checksum) String() string {
 	return bits5sToString(c[:])
 }

@@ -44,7 +44,7 @@ func Has0xPrefix(input string) bool {
 	return len(input) >= 2 && input[0] == '0' && (input[1] == 'x' || input[1] == 'X')
 }
 
-// PanicIfErrf ...
+// PanicIfErrf panic and reports error message with args
 func PanicIfErrf(err error, msg string, args ...interface{}) {
 	if err != nil {
 		fmt.Printf(msg, args...)
@@ -53,6 +53,7 @@ func PanicIfErrf(err error, msg string, args ...interface{}) {
 	}
 }
 
+// PanicIfErr panic and reports error message
 func PanicIfErr(err error, msg string) {
 	if err != nil {
 		fmt.Printf(msg)
