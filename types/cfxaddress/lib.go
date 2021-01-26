@@ -91,7 +91,7 @@ func polymod(v []byte) uint64 {
 func uint64ToBytes(num uint64) []byte {
 	r := make([]byte, 8)
 	for i := 0; i < 8; i++ {
-		r[7-i] = byte(num >> (i * 8))
+		r[7-i] = byte(num >> uint(i*8))
 	}
 	return r
 }
