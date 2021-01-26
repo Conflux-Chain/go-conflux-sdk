@@ -308,7 +308,12 @@ func (client *Client) SendRawTransaction(rawData []byte) (types.Hash, error) {
 // and returns responsed transaction.
 func (client *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte) (*types.Transaction, error) {
 	tx := new(types.UnsignedTransaction)
-	err := tx.Decode(encodedTx)
+	netwrokID, err := client.GetNetworkID()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get networkID")
+	}
+
+	err = tx.Decode(encodedTx, netwrokID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to decode transaction")
 	}

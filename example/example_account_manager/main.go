@@ -119,7 +119,7 @@ func signTx() []byte {
 func decodeRawTx() {
 	rawTx, _ := hex.DecodeString("f867e3018405f5e1008252089410f4bcf113e0b896d9b34294fd3da86b4adf0302648001018080a072aa2777c4b8cee3829ea3fb9658276e40cc4234eb05f176459042e48f69428da07a9bbee20b9a219907c91b562b64ee2e9456d2f280c31ce98736d0feb5e47372")
 	tx := new(types.SignedTransaction)
-	err := tx.Decode(rawTx)
+	err := tx.Decode(rawTx, 1)
 	if err != nil {
 		fmt.Printf("decoded rawTx error: %+v\n\n", err)
 		return

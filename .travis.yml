@@ -8,7 +8,7 @@ os:
     - osx
     - windows
 # script: go test -gcflags=-l -v ./...
-script: go test -gcflags=-l -v $(go list ./...| grep -v /example/)   
+script: go test -gcflags=-l -v $(go list ./...| grep -v /example/ | grep -v /rpc)   
 notifications:
     email:
         recipients:

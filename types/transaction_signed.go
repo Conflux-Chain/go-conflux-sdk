@@ -29,14 +29,14 @@ type SignedTransaction struct {
 }
 
 // Decode decodes RLP encoded data to tx
-func (tx *SignedTransaction) Decode(data []byte) error {
+func (tx *SignedTransaction) Decode(data []byte, networkID uint32) error {
 	txForRlp := new(signedTransactionForRlp)
 	err := rlp.DecodeBytes(data, txForRlp)
 	if err != nil {
 		return err
 	}
 
-	*tx = *txForRlp.toSignedTransaction()
+	*tx = *txForRlp.toSignedTransaction(networkID)
 	return nil
 }
 
@@ -61,8 +61,8 @@ func (tx *SignedTransaction) toStructForRlp() *signedTransactionForRlp {
 	return &txForRlp
 }
 
-func (tx *signedTransactionForRlp) toSignedTransaction() *SignedTransaction {
-	unsigned := tx.UnsignedData.toUnsignedTransaction()
+func (tx *signedTransactionForRlp) toSignedTransaction(networkID uint32) *SignedTransaction {
+	unsigned := tx.UnsignedData.toUnsignedTransaction(networkID)
 	return &SignedTransaction{
 		UnsignedTransaction: *unsigned,
 		V:                   tx.V,

@@ -100,14 +100,14 @@ func (tx *UnsignedTransaction) EncodeWithSignature(v byte, r, s []byte) ([]byte,
 }
 
 // Decode decodes RLP encoded data to tx
-func (tx *UnsignedTransaction) Decode(data []byte) error {
+func (tx *UnsignedTransaction) Decode(data []byte, networkID uint32) error {
 	utxForRlp := new(unsignedTransactionForRlp)
 	err := rlp.DecodeBytes(data, utxForRlp)
 	if err != nil {
 		return err
 	}
 
-	*tx = *utxForRlp.toUnsignedTransaction()
+	*tx = *utxForRlp.toUnsignedTransaction(networkID)
 	return nil
 }
 
@@ -131,8 +131,8 @@ func (tx *UnsignedTransaction) toStructForRlp() *unsignedTransactionForRlp {
 	}
 }
 
-func (tx *unsignedTransactionForRlp) toUnsignedTransaction() *UnsignedTransaction {
-	to := cfxaddress.MustNewAddressFromCommon(*tx.To, uint32(*tx.ChainID))
+func (tx *unsignedTransactionForRlp) toUnsignedTransaction(networkID uint32) *UnsignedTransaction {
+	to := cfxaddress.MustNewAddressFromCommon(*tx.To, networkID)
 	gasPrice := hexutil.Big(*tx.GasPrice)
 	value := hexutil.Big(*tx.Value)
 	storageLimit := tx.StorageLimit

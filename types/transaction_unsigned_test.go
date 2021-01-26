@@ -100,7 +100,7 @@ func TestDecodeRlpToUnsignTransction(t *testing.T) {
 	}
 	// t.Errorf("%+v", expect)
 	actual := new(UnsignedTransaction)
-	actual.Decode(rlp)
+	actual.Decode(rlp, 1024)
 
 	jexpect, _ := json.Marshal(expect)
 	jactual, _ := json.Marshal(actual)
