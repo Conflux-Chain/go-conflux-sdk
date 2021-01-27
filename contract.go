@@ -65,6 +65,7 @@ func (contract *Contract) GetData(method string, args ...interface{}) ([]byte, e
 func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr interface{}, method string, args ...interface{}) error {
 
 	data, err := contract.GetData(method, args...)
+	// fmt.Printf("get data of method %v with args %v: %x \n", method, args, data)
 	if err != nil {
 		return errors.Wrap(err, "failed to encode call data")
 	}
@@ -79,9 +80,10 @@ func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr
 	if option != nil && option.Epoch != nil {
 		epoch = option.Epoch
 	}
+	// fmt.Printf("data: %x,hexdata:%v,callRequest.Data:%v\n", data, hexData, *callRequest.Data)
 	resultHexStr, err := contract.Client.Call(*callRequest, epoch)
 	if err != nil {
-		return errors.Wrapf(err, "failed to call at epoch %v", epoch)
+		return errors.Wrapf(err, "failed to call %+v at epoch %v", *callRequest, epoch)
 	}
 
 	if len(resultHexStr) < 2 {
@@ -145,13 +147,17 @@ func (contract *Contract) DecodeEvent(out interface{}, event string, log types.L
 
 	addressPtr := new(common.Address)
 	if contract.Address != nil {
-		addressPtr = contract.Address.ToCommonAddress()
+		var err error
+		*addressPtr, _, err = contract.Address.ToCommon()
+		if err != nil {
+			return errors.Wrap(err, "failed to parse contract address to hex address")
+		}
 	}
 
 	boundContract := bind.NewBoundContract(*addressPtr, contract.ABI, nil, nil, nil)
 	err := boundContract.UnpackLog(out, event, eLog)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to unpack log")
 	}
 
 	return nil

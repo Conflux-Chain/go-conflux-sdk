@@ -12,10 +12,13 @@ import (
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-func JsonFmt(v interface{}) string {
+// JSONFmt ...
+func JSONFmt(v interface{}) string {
 	j, e := json.Marshal(v)
 	if e != nil {
 		panic(e)
@@ -25,6 +28,7 @@ func JsonFmt(v interface{}) string {
 	return str.String()
 }
 
+// WaitPacked ...
 func WaitPacked(client *sdk.Client, txhash types.Hash) *types.TransactionReceipt {
 	fmt.Printf("wait for transaction %v be packed\n", txhash)
 	var tx *types.TransactionReceipt
@@ -32,18 +36,17 @@ func WaitPacked(client *sdk.Client, txhash types.Hash) *types.TransactionReceipt
 		time.Sleep(time.Duration(1) * time.Second)
 		var err error
 		tx, err = client.GetTransactionReceipt(txhash)
-		if err != nil {
-			panic(err)
-		}
+		PanicIfErrf(err, "failed to get transaction receipt of %v", txhash)
 		fmt.Print(".")
 		if tx != nil {
-			fmt.Printf("transaction is packed:%+v\n\n", JsonFmt(tx))
+			fmt.Printf("transaction is packed:%+v\n\n", JSONFmt(tx))
 			break
 		}
 	}
 	return tx
 }
 
+// GetNextNonceAndIncrease ...
 func GetNextNonceAndIncrease() *hexutil.Big {
 	// println("current in:", nextNonce.String())
 	currentNonce := types.NewBigIntByRaw(nextNonce.ToInt())
@@ -53,28 +56,32 @@ func GetNextNonceAndIncrease() *hexutil.Big {
 	return currentNonce
 }
 
+// CreateSignedTx ...
 func CreateSignedTx(client *sdk.Client) []byte {
+	to := cfxaddress.MustNewFromHex("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302")
+	to.CompleteByClient(client)
 	unSignedTx := types.UnsignedTransaction{
 		UnsignedTransactionBase: types.UnsignedTransactionBase{
 			From:  defaultAccount,
 			Value: types.NewBigInt(100),
 			Nonce: GetNextNonceAndIncrease(),
 		},
-		To: types.NewAddress("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"),
+		To: &to,
 	}
 	err := client.ApplyUnsignedTransactionDefault(&unSignedTx)
 	if err != nil {
 		panic(err)
 	}
 
-	signedTx, err := am.SignAndEcodeTransactionWithPassphrase(unSignedTx, "hello")
+	signedTx, err := client.AccountManager.SignAndEcodeTransactionWithPassphrase(unSignedTx, "hello")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("signed tx %v result:\n0x%x\n\n", JsonFmt(unSignedTx), signedTx)
+	fmt.Printf("signed tx %v result:\n0x%x\n\n", JSONFmt(unSignedTx), signedTx)
 	return signedTx
 }
 
+// DeployNewErc20 ...
 func DeployNewErc20() *sdk.Contract {
 	abiFilePath := path.Join(currentDir, "contract/erc20.abi")
 	bytecodeFilePath := path.Join(currentDir, "contract/erc20.bytecode")
@@ -82,11 +89,13 @@ func DeployNewErc20() *sdk.Contract {
 	return contract
 }
 
+// DeployIfNotExist ...
 func DeployIfNotExist(contractAddress types.Address, abiFilePath string, bytecodeFilePath string, force bool) (*sdk.Contract, *types.Hash) {
-	isAddress := len(contractAddress) == 42 && (contractAddress)[0:2] == "0x"
+	// isAddress := len(contractAddress) == 42 && (contractAddress)[0:2] == "0x"
+	isContract := contractAddress.AddressType == address.AddressTypeContract
 	isCodeExist := false
 
-	if isAddress {
+	if isContract {
 		code, err := client.GetCode(contractAddress)
 		// fmt.Printf("err: %v,code:%v\n", err, len(code))
 		if err == nil && len(code) > 0 && code != "0x" {
@@ -94,8 +103,8 @@ func DeployIfNotExist(contractAddress types.Address, abiFilePath string, bytecod
 		}
 	}
 
-	fmt.Printf("%v isAddress:%v, isCodeExist:%v\n", contractAddress, isAddress, isCodeExist)
-	if !force && isAddress && isCodeExist {
+	fmt.Printf("%v isAddress:%v, isCodeExist:%v\n", contractAddress, isContract, isCodeExist)
+	if !force && isContract && isCodeExist {
 		abi, err := ioutil.ReadFile(abiFilePath)
 		if err != nil {
 			panic(err)
@@ -111,6 +120,7 @@ func DeployIfNotExist(contractAddress types.Address, abiFilePath string, bytecod
 	return contract, txhash
 }
 
+// DeployContractWithConstroctor ...
 func DeployContractWithConstroctor(abiFile string, bytecodeFile string, params ...interface{}) (*sdk.Contract, *types.Hash) {
 	fmt.Println("start deploy contract with construcotr")
 	abi, err := ioutil.ReadFile(abiFile)
@@ -142,9 +152,13 @@ func DeployContractWithConstroctor(abiFile string, bytecodeFile string, params .
 	return contract, result.TransactionHash
 }
 
-func PanicIfErr(err error, msg string) {
+// PanicIfErrf ...
+func PanicIfErrf(err error, msg string, values ...interface{}) {
 	if err != nil {
-		fmt.Println(msg)
+		fmt.Printf(msg, values...)
+		fmt.Println()
+		fmt.Printf("err stack:%+v", err)
+		fmt.Println()
 		panic(err)
 	}
 }

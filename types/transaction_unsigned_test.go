@@ -8,13 +8,17 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
+
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 )
 
 func TestEncode(t *testing.T) {
 
+	from := cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377c")
+	to := cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d")
 	utx := UnsignedTransaction{
 		UnsignedTransactionBase: UnsignedTransactionBase{
-			From: NewAddress("0x1cad0b19bb29d4674531d6f115237e16afce377c"),
+			From: &from,
 
 			Nonce:    NewBigInt(16),
 			GasPrice: NewBigInt(32),
@@ -25,7 +29,7 @@ func TestEncode(t *testing.T) {
 			EpochHeight:  NewUint64(512),
 			ChainID:      NewUint(1024),
 		},
-		To:   NewAddress("0x1cad0b19bb29d4674531d6f115237e16afce377d"),
+		To:   &to,
 		Data: []byte{1, 2, 3},
 	}
 	expect := []byte{231, 16, 32, 64, 148, 28, 173, 11, 25, 187, 41, 212, 103, 69, 49, 214, 241, 21, 35, 126, 22, 175, 206, 55, 125, 129, 128, 130, 1, 0, 130, 2, 0, 130, 4, 0, 131, 1, 2, 3}
@@ -41,10 +45,11 @@ func TestEncode(t *testing.T) {
 }
 
 func TestEncodeWithSignature(t *testing.T) {
-
+	from := cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377c")
+	to := cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d")
 	utx := UnsignedTransaction{
 		UnsignedTransactionBase: UnsignedTransactionBase{
-			From:     NewAddress("0x1cad0b19bb29d4674531d6f115237e16afce377c"),
+			From:     &from,
 			Nonce:    NewBigInt(16),
 			GasPrice: NewBigInt(32),
 			Gas:      NewBigInt(64),
@@ -54,7 +59,7 @@ func TestEncodeWithSignature(t *testing.T) {
 			EpochHeight:  NewUint64(512),
 			ChainID:      NewUint(1024),
 		},
-		To:   NewAddress("0x1cad0b19bb29d4674531d6f115237e16afce377d"),
+		To:   &to,
 		Data: []byte{1, 2, 3},
 	}
 	v := byte(27)
@@ -77,6 +82,7 @@ func TestDecodeRlpToUnsignTransction(t *testing.T) {
 
 	rlp := []byte{231, 16, 32, 64, 148, 28, 173, 11, 25, 187, 41, 212, 103, 69, 49, 214, 241, 21, 35, 126, 22, 175, 206, 55, 125, 129, 128, 130, 1, 0, 130, 2, 0, 130, 4, 0, 131, 1, 2, 3}
 
+	expectTo := cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d", 1024)
 	expect := &UnsignedTransaction{
 		UnsignedTransactionBase: UnsignedTransactionBase{
 			From:     nil,
@@ -89,12 +95,12 @@ func TestDecodeRlpToUnsignTransction(t *testing.T) {
 			EpochHeight:  NewUint64(512),
 			ChainID:      NewUint(1024),
 		},
-		To:   NewAddress("0x1cad0b19bb29d4674531d6f115237e16afce377d"),
+		To:   &expectTo,
 		Data: []byte{1, 2, 3},
 	}
 	// t.Errorf("%+v", expect)
 	actual := new(UnsignedTransaction)
-	actual.Decode(rlp)
+	actual.Decode(rlp, 1024)
 
 	jexpect, _ := json.Marshal(expect)
 	jactual, _ := json.Marshal(actual)

@@ -37,7 +37,7 @@ client.SetAccountManager(am)
 ```
 ## package sdk
 ```
-import "github.com/Conflux-Chain/go-conflux-sdk"
+import "."
 ```
 
 
@@ -53,7 +53,7 @@ AccountManager manages Conflux accounts.
 #### func  NewAccountManager
 
 ```go
-func NewAccountManager(keydir string) *AccountManager
+func NewAccountManager(keydir string, networkID uint32) *AccountManager
 ```
 NewAccountManager creates an instance of AccountManager based on the keystore
 directory "keydir".
@@ -61,14 +61,14 @@ directory "keydir".
 #### func (*AccountManager) Create
 
 ```go
-func (m *AccountManager) Create(passphrase string) (types.Address, error)
+func (m *AccountManager) Create(passphrase string) (address types.Address, err error)
 ```
 Create creates a new account and puts the keystore file into keystore directory
 
 #### func (*AccountManager) CreateEthCompatible
 
 ```go
-func (m *AccountManager) CreateEthCompatible(passphrase string) (types.Address, error)
+func (m *AccountManager) CreateEthCompatible(passphrase string) (address types.Address, err error)
 ```
 CreateEthCompatible creates a new account compatible with eth and puts the
 keystore file into keystore directory
@@ -98,7 +98,7 @@ GetDefault return first account in keystore directory
 #### func (*AccountManager) Import
 
 ```go
-func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (types.Address, error)
+func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (address types.Address, err error)
 ```
 Import imports account from external key file to keystore directory. Returns
 error if the account already exists.
@@ -106,7 +106,7 @@ error if the account already exists.
 #### func (*AccountManager) ImportKey
 
 ```go
-func (m *AccountManager) ImportKey(keyString string, passphrase string) (types.Address, error)
+func (m *AccountManager) ImportKey(keyString string, passphrase string) (address types.Address, err error)
 ```
 ImportKey import account from private key hex string and save to keystore
 directory
@@ -194,6 +194,7 @@ Update updates the passphrase of specified account.
 
 ```go
 type Client struct {
+	AccountManager AccountManagerOperator
 }
 ```
 
@@ -202,7 +203,7 @@ Client represents a client to interact with Conflux blockchain.
 #### func  NewClient
 
 ```go
-func NewClient(nodeURL string) (*Client, error)
+func NewClient(nodeURL string, option ...ClientOption) (*Client, error)
 ```
 NewClient creates a new instance of Client with specified conflux node url.
 
@@ -212,16 +213,6 @@ NewClient creates a new instance of Client with specified conflux node url.
 func NewClientWithRPCRequester(rpcRequester rpcRequester) (*Client, error)
 ```
 NewClientWithRPCRequester creates client with specified rpcRequester
-
-#### func  NewClientWithRetry
-
-```go
-func NewClientWithRetry(nodeURL string, retryCount int, retryInterval time.Duration) (*Client, error)
-```
-NewClientWithRetry creates a retryable new instance of Client with specified
-conflux node url and retry options.
-
-the retryInterval will be set to 1 second if pass 0
 
 #### func (*Client) ApplyUnsignedTransactionDefault
 
@@ -277,7 +268,7 @@ BatchGetTxByHashes requests transaction informations in bulk by txhashes
 #### func (*Client) Call
 
 ```go
-func (client *Client) Call(request types.CallRequest, epoch *types.Epoch) (*string, error)
+func (client *Client) Call(request types.CallRequest, epoch *types.Epoch) (result hexutil.Bytes, err error)
 ```
 Call executes a message call transaction "request" at specified epoch, which is
 directly executed in the VM of the node, but never mined into the block chain
@@ -322,13 +313,6 @@ func (client *Client) CreateUnsignedTransaction(from types.Address, to types.Add
 CreateUnsignedTransaction creates an unsigned transaction by parameters, and the
 other fields will be set to values fetched from conflux node.
 
-#### func (*Client) Debug
-
-```go
-func (client *Client) Debug(method string, args ...interface{}) (interface{}, error)
-```
-Debug calls the Conflux debug API.
-
 #### func (*Client) DeployContract
 
 ```go
@@ -342,7 +326,7 @@ notifying when state changed.
 #### func (*Client) EstimateGasAndCollateral
 
 ```go
-func (client *Client) EstimateGasAndCollateral(request types.CallRequest) (*types.Estimate, error)
+func (client *Client) EstimateGasAndCollateral(request types.CallRequest, epoch ...*types.Epoch) (estimat types.Estimate, err error)
 ```
 EstimateGasAndCollateral excutes a message call "request" and returns the amount
 of the gas used and storage for collateral
@@ -364,28 +348,29 @@ GetAccumulateInterestRate returns accumulate interest rate of the given epoch
 #### func (*Client) GetAdmin
 
 ```go
-func (client *Client) GetAdmin(contractAddress types.Address, epoch ...*types.Epoch) (admin types.Address, err error)
+func (client *Client) GetAdmin(contractAddress types.Address, epoch ...*types.Epoch) (admin *types.Address, err error)
 ```
-GetAdmin returns admin of the given contract
+GetAdmin returns admin of the given contract, it will return nil if contract not
+exist
 
 #### func (*Client) GetBalance
 
 ```go
-func (client *Client) GetBalance(address types.Address, epoch ...*types.Epoch) (*big.Int, error)
+func (client *Client) GetBalance(address types.Address, epoch ...*types.Epoch) (balance *hexutil.Big, err error)
 ```
 GetBalance returns the balance of specified address at epoch.
 
 #### func (*Client) GetBestBlockHash
 
 ```go
-func (client *Client) GetBestBlockHash() (types.Hash, error)
+func (client *Client) GetBestBlockHash() (hash types.Hash, err error)
 ```
 GetBestBlockHash returns the current best block hash.
 
 #### func (*Client) GetBlockByEpoch
 
 ```go
-func (client *Client) GetBlockByEpoch(epoch *types.Epoch) (*types.Block, error)
+func (client *Client) GetBlockByEpoch(epoch *types.Epoch) (block *types.Block, err error)
 ```
 GetBlockByEpoch returns the block of specified epoch. If the epoch is invalid,
 return the concrete error.
@@ -393,7 +378,7 @@ return the concrete error.
 #### func (*Client) GetBlockByHash
 
 ```go
-func (client *Client) GetBlockByHash(blockHash types.Hash) (*types.Block, error)
+func (client *Client) GetBlockByHash(blockHash types.Hash) (block *types.Block, err error)
 ```
 GetBlockByHash returns the block of specified blockHash If the block is not
 found, return nil.
@@ -419,14 +404,14 @@ it's (raw confirmation risk coefficient/ (2^256-1))
 #### func (*Client) GetBlockRewardInfo
 
 ```go
-func (client *Client) GetBlockRewardInfo(epoch ...*types.Epoch) (rewardInfo []types.RewardInfo, err error)
+func (client *Client) GetBlockRewardInfo(epoch types.Epoch) (rewardInfo []types.RewardInfo, err error)
 ```
 GetBlockRewardInfo returns block reward information in an epoch
 
 #### func (*Client) GetBlockSummaryByEpoch
 
 ```go
-func (client *Client) GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary, error)
+func (client *Client) GetBlockSummaryByEpoch(epoch *types.Epoch) (blockSummary *types.BlockSummary, err error)
 ```
 GetBlockSummaryByEpoch returns the block summary of specified epoch. If the
 epoch is invalid, return the concrete error.
@@ -434,7 +419,7 @@ epoch is invalid, return the concrete error.
 #### func (*Client) GetBlockSummaryByHash
 
 ```go
-func (client *Client) GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockSummary, error)
+func (client *Client) GetBlockSummaryByHash(blockHash types.Hash) (blockSummary *types.BlockSummary, err error)
 ```
 GetBlockSummaryByHash returns the block summary of specified blockHash If the
 block is not found, return nil.
@@ -442,14 +427,14 @@ block is not found, return nil.
 #### func (*Client) GetBlockTrace
 
 ```go
-func (client *Client) GetBlockTrace(blockHash types.Hash) (trace types.LocalizedBlockTrace, err error)
+func (client *Client) GetBlockTrace(blockHash types.Hash) (trace *types.LocalizedBlockTrace, err error)
 ```
 GetBlockTrace returns all traces produced at given block.
 
 #### func (*Client) GetBlocksByEpoch
 
 ```go
-func (client *Client) GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error)
+func (client *Client) GetBlocksByEpoch(epoch *types.Epoch) (blockHashes []types.Hash, err error)
 ```
 GetBlocksByEpoch returns the blocks hash in the specified epoch.
 
@@ -463,7 +448,7 @@ GetClientVersion returns the client version as a string
 #### func (*Client) GetCode
 
 ```go
-func (client *Client) GetCode(address types.Address, epoch ...*types.Epoch) (string, error)
+func (client *Client) GetCode(address types.Address, epoch ...*types.Epoch) (code string, err error)
 ```
 GetCode returns the bytecode in HEX format of specified address at epoch.
 
@@ -492,14 +477,14 @@ GetDepositList returns deposit list of the given account.
 #### func (*Client) GetEpochNumber
 
 ```go
-func (client *Client) GetEpochNumber(epoch ...*types.Epoch) (*big.Int, error)
+func (client *Client) GetEpochNumber(epoch ...*types.Epoch) (epochNumber *hexutil.Big, err error)
 ```
 GetEpochNumber returns the highest or specified epoch number.
 
 #### func (*Client) GetGasPrice
 
 ```go
-func (client *Client) GetGasPrice() (*big.Int, error)
+func (client *Client) GetGasPrice() (gasPrice *hexutil.Big, err error)
 ```
 GetGasPrice returns the recent mean gas price.
 
@@ -513,14 +498,21 @@ GetInterestRate returns interest rate of the given epoch
 #### func (*Client) GetLogs
 
 ```go
-func (client *Client) GetLogs(filter types.LogFilter) ([]types.Log, error)
+func (client *Client) GetLogs(filter types.LogFilter) (logs []types.Log, err error)
 ```
 GetLogs returns logs that matching the specified filter.
+
+#### func (*Client) GetNetworkID
+
+```go
+func (client *Client) GetNetworkID() (uint32, error)
+```
+GetNetworkID returns networkID of connecting conflux node
 
 #### func (*Client) GetNextNonce
 
 ```go
-func (client *Client) GetNextNonce(address types.Address, epoch ...*types.Epoch) (*big.Int, error)
+func (client *Client) GetNextNonce(address types.Address, epoch ...*types.Epoch) (nonce *hexutil.Big, err error)
 ```
 GetNextNonce returns the next transaction nonce of address
 
@@ -534,10 +526,11 @@ GetNodeURL returns node url
 #### func (*Client) GetRawBlockConfirmationRisk
 
 ```go
-func (client *Client) GetRawBlockConfirmationRisk(blockhash types.Hash) (*big.Int, error)
+func (client *Client) GetRawBlockConfirmationRisk(blockhash types.Hash) (risk *hexutil.Big, err error)
 ```
 GetRawBlockConfirmationRisk indicates the risk coefficient that the pivot block
-of the epoch where the block is located becomes a normal block.
+of the epoch where the block is located becomes a normal block. It will return
+nil if block not exist
 
 #### func (*Client) GetSkippedBlocksByEpoch
 
@@ -563,21 +556,21 @@ GetStakingBalance returns balance of the given account.
 #### func (*Client) GetStatus
 
 ```go
-func (client *Client) GetStatus() (*types.Status, error)
+func (client *Client) GetStatus() (status types.Status, err error)
 ```
-GetStatus returns chainID of connecting conflux node
+GetStatus returns status of connecting conflux node
 
 #### func (*Client) GetStorageAt
 
 ```go
-func (client *Client) GetStorageAt(address types.Address, position types.Hash, epoch ...*types.Epoch) (storageEntries *hexutil.Big, err error)
+func (client *Client) GetStorageAt(address types.Address, position types.Hash, epoch ...*types.Epoch) (storageEntries hexutil.Bytes, err error)
 ```
 GetStorageAt returns storage entries from a given contract.
 
 #### func (*Client) GetStorageRoot
 
 ```go
-func (client *Client) GetStorageRoot(address types.Address, epoch ...*types.Epoch) (storageRoot types.StorageRoot, err error)
+func (client *Client) GetStorageRoot(address types.Address, epoch ...*types.Epoch) (storageRoot *types.StorageRoot, err error)
 ```
 GetStorageRoot returns storage root of given address
 
@@ -591,7 +584,7 @@ GetSupplyInfo Return information about total token supply.
 #### func (*Client) GetTransactionByHash
 
 ```go
-func (client *Client) GetTransactionByHash(txHash types.Hash) (*types.Transaction, error)
+func (client *Client) GetTransactionByHash(txHash types.Hash) (tx *types.Transaction, err error)
 ```
 GetTransactionByHash returns transaction for the specified txHash. If the
 transaction is not found, return nil.
@@ -599,7 +592,7 @@ transaction is not found, return nil.
 #### func (*Client) GetTransactionReceipt
 
 ```go
-func (client *Client) GetTransactionReceipt(txHash types.Hash) (*types.TransactionReceipt, error)
+func (client *Client) GetTransactionReceipt(txHash types.Hash) (receipt *types.TransactionReceipt, err error)
 ```
 GetTransactionReceipt returns the receipt of specified transaction hash. If no
 receipt is found, return nil.
@@ -678,6 +671,17 @@ func (client *Client) WaitForTransationReceipt(txhash types.Hash, duration time.
 ```
 WaitForTransationReceipt waits for transaction receipt valid
 
+### type ClientOption
+
+```go
+type ClientOption struct {
+	KeystorePath  string
+	RetryCount    int
+	RetryInterval time.Duration
+}
+```
+
+
 ### type Contract
 
 ```go
@@ -715,7 +719,7 @@ mappings of solidity types to go types
 #### func (*Contract) DecodeEvent
 
 ```go
-func (contract *Contract) DecodeEvent(out interface{}, event string, log types.LogEntry) error
+func (contract *Contract) DecodeEvent(out interface{}, event string, log types.Log) error
 ```
 DecodeEvent unpacks a retrieved log into the provided output structure.
 
@@ -765,7 +769,7 @@ type ContractDeployResult struct {
 ContractDeployResult for state change notification when deploying contract
 ## package utils
 ```
-import "github.com/Conflux-Chain/go-conflux-sdk/utils"
+import "."
 ```
 
 
@@ -804,6 +808,20 @@ func Keccak256(hexStr string) (string, error)
 ```
 Keccak256 hashes hex string by keccak256 and returns it's hash value
 
+#### func  PanicIfErr
+
+```go
+func PanicIfErr(err error, msg string)
+```
+PanicIfErr panic and reports error message
+
+#### func  PanicIfErrf
+
+```go
+func PanicIfErrf(err error, msg string, args ...interface{})
+```
+PanicIfErrf panic and reports error message with args
+
 #### func  PrivateKeyToPublicKey
 
 ```go
@@ -811,25 +829,17 @@ func PrivateKeyToPublicKey(privateKey string) string
 ```
 PrivateKeyToPublicKey calculates public key from private key
 
-#### func  PublicKeyToAddress
+#### func  PublicKeyToCommonAddress
 
 ```go
-func PublicKeyToAddress(publicKey string) types.Address
+func PublicKeyToCommonAddress(publicKey string) common.Address
 ```
-PublicKeyToAddress generate address from public key
+PublicKeyToCommonAddress generate address from public key
 
 Account address in conflux starts with '0x1'
-
-#### func  ToCfxGeneralAddress
-
-```go
-func ToCfxGeneralAddress(address common.Address) types.Address
-```
-ToCfxGeneralAddress converts a normal address to conflux customerd general
-address whose hex string starts with '0x1'
 ## package internalcontract
 ```
-import "github.com/Conflux-Chain/go-conflux-sdk/contract_meta/internal_contract"
+import "."
 ```
 
 
@@ -846,7 +856,7 @@ AdminControl contract
 #### func  NewAdminControl
 
 ```go
-func NewAdminControl(client sdk.ClientOperator) *AdminControl
+func NewAdminControl(client sdk.ClientOperator) (ac AdminControl, err error)
 ```
 NewAdminControl gets the AdminControl contract object
 
@@ -860,7 +870,7 @@ Destroy destroies contract `contractAddr`.
 #### func (*AdminControl) GetAdmin
 
 ```go
-func (ac *AdminControl) GetAdmin(option *types.ContractMethodCallOption, contractAddr types.Address) (result *types.Address, err error)
+func (ac *AdminControl) GetAdmin(option *types.ContractMethodCallOption, contractAddr types.Address) (*types.Address, error)
 ```
 GetAdmin returns admin of specific contract
 
@@ -884,7 +894,7 @@ Sponsor represents SponsorWhitelistControl contract
 #### func  NewSponsor
 
 ```go
-func NewSponsor(client sdk.ClientOperator) *Sponsor
+func NewSponsor(client sdk.ClientOperator) (s Sponsor, err error)
 ```
 NewSponsor gets the SponsorWhitelistControl contract object
 
@@ -898,14 +908,14 @@ AddPrivilegeByAdmin for admin adds user to whitelist
 #### func (*Sponsor) GetSponsorForCollateral
 
 ```go
-func (s *Sponsor) GetSponsorForCollateral(option *types.ContractMethodCallOption, contractAddr types.Address) (*types.Address, error)
+func (s *Sponsor) GetSponsorForCollateral(option *types.ContractMethodCallOption, contractAddr types.Address) (address types.Address, err error)
 ```
 GetSponsorForCollateral gets collateral sponsor address
 
 #### func (*Sponsor) GetSponsorForGas
 
 ```go
-func (s *Sponsor) GetSponsorForGas(option *types.ContractMethodCallOption, contractAddr types.Address) (*types.Address, error)
+func (s *Sponsor) GetSponsorForGas(option *types.ContractMethodCallOption, contractAddr types.Address) (address types.Address, err error)
 ```
 GetSponsorForGas gets gas sponsor address of specific contract
 
@@ -980,7 +990,7 @@ Staking contract
 #### func  NewStaking
 
 ```go
-func NewStaking(client sdk.ClientOperator) *Staking
+func NewStaking(client sdk.ClientOperator) (s Staking, err error)
 ```
 NewStaking gets the Staking contract object
 

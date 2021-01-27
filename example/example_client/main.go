@@ -9,11 +9,13 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/example/context"
 	exampletypes "github.com/Conflux-Chain/go-conflux-sdk/example/context/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 var (
-	am     *sdk.AccountManager
+	am     sdk.AccountManagerOperator
 	client *sdk.Client
 	// retryClient    *sdk.Client
 	config         *exampletypes.Config
@@ -38,14 +40,14 @@ func init() {
 
 func main() {
 
-	fmt.Println("\n=======start excute client methods without retry=========\n")
+	fmt.Printf("\n=======start excute client methods without retry=========\n")
 	run(config.GetClient())
-	fmt.Println("\n=======excute client methods without retry end!==========\n")
+	fmt.Printf("\n=======excute client methods without retry end!==========\n")
 	// return
 
-	fmt.Println("\n=======start excute client methods with retry============\n")
-	run(config.GetRetryClient())
-	fmt.Println("\n=======excute client methods with retry end!=============\n")
+	// fmt.Printf("\n=======start excute client methods with retry============\n")
+	// run(config.GetRetryClient())
+	// fmt.Printf("\n=======excute client methods with retry end!=============\n")
 }
 
 func run(_client *sdk.Client) {
@@ -99,8 +101,8 @@ func getAdmin() {
 	result, err := client.GetAdmin(config.ERC20Address, nil)
 	printResult("GetAdmin", []interface{}{config.ERC20Address, nil}, result, err)
 
-	result, err = client.GetAdmin(types.Address("0x0000000000000000000000000000000000000000"), nil)
-	printResult("GetAdmin", []interface{}{types.Address("0x0000000000000000000000000000000000000000"), nil}, result, err)
+	result, err = client.GetAdmin(address.MustNewFromHex("0x0000000000000000000000000000000000000000"), nil)
+	printResult("GetAdmin", []interface{}{address.MustNewFromHex("0x0000000000000000000000000000000000000000"), nil}, result, err)
 }
 
 func getSponsorInfo() {
@@ -213,7 +215,7 @@ func getStatus() {
 	if err != nil {
 		fmt.Printf("- get status error: %v\n\n", err.Error())
 	} else {
-		fmt.Printf("- get status result:\n%v\n\n", context.JsonFmt(status))
+		fmt.Printf("- get status result:\n%v\n\n", context.JSONFmt(status))
 	}
 
 }
@@ -244,7 +246,7 @@ func getBlockByEpoch() {
 	if err != nil {
 		fmt.Printf("- get block of epoch %v error:%#v\n\n", epochNumber, err.Error())
 	} else {
-		fmt.Printf("- block of epoch %v:\n%v\n\n", epochNumber, context.JsonFmt(block))
+		fmt.Printf("- block of epoch %v:\n%v\n\n", epochNumber, context.JSONFmt(block))
 	}
 }
 
@@ -265,7 +267,7 @@ func getBlockByHash() {
 	if err != nil {
 		fmt.Printf("- get block of hash %v error:\n%#v\n\n", blockHash, err.Error())
 	} else {
-		fmt.Printf("- block of hash %v:\n%v\n\n", blockHash, context.JsonFmt(block))
+		fmt.Printf("- block of hash %v:\n%v\n\n", blockHash, context.JSONFmt(block))
 	}
 }
 
@@ -275,7 +277,7 @@ func getBlockSummaryByEpoch() {
 	if err != nil {
 		fmt.Printf("- get block summary of epoch %v error:%#v\n\n", epochNumber, err.Error())
 	} else {
-		fmt.Printf("- block summary of epoch %v:\n%v\n\n", epochNumber, context.JsonFmt(blockSummary))
+		fmt.Printf("- block summary of epoch %v:\n%v\n\n", epochNumber, context.JSONFmt(blockSummary))
 	}
 }
 
@@ -286,14 +288,14 @@ func getBlockSummaryByHash() {
 	if err != nil {
 		fmt.Printf("- get block summary of block hash %v error:%#v\n\n", blockHash, err.Error())
 	} else {
-		fmt.Printf("- block summary of block hash %v:\n%v\n\n", blockHash, context.JsonFmt(blockSummary))
+		fmt.Printf("- block summary of block hash %v:\n%v\n\n", blockHash, context.JSONFmt(blockSummary))
 	}
 }
 
 func getCode() {
 	contractAddr := *defaultAccount // config.ERC20Address
 	// code, err := client.GetCode(contractAddr)
-	code, err := client.GetCode(types.Address("0x19f4bcf113e0b896d9b34294fd3da86b4adf0301"))
+	code, err := client.GetCode(address.MustNewFromHex("0x19f4bcf113e0b896d9b34294fd3da86b4adf0301"))
 	if err != nil {
 		fmt.Printf("- get code of address %v err: %v\n\n", contractAddr, err.Error())
 	} else {
@@ -307,7 +309,7 @@ func getTransactionByHash() {
 	if err != nil {
 		fmt.Printf("- get Transaction By Hash %v error:%v\n\n", txhash, err.Error())
 	} else {
-		fmt.Printf("- get Transaction By Hash %v:\n%v\n\n", txhash, context.JsonFmt(tx))
+		fmt.Printf("- get Transaction By Hash %v:\n%v\n\n", txhash, context.JSONFmt(tx))
 	}
 }
 
@@ -317,20 +319,21 @@ func getTransactionReceipt() {
 	if err != nil {
 		fmt.Printf("- transaction receipt of txhash %v error:%v\n\n", txhash, err.Error())
 	} else {
-		fmt.Printf("- transaction receipt of txhash %v:\n%v\n\n", txhash, context.JsonFmt(receipt))
+		fmt.Printf("- transaction receipt of txhash %v:\n%v\n\n", txhash, context.JSONFmt(receipt))
 	}
 }
 
 func estimateGasAndCollateral() {
+	to := cfxaddress.MustNewFromHex("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302")
 	request := types.CallRequest{
-		To:    types.NewAddress("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"),
+		To:    &to,
 		Value: types.NewBigInt(1),
 	}
 	est, err := client.EstimateGasAndCollateral(request)
 	if err != nil {
-		fmt.Printf("- estimate error: %v\n\n", err.Error())
+		fmt.Printf("- estimate request %v error: %v\n\n", request, err.Error())
 	} else {
-		fmt.Printf("- estimate result: %v\n\n", context.JsonFmt(est))
+		fmt.Printf("- estimate result: %v\n\n", context.JSONFmt(est))
 	}
 }
 
@@ -350,12 +353,14 @@ func sendRawTransaction() {
 
 func createAndSendUnsignedTransaction() {
 	//send transaction
-	utx, err := client.CreateUnsignedTransaction(*defaultAccount, types.Address("0x1cad0b19bb29d4674531d6f115237e16afce377d"), types.NewBigInt(1000000), nil)
+	chainID, err := client.GetNetworkID()
+	context.PanicIfErrf(err, "failed to get chainID")
+	utx, err := client.CreateUnsignedTransaction(*defaultAccount, cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d", chainID), types.NewBigInt(1000000), nil)
 	if err != nil {
 		panic(err)
 	}
 	utx.Nonce = context.GetNextNonceAndIncrease()
-	fmt.Printf("- creat a new unsigned transaction:\n%v\n\n", context.JsonFmt(utx))
+	fmt.Printf("- creat a new unsigned transaction:\n%v\n\n", context.JSONFmt(utx))
 
 	txhash, err := client.SendTransaction(utx)
 	if err != nil {
@@ -400,23 +405,23 @@ func getSupplyInfo() {
 	if err != nil {
 		fmt.Printf("- get supply info error: %v\n", err.Error())
 	} else {
-		fmt.Printf("- get supply info :%v \n", context.JsonFmt(info))
+		fmt.Printf("- get supply info :%v \n", context.JSONFmt(info))
 	}
 }
 
 func traceBlock() {
 	traces, err := client.GetBlockTrace(config.BlockHashOfNewContract)
 	if err != nil {
-		fmt.Printf("- get block trace of create error: %v\n", err.Error())
+		fmt.Printf("- get block trace of create error: %+v\n", err)
 	} else {
-		fmt.Printf("- get block info of create: %+v", context.JsonFmt(traces))
+		fmt.Printf("- get block info of create: %+v", context.JSONFmt(traces))
 	}
 
 	traces, err = client.GetBlockTrace(config.BlockHash)
 	if err != nil {
-		fmt.Printf("- get block trace of call error: %v\n", err.Error())
+		fmt.Printf("- get block trace of call error: %+v\n", err)
 	} else {
-		fmt.Printf("- get block info of call: %+v", context.JsonFmt(traces))
+		fmt.Printf("- get block info of call: %+v", context.JSONFmt(traces))
 	}
 }
 
@@ -426,7 +431,7 @@ func callRPC() {
 	if err != nil {
 		fmt.Printf("- use CallRPC get block by hash error:%+v\n\n", err.Error())
 	} else {
-		fmt.Printf("- use CallRPC get block by hash result:\n%v\n\n", context.JsonFmt(b))
+		fmt.Printf("- use CallRPC get block by hash result:\n%v\n\n", context.JSONFmt(b))
 	}
 }
 
@@ -496,11 +501,11 @@ func subscribeLogs() {
 				panic(fmt.Sprintf("get erc20 contract error: %v", err.Error()))
 			}
 			//send transction for contract method
-			to := types.Address("0x160ebef20c1f739957bf9eecd040bce699cc42c6")
+			to := cfxaddress.MustNewFromHex("0x160ebef20c1f739957bf9eecd040bce699cc42c6")
 			nonce := context.GetNextNonceAndIncrease()
 			txhash, err := contract.SendTransaction(&types.ContractMethodSendOption{
 				Nonce: nonce,
-			}, "transfer", to.ToCommonAddress(), big.NewInt(10))
+			}, "transfer", to.MustGetCommonAddress(), big.NewInt(10))
 			if err != nil {
 				panic(err)
 			}
@@ -533,6 +538,6 @@ func printResult(method string, args []interface{}, result interface{}, err erro
 	if err != nil {
 		fmt.Printf("- call method %v with args %+v error: %v\n\n", method, args, err.Error())
 	} else {
-		fmt.Printf("- call method %v with args %+v result: %+v\n\n", method, args, context.JsonFmt(result))
+		fmt.Printf("- call method %v with args %+v result: %+v\n\n", method, args, context.JSONFmt(result))
 	}
 }

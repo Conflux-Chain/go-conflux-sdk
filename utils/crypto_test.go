@@ -18,11 +18,11 @@ const (
 )
 
 func TestPublicKeyToAddress(t *testing.T) {
-	expect := addressStr
+	expect := addressStr[2:]
 
-	address := PublicKeyToAddress(publicKeyStr)
-	if expect != string(address) {
-		t.Errorf("Test PublicKeyToAddress failed, except %v,  actual %v", expect, address)
+	actual := PublicKeyToCommonAddress(publicKeyStr)
+	if expect != hex.EncodeToString(actual[:]) {
+		t.Errorf("Test PublicKeyToAddress failed, except %v,  actual %x", expect, actual)
 	}
 }
 

@@ -5,8 +5,9 @@ import (
 	"sync"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
-	"github.com/Conflux-Chain/go-conflux-sdk/example/context"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	"github.com/pkg/errors"
 )
 
 // Staking contract
@@ -15,24 +16,31 @@ type Staking struct {
 }
 
 var staking *Staking
-var stakingOnce sync.Once
+var stakingMu sync.Mutex
 
 // NewStaking gets the Staking contract object
-func NewStaking(client sdk.ClientOperator) *Staking {
-	stakingOnce.Do(func() {
+func NewStaking(client sdk.ClientOperator) (s Staking, err error) {
+	if staking == nil {
+		stakingMu.Lock()
+		defer stakingMu.Unlock()
 		abi := getStakingAbi()
-		address := getStakingAddress()
-		contract, err := sdk.NewContract([]byte(abi), client, &address)
-		context.PanicIfErr(err, "new staking panic")
+		address, e := getStakingAddress(client)
+		if e != nil {
+			return s, errors.Wrap(e, "failed to get stake address")
+		}
+		contract, e := sdk.NewContract([]byte(abi), client, &address)
+		if e != nil {
+			return s, errors.Wrap(e, "failed to new staking contract")
+		}
 		staking = &Staking{Contract: *contract}
-	})
-	return staking
+	}
+	return *staking, nil
 }
 
 // GetStakingBalance returns user's staking balance
 func (ac *Staking) GetStakingBalance(option *types.ContractMethodCallOption, user types.Address) (*big.Int, error) {
 	var tmp *big.Int = new(big.Int)
-	err := ac.Call(option, &tmp, "getStakingBalance", user.ToCommonAddress())
+	err := ac.Call(option, &tmp, "getStakingBalance", user.MustGetCommonAddress())
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +52,7 @@ func (ac *Staking) GetStakingBalance(option *types.ContractMethodCallOption, use
 // will return current locked staking balance.
 func (ac *Staking) GetLockedStakingBalance(option *types.ContractMethodCallOption, user types.Address, blockNumber *big.Int) (*big.Int, error) {
 	var tmp *big.Int = new(big.Int)
-	err := ac.Call(option, &tmp, "getLockedStakingBalance", user.ToCommonAddress(), blockNumber)
+	err := ac.Call(option, &tmp, "getLockedStakingBalance", user.MustGetCommonAddress(), blockNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +62,7 @@ func (ac *Staking) GetLockedStakingBalance(option *types.ContractMethodCallOptio
 // GetVotePower returns user's vote power staking balance at given blockNumber
 func (ac *Staking) GetVotePower(option *types.ContractMethodCallOption, user types.Address, blockNumber *big.Int) (*big.Int, error) {
 	var tmp *big.Int = new(big.Int)
-	err := ac.Call(option, &tmp, "getVotePower", user.ToCommonAddress(), blockNumber)
+	err := ac.Call(option, &tmp, "getVotePower", user.MustGetCommonAddress(), blockNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -192,6 +200,8 @@ func getStakingAbi() string {
 		]`
 }
 
-func getStakingAddress() types.Address {
-	return types.Address("0x0888000000000000000000000000000000000002")
+func getStakingAddress(client sdk.ClientOperator) (types.Address, error) {
+	addr := cfxaddress.MustNewFromHex("0x0888000000000000000000000000000000000002")
+	err := addr.CompleteByClient(client)
+	return addr, err
 }

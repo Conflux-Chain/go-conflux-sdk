@@ -7,17 +7,16 @@ package utils
 import (
 	"encoding/hex"
 
-	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/pkg/errors"
 )
 
-// PublicKeyToAddress generate address from public key
+// PublicKeyToCommonAddress generate address from public key
 //
 // Account address in conflux starts with '0x1'
-func PublicKeyToAddress(publicKey string) types.Address {
+func PublicKeyToCommonAddress(publicKey string) common.Address {
 
 	if Has0xPrefix(publicKey) {
 		publicKey = publicKey[2:]
@@ -36,8 +35,8 @@ func PublicKeyToAddress(publicKey string) types.Address {
 	}
 
 	addr := crypto.PubkeyToAddress(*pub)
-	cfxaddr := ToCfxGeneralAddress(addr)
-	return cfxaddr
+	addr[0] = addr[0]&0x1f | 0x10
+	return addr
 }
 
 // PrivateKeyToPublicKey calculates public key from private key
@@ -74,7 +73,7 @@ func Keccak256(hexStr string) (string, error) {
 
 // ToCfxGeneralAddress converts a normal address to conflux customerd general address
 // whose hex string starts with '0x1'
-func ToCfxGeneralAddress(address common.Address) types.Address {
-	address[0] = (address[0] & 0x0f) | 0x10
-	return types.Address(hexutil.Encode(address.Bytes()))
-}
+// func ToCfxGeneralAddress(address common.Address, chainID uint32) types.Address {
+// 	address[0] = (address[0] & 0x0f) | 0x10
+// 	return cfxaddress.MustNewAddressFromHex(hexutil.Encode(address.Bytes()), chainID)
+// }

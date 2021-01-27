@@ -8,11 +8,13 @@ import (
 	"context"
 	"encoding/json"
 	"math/big"
+	"reflect"
 	"time"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/constants"
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -23,21 +25,44 @@ const errMsgApplyTxValues = "failed to apply default transaction values"
 
 // Client represents a client to interact with Conflux blockchain.
 type Client struct {
+	AccountManager AccountManagerOperator
 	nodeURL        string
 	rpcRequester   rpcRequester
-	accountManager AccountManagerOperator
+	networkID      uint32
+}
+
+type ClientOption struct {
+	KeystorePath  string
+	RetryCount    int
+	RetryInterval time.Duration
 }
 
 // NewClient creates a new instance of Client with specified conflux node url.
-func NewClient(nodeURL string) (*Client, error) {
-	client, err := NewClientWithRetry(nodeURL, 0, 0)
-	return client, err
+func NewClient(nodeURL string, option ...ClientOption) (*Client, error) {
+	realOption := ClientOption{}
+	if len(option) > 0 {
+		realOption = option[0]
+	}
+
+	client, err := newClientWithRetry(nodeURL, realOption.KeystorePath, realOption.RetryCount, realOption.RetryInterval)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to new client with retry")
+	}
+
+	return client, nil
+}
+
+// NewClientWithRPCRequester creates client with specified rpcRequester
+func NewClientWithRPCRequester(rpcRequester rpcRequester) (*Client, error) {
+	return &Client{
+		rpcRequester: rpcRequester,
+	}, nil
 }
 
 // NewClientWithRetry creates a retryable new instance of Client with specified conflux node url and retry options.
 //
 // the retryInterval will be set to 1 second if pass 0
-func NewClientWithRetry(nodeURL string, retryCount int, retryInterval time.Duration) (*Client, error) {
+func newClientWithRetry(nodeURL string, keystorePath string, retryCount int, retryInterval time.Duration) (*Client, error) {
 
 	var client Client
 	client.nodeURL = nodeURL
@@ -62,83 +87,17 @@ func NewClientWithRetry(nodeURL string, retryCount int, retryInterval time.Durat
 		}
 	}
 
+	_, err = client.GetNetworkID()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get networkID")
+	}
+
+	if keystorePath != "" {
+		am := NewAccountManager(keystorePath, client.networkID)
+		client.SetAccountManager(am)
+	}
+
 	return &client, nil
-}
-
-// NewClientWithRPCRequester creates client with specified rpcRequester
-func NewClientWithRPCRequester(rpcRequester rpcRequester) (*Client, error) {
-	return &Client{
-		rpcRequester: rpcRequester,
-	}, nil
-}
-
-type rpcClientWithRetry struct {
-	inner      *rpc.Client
-	retryCount int
-	interval   time.Duration
-}
-
-func (r *rpcClientWithRetry) Call(resultPtr interface{}, method string, args ...interface{}) error {
-
-	remain := r.retryCount
-	for {
-
-		err := r.inner.Call(resultPtr, method, args...)
-		if err == nil {
-			return nil
-		}
-
-		if types.IsRpcJsonError(err) {
-			return err
-		}
-
-		remain--
-		// fmt.Printf("remain retry count: %v\n", remain)
-		if remain == 0 {
-			return errors.Wrap(err, "rpc call timeout")
-		}
-
-		if r.interval > 0 {
-			time.Sleep(r.interval)
-		}
-	}
-}
-
-func (r *rpcClientWithRetry) BatchCall(b []rpc.BatchElem) error {
-	err := r.inner.BatchCall(b)
-	if err == nil {
-		return nil
-	}
-
-	if r.retryCount <= 0 {
-		return err
-	}
-
-	remain := r.retryCount
-	for {
-		if err = r.inner.BatchCall(b); err == nil {
-			return nil
-		}
-
-		remain--
-		if remain == 0 {
-			return errors.Wrap(err, "batch rpc call timeout")
-		}
-
-		if r.interval > 0 {
-			time.Sleep(r.interval)
-		}
-	}
-}
-
-func (r *rpcClientWithRetry) Subscribe(ctx context.Context, namespace string, channel interface{}, args ...interface{}) (*rpc.ClientSubscription, error) {
-	return r.inner.Subscribe(ctx, namespace, channel, args...)
-}
-
-func (r *rpcClientWithRetry) Close() {
-	if r != nil && r.inner != nil {
-		r.inner.Close()
-	}
 }
 
 // GetNodeURL returns node url
@@ -168,7 +127,7 @@ func (client *Client) BatchCallRPC(b []rpc.BatchElem) error {
 
 // SetAccountManager sets account manager for sign transaction
 func (client *Client) SetAccountManager(accountManager AccountManagerOperator) {
-	client.accountManager = accountManager
+	client.AccountManager = accountManager
 }
 
 // GetGasPrice returns the recent mean gas price.
@@ -184,10 +143,24 @@ func (client *Client) GetNextNonce(address types.Address, epoch ...*types.Epoch)
 	return
 }
 
-// GetStatus returns chainID of connecting conflux node
+// GetStatus returns status of connecting conflux node
 func (client *Client) GetStatus() (status types.Status, err error) {
 	err = client.wrappedCallRPC(&status, "cfx_getStatus")
 	return
+}
+
+// GetNetworkID returns networkID of connecting conflux node
+func (client *Client) GetNetworkID() (uint32, error) {
+	if client.networkID != 0 {
+		return client.networkID, nil
+	}
+
+	status, err := client.GetStatus()
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to get status")
+	}
+	client.networkID = uint32(*status.NetworkID)
+	return client.networkID, nil
 }
 
 // GetEpochNumber returns the highest or specified epoch number.
@@ -266,7 +239,7 @@ func (client *Client) GetRawBlockConfirmationRisk(blockhash types.Hash) (risk *h
 func (client *Client) GetBlockConfirmationRisk(blockHash types.Hash) (*big.Float, error) {
 	risk, err := client.GetRawBlockConfirmationRisk(blockHash)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to cfx_getConfirmationRiskByHash %v", blockHash)
 	}
 	if risk == nil {
 		return nil, nil
@@ -308,11 +281,11 @@ func (client *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash
 	// }
 
 	//sign
-	if client.accountManager == nil {
+	if client.AccountManager == nil {
 		return "", errors.New("account manager not specified, see SetAccountManager")
 	}
 
-	rawData, err := client.accountManager.SignTransaction(*tx)
+	rawData, err := client.AccountManager.SignTransaction(*tx)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to sign transaction")
 	}
@@ -340,7 +313,12 @@ func (client *Client) SendRawTransaction(rawData []byte) (types.Hash, error) {
 // and returns responsed transaction.
 func (client *Client) SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte) (*types.Transaction, error) {
 	tx := new(types.UnsignedTransaction)
-	err := tx.Decode(encodedTx)
+	netwrokID, err := client.GetNetworkID()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get networkID")
+	}
+
+	err = tx.Decode(encodedTx, netwrokID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to decode transaction")
 	}
@@ -572,8 +550,8 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 
 	if client != nil {
 		if tx.From == nil {
-			if client.accountManager != nil {
-				defaultAccount, err := client.accountManager.GetDefault()
+			if client.AccountManager != nil {
+				defaultAccount, err := client.AccountManager.GetDefault()
 				if err != nil {
 					return errors.Wrap(err, "failed to get default account")
 				}
@@ -584,6 +562,8 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 				tx.From = defaultAccount
 			}
 		}
+		tx.From.CompleteByNetworkID(client.networkID)
+		tx.To.CompleteByNetworkID(client.networkID)
 
 		if tx.Nonce == nil {
 			nonce, err := client.GetNextNonce(*tx.From, nil)
@@ -782,7 +762,7 @@ func (client *Client) BatchGetTxByHashes(txhashes []types.Hash) (map[types.Hash]
 	hashToTxMap := make(map[types.Hash]*types.Transaction)
 	for _, th := range txhashes {
 		be := cache[th]
-		if (be.Result == types.Transaction{}) {
+		if reflect.DeepEqual(be.Result, types.Transaction{}) {
 			hashToTxMap[th] = nil
 			continue
 		}
@@ -826,7 +806,7 @@ func (client *Client) BatchGetBlockSummarys(blockhashes []types.Hash) (map[types
 
 	for _, bh := range blockhashes {
 		be := cache[bh]
-		if (be.Result == types.Transaction{}) {
+		if reflect.DeepEqual(be.Result, types.Transaction{}) {
 			hashToBlocksummaryMap[bh] = nil
 			continue
 		}
@@ -1012,16 +992,42 @@ func (client *Client) WaitForTransationReceipt(txhash types.Hash, duration time.
 }
 
 func (client *Client) wrappedCallRPC(result interface{}, method string, args ...interface{}) error {
-	fmtedArgs := genRPCParams(args...)
+	fmtedArgs := client.genRPCParams(args...)
 	return client.CallRPC(result, method, fmtedArgs...)
 }
 
-func genRPCParams(args ...interface{}) []interface{} {
+func (client *Client) genRPCParams(args ...interface{}) []interface{} {
 	params := []interface{}{}
 	for i := range args {
 		// fmt.Printf("args %v:%v\n", i, args[i])
 		if !utils.IsNil(args[i]) {
 			// fmt.Printf("args %v:%v is not nil\n", i, args[i])
+			t := reflect.TypeOf(args[i])
+			// fmt.Printf("typeof %v is %v\n", args[i], t)
+			if t == reflect.TypeOf(address.Address{}) {
+				tmp := args[i].(address.Address)
+				tmp.CompleteByNetworkID(client.networkID)
+				// fmt.Printf("complete by networkID,%v", client.networkID)
+			}
+
+			if t == reflect.TypeOf(&address.Address{}) {
+				tmp := args[i].(*address.Address)
+				tmp.CompleteByNetworkID(client.networkID)
+				// fmt.Printf("complete by networkID,%v", client.networkID)
+			}
+
+			if t == reflect.TypeOf(types.CallRequest{}) {
+				tmp := args[i].(types.CallRequest)
+				tmp.From.CompleteByNetworkID(client.networkID)
+				tmp.To.CompleteByNetworkID(client.networkID)
+			}
+
+			if t == reflect.TypeOf(&types.CallRequest{}) {
+				tmp := args[i].(*types.CallRequest)
+				tmp.From.CompleteByNetworkID(client.networkID)
+				tmp.To.CompleteByNetworkID(client.networkID)
+			}
+
 			params = append(params, args[i])
 		}
 	}

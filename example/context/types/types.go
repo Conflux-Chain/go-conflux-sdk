@@ -17,14 +17,14 @@ type Config struct {
 	ERC20Address           types.Address
 	client                 *sdk.Client
 	retryClient            *sdk.Client
-	accountManager         *sdk.AccountManager
+	accountManager         sdk.AccountManagerOperator
 }
 
-func (c *Config) SetAccountManager(am *sdk.AccountManager) {
+func (c *Config) SetAccountManager(am sdk.AccountManagerOperator) {
 	c.accountManager = am
 }
 
-func (c *Config) GetAccountManager() *sdk.AccountManager {
+func (c *Config) GetAccountManager() sdk.AccountManagerOperator {
 	return c.accountManager
 }
 

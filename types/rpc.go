@@ -52,6 +52,7 @@ type Status struct {
 	BestHash        *Hash           `json:"bestHash"`
 	BlockNumber     *hexutil.Uint64 `json:"blockNumber"`
 	ChainID         *hexutil.Uint   `json:"chainId"`
+	NetworkID       *hexutil.Uint   `json:"networkId"`
 	EpochNumber     *hexutil.Uint64 `json:"epochNumber"`
 	PendingTxNumber *hexutil.Uint64 `json:"pendingTxNumber"`
 }
@@ -72,9 +73,10 @@ type CheckBalanceAgainstTransactionResponse struct {
 }
 
 type TokenSupplyInfo struct {
-	TotalIssued     *hexutil.Big `json:"totalIssued"`
-	TotalStaking    *hexutil.Big `json:"totalStaking"`
-	TotalCollateral *hexutil.Big `json:"totalCollateral"`
+	TotalCirculating *hexutil.Big `json:"totalCirculating"`
+	TotalIssued      *hexutil.Big `json:"totalIssued"`
+	TotalStaking     *hexutil.Big `json:"totalStaking"`
+	TotalCollateral  *hexutil.Big `json:"totalCollateral"`
 }
 
 type ChainReorg struct {

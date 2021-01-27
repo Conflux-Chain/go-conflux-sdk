@@ -6,20 +6,21 @@ import (
 	internalContract "github.com/Conflux-Chain/go-conflux-sdk/contract_meta/internal_contract"
 	"github.com/Conflux-Chain/go-conflux-sdk/example/context"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 )
 
 func testAdmin() {
-	adminControl := internalContract.NewAdminControl(client)
+	adminControl, err := internalContract.NewAdminControl(client)
+	context.PanicIfErrf(err, "failed to new admin control")
 	// get admin
 	admin, err := adminControl.GetAdmin(nil, config.ERC20Address)
 	if err != nil {
-		fmt.Printf("get admin of %v error: %v\n", config.ERC20Address, err)
+		fmt.Printf("get admin of %v error: %+v\n", config.ERC20Address, err)
 		return
-	} else {
-		fmt.Printf("admin of %v is %v\n", config.ERC20Address, admin)
 	}
+	fmt.Printf("admin of %v is %v\n", config.ERC20Address, admin)
 
-	if *defaultAccount != *admin {
+	if !defaultAccount.Equals(admin) {
 		panic("admin is not " + defaultAccount.String() + "\n")
 	}
 
@@ -42,7 +43,7 @@ func testAdmin() {
 	config = context.PrepareForClientExample()
 
 	txhash, err = adminControl.SetAdmin(&types.ContractMethodSendOption{Nonce: context.GetNextNonceAndIncrease()}, config.ERC20Address,
-		types.Address("0x0000000000000000000000000000000000000000"))
+		cfxaddress.MustNewFromHex("0x0000000000000000000000000000000000000000"))
 	if err != nil {
 		fmt.Printf("set admin error %v\n", err)
 		return
