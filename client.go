@@ -7,6 +7,7 @@ package sdk
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"reflect"
 	"time"
@@ -14,7 +15,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/constants"
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
-	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -158,6 +159,9 @@ func (client *Client) GetNetworkID() (uint32, error) {
 	status, err := client.GetStatus()
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get status")
+	}
+	if status.NetworkID == nil {
+		return 0, errors.Errorf("failed to get networkID, status: %v", utils.JSONFmt(status))
 	}
 	client.networkID = uint32(*status.NetworkID)
 	return client.networkID, nil
@@ -397,7 +401,7 @@ func (client *Client) GetTransactionReceipt(txHash types.Hash) (receipt *types.T
 // GetAdmin returns admin of the given contract, it will return nil if contract not exist
 func (client *Client) GetAdmin(contractAddress types.Address, epoch ...*types.Epoch) (admin *types.Address, err error) {
 	realEpoch := get1stEpochIfy(epoch)
-	err = client.wrappedCallRPC(&admin, "cfx_getAdmin", contractAddress, realEpoch)
+	err = client.wrappedCallRPC(&admin, "cfx_getAdmin", &contractAddress, realEpoch)
 	return
 }
 
@@ -997,33 +1001,33 @@ func (client *Client) wrappedCallRPC(result interface{}, method string, args ...
 }
 
 func (client *Client) genRPCParams(args ...interface{}) []interface{} {
+	// fmt.Println("gen rpc params")
 	params := []interface{}{}
 	for i := range args {
 		// fmt.Printf("args %v:%v\n", i, args[i])
 		if !utils.IsNil(args[i]) {
 			// fmt.Printf("args %v:%v is not nil\n", i, args[i])
 			t := reflect.TypeOf(args[i])
-			// fmt.Printf("typeof %v is %v\n", args[i], t)
-			if t == reflect.TypeOf(address.Address{}) {
-				tmp := args[i].(address.Address)
+			fmt.Printf("typeof %v is %v\n", args[i], t)
+
+			if tmp, ok := args[i].(cfxaddress.Address); ok {
 				tmp.CompleteByNetworkID(client.networkID)
-				// fmt.Printf("complete by networkID,%v", client.networkID)
+				args[i] = tmp
+				// fmt.Printf("complete by networkID,%v; after %v\n", client.networkID, args[i])
 			}
 
-			if t == reflect.TypeOf(&address.Address{}) {
-				tmp := args[i].(*address.Address)
+			if tmp, ok := args[i].(*cfxaddress.Address); ok {
 				tmp.CompleteByNetworkID(client.networkID)
-				// fmt.Printf("complete by networkID,%v", client.networkID)
+				// fmt.Printf("complete by networkID,%v; after %v\n", client.networkID, args[i])
 			}
 
-			if t == reflect.TypeOf(types.CallRequest{}) {
-				tmp := args[i].(types.CallRequest)
+			if tmp, ok := args[i].(types.CallRequest); ok {
 				tmp.From.CompleteByNetworkID(client.networkID)
 				tmp.To.CompleteByNetworkID(client.networkID)
+				args[i] = tmp
 			}
 
-			if t == reflect.TypeOf(&types.CallRequest{}) {
-				tmp := args[i].(*types.CallRequest)
+			if tmp, ok := args[i].(*types.CallRequest); ok {
 				tmp.From.CompleteByNetworkID(client.networkID)
 				tmp.To.CompleteByNetworkID(client.networkID)
 			}
