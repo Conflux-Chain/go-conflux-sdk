@@ -105,6 +105,15 @@ func NewFromHex(hexAddressStr string, networkID ...uint32) (val Address, err err
 	return NewFromBytes(hexAddress, networkID...)
 }
 
+// MustNewFromBase32 creates address by base32 string and panic if error
+func MustNewFromBase32(base32Str string) (address Address) {
+	address, err := NewFromBase32(base32Str)
+	if err != nil {
+		utils.PanicIfErrf(err, "input base32 string: %v", base32Str)
+	}
+	return
+}
+
 // MustNewFromHex creates address by hex address string with networkID and panic if error
 func MustNewFromHex(hexAddressStr string, networkID ...uint32) (val Address) {
 	addr, err := NewFromHex(hexAddressStr, get1stNetworkIDIfy(networkID))

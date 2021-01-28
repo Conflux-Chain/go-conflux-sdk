@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"reflect"
@@ -67,4 +69,14 @@ func PanicIfErr(err error, msg string) {
 		fmt.Println()
 		panic(err)
 	}
+}
+
+func JSONFmt(v interface{}) string {
+	j, e := json.Marshal(v)
+	if e != nil {
+		panic(e)
+	}
+	var str bytes.Buffer
+	_ = json.Indent(&str, j, "", "    ")
+	return str.String()
 }
