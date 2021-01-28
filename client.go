@@ -401,7 +401,7 @@ func (client *Client) GetTransactionReceipt(txHash types.Hash) (receipt *types.T
 // GetAdmin returns admin of the given contract, it will return nil if contract not exist
 func (client *Client) GetAdmin(contractAddress types.Address, epoch ...*types.Epoch) (admin *types.Address, err error) {
 	realEpoch := get1stEpochIfy(epoch)
-	err = client.wrappedCallRPC(&admin, "cfx_getAdmin", &contractAddress, realEpoch)
+	err = client.wrappedCallRPC(&admin, "cfx_getAdmin", contractAddress, realEpoch)
 	return
 }
 

@@ -66,16 +66,16 @@ func (l *LogFilter) UnmarshalJSON(data []byte) error {
 	l.ToEpoch = t.ToEpoch
 	l.BlockHashes = t.BlockHashes
 	l.Limit = t.Limit
-	if l.Address, err = unmarshalToAddresses(t.Address); err != nil {
+	if l.Address, err = resolveToAddresses(t.Address); err != nil {
 		return err
 	}
-	if l.Topics, err = unmarshalToTopicsList(t.Topics); err != nil {
+	if l.Topics, err = resolveToTopicsList(t.Topics); err != nil {
 		return err
 	}
 	return nil
 }
 
-func unmarshalToAddresses(val interface{}) ([]Address, error) {
+func resolveToAddresses(val interface{}) ([]Address, error) {
 	// if val is nil, return
 	if val == nil {
 		return nil, nil
@@ -111,7 +111,7 @@ func unmarshalToAddresses(val interface{}) ([]Address, error) {
 	return nil, errors.Errorf("failed to unmarshal %#v to address or address list", val)
 }
 
-func unmarshalToTopicsList(val []interface{}) ([][]Hash, error) {
+func resolveToTopicsList(val []interface{}) ([][]Hash, error) {
 	// if val is nil, return
 	if val == nil {
 		return nil, nil
@@ -121,7 +121,7 @@ func unmarshalToTopicsList(val []interface{}) ([][]Hash, error) {
 	topicsList := make([][]Hash, 0)
 
 	for _, v := range val {
-		hashes, err := unmsarslToHashes(v)
+		hashes, err := resolveToHashes(v)
 		if err != nil {
 			return nil, err
 		}
@@ -130,7 +130,7 @@ func unmarshalToTopicsList(val []interface{}) ([][]Hash, error) {
 	return topicsList, nil
 }
 
-func unmsarslToHashes(val interface{}) ([]Hash, error) {
+func resolveToHashes(val interface{}) ([]Hash, error) {
 	// if val is nil, return
 	if val == nil {
 		return nil, nil
