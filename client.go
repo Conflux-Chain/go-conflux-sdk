@@ -7,7 +7,6 @@ package sdk
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"math/big"
 	"reflect"
 	"time"
@@ -161,7 +160,7 @@ func (client *Client) GetNetworkID() (uint32, error) {
 		return 0, errors.Wrap(err, "failed to get status")
 	}
 
-	client.networkID = uint32(*status.NetworkID)
+	client.networkID = uint32(status.NetworkID)
 	return client.networkID, nil
 }
 
@@ -581,7 +580,7 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 			if err != nil {
 				tx.ChainID = types.NewUint(0)
 			} else {
-				tx.ChainID = status.ChainID
+				tx.ChainID = &status.ChainID
 			}
 		}
 
@@ -1005,8 +1004,6 @@ func (client *Client) genRPCParams(args ...interface{}) []interface{} {
 		// fmt.Printf("args %v:%v\n", i, args[i])
 		if !utils.IsNil(args[i]) {
 			// fmt.Printf("args %v:%v is not nil\n", i, args[i])
-			t := reflect.TypeOf(args[i])
-			fmt.Printf("typeof %v is %v\n", args[i], t)
 
 			if tmp, ok := args[i].(cfxaddress.Address); ok {
 				tmp.CompleteByNetworkID(client.networkID)
