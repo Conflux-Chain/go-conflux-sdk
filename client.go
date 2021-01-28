@@ -160,9 +160,7 @@ func (client *Client) GetNetworkID() (uint32, error) {
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get status")
 	}
-	if status.NetworkID == nil {
-		return 0, errors.Errorf("failed to get networkID, status: %v", utils.JSONFmt(status))
-	}
+
 	client.networkID = uint32(*status.NetworkID)
 	return client.networkID, nil
 }

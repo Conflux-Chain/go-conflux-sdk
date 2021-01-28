@@ -105,6 +105,6 @@ func verifyLogFilter(t *testing.T, address string, topics string, expectAddress 
 	}
 
 	if !reflect.DeepEqual(expect, actual) {
-		t.Fatalf("expect %v, actual %v", utils.JSONFmt(expect), utils.JSONFmt(actual))
+		t.Fatalf("expect %v, actual %v", utils.PrettyJSON(expect), utils.PrettyJSON(actual))
 	}
 }
