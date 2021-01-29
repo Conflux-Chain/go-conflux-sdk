@@ -23,7 +23,7 @@ func main() {
 	context.PanicIfErrf(err, "failed to get status")
 
 	//unlock account
-	am := sdk.NewAccountManager("../keystore", uint32(*status.ChainID))
+	am := sdk.NewAccountManager("../keystore", uint32(status.ChainID))
 	err = am.TimedUnlockDefault("hello", 300*time.Second)
 	if err != nil {
 		panic(err)
