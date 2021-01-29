@@ -801,6 +801,13 @@ func IsNil(i interface{}) bool
 ```
 IsNil sepecialy checks if interface object is nil
 
+#### func  IsRPCJSONError
+
+```go
+func IsRPCJSONError(err error) bool
+```
+IsRPCJSONError returns true if err is rpc error
+
 #### func  Keccak256
 
 ```go
@@ -821,6 +828,13 @@ PanicIfErr panic and reports error message
 func PanicIfErrf(err error, msg string, args ...interface{})
 ```
 PanicIfErrf panic and reports error message with args
+
+#### func  PrettyJSON
+
+```go
+func PrettyJSON(value interface{}) string
+```
+PrettyJSON jaon marshal value and pretty with indent
 
 #### func  PrivateKeyToPublicKey
 

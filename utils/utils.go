@@ -71,7 +71,7 @@ func PanicIfErr(err error, msg string) {
 	}
 }
 
-// PrettyJSON jaon marshal value and pretty with indent
+// PrettyJSON json marshal value and pretty with indent
 func PrettyJSON(value interface{}) string {
 	j, e := json.Marshal(value)
 	if e != nil {
