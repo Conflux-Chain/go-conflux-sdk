@@ -113,7 +113,7 @@ func (s *Sponsor) IsAllWhitelisted(option *types.ContractMethodCallOption, contr
 }
 
 // AddPrivilegeByAdmin for admin adds user to whitelist
-func (s *Sponsor) AddPrivilegeByAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, userAddresses []types.Address) (*types.Hash, error) {
+func (s *Sponsor) AddPrivilegeByAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, userAddresses []types.Address) (types.Hash, error) {
 	userAddressesComm := make([]common.Address, 0)
 	for _, v := range userAddresses {
 		userAddressesComm = append(userAddressesComm, v.MustGetCommonAddress())
@@ -122,7 +122,7 @@ func (s *Sponsor) AddPrivilegeByAdmin(option *types.ContractMethodSendOption, co
 }
 
 // RemovePrivilegeByAdmin for admin removes user from whitelist
-func (s *Sponsor) RemovePrivilegeByAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, userAddresses []types.Address) (*types.Hash, error) {
+func (s *Sponsor) RemovePrivilegeByAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, userAddresses []types.Address) (types.Hash, error) {
 	userAddressesComm := make([]common.Address, 0)
 	for _, v := range userAddresses {
 		userAddressesComm = append(userAddressesComm, v.MustGetCommonAddress())
@@ -131,12 +131,12 @@ func (s *Sponsor) RemovePrivilegeByAdmin(option *types.ContractMethodSendOption,
 }
 
 // SetSponsorForGas for someone sponsor the gas cost for contract `contractAddr` with an `upper_bound` for a single transaction, it is payable
-func (s *Sponsor) SetSponsorForGas(option *types.ContractMethodSendOption, contractAddr types.Address, upperBound *big.Int) (*types.Hash, error) {
+func (s *Sponsor) SetSponsorForGas(option *types.ContractMethodSendOption, contractAddr types.Address, upperBound *big.Int) (types.Hash, error) {
 	return s.SendTransaction(option, "setSponsorForGas", contractAddr.MustGetCommonAddress(), upperBound)
 }
 
 // SetSponsorForCollateral for someone sponsor the storage collateral for contract `contractAddr`, it is payable
-func (s *Sponsor) SetSponsorForCollateral(option *types.ContractMethodSendOption, contractAddr types.Address) (*types.Hash, error) {
+func (s *Sponsor) SetSponsorForCollateral(option *types.ContractMethodSendOption, contractAddr types.Address) (types.Hash, error) {
 	return s.SendTransaction(option, "setSponsorForCollateral", contractAddr.MustGetCommonAddress())
 }
 

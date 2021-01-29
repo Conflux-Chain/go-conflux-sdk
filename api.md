@@ -150,7 +150,7 @@ SignTransaction signs tx and returns its RLP encoded data.
 #### func (*AccountManager) SignTransactionWithPassphrase
 
 ```go
-func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) (*types.SignedTransaction, error)
+func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) (types.SignedTransaction, error)
 ```
 SignTransactionWithPassphrase signs tx with given passphrase and returns a
 transction with signature
@@ -205,7 +205,8 @@ Client represents a client to interact with Conflux blockchain.
 ```go
 func NewClient(nodeURL string, option ...ClientOption) (*Client, error)
 ```
-NewClient creates a new instance of Client with specified conflux node url.
+NewClient creates an instance of Client with specified conflux node url, it will
+creat account manager if option.KeystorePath not empty.
 
 #### func  NewClientWithRPCRequester
 
@@ -308,7 +309,7 @@ Close closes the client, aborting any in-flight requests.
 #### func (*Client) CreateUnsignedTransaction
 
 ```go
-func (client *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (*types.UnsignedTransaction, error)
+func (client *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (types.UnsignedTransaction, error)
 ```
 CreateUnsignedTransaction creates an unsigned transaction by parameters, and the
 other fields will be set to values fetched from conflux node.
@@ -448,7 +449,7 @@ GetClientVersion returns the client version as a string
 #### func (*Client) GetCode
 
 ```go
-func (client *Client) GetCode(address types.Address, epoch ...*types.Epoch) (code string, err error)
+func (client *Client) GetCode(address types.Address, epoch ...*types.Epoch) (code hexutil.Bytes, err error)
 ```
 GetCode returns the bytecode in HEX format of specified address at epoch.
 
@@ -614,7 +615,7 @@ SendRawTransaction sends signed transaction and returns its hash.
 #### func (*Client) SendTransaction
 
 ```go
-func (client *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash, error)
+func (client *Client) SendTransaction(tx types.UnsignedTransaction) (types.Hash, error)
 ```
 SendTransaction signs and sends transaction to conflux node and returns the
 transaction hash.
@@ -681,6 +682,7 @@ type ClientOption struct {
 }
 ```
 
+ClientOption for set keystore path and flags for retry
 
 ### type Contract
 
@@ -745,7 +747,7 @@ mappings of solidity types to go types
 #### func (*Contract) SendTransaction
 
 ```go
-func (contract *Contract) SendTransaction(option *types.ContractMethodSendOption, method string, args ...interface{}) (*types.Hash, error)
+func (contract *Contract) SendTransaction(option *types.ContractMethodSendOption, method string, args ...interface{}) (types.Hash, error)
 ```
 SendTransaction sends a transaction to the contract method with args and returns
 its transaction hash
@@ -801,6 +803,13 @@ func IsNil(i interface{}) bool
 ```
 IsNil sepecialy checks if interface object is nil
 
+#### func  IsRPCJSONError
+
+```go
+func IsRPCJSONError(err error) bool
+```
+IsRPCJSONError returns true if err is rpc error
+
 #### func  Keccak256
 
 ```go
@@ -821,6 +830,13 @@ PanicIfErr panic and reports error message
 func PanicIfErrf(err error, msg string, args ...interface{})
 ```
 PanicIfErrf panic and reports error message with args
+
+#### func  PrettyJSON
+
+```go
+func PrettyJSON(value interface{}) string
+```
+PrettyJSON json marshal value and pretty with indent
 
 #### func  PrivateKeyToPublicKey
 
@@ -863,21 +879,21 @@ NewAdminControl gets the AdminControl contract object
 #### func (*AdminControl) Destroy
 
 ```go
-func (ac *AdminControl) Destroy(option *types.ContractMethodSendOption, contractAddr types.Address) (*types.Hash, error)
+func (ac *AdminControl) Destroy(option *types.ContractMethodSendOption, contractAddr types.Address) (types.Hash, error)
 ```
 Destroy destroies contract `contractAddr`.
 
 #### func (*AdminControl) GetAdmin
 
 ```go
-func (ac *AdminControl) GetAdmin(option *types.ContractMethodCallOption, contractAddr types.Address) (*types.Address, error)
+func (ac *AdminControl) GetAdmin(option *types.ContractMethodCallOption, contractAddr types.Address) (types.Address, error)
 ```
 GetAdmin returns admin of specific contract
 
 #### func (*AdminControl) SetAdmin
 
 ```go
-func (ac *AdminControl) SetAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, newAdmin types.Address) (*types.Hash, error)
+func (ac *AdminControl) SetAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, newAdmin types.Address) (types.Hash, error)
 ```
 SetAdmin sets the administrator of contract `contractAddr` to `newAdmin`.
 
@@ -901,7 +917,7 @@ NewSponsor gets the SponsorWhitelistControl contract object
 #### func (*Sponsor) AddPrivilegeByAdmin
 
 ```go
-func (s *Sponsor) AddPrivilegeByAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, userAddresses []types.Address) (*types.Hash, error)
+func (s *Sponsor) AddPrivilegeByAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, userAddresses []types.Address) (types.Hash, error)
 ```
 AddPrivilegeByAdmin for admin adds user to whitelist
 
@@ -957,14 +973,14 @@ IsWhitelisted checks if a user is in a contract's whitelist
 #### func (*Sponsor) RemovePrivilegeByAdmin
 
 ```go
-func (s *Sponsor) RemovePrivilegeByAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, userAddresses []types.Address) (*types.Hash, error)
+func (s *Sponsor) RemovePrivilegeByAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, userAddresses []types.Address) (types.Hash, error)
 ```
 RemovePrivilegeByAdmin for admin removes user from whitelist
 
 #### func (*Sponsor) SetSponsorForCollateral
 
 ```go
-func (s *Sponsor) SetSponsorForCollateral(option *types.ContractMethodSendOption, contractAddr types.Address) (*types.Hash, error)
+func (s *Sponsor) SetSponsorForCollateral(option *types.ContractMethodSendOption, contractAddr types.Address) (types.Hash, error)
 ```
 SetSponsorForCollateral for someone sponsor the storage collateral for contract
 `contractAddr`, it is payable
@@ -972,7 +988,7 @@ SetSponsorForCollateral for someone sponsor the storage collateral for contract
 #### func (*Sponsor) SetSponsorForGas
 
 ```go
-func (s *Sponsor) SetSponsorForGas(option *types.ContractMethodSendOption, contractAddr types.Address, upperBound *big.Int) (*types.Hash, error)
+func (s *Sponsor) SetSponsorForGas(option *types.ContractMethodSendOption, contractAddr types.Address, upperBound *big.Int) (types.Hash, error)
 ```
 SetSponsorForGas for someone sponsor the gas cost for contract `contractAddr`
 with an `upper_bound` for a single transaction, it is payable
@@ -997,7 +1013,7 @@ NewStaking gets the Staking contract object
 #### func (*Staking) Deposit
 
 ```go
-func (s *Staking) Deposit(option *types.ContractMethodSendOption, amount *big.Int) (*types.Hash, error)
+func (s *Staking) Deposit(option *types.ContractMethodSendOption, amount *big.Int) (types.Hash, error)
 ```
 Deposit `amount` cfx in this contract
 
@@ -1027,7 +1043,7 @@ GetVotePower returns user's vote power staking balance at given blockNumber
 #### func (*Staking) VoteLock
 
 ```go
-func (s *Staking) VoteLock(option *types.ContractMethodSendOption, amount *big.Int, unlockBlockNumber *big.Int) (*types.Hash, error)
+func (s *Staking) VoteLock(option *types.ContractMethodSendOption, amount *big.Int, unlockBlockNumber *big.Int) (types.Hash, error)
 ```
 VoteLock will locks `amount` cfx from current to next `unlockBlockNumber` blocks
 for obtain vote power
@@ -1035,6 +1051,6 @@ for obtain vote power
 #### func (*Staking) Withdraw
 
 ```go
-func (s *Staking) Withdraw(option *types.ContractMethodSendOption, amount *big.Int) (*types.Hash, error)
+func (s *Staking) Withdraw(option *types.ContractMethodSendOption, amount *big.Int) (types.Hash, error)
 ```
 Withdraw `amount` cfx from this contract

@@ -26,7 +26,7 @@ func testSponsor() {
 		Nonce: context.GetNextNonceAndIncrease(),
 	}, *contract.Address, big.NewInt(1e9))
 	context.PanicIfErrf(err, "SetSponsorForGas panic")
-	receipt, err := client.WaitForTransationReceipt(*txhash, time.Second)
+	receipt, err := client.WaitForTransationReceipt(txhash, time.Second)
 	fmt.Printf("SetSponsorForGas is success?%v\n", receipt.OutcomeStatus == hexutil.Uint64(0))
 
 	// GetSponsorForGas
@@ -50,7 +50,7 @@ func testSponsor() {
 		Nonce: context.GetNextNonceAndIncrease(),
 	}, *contract.Address)
 	context.PanicIfErrf(err, "SetSponsorForCollateral panic")
-	receipt, err = client.WaitForTransationReceipt(*txhash, time.Second)
+	receipt, err = client.WaitForTransationReceipt(txhash, time.Second)
 	fmt.Printf("SetSponsorForCollateral is success? %v\n", receipt.OutcomeStatus == hexutil.Uint64(0))
 
 	// GetSponsorForCollateral
@@ -68,7 +68,7 @@ func testSponsor() {
 		Nonce: context.GetNextNonceAndIncrease()},
 		*contract.Address, []types.Address{cfxaddress.MustNewFromHex("0x15294fd6b3452e657ac2424391d08250340970d4"), cfxaddress.MustNewFromHex("0x1cfa93e2e549c27a84b2121c2da532e18353ec5b")})
 	context.PanicIfErrf(err, "AddPrivilegeByAdmin panic")
-	receipt, err = client.WaitForTransationReceipt(*txhash, time.Second)
+	receipt, err = client.WaitForTransationReceipt(txhash, time.Second)
 	fmt.Printf("AddPrivilegeByAdmin is success? %v\n", receipt.OutcomeStatus == hexutil.Uint64(0))
 
 	// IsAllWhitelisted
@@ -87,7 +87,7 @@ func testSponsor() {
 		*contract.Address, []types.Address{cfxaddress.MustNewFromHex("0x15294fd6b3452e657ac2424391d08250340970d4")})
 	context.PanicIfErrf(err, "RemovePrivilegeByAdmin panic")
 
-	receipt, err = client.WaitForTransationReceipt(*txhash, time.Second)
+	receipt, err = client.WaitForTransationReceipt(txhash, time.Second)
 	context.PanicIfErrf(err, "failed to get tx receipt of %v ", txhash)
 
 	fmt.Printf("RemovePrivilegeByAdmin is success? %v\n", receipt.OutcomeStatus == hexutil.Uint64(0))

@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"reflect"
@@ -67,4 +69,15 @@ func PanicIfErr(err error, msg string) {
 		fmt.Println()
 		panic(err)
 	}
+}
+
+// PrettyJSON json marshal value and pretty with indent
+func PrettyJSON(value interface{}) string {
+	j, e := json.Marshal(value)
+	if e != nil {
+		panic(e)
+	}
+	var str bytes.Buffer
+	_ = json.Indent(&str, j, "", "    ")
+	return str.String()
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/constants"
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
-	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -31,13 +31,14 @@ type Client struct {
 	networkID      uint32
 }
 
+// ClientOption for set keystore path and flags for retry
 type ClientOption struct {
 	KeystorePath  string
 	RetryCount    int
 	RetryInterval time.Duration
 }
 
-// NewClient creates a new instance of Client with specified conflux node url.
+// NewClient creates an instance of Client with specified conflux node url, it will creat account manager if option.KeystorePath not empty.
 func NewClient(nodeURL string, option ...ClientOption) (*Client, error) {
 	realOption := ClientOption{}
 	if len(option) > 0 {
@@ -159,7 +160,8 @@ func (client *Client) GetNetworkID() (uint32, error) {
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get status")
 	}
-	client.networkID = uint32(*status.NetworkID)
+
+	client.networkID = uint32(status.NetworkID)
 	return client.networkID, nil
 }
 
@@ -184,7 +186,7 @@ func (client *Client) GetBalance(address types.Address, epoch ...*types.Epoch) (
 }
 
 // GetCode returns the bytecode in HEX format of specified address at epoch.
-func (client *Client) GetCode(address types.Address, epoch ...*types.Epoch) (code string, err error) {
+func (client *Client) GetCode(address types.Address, epoch ...*types.Epoch) (code hexutil.Bytes, err error) {
 	realEpoch := get1stEpochIfy(epoch)
 	err = client.wrappedCallRPC(&code, "cfx_getCode", address, realEpoch)
 	return
@@ -253,9 +255,9 @@ func (client *Client) GetBlockConfirmationRisk(blockHash types.Hash) (*big.Float
 }
 
 // SendTransaction signs and sends transaction to conflux node and returns the transaction hash.
-func (client *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash, error) {
+func (client *Client) SendTransaction(tx types.UnsignedTransaction) (types.Hash, error) {
 
-	err := client.ApplyUnsignedTransactionDefault(tx)
+	err := client.ApplyUnsignedTransactionDefault(&tx)
 	if err != nil {
 		return "", errors.Wrap(err, errMsgApplyTxValues)
 	}
@@ -285,7 +287,7 @@ func (client *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash
 		return "", errors.New("account manager not specified, see SetAccountManager")
 	}
 
-	rawData, err := client.AccountManager.SignTransaction(*tx)
+	rawData, err := client.AccountManager.SignTransaction(tx)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to sign transaction")
 	}
@@ -530,7 +532,7 @@ func (client *Client) GetBlockTrace(blockHash types.Hash) (trace *types.Localize
 
 // CreateUnsignedTransaction creates an unsigned transaction by parameters,
 // and the other fields will be set to values fetched from conflux node.
-func (client *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (*types.UnsignedTransaction, error) {
+func (client *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (types.UnsignedTransaction, error) {
 	tx := new(types.UnsignedTransaction)
 	tx.From = &from
 	tx.To = &to
@@ -539,10 +541,10 @@ func (client *Client) CreateUnsignedTransaction(from types.Address, to types.Add
 
 	err := client.ApplyUnsignedTransactionDefault(tx)
 	if err != nil {
-		return nil, errors.Wrap(err, errMsgApplyTxValues)
+		return types.UnsignedTransaction{}, errors.Wrap(err, errMsgApplyTxValues)
 	}
 
-	return tx, nil
+	return *tx, nil
 }
 
 // ApplyUnsignedTransactionDefault set empty fields to value fetched from conflux node.
@@ -579,7 +581,7 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 			if err != nil {
 				tx.ChainID = types.NewUint(0)
 			} else {
-				tx.ChainID = status.ChainID
+				tx.ChainID = &status.ChainID
 			}
 		}
 
@@ -674,7 +676,7 @@ func (client *Client) DeployContract(option *types.ContractDeployOption, abiJSON
 		tx.Data = bytecode
 
 		//deploy contract
-		txhash, err := client.SendTransaction(tx)
+		txhash, err := client.SendTransaction(*tx)
 		if err != nil {
 			result.Error = errors.Wrapf(err, "failed to send transaction, tx = %+v", tx)
 			return
@@ -997,33 +999,31 @@ func (client *Client) wrappedCallRPC(result interface{}, method string, args ...
 }
 
 func (client *Client) genRPCParams(args ...interface{}) []interface{} {
+	// fmt.Println("gen rpc params")
 	params := []interface{}{}
 	for i := range args {
 		// fmt.Printf("args %v:%v\n", i, args[i])
 		if !utils.IsNil(args[i]) {
 			// fmt.Printf("args %v:%v is not nil\n", i, args[i])
-			t := reflect.TypeOf(args[i])
-			// fmt.Printf("typeof %v is %v\n", args[i], t)
-			if t == reflect.TypeOf(address.Address{}) {
-				tmp := args[i].(address.Address)
+
+			if tmp, ok := args[i].(cfxaddress.Address); ok {
 				tmp.CompleteByNetworkID(client.networkID)
-				// fmt.Printf("complete by networkID,%v", client.networkID)
+				args[i] = tmp
+				// fmt.Printf("complete by networkID,%v; after %v\n", client.networkID, args[i])
 			}
 
-			if t == reflect.TypeOf(&address.Address{}) {
-				tmp := args[i].(*address.Address)
+			if tmp, ok := args[i].(*cfxaddress.Address); ok {
 				tmp.CompleteByNetworkID(client.networkID)
-				// fmt.Printf("complete by networkID,%v", client.networkID)
+				// fmt.Printf("complete by networkID,%v; after %v\n", client.networkID, args[i])
 			}
 
-			if t == reflect.TypeOf(types.CallRequest{}) {
-				tmp := args[i].(types.CallRequest)
+			if tmp, ok := args[i].(types.CallRequest); ok {
 				tmp.From.CompleteByNetworkID(client.networkID)
 				tmp.To.CompleteByNetworkID(client.networkID)
+				args[i] = tmp
 			}
 
-			if t == reflect.TypeOf(&types.CallRequest{}) {
-				tmp := args[i].(*types.CallRequest)
+			if tmp, ok := args[i].(*types.CallRequest); ok {
 				tmp.From.CompleteByNetworkID(client.networkID)
 				tmp.To.CompleteByNetworkID(client.networkID)
 			}

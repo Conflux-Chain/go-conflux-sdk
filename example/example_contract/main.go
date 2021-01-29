@@ -108,13 +108,13 @@ func main() {
 
 	fmt.Printf("transfer %v erc20 token to %v done, tx hash: %v\n\n", 10, to, txhash)
 
-	context.WaitPacked(client, *txhash)
+	context.WaitPacked(client, txhash)
 
 	fmt.Println("wait be excuted")
 	time.Sleep(10 * time.Second)
 
 	//get event log and decode it
-	receipt, err := client.GetTransactionReceipt(*txhash)
+	receipt, err := client.GetTransactionReceipt(txhash)
 	if err != nil {
 		panic(err)
 	}

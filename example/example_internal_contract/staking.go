@@ -29,7 +29,7 @@ func testStaking() {
 		// deposit
 		txhash, err := staking.Deposit(&types.ContractMethodSendOption{Nonce: context.GetNextNonceAndIncrease()}, big.NewInt(2e18))
 		context.PanicIfErrf(err, "deposit panic")
-		receipt, err := client.WaitForTransationReceipt(*txhash, time.Second)
+		receipt, err := client.WaitForTransationReceipt(txhash, time.Second)
 		context.PanicIfErrf(err, "wait for pack panic")
 		fmt.Printf("depoite done:%v\n", context.JSONFmt(receipt))
 
@@ -42,7 +42,7 @@ func testStaking() {
 	// withdraw
 	txhash, err := staking.Withdraw(&types.ContractMethodSendOption{Nonce: context.GetNextNonceAndIncrease()}, big.NewInt(100))
 	context.PanicIfErrf(err, "withdraw panic")
-	receipt, err := client.WaitForTransationReceipt(*txhash, time.Second)
+	receipt, err := client.WaitForTransationReceipt(txhash, time.Second)
 	context.PanicIfErrf(err, "wait for pack panic")
 	fmt.Printf("withdraw done:%v\n", context.JSONFmt(receipt))
 
@@ -62,7 +62,7 @@ func testStaking() {
 		quarterBlockNumber := int64(2 * 3600 * 24 * 31 * 3)
 		txhash, err = staking.VoteLock(&types.ContractMethodSendOption{Nonce: context.GetNextNonceAndIncrease()}, big.NewInt(1e18), big.NewInt(quarterBlockNumber))
 		context.PanicIfErrf(err, "voteLock panic")
-		receipt, err = client.WaitForTransationReceipt(*txhash, time.Second)
+		receipt, err = client.WaitForTransationReceipt(txhash, time.Second)
 		context.PanicIfErrf(err, "wait for pack panic")
 		fmt.Printf("vote lock %v for %v blocknumber\n", big.NewInt(1e18), quarterBlockNumber)
 	}

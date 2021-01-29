@@ -92,13 +92,13 @@ func DeployNewErc20() *sdk.Contract {
 // DeployIfNotExist ...
 func DeployIfNotExist(contractAddress types.Address, abiFilePath string, bytecodeFilePath string, force bool) (*sdk.Contract, *types.Hash) {
 	// isAddress := len(contractAddress) == 42 && (contractAddress)[0:2] == "0x"
-	isContract := contractAddress.AddressType == address.AddressTypeContract
+	isContract := contractAddress.GetAddressType() == address.AddressTypeContract
 	isCodeExist := false
 
 	if isContract {
 		code, err := client.GetCode(contractAddress)
 		// fmt.Printf("err: %v,code:%v\n", err, len(code))
-		if err == nil && len(code) > 0 && code != "0x" {
+		if err == nil && len(code) > 0 {
 			isCodeExist = true
 		}
 	}

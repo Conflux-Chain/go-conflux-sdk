@@ -70,17 +70,17 @@ func (ac *Staking) GetVotePower(option *types.ContractMethodCallOption, user typ
 }
 
 // Deposit `amount` cfx in this contract
-func (s *Staking) Deposit(option *types.ContractMethodSendOption, amount *big.Int) (*types.Hash, error) {
+func (s *Staking) Deposit(option *types.ContractMethodSendOption, amount *big.Int) (types.Hash, error) {
 	return s.SendTransaction(option, "deposit", amount)
 }
 
 // Withdraw `amount` cfx from this contract
-func (s *Staking) Withdraw(option *types.ContractMethodSendOption, amount *big.Int) (*types.Hash, error) {
+func (s *Staking) Withdraw(option *types.ContractMethodSendOption, amount *big.Int) (types.Hash, error) {
 	return s.SendTransaction(option, "withdraw", amount)
 }
 
 // VoteLock will locks `amount` cfx from current to next `unlockBlockNumber` blocks for obtain vote power
-func (s *Staking) VoteLock(option *types.ContractMethodSendOption, amount *big.Int, unlockBlockNumber *big.Int) (*types.Hash, error) {
+func (s *Staking) VoteLock(option *types.ContractMethodSendOption, amount *big.Int, unlockBlockNumber *big.Int) (types.Hash, error) {
 	return s.SendTransaction(option, "voteLock", amount, unlockBlockNumber)
 }
 
