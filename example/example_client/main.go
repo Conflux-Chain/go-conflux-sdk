@@ -40,10 +40,9 @@ func init() {
 
 func main() {
 
-	// fmt.Printf("\n=======start excute client methods without retry=========\n")
-	// run(config.GetClient())
-	// fmt.Printf("\n=======excute client methods without retry end!==========\n")
-	// return
+	fmt.Printf("\n=======start excute client methods without retry=========\n")
+	run(config.GetClient())
+	fmt.Printf("\n=======excute client methods without retry end!==========\n")
 
 	fmt.Printf("\n=======start excute client methods with retry============\n")
 	run(config.GetRetryClient())
