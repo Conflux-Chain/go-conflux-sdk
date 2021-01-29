@@ -40,14 +40,14 @@ func init() {
 
 func main() {
 
-	fmt.Printf("\n=======start excute client methods without retry=========\n")
-	run(config.GetClient())
-	fmt.Printf("\n=======excute client methods without retry end!==========\n")
+	// fmt.Printf("\n=======start excute client methods without retry=========\n")
+	// run(config.GetClient())
+	// fmt.Printf("\n=======excute client methods without retry end!==========\n")
 	// return
 
-	// fmt.Printf("\n=======start excute client methods with retry============\n")
-	// run(config.GetRetryClient())
-	// fmt.Printf("\n=======excute client methods with retry end!=============\n")
+	fmt.Printf("\n=======start excute client methods with retry============\n")
+	run(config.GetRetryClient())
+	fmt.Printf("\n=======excute client methods with retry end!=============\n")
 }
 
 func run(_client *sdk.Client) {
@@ -510,7 +510,7 @@ func subscribeLogs() {
 				panic(err)
 			}
 			fmt.Printf("transfer %v erc20 token to %v done, tx hash: %v\n", 10, to, txhash)
-			receipt, _ := client.WaitForTransationReceipt(*txhash, time.Second)
+			receipt, _ := client.WaitForTransationReceipt(txhash, time.Second)
 			if receipt != nil {
 				fmt.Printf("tx %v is executed.\n", txhash)
 			}

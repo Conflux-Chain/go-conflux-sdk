@@ -45,7 +45,7 @@ func NewAccountManager(keydir string, networkID uint32) *AccountManager {
 
 	for _, account := range am.ks.Accounts() {
 		addr := getCfxUserAddress(account, networkID)
-		am.cfxAddressDic[addr.MustGetHexAddress()] = &account
+		am.cfxAddressDic[addr.GetHexAddress()] = &account
 	}
 
 	return am
@@ -59,7 +59,7 @@ func (m *AccountManager) Create(passphrase string) (address types.Address, err e
 	}
 
 	addr := getCfxUserAddress(account, m.networkID)
-	m.cfxAddressDic[addr.MustGetHexAddress()] = &account
+	m.cfxAddressDic[addr.GetHexAddress()] = &account
 	return addr, nil
 }
 
@@ -107,7 +107,7 @@ func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (addr
 
 	address = getCfxUserAddress(account, m.networkID)
 
-	m.cfxAddressDic[address.MustGetHexAddress()] = &account
+	m.cfxAddressDic[address.GetHexAddress()] = &account
 	return
 }
 
@@ -128,7 +128,7 @@ func (m *AccountManager) ImportKey(keyString string, passphrase string) (address
 	}
 
 	address = getCfxUserAddress(account, m.networkID)
-	m.cfxAddressDic[address.MustGetHexAddress()] = &account
+	m.cfxAddressDic[address.GetHexAddress()] = &account
 	return
 }
 
@@ -197,7 +197,7 @@ func (m *AccountManager) GetDefault() (*types.Address, error) {
 }
 
 func (m *AccountManager) account(address types.Address) (*accounts.Account, error) {
-	realAccount := m.cfxAddressDic[address.MustGetHexAddress()]
+	realAccount := m.cfxAddressDic[address.GetHexAddress()]
 	if realAccount == nil {
 		return nil, types.NewAccountNotFoundError(address)
 	}
@@ -311,28 +311,29 @@ func (m *AccountManager) SignAndEcodeTransactionWithPassphrase(tx types.Unsigned
 }
 
 // SignTransactionWithPassphrase signs tx with given passphrase and returns a transction with signature
-func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) (*types.SignedTransaction, error) {
+func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) (types.SignedTransaction, error) {
 	// tx.ApplyDefault()
+	empty := types.SignedTransaction{}
 	if tx.From == nil {
-		return nil, errors.New(errMsgFromAddressEmpty)
+		return empty, errors.New(errMsgFromAddressEmpty)
 	}
 
 	account, err := m.account(*tx.From)
 	if err != nil {
-		return nil, err
+		return empty, err
 	}
 
 	hash, err := tx.Hash()
 	if err != nil {
-		return nil, errors.Wrap(err, errMsgCalculateTxHash)
+		return empty, errors.Wrap(err, errMsgCalculateTxHash)
 	}
 
 	sig, err := m.ks.SignHashWithPassphrase(*account, passphrase, hash)
 	if err != nil {
-		return nil, errors.Wrap(err, errMsgSignTx)
+		return empty, errors.Wrap(err, errMsgSignTx)
 	}
 
-	signdTx := new(types.SignedTransaction)
+	signdTx := types.SignedTransaction{}
 	signdTx.UnsignedTransaction = tx
 	signdTx.V = sig[64]
 	signdTx.R = sig[0:32]

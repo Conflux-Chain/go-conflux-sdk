@@ -40,29 +40,31 @@ func NewAdminControl(client sdk.ClientOperator) (ac AdminControl, err error) {
 }
 
 // Destroy destroies contract `contractAddr`.
-func (ac *AdminControl) Destroy(option *types.ContractMethodSendOption, contractAddr types.Address) (*types.Hash, error) {
+func (ac *AdminControl) Destroy(option *types.ContractMethodSendOption, contractAddr types.Address) (types.Hash, error) {
 	return ac.SendTransaction(option, "destroy", contractAddr.MustGetCommonAddress())
 }
 
 // GetAdmin returns admin of specific contract
-func (ac *AdminControl) GetAdmin(option *types.ContractMethodCallOption, contractAddr types.Address) (*types.Address, error) {
+func (ac *AdminControl) GetAdmin(option *types.ContractMethodCallOption, contractAddr types.Address) (types.Address, error) {
+	empty := cfxaddress.Address{}
+
 	var tmp *common.Address = &common.Address{}
 	fmt.Printf("contract addr common address: %x\n", contractAddr.MustGetCommonAddress())
 	err := ac.Call(option, tmp, "getAdmin", contractAddr.MustGetCommonAddress())
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to call getAdmin")
+		return empty, errors.Wrap(err, "failed to call getAdmin")
 	}
 
 	addr, err := address.NewFromCommon(*tmp)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to new address from common %v", *tmp)
+		return empty, errors.Wrapf(err, "failed to new address from common %v", *tmp)
 	}
 	err = addr.CompleteByClient(ac.Client)
-	return &addr, errors.Wrapf(err, "failed to complete network type")
+	return addr, errors.Wrapf(err, "failed to complete network type")
 }
 
 // SetAdmin sets the administrator of contract `contractAddr` to `newAdmin`.
-func (ac *AdminControl) SetAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, newAdmin types.Address) (*types.Hash, error) {
+func (ac *AdminControl) SetAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, newAdmin types.Address) (types.Hash, error) {
 	return ac.SendTransaction(option, "setAdmin", contractAddr.MustGetCommonAddress(), newAdmin.MustGetCommonAddress())
 }
 

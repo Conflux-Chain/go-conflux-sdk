@@ -104,11 +104,11 @@ func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr
 //
 // please refer https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/README.md to
 // get the mappings of solidity types to go types
-func (contract *Contract) SendTransaction(option *types.ContractMethodSendOption, method string, args ...interface{}) (*types.Hash, error) {
+func (contract *Contract) SendTransaction(option *types.ContractMethodSendOption, method string, args ...interface{}) (types.Hash, error) {
 
 	data, err := contract.GetData(method, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to encode call data")
+		return "", errors.Wrap(err, "failed to encode call data")
 	}
 
 	tx := new(types.UnsignedTransaction)
@@ -120,14 +120,14 @@ func (contract *Contract) SendTransaction(option *types.ContractMethodSendOption
 
 	err = contract.Client.ApplyUnsignedTransactionDefault(tx)
 	if err != nil {
-		return nil, errors.Wrap(err, errMsgApplyTxValues)
+		return "", errors.Wrap(err, errMsgApplyTxValues)
 	}
 
-	txhash, err := contract.Client.SendTransaction(tx)
+	txhash, err := contract.Client.SendTransaction(*tx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to send transaction %+v", tx)
+		return "", errors.Wrapf(err, "failed to send transaction %+v", tx)
 	}
-	return &txhash, nil
+	return txhash, nil
 }
 
 // DecodeEvent unpacks a retrieved log into the provided output structure.

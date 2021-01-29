@@ -20,7 +20,7 @@ func testAdmin() {
 	}
 	fmt.Printf("admin of %v is %v\n", config.ERC20Address, admin)
 
-	if !defaultAccount.Equals(admin) {
+	if !defaultAccount.Equals(&admin) {
 		panic("admin is not " + defaultAccount.String() + "\n")
 	}
 
@@ -31,7 +31,7 @@ func testAdmin() {
 		return
 	}
 
-	context.WaitPacked(client, *txhash)
+	context.WaitPacked(client, txhash)
 	code, err := client.GetCode(config.ERC20Address)
 	if err != nil {
 		fmt.Printf("destory done")
@@ -49,7 +49,7 @@ func testAdmin() {
 		return
 	}
 
-	context.WaitPacked(client, *txhash)
+	context.WaitPacked(client, txhash)
 	admin, _ = adminControl.GetAdmin(nil, config.ERC20Address)
 	fmt.Printf("set admin done, new admin of %v is %v\n", config.ERC20Address, admin)
 }

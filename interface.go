@@ -24,7 +24,7 @@ type HTTPRequester interface {
 type Contractor interface {
 	GetData(method string, args ...interface{}) ([]byte, error)
 	Call(option *types.ContractMethodCallOption, resultPtr interface{}, method string, args ...interface{}) error
-	SendTransaction(option *types.ContractMethodSendOption, method string, args ...interface{}) (*types.Hash, error)
+	SendTransaction(option *types.ContractMethodSendOption, method string, args ...interface{}) (types.Hash, error)
 	DecodeEvent(out interface{}, event string, log types.Log) error
 }
 
@@ -36,7 +36,7 @@ type ClientOperator interface {
 	GetNetworkID() (uint32, error)
 	GetEpochNumber(epoch ...*types.Epoch) (*hexutil.Big, error)
 	GetBalance(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, error)
-	GetCode(address types.Address, epoch ...*types.Epoch) (string, error)
+	GetCode(address types.Address, epoch ...*types.Epoch) (hexutil.Bytes, error)
 	GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockSummary, error)
 	GetBlockByHash(blockHash types.Hash) (*types.Block, error)
 	GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary, error)
@@ -45,7 +45,7 @@ type ClientOperator interface {
 	GetRawBlockConfirmationRisk(blockhash types.Hash) (*hexutil.Big, error)
 	GetBlockConfirmationRisk(blockHash types.Hash) (*big.Float, error)
 	SendRawTransaction(rawData []byte) (types.Hash, error)
-	SendTransaction(tx *types.UnsignedTransaction) (types.Hash, error)
+	SendTransaction(tx types.UnsignedTransaction) (types.Hash, error)
 	SetAccountManager(accountManager AccountManagerOperator)
 	SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte) (*types.Transaction, error)
 	Call(request types.CallRequest, epoch *types.Epoch) (hexutil.Bytes, error)
@@ -56,7 +56,7 @@ type ClientOperator interface {
 	EstimateGasAndCollateral(request types.CallRequest, epoch ...*types.Epoch) (types.Estimate, error)
 	GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error)
 	GetTransactionReceipt(txHash types.Hash) (*types.TransactionReceipt, error)
-	CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (*types.UnsignedTransaction, error)
+	CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (types.UnsignedTransaction, error)
 	ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) error
 	Close()
 	GetContract(abiJSON []byte, deployedAt *types.Address) (*Contract, error)
@@ -112,7 +112,7 @@ type AccountManagerOperator interface {
 	Lock(address types.Address) error
 	SignTransaction(tx types.UnsignedTransaction) ([]byte, error)
 	SignAndEcodeTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) ([]byte, error)
-	SignTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) (*types.SignedTransaction, error)
+	SignTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) (types.SignedTransaction, error)
 	Sign(tx types.UnsignedTransaction, passphrase string) (v byte, r, s []byte, err error)
 }
 

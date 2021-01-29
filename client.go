@@ -31,13 +31,14 @@ type Client struct {
 	networkID      uint32
 }
 
+// ClientOption for set keystore path and flags for retry
 type ClientOption struct {
 	KeystorePath  string
 	RetryCount    int
 	RetryInterval time.Duration
 }
 
-// NewClient creates a new instance of Client with specified conflux node url.
+// NewClient creates an instance of Client with specified conflux node url, it will creat account manager if option.KeystorePath not empty.
 func NewClient(nodeURL string, option ...ClientOption) (*Client, error) {
 	realOption := ClientOption{}
 	if len(option) > 0 {
@@ -185,7 +186,7 @@ func (client *Client) GetBalance(address types.Address, epoch ...*types.Epoch) (
 }
 
 // GetCode returns the bytecode in HEX format of specified address at epoch.
-func (client *Client) GetCode(address types.Address, epoch ...*types.Epoch) (code string, err error) {
+func (client *Client) GetCode(address types.Address, epoch ...*types.Epoch) (code hexutil.Bytes, err error) {
 	realEpoch := get1stEpochIfy(epoch)
 	err = client.wrappedCallRPC(&code, "cfx_getCode", address, realEpoch)
 	return
@@ -254,9 +255,9 @@ func (client *Client) GetBlockConfirmationRisk(blockHash types.Hash) (*big.Float
 }
 
 // SendTransaction signs and sends transaction to conflux node and returns the transaction hash.
-func (client *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash, error) {
+func (client *Client) SendTransaction(tx types.UnsignedTransaction) (types.Hash, error) {
 
-	err := client.ApplyUnsignedTransactionDefault(tx)
+	err := client.ApplyUnsignedTransactionDefault(&tx)
 	if err != nil {
 		return "", errors.Wrap(err, errMsgApplyTxValues)
 	}
@@ -286,7 +287,7 @@ func (client *Client) SendTransaction(tx *types.UnsignedTransaction) (types.Hash
 		return "", errors.New("account manager not specified, see SetAccountManager")
 	}
 
-	rawData, err := client.AccountManager.SignTransaction(*tx)
+	rawData, err := client.AccountManager.SignTransaction(tx)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to sign transaction")
 	}
@@ -531,7 +532,7 @@ func (client *Client) GetBlockTrace(blockHash types.Hash) (trace *types.Localize
 
 // CreateUnsignedTransaction creates an unsigned transaction by parameters,
 // and the other fields will be set to values fetched from conflux node.
-func (client *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (*types.UnsignedTransaction, error) {
+func (client *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (types.UnsignedTransaction, error) {
 	tx := new(types.UnsignedTransaction)
 	tx.From = &from
 	tx.To = &to
@@ -540,10 +541,10 @@ func (client *Client) CreateUnsignedTransaction(from types.Address, to types.Add
 
 	err := client.ApplyUnsignedTransactionDefault(tx)
 	if err != nil {
-		return nil, errors.Wrap(err, errMsgApplyTxValues)
+		return types.UnsignedTransaction{}, errors.Wrap(err, errMsgApplyTxValues)
 	}
 
-	return tx, nil
+	return *tx, nil
 }
 
 // ApplyUnsignedTransactionDefault set empty fields to value fetched from conflux node.
@@ -675,7 +676,7 @@ func (client *Client) DeployContract(option *types.ContractDeployOption, abiJSON
 		tx.Data = bytecode
 
 		//deploy contract
-		txhash, err := client.SendTransaction(tx)
+		txhash, err := client.SendTransaction(*tx)
 		if err != nil {
 			result.Error = errors.Wrapf(err, "failed to send transaction, tx = %+v", tx)
 			return
