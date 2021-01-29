@@ -834,7 +834,7 @@ PanicIfErrf panic and reports error message with args
 ```go
 func PrettyJSON(value interface{}) string
 ```
-PrettyJSON jaon marshal value and pretty with indent
+PrettyJSON json marshal value and pretty with indent
 
 #### func  PrivateKeyToPublicKey
 
