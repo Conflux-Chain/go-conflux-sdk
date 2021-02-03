@@ -25,7 +25,7 @@ type Address struct {
 
 // String returns verbose base32 string of address
 func (a Address) String() string {
-	return a.GetVerboseBase32Address()
+	return a.MustGetVerboseBase32Address()
 }
 
 // Equals reports whether a and target are equal
@@ -190,13 +190,13 @@ func (a *Address) ToCommon() (address common.Address, networkID uint32, err erro
 	return
 }
 
-// GetBase32Address returns base32 string of address which doesn't include address type
-func (a *Address) GetBase32Address() string {
+// MustGetBase32Address returns base32 string of address which doesn't include address type
+func (a *Address) MustGetBase32Address() string {
 	return fmt.Sprintf("%v:%v%v", a.networkType, a.body, a.checksum)
 }
 
-// GetVerboseBase32Address returns base32 string of address with address type
-func (a *Address) GetVerboseBase32Address() string {
+// MustGetVerboseBase32Address returns base32 string of address with address type
+func (a *Address) MustGetVerboseBase32Address() string {
 	return strings.ToUpper(fmt.Sprintf("%v:%v:%v%v", a.networkType, a.addressType, a.body, a.checksum))
 }
 
