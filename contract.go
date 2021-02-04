@@ -92,7 +92,7 @@ func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr
 
 	bytes := []byte(resultHexStr)
 
-	err = contract.ABI.Unpack(resultPtr, method, bytes)
+	err = contract.ABI.UnpackIntoInterface(resultPtr, method, bytes)
 	if err != nil {
 		return errors.Wrapf(err, "failed to decode call result, encoded data = %v", resultHexStr)
 	}
