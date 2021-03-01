@@ -27,10 +27,14 @@ const (
 	errMsgEncodeSignature  = "failed to encode tx signature"
 )
 
+var (
+	emptyAccount = accounts.Account{}
+)
+
 // AccountManager manages Conflux accounts.
 type AccountManager struct {
 	ks            *keystore.KeyStore
-	cfxAddressDic map[string]*accounts.Account
+	cfxAddressDic map[string]accounts.Account
 	networkID     uint32
 }
 
@@ -41,11 +45,11 @@ func NewAccountManager(keydir string, networkID uint32) *AccountManager {
 	am.networkID = networkID
 
 	am.ks = keystore.NewKeyStore(keydir, keystore.StandardScryptN, keystore.StandardScryptP)
-	am.cfxAddressDic = make(map[string]*accounts.Account)
+	am.cfxAddressDic = make(map[string]accounts.Account)
 
 	for _, account := range am.ks.Accounts() {
 		addr := getCfxUserAddress(account, networkID)
-		am.cfxAddressDic[addr.GetHexAddress()] = &account
+		am.cfxAddressDic[addr.GetHexAddress()] = account
 	}
 
 	return am
@@ -59,7 +63,7 @@ func (m *AccountManager) Create(passphrase string) (address types.Address, err e
 	}
 
 	addr := getCfxUserAddress(account, m.networkID)
-	m.cfxAddressDic[addr.GetHexAddress()] = &account
+	m.cfxAddressDic[addr.GetHexAddress()] = account
 	return addr, nil
 }
 
@@ -107,7 +111,7 @@ func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (addr
 
 	address = getCfxUserAddress(account, m.networkID)
 
-	m.cfxAddressDic[address.GetHexAddress()] = &account
+	m.cfxAddressDic[address.GetHexAddress()] = account
 	return
 }
 
@@ -128,7 +132,7 @@ func (m *AccountManager) ImportKey(keyString string, passphrase string) (address
 	}
 
 	address = getCfxUserAddress(account, m.networkID)
-	m.cfxAddressDic[address.GetHexAddress()] = &account
+	m.cfxAddressDic[address.GetHexAddress()] = account
 	return
 }
 
@@ -140,7 +144,7 @@ func (m *AccountManager) Export(address types.Address, passphrase string) (strin
 		return "", err
 	}
 
-	keyjson, err := m.ks.Export(*a, passphrase, passphrase)
+	keyjson, err := m.ks.Export(a, passphrase, passphrase)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to export account")
 	}
@@ -160,7 +164,7 @@ func (m *AccountManager) Delete(address types.Address, passphrase string) error 
 	if err != nil {
 		return err
 	}
-	return m.ks.Delete(*account, passphrase)
+	return m.ks.Delete(account, passphrase)
 }
 
 // Update updates the passphrase of specified account.
@@ -169,7 +173,7 @@ func (m *AccountManager) Update(address types.Address, passphrase, newPassphrase
 	if err != nil {
 		return err
 	}
-	return m.ks.Update(*account, passphrase, newPassphrase)
+	return m.ks.Update(account, passphrase, newPassphrase)
 }
 
 // List lists all accounts in keystore directory.
@@ -196,10 +200,10 @@ func (m *AccountManager) GetDefault() (*types.Address, error) {
 	return nil, errors.New("no account found")
 }
 
-func (m *AccountManager) account(address types.Address) (*accounts.Account, error) {
+func (m *AccountManager) account(address types.Address) (accounts.Account, error) {
 	realAccount := m.cfxAddressDic[address.GetHexAddress()]
-	if realAccount == nil {
-		return nil, types.NewAccountNotFoundError(address)
+	if realAccount == emptyAccount {
+		return emptyAccount, types.NewAccountNotFoundError(address)
 	}
 
 	return realAccount, nil
@@ -211,7 +215,7 @@ func (m *AccountManager) Unlock(address types.Address, passphrase string) error 
 	if err != nil {
 		return err
 	}
-	return m.ks.Unlock(*account, passphrase)
+	return m.ks.Unlock(account, passphrase)
 }
 
 // UnlockDefault unlocks the default account indefinitely.
@@ -229,7 +233,7 @@ func (m *AccountManager) TimedUnlock(address types.Address, passphrase string, t
 	if err != nil {
 		return err
 	}
-	return m.ks.TimedUnlock(*account, passphrase, timeout)
+	return m.ks.TimedUnlock(account, passphrase, timeout)
 }
 
 // TimedUnlockDefault unlocks the specified account for a period of time.
@@ -267,7 +271,7 @@ func (m *AccountManager) SignTransaction(tx types.UnsignedTransaction) ([]byte, 
 		return nil, errors.Wrap(err, errMsgCalculateTxHash)
 	}
 
-	sig, err := m.ks.SignHash(*account, hash)
+	sig, err := m.ks.SignHash(account, hash)
 	if err != nil {
 		return nil, errors.Wrap(err, errMsgSignTx)
 	}
@@ -297,7 +301,7 @@ func (m *AccountManager) SignAndEcodeTransactionWithPassphrase(tx types.Unsigned
 		return nil, errors.Wrap(err, errMsgCalculateTxHash)
 	}
 
-	sig, err := m.ks.SignHashWithPassphrase(*account, passphrase, hash)
+	sig, err := m.ks.SignHashWithPassphrase(account, passphrase, hash)
 	if err != nil {
 		return nil, errors.Wrap(err, errMsgSignTx)
 	}
@@ -328,7 +332,7 @@ func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransact
 		return empty, errors.Wrap(err, errMsgCalculateTxHash)
 	}
 
-	sig, err := m.ks.SignHashWithPassphrase(*account, passphrase, hash)
+	sig, err := m.ks.SignHashWithPassphrase(account, passphrase, hash)
 	if err != nil {
 		return empty, errors.Wrap(err, errMsgSignTx)
 	}
@@ -350,7 +354,7 @@ func (m *AccountManager) Sign(tx types.UnsignedTransaction, passphrase string) (
 	}
 
 	account, err := m.account(*tx.From)
-	if account == nil {
+	if account == emptyAccount {
 		return 0, nil, nil, err
 	}
 
@@ -359,7 +363,7 @@ func (m *AccountManager) Sign(tx types.UnsignedTransaction, passphrase string) (
 		return 0, nil, nil, errors.Wrap(err, errMsgCalculateTxHash)
 	}
 
-	sig, err := m.ks.SignHashWithPassphrase(*account, passphrase, hash)
+	sig, err := m.ks.SignHashWithPassphrase(account, passphrase, hash)
 	if err != nil {
 		return 0, nil, nil, errors.Wrap(err, errMsgSignTx)
 	}
