@@ -10,23 +10,26 @@ import (
 
 func TestGetAccountMatchAddress(t *testing.T) {
 	am := NewAccountManager("./tmp/keystore", 1)
+	testNum := 10
 
 	accounts := []accounts.Account{}
-
-	if len(am.List()) < 10 {
-		for i := 0; i < 10-len(am.List()); i++ {
-			am.Create("123")
+	existLen := len(am.List())
+	if existLen < testNum {
+		for i := 0; i < testNum-existLen; i++ {
+			_, e := am.Create("123")
+			if e != nil {
+				t.Fatalf("failed to create account %v", e.Error())
+			}
 		}
 	}
 
 	addresses := am.List()
-
-	for i := 0; i < 10; i++ {
+	for i := 0; i < testNum; i++ {
 		account, _ := am.account(addresses[i])
 		accounts = append(accounts, account)
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < testNum; i++ {
 		if !reflect.DeepEqual(accounts[i].Address.Bytes()[1:], addresses[i].MustGetCommonAddress().Bytes()[1:]) {
 			t.Fatalf("%v expect %x, actual %x", i, addresses[i].MustGetCommonAddress().Bytes()[1:], accounts[i].Address.Bytes()[1:])
 		}
