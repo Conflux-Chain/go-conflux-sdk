@@ -8,7 +8,6 @@ import (
 	"crypto/ecdsa"
 	crand "crypto/rand"
 	"encoding/hex"
-	"fmt"
 	"io/ioutil"
 	"time"
 
@@ -51,11 +50,6 @@ func NewAccountManager(keydir string, networkID uint32) *AccountManager {
 	for _, account := range am.ks.Accounts() {
 		addr := getCfxUserAddress(account, networkID)
 		am.cfxAddressDic[addr.GetHexAddress()] = account
-		fmt.Printf("addr: %v account: %x\n", addr.GetHexAddress(), account.Address)
-	}
-
-	for k, v := range am.cfxAddressDic {
-		fmt.Printf("addr: %v account: %x\n", k, v.Address)
 	}
 
 	return am
