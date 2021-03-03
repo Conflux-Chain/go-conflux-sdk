@@ -30,6 +30,8 @@ type Contractor interface {
 
 // ClientOperator is interface of operate actions on client
 type ClientOperator interface {
+	NewAddress(base32OrHex string) (types.Address, error)
+	MustNewAddress(base32OrHex string) types.Address
 	GetGasPrice() (*hexutil.Big, error)
 	GetNextNonce(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, error)
 	GetStatus() (types.Status, error)

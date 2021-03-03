@@ -71,8 +71,12 @@ func (n NetworkType) ToNetworkID() (uint32, error) {
 }
 
 func getIDWhenBeginWithNet(netIDStr string) (uint32, error) {
+	if len(netIDStr) < 3 {
+		return 0, errors.Errorf("Invalid network: %v", netIDStr)
+	}
+
 	if netIDStr[0:3] != "net" {
-		return 0, errors.New("Invalid network")
+		return 0, errors.Errorf("Invalid network: %v", netIDStr)
 	}
 
 	netID, err := strconv.Atoi(string(netIDStr[3:]))

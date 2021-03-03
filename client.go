@@ -106,6 +106,7 @@ func (client *Client) GetNodeURL() string {
 	return client.nodeURL
 }
 
+// NewAddress create conflux address by base32 string or hex40 string, if base32OrHex is base32 and networkID is setted it will check if networkID match.
 func (client *Client) NewAddress(base32OrHex string) (types.Address, error) {
 	networkID, err := client.GetNetworkID()
 	if err != nil {
@@ -114,6 +115,8 @@ func (client *Client) NewAddress(base32OrHex string) (types.Address, error) {
 	return cfxaddress.New(base32OrHex, networkID)
 }
 
+// MustNewAddress create conflux address by base32 string or hex40 string, if base32OrHex is base32 and networkID is setted it will check if networkID match.
+// it will painc if error occured.
 func (client *Client) MustNewAddress(base32OrHex string) types.Address {
 	address, err := client.NewAddress(base32OrHex)
 	if err != nil {
