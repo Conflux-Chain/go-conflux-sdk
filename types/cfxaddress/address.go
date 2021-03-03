@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
@@ -31,6 +32,37 @@ func (a Address) String() string {
 // Equals reports whether a and target are equal
 func (a *Address) Equals(target *Address) bool {
 	return reflect.DeepEqual(a, target)
+}
+
+func New(base32OrHex string, networkID ...uint32) (Address, error) {
+	hexPattern := `(?i)^0x[a-f0-9]{40}$`
+	base32Pattern := `(?i)^(cfx|cfxtest|net\d+):(type\.user:|type\.builtin:|type\.contract:|type\.null:|)\w{42}$`
+
+	if ok, _ := regexp.Match(hexPattern, []byte(base32OrHex)); ok {
+		_networkID := uint32(0)
+		if len(networkID) > 0 {
+			_networkID = networkID[0]
+		}
+		_account := MustNewFromHex(base32OrHex, _networkID)
+		return _account, nil
+	}
+
+	if ok, _ := regexp.Match(base32Pattern, []byte(base32OrHex)); ok {
+		_account := MustNewFromBase32(base32OrHex)
+		if len(networkID) > 0 && _account.GetNetworkID() != networkID[0] {
+			return Address{}, errors.Errorf("NetworkID of %v is %v, which is not matched with expected networkID %v", base32OrHex, _account.GetNetworkID(), networkID[0])
+		}
+		return _account, nil
+	}
+	return Address{}, errors.Errorf("input %v need be base32 string or hex40 string,", base32OrHex, networkID)
+}
+
+func MustNew(base32OrHex string, networkID ...uint32) Address {
+	address, err := New(base32OrHex, networkID...)
+	if err != nil {
+		panic(err)
+	}
+	return address
 }
 
 // NewFromBase32 creates address by base32 string
@@ -177,7 +209,7 @@ func MustNewFromBytes(hexAddress []byte, networkID ...uint32) (address Address) 
 
 // ToHex returns hex address and networkID
 func (a *Address) ToHex() (hexAddressStr string, networkID uint32) {
-	return hex.EncodeToString(a.hex), a.networkID
+	return "0x" + hex.EncodeToString(a.hex), a.networkID
 }
 
 // ToCommon returns common.Address and networkID

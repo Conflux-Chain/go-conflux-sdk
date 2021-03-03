@@ -106,6 +106,22 @@ func (client *Client) GetNodeURL() string {
 	return client.nodeURL
 }
 
+func (client *Client) NewAddress(base32OrHex string) (types.Address, error) {
+	networkID, err := client.GetNetworkID()
+	if err != nil {
+		return types.Address{}, err
+	}
+	return cfxaddress.New(base32OrHex, networkID)
+}
+
+func (client *Client) MustNewAddress(base32OrHex string) types.Address {
+	address, err := client.NewAddress(base32OrHex)
+	if err != nil {
+		panic(err)
+	}
+	return address
+}
+
 // CallRPC performs a JSON-RPC call with the given arguments and unmarshals into
 // result if no error occurred.
 //
