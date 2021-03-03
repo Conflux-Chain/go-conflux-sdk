@@ -52,6 +52,9 @@ func main() {
 func run(_client *sdk.Client) {
 	client = _client
 
+	newAddress()
+	mustNewAddress()
+
 	getEpochNumber()
 	getGasPrice()
 	getNextNonce()
@@ -94,6 +97,30 @@ func run(_client *sdk.Client) {
 	subscribeNewHeads()
 	subscribeEpochs()
 	subscribeLogs()
+}
+
+func newAddress() {
+	addr, err := client.NewAddress("0x0000000000000000000000000000000000000000")
+	printResult("NewAddress", []interface{}{"0x0000000000000000000000000000000000000000"}, addr, err)
+	addr, err = client.NewAddress("0x2000000000000000000000000000000000000000")
+	printResult("NewAddress", []interface{}{"0x2000000000000000000000000000000000000000"}, addr, err)
+
+	addr, err = client.NewAddress("cfxtest:aap9kthvctunvf030rbkk9k7zbzyz12dajp1u3sp4g")
+	printResult("NewAddress", []interface{}{"cfxtest:aap9kthvctunvf030rbkk9k7zbzyz12dajp1u3sp4g"}, addr, err)
+	addr, err = client.NewAddress("cfx:aap9kthvctunvf030rbkk9k7zbzyz12dajg6dkjg8p")
+	printResult("NewAddress", []interface{}{"cfx:aap9kthvctunvf030rbkk9k7zbzyz12dajg6dkjg8p"}, addr, err)
+}
+
+func mustNewAddress() {
+	addr := client.MustNewAddress("0x0000000000000000000000000000000000000000")
+	printResult("MustNewAddress", []interface{}{"0x0000000000000000000000000000000000000000"}, addr, nil)
+	// addr = client.MustNewAddress("0x2000000000000000000000000000000000000000")
+	// printResult("MustNewAddress", []interface{}{"0x2000000000000000000000000000000000000000"}, addr, nil)
+
+	addr = client.MustNewAddress("cfxtest:aap9kthvctunvf030rbkk9k7zbzyz12dajp1u3sp4g")
+	printResult("MustNewAddress", []interface{}{"cfxtest:aap9kthvctunvf030rbkk9k7zbzyz12dajp1u3sp4g"}, addr, nil)
+	// addr = client.MustNewAddress("cfx:aap9kthvctunvf030rbkk9k7zbzyz12dajg6dkjg8p")
+	// printResult("MustNewAddress", []interface{}{"cfx:aap9kthvctunvf030rbkk9k7zbzyz12dajg6dkjg8p"}, addr, nil)
 }
 
 func getAdmin() {

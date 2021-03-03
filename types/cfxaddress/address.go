@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
@@ -31,6 +32,46 @@ func (a Address) String() string {
 // Equals reports whether a and target are equal
 func (a *Address) Equals(target *Address) bool {
 	return reflect.DeepEqual(a, target)
+}
+
+// New create conflux address by base32 string or hex40 string, if base32OrHex is base32 and networkID is setted it will check if networkID match.
+func New(base32OrHex string, networkID ...uint32) (Address, error) {
+	hexPattern := `(?i)^0x[a-f0-9]{40}$`
+	base32Pattern := `(?i)^(cfx|cfxtest|net\d+):(type\.user:|type\.builtin:|type\.contract:|type\.null:|)\w{42}$`
+
+	if ok, _ := regexp.Match(hexPattern, []byte(base32OrHex)); ok {
+		_networkID := uint32(0)
+		if len(networkID) > 0 {
+			_networkID = networkID[0]
+		}
+		addr, err := NewFromHex(base32OrHex, _networkID)
+		if err != nil {
+			return Address{}, errors.Wrapf(err, "Failed to new address from hex %v networkID %v", base32OrHex, _networkID)
+		}
+		return addr, nil
+	}
+
+	if ok, _ := regexp.Match(base32Pattern, []byte(base32OrHex)); ok {
+		addr, err := NewFromBase32(base32OrHex)
+		if err != nil {
+			return Address{}, errors.Wrapf(err, "Failed to new address from base32 string %v", base32OrHex)
+		}
+		if len(networkID) > 0 && addr.GetNetworkID() != networkID[0] {
+			return Address{}, errors.Errorf("NetworkID of %v is %v, which is not matched with expected networkID %v", base32OrHex, addr.GetNetworkID(), networkID[0])
+		}
+		return addr, nil
+	}
+	return Address{}, errors.Errorf("Input %v need be base32 string or hex40 string,", base32OrHex)
+}
+
+// MustNew create conflux address by base32 string or hex40 string, if base32OrHex is base32 and networkID is setted it will check if networkID match,
+// it will painc if error occured.
+func MustNew(base32OrHex string, networkID ...uint32) Address {
+	address, err := New(base32OrHex, networkID...)
+	if err != nil {
+		panic(err)
+	}
+	return address
 }
 
 // NewFromBase32 creates address by base32 string
@@ -177,7 +218,7 @@ func MustNewFromBytes(hexAddress []byte, networkID ...uint32) (address Address) 
 
 // ToHex returns hex address and networkID
 func (a *Address) ToHex() (hexAddressStr string, networkID uint32) {
-	return hex.EncodeToString(a.hex), a.networkID
+	return "0x" + hex.EncodeToString(a.hex), a.networkID
 }
 
 // ToCommon returns common.Address and networkID
@@ -279,6 +320,12 @@ func (a *Address) IsValid() bool {
 func (a Address) MarshalText() ([]byte, error) {
 	// fmt.Println("marshal text for epoch")
 	return []byte(a.String()), nil
+}
+
+func (a *Address) UnmarshalText(data []byte) error {
+	data = append([]byte{0}, data...)
+	data = append(data, 0)
+	return a.UnmarshalJSON(data)
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface.
