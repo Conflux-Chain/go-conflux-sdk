@@ -83,8 +83,5 @@ func getIDWhenBeginWithNet(netIDStr string) (uint32, error) {
 	if err != nil {
 		return 0, err
 	}
-	if netID > (1<<32 - 1) {
-		return 0, errors.Errorf("NetworkID %v not in range 0~0xffffffff", netID)
-	}
 	return uint32(netID), nil
 }
