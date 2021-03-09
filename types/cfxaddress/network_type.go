@@ -79,11 +79,11 @@ func getIDWhenBeginWithNet(netIDStr string) (uint32, error) {
 		return 0, errors.Errorf("Invalid network: %v", netIDStr)
 	}
 
-	netID, err := strconv.Atoi(string(netIDStr[3:]))
+	netID, err := strconv.ParseUint(string(netIDStr[3:]), 0, 32)
 	if err != nil {
 		return 0, err
 	}
-	if netID >= (1 << 32) {
+	if netID > (1<<32 - 1) {
 		return 0, errors.Errorf("NetworkID %v not in range 0~0xffffffff", netID)
 	}
 	return uint32(netID), nil
