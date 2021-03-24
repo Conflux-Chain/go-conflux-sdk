@@ -52,51 +52,54 @@ func main() {
 func run(_client *sdk.Client) {
 	client = _client
 
-	newAddress()
-	mustNewAddress()
+	// newAddress()
+	// mustNewAddress()
 
-	getEpochNumber()
-	getGasPrice()
-	getNextNonce()
-	getStatus()
-	getBalance()
-	getBestBlockHash()
-	getBlockByEpoch()
-	getBlocksByEpoch()
-	getBlockByHash()
-	getBlockSummaryByEpoch()
-	getBlockSummaryByHash()
-	getCode()
-	getTransactionByHash()
-	estimateGasAndCollateral()
-	getTransactionReceipt()
-	sendRawTransaction()
-	createAndSendUnsignedTransaction()
-	getRawBlockConfirmationRisk()
-	getBlockConfirmationRisk()
-	getSupplyInfo()
-	callRPC()
+	// getEpochNumber()
+	// getGasPrice()
+	// getNextNonce()
+	// getStatus()
+	// getBalance()
+	// getBestBlockHash()
+	// getBlockByEpoch()
+	// getBlocksByEpoch()
+	// getBlockByHash()
+	// getBlockSummaryByEpoch()
+	// getBlockSummaryByHash()
+	// getCode()
+	// getTransactionByHash()
+	// estimateGasAndCollateral()
+	// getTransactionReceipt()
+	// sendRawTransaction()
+	// createAndSendUnsignedTransaction()
+	// getRawBlockConfirmationRisk()
+	// getBlockConfirmationRisk()
+	// getSupplyInfo()
+	// callRPC()
 
-	getAdmin()
-	getSponsorInfo()
-	getStakingBalance()
-	getCollateralForStorage()
-	getStorageAt()
-	getStorageRoot()
-	getBlockByHashWithPivotAssumption()
-	checkBalanceAgainstTransaction()
-	getSkippedBlocksByEpoch()
-	getAccountInfo()
-	getInterestRate()
-	getAccumulateInterestRate()
-	getBlockRewardInfo()
-	getClientVersion()
+	// getAdmin()
+	// getSponsorInfo()
+	// getStakingBalance()
+	// getCollateralForStorage()
+	// getStorageAt()
+	// getStorageRoot()
+	// getBlockByHashWithPivotAssumption()
+	// checkBalanceAgainstTransaction()
+	// getSkippedBlocksByEpoch()
+	// getAccountInfo()
+	// getInterestRate()
+	// getAccumulateInterestRate()
+	// getBlockRewardInfo()
+	// getClientVersion()
+	getEpochReceipts()
 
 	traceBlock()
+	// traceFilter()
+	// tarceTransaction()
 
-	subscribeNewHeads()
-	subscribeEpochs()
-	subscribeLogs()
+	// subscribeNewHeads()
+	// subscribeEpochs()
+	// subscribeLogs()
 }
 
 func newAddress() {
@@ -435,19 +438,48 @@ func getSupplyInfo() {
 	}
 }
 
+func getEpochReceipts() {
+	b, _ := client.GetBlockByHash(config.BlockHashOfNewContract)
+
+	receipts, err := client.GetEpochReceipts(*types.NewEpochNumber(b.EpochNumber))
+	if err != nil {
+		fmt.Printf("- get epoch receipts error: %+v\n", err)
+	} else {
+		fmt.Printf("- get rpoch receipts info:%v \n", context.JSONFmt(receipts))
+	}
+}
+
 func traceBlock() {
-	traces, err := client.GetBlockTrace(config.BlockHashOfNewContract)
+	traces, err := client.GetBlockTraces(config.BlockHashOfNewContract)
 	if err != nil {
 		fmt.Printf("- get block trace of create error: %+v\n", err)
 	} else {
-		fmt.Printf("- get block info of create: %+v", context.JSONFmt(traces))
+		fmt.Printf("- get block info of create: %+v\n", context.JSONFmt(traces))
 	}
 
-	traces, err = client.GetBlockTrace(config.BlockHash)
+	traces, err = client.GetBlockTraces(config.BlockHash)
 	if err != nil {
 		fmt.Printf("- get block trace of call error: %+v\n", err)
 	} else {
-		fmt.Printf("- get block info of call: %+v", context.JSONFmt(traces))
+		fmt.Printf("- get block info of call: %+v\n", context.JSONFmt(traces))
+	}
+}
+
+func traceFilter() {
+	traces, err := client.FilterTraces(types.TraceFilter{})
+	if err != nil {
+		fmt.Printf("- filter trace error: %+v\n", err)
+	} else {
+		fmt.Printf("- filter trace result: %+v", context.JSONFmt(traces))
+	}
+}
+
+func tarceTransaction() {
+	traces, err := client.GetTransactionTraces(config.TransactionHash)
+	if err != nil {
+		fmt.Printf("- get transcation trace of create error: %+v\n", err)
+	} else {
+		fmt.Printf("- get transcation trace of create: %+v", context.JSONFmt(traces))
 	}
 }
 

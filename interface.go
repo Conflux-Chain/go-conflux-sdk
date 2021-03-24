@@ -96,7 +96,9 @@ type ClientOperator interface {
 
 	GetDepositList(address types.Address, epoch ...*types.Epoch) ([]types.DepositInfo, error)
 	GetVoteList(address types.Address, epoch ...*types.Epoch) ([]types.VoteStakeInfo, error)
-	GetBlockTrace(blockHash types.Hash) (*types.LocalizedBlockTrace, error)
+	GetBlockTraces(blockHash types.Hash) (*types.LocalizedBlockTrace, error)
+	FilterTraces(traceFilter types.TraceFilter) (traces []types.LocalizedTrace, err error)
+	GetTransactionTraces(txHash types.Hash) (traces []types.LocalizedTrace, err error)
 }
 
 // AccountManagerOperator is interface of operate actions on account manager

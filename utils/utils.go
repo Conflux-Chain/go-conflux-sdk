@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"math/big"
 	"reflect"
+	"sort"
+	"strings"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/constants"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -80,4 +82,52 @@ func PrettyJSON(value interface{}) string {
 	var str bytes.Buffer
 	_ = json.Indent(&str, j, "", "    ")
 	return str.String()
+}
+
+func GetObjJsonFieldTags(obj interface{}) []string {
+	val := reflect.ValueOf(obj)
+	var fieldNames []string
+	for i := 0; i < val.Type().NumField(); i++ {
+		t := val.Type().Field(i)
+		fieldName := t.Name
+
+		if jsonTag := t.Tag.Get("json"); jsonTag != "" && jsonTag != "-" {
+			fieldName = jsonTag
+			if commaIdx := strings.Index(jsonTag, ","); commaIdx > 0 {
+				fieldName = jsonTag[:commaIdx]
+			}
+		}
+		// fmt.Printf("json tag:%v\n", t.Tag.Get("json"))
+
+		// fmt.Println(fieldName)
+		fieldNames = append(fieldNames, fieldName)
+	}
+	less := func(i, j int) bool {
+		return strings.Compare(fieldNames[i], fieldNames[j]) > 0
+	}
+	sort.Slice(fieldNames, less)
+	return fieldNames
+}
+
+func GetObjFileds(obj interface{}) []string {
+	val := reflect.ValueOf(obj).Elem()
+	var fieldNames []string
+	for i := 0; i < val.NumField(); i++ {
+		fieldNames = append(fieldNames, val.Type().Field(i).Name)
+	}
+	return fieldNames
+}
+
+func GetMapSortedKeys(m map[string]interface{}) []string {
+	keys := []string{}
+	for k := range m {
+		keys = append(keys, k)
+		// fmt.Printf("k:%v\n", k)
+	}
+	less := func(i, j int) bool {
+		return strings.Compare(keys[i], keys[j]) > 0
+	}
+	sort.Slice(keys, less)
+
+	return keys
 }
