@@ -71,9 +71,10 @@ type InternalTransferAction struct {
 }
 
 type TraceFilter struct {
-	FromEpoch   *Epoch          `json:"fromEpoch"`
-	ToEpoch     *Epoch          `json:"toEpoch"`
-	BlockBashes []Hash          `json:"blockBashes"`
+	FromEpoch   *Epoch `json:"fromEpoch"`
+	ToEpoch     *Epoch `json:"toEpoch"`
+	BlockHashes []Hash `json:"blockHashes"`
+	// action types could be "call","create","callResult","createResult","internalTransferAction"
 	ActionTypes []string        `json:"actionTypes"`
 	After       *hexutil.Uint64 `json:"after"`
 	Count       *hexutil.Uint64 `json:"count"`

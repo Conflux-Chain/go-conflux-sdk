@@ -56,9 +56,6 @@ func New(base32OrHex string, networkID ...uint32) (Address, error) {
 		if err != nil {
 			return Address{}, errors.Wrapf(err, "Failed to new address from base32 string %v", base32OrHex)
 		}
-		if len(networkID) > 0 && addr.GetNetworkID() != networkID[0] {
-			return Address{}, errors.Errorf("NetworkID of %v is %v, which is not matched with expected networkID %v", base32OrHex, addr.GetNetworkID(), networkID[0])
-		}
 		return addr, nil
 	}
 	return Address{}, errors.Errorf("Input %v need be base32 string or hex40 string,", base32OrHex)
