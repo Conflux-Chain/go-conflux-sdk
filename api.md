@@ -332,6 +332,13 @@ func (client *Client) EstimateGasAndCollateral(request types.CallRequest, epoch 
 EstimateGasAndCollateral excutes a message call "request" and returns the amount
 of the gas used and storage for collateral
 
+#### func (*Client) FilterTraces
+
+```go
+func (client *Client) FilterTraces(traceFilter types.TraceFilter) (traces []types.LocalizedTrace, err error)
+```
+GetFilterTraces returns all traces matching the provided filter.
+
 #### func (*Client) GetAccountInfo
 
 ```go
@@ -425,10 +432,10 @@ func (client *Client) GetBlockSummaryByHash(blockHash types.Hash) (blockSummary 
 GetBlockSummaryByHash returns the block summary of specified blockHash If the
 block is not found, return nil.
 
-#### func (*Client) GetBlockTrace
+#### func (*Client) GetBlockTraces
 
 ```go
-func (client *Client) GetBlockTrace(blockHash types.Hash) (trace *types.LocalizedBlockTrace, err error)
+func (client *Client) GetBlockTraces(blockHash types.Hash) (traces *types.LocalizedBlockTrace, err error)
 ```
 GetBlockTrace returns all traces produced at given block.
 
@@ -481,6 +488,12 @@ GetDepositList returns deposit list of the given account.
 func (client *Client) GetEpochNumber(epoch ...*types.Epoch) (epochNumber *hexutil.Big, err error)
 ```
 GetEpochNumber returns the highest or specified epoch number.
+
+#### func (*Client) GetEpochReceipts
+
+```go
+func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error)
+```
 
 #### func (*Client) GetGasPrice
 
@@ -598,12 +611,36 @@ func (client *Client) GetTransactionReceipt(txHash types.Hash) (receipt *types.T
 GetTransactionReceipt returns the receipt of specified transaction hash. If no
 receipt is found, return nil.
 
+#### func (*Client) GetTransactionTraces
+
+```go
+func (client *Client) GetTransactionTraces(txHash types.Hash) (traces []types.LocalizedTrace, err error)
+```
+GetTransactionTraces returns all traces produced at the given transaction.
+
 #### func (*Client) GetVoteList
 
 ```go
 func (client *Client) GetVoteList(address types.Address, epoch ...*types.Epoch) (voteStakeInfos []types.VoteStakeInfo, err error)
 ```
 GetVoteList returns vote list of the given account.
+
+#### func (*Client) MustNewAddress
+
+```go
+func (client *Client) MustNewAddress(base32OrHex string) types.Address
+```
+MustNewAddress create conflux address by base32 string or hex40 string, if
+base32OrHex is base32 and networkID is setted it will check if networkID match.
+it will painc if error occured.
+
+#### func (*Client) NewAddress
+
+```go
+func (client *Client) NewAddress(base32OrHex string) (types.Address, error)
+```
+NewAddress create conflux address by base32 string or hex40 string, if
+base32OrHex is base32 and networkID is setted it will check if networkID match.
 
 #### func (*Client) SendRawTransaction
 
@@ -781,6 +818,24 @@ import "."
 func CalcBlockConfirmationRisk(rawConfirmationRisk *big.Int) *big.Float
 ```
 CalcBlockConfirmationRisk calculates block revert rate
+
+#### func  GetMapSortedKeys
+
+```go
+func GetMapSortedKeys(m map[string]interface{}) []string
+```
+
+#### func  GetObjFileds
+
+```go
+func GetObjFileds(obj interface{}) []string
+```
+
+#### func  GetObjJsonFieldTags
+
+```go
+func GetObjJsonFieldTags(obj interface{}) []string
+```
 
 #### func  Has0xPrefix
 
