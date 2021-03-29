@@ -91,8 +91,11 @@ func run(_client *sdk.Client) {
 	getAccumulateInterestRate()
 	getBlockRewardInfo()
 	getClientVersion()
+	getEpochReceipts()
 
 	traceBlock()
+	traceFilter()
+	tarceTransaction()
 
 	subscribeNewHeads()
 	subscribeEpochs()
@@ -435,19 +438,51 @@ func getSupplyInfo() {
 	}
 }
 
+func getEpochReceipts() {
+	b, _ := client.GetBlockByHash(config.BlockHashOfNewContract)
+
+	receipts, err := client.GetEpochReceipts(*types.NewEpochNumber(b.EpochNumber))
+	if err != nil {
+		fmt.Printf("- get epoch receipts error: %+v\n", err)
+	} else {
+		fmt.Printf("- get rpoch receipts info:%v \n", context.JSONFmt(receipts))
+	}
+}
+
 func traceBlock() {
-	traces, err := client.GetBlockTrace(config.BlockHashOfNewContract)
+	traces, err := client.GetBlockTraces(config.BlockHashOfNewContract)
 	if err != nil {
 		fmt.Printf("- get block trace of create error: %+v\n", err)
 	} else {
-		fmt.Printf("- get block info of create: %+v", context.JSONFmt(traces))
+		fmt.Printf("- get block info of create: %+v\n", context.JSONFmt(traces))
 	}
 
-	traces, err = client.GetBlockTrace(config.BlockHash)
+	traces, err = client.GetBlockTraces(config.BlockHash)
 	if err != nil {
 		fmt.Printf("- get block trace of call error: %+v\n", err)
 	} else {
-		fmt.Printf("- get block info of call: %+v", context.JSONFmt(traces))
+		fmt.Printf("- get block info of call: %+v\n", context.JSONFmt(traces))
+	}
+}
+
+func traceFilter() {
+	traces, err := client.FilterTraces(types.TraceFilter{
+		FromEpoch:   types.NewEpochNumberUint64(1),
+		ActionTypes: []string{"call", "create"},
+	})
+	if err != nil {
+		fmt.Printf("- filter trace error: %+v\n", err)
+	} else {
+		fmt.Printf("- filter trace result: %+v", context.JSONFmt(traces))
+	}
+}
+
+func tarceTransaction() {
+	traces, err := client.GetTransactionTraces(config.TransactionHash)
+	if err != nil {
+		fmt.Printf("- get transcation trace of create error: %+v\n", err)
+	} else {
+		fmt.Printf("- get transcation trace of create: %+v", context.JSONFmt(traces))
 	}
 }
 

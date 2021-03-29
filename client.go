@@ -6,7 +6,6 @@ package sdk
 
 import (
 	"context"
-	"encoding/json"
 	"math/big"
 	"reflect"
 	"time"
@@ -280,26 +279,6 @@ func (client *Client) SendTransaction(tx types.UnsignedTransaction) (types.Hash,
 	if err != nil {
 		return "", errors.Wrap(err, errMsgApplyTxValues)
 	}
-	// fmt.Printf("tx info: %+v", tx)
-	// commet it becasue there are some contract need not pay gas.
-	//
-	// //check balance, return error if balance not enough
-	// epoch := types.NewEpochNumber(tx.EpochHeight.ToInt())
-	// balance, err := c.GetBalance(*tx.From, epoch)
-	// if err != nil {
-	// 	msg := fmt.Sprintf("get balance of %+v at ephoc %+v error", tx.From, epoch)
-	// 	return "", types.WrapError(err, msg)
-	// }
-	// need := big.NewInt(int64(tx.Gas))
-	// need = need.Add(tx.StorageLimit.ToInt(), need)
-	// need = need.Mul(tx.GasPrice.ToInt(), need)
-	// need = need.Add(tx.Value.ToInt(), need)
-	// need = need.Add(tx.StorageLimit.ToInt(), need)
-
-	// if balance.Cmp(need) < 0 {
-	// 	msg := fmt.Sprintf("out of balance, need %+v but your balance is %+v", need, balance)
-	// 	return "", types.WrapError(err, msg)
-	// }
 
 	//sign
 	if client.AccountManager == nil {
@@ -544,8 +523,20 @@ func (client *Client) GetSupplyInfo(epoch ...*types.Epoch) (info types.TokenSupp
 }
 
 // GetBlockTrace returns all traces produced at given block.
-func (client *Client) GetBlockTrace(blockHash types.Hash) (trace *types.LocalizedBlockTrace, err error) {
-	err = client.wrappedCallRPC(&trace, "trace_block", blockHash)
+func (client *Client) GetBlockTraces(blockHash types.Hash) (traces *types.LocalizedBlockTrace, err error) {
+	err = client.wrappedCallRPC(&traces, "trace_block", blockHash)
+	return
+}
+
+// GetFilterTraces returns all traces matching the provided filter.
+func (client *Client) FilterTraces(traceFilter types.TraceFilter) (traces []types.LocalizedTrace, err error) {
+	err = client.wrappedCallRPC(&traces, "trace_filter", traceFilter)
+	return
+}
+
+// GetTransactionTraces returns all traces produced at the given transaction.
+func (client *Client) GetTransactionTraces(txHash types.Hash) (traces []types.LocalizedTrace, err error) {
+	err = client.wrappedCallRPC(&traces, "trace_transaction", txHash)
 	return
 }
 
@@ -751,11 +742,17 @@ func (client *Client) GetContract(abiJSON []byte, deployedAt *types.Address) (*C
 	return contract, nil
 }
 
+// =====Debug RPC=====
+func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
+	err = client.wrappedCallRPC(&receipts, "cfx_getEpochReceipts", epoch)
+	return
+}
+
 // =======Batch=======
 
 // BatchGetTxByHashes requests transaction informations in bulk by txhashes
 func (client *Client) BatchGetTxByHashes(txhashes []types.Hash) (map[types.Hash]*types.Transaction, error) {
-	if txhashes == nil || len(txhashes) == 0 {
+	if len(txhashes) == 0 {
 		return make(map[types.Hash]*types.Transaction), nil
 	}
 
@@ -796,7 +793,7 @@ func (client *Client) BatchGetTxByHashes(txhashes []types.Hash) (map[types.Hash]
 // BatchGetBlockSummarys requests block summary informations in bulk by blockhashes
 func (client *Client) BatchGetBlockSummarys(blockhashes []types.Hash) (map[types.Hash]*types.BlockSummary, error) {
 
-	if blockhashes == nil || len(blockhashes) == 0 {
+	if len(blockhashes) == 0 {
 		return make(map[types.Hash]*types.BlockSummary), nil
 	}
 
@@ -839,7 +836,7 @@ func (client *Client) BatchGetBlockSummarys(blockhashes []types.Hash) (map[types
 // BatchGetRawBlockConfirmationRisk requests raw confirmation risk informations in bulk by blockhashes
 func (client *Client) BatchGetRawBlockConfirmationRisk(blockhashes []types.Hash) (map[types.Hash]*big.Int, error) {
 
-	if blockhashes == nil || len(blockhashes) == 0 {
+	if len(blockhashes) == 0 {
 		return make(map[types.Hash]*big.Int), nil
 	}
 
@@ -1014,7 +1011,8 @@ func (client *Client) WaitForTransationReceipt(txhash types.Hash, duration time.
 
 func (client *Client) wrappedCallRPC(result interface{}, method string, args ...interface{}) error {
 	fmtedArgs := client.genRPCParams(args...)
-	return client.CallRPC(result, method, fmtedArgs...)
+	err := client.CallRPC(result, method, fmtedArgs...)
+	return errors.Wrapf(err, "failed to call rpc %v with args %v, and the fromated args is %v", method, args, fmtedArgs)
 }
 
 func (client *Client) genRPCParams(args ...interface{}) []interface{} {
@@ -1051,19 +1049,6 @@ func (client *Client) genRPCParams(args ...interface{}) []interface{} {
 		}
 	}
 	return params
-}
-
-func unmarshalRPCResult(result interface{}, v interface{}) error {
-	encoded, err := json.Marshal(result)
-	if err != nil {
-		return errors.Wrap(err, "failed to marshal RPC result to JSON")
-	}
-
-	if err = json.Unmarshal(encoded, v); err != nil {
-		return errors.Wrap(err, "failed to unmarshal JSON to RPC result")
-	}
-
-	return nil
 }
 
 func get1stEpochIfy(epoch []*types.Epoch) *types.Epoch {
