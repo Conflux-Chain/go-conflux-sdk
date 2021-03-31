@@ -34,16 +34,17 @@ func (a *Address) Equals(target *Address) bool {
 	return reflect.DeepEqual(a, target)
 }
 
-// New create conflux address by base32 string or hex40 string, if base32OrHex is base32 and networkID is setted it will check if networkID match.
+// New create conflux address by base32 string or hex40 string, if base32OrHex is base32 and networkID is passed it will create cfx Address use networkID.
 func New(base32OrHex string, networkID ...uint32) (Address, error) {
 	hexPattern := `(?i)^0x[a-f0-9]{40}$`
 	base32Pattern := `(?i)^(cfx|cfxtest|net\d+):(type\.user:|type\.builtin:|type\.contract:|type\.null:|)\w{42}$`
+	_networkID := uint32(0)
+	if len(networkID) > 0 {
+		_networkID = networkID[0]
+	}
 
 	if ok, _ := regexp.Match(hexPattern, []byte(base32OrHex)); ok {
-		_networkID := uint32(0)
-		if len(networkID) > 0 {
-			_networkID = networkID[0]
-		}
+
 		addr, err := NewFromHex(base32OrHex, _networkID)
 		if err != nil {
 			return Address{}, errors.Wrapf(err, "Failed to new address from hex %v networkID %v", base32OrHex, _networkID)
@@ -55,6 +56,12 @@ func New(base32OrHex string, networkID ...uint32) (Address, error) {
 		addr, err := NewFromBase32(base32OrHex)
 		if err != nil {
 			return Address{}, errors.Wrapf(err, "Failed to new address from base32 string %v", base32OrHex)
+		}
+		if _networkID != 0 && addr.GetNetworkID() != _networkID {
+			addr, err = NewFromHex(addr.GetHexAddress(), _networkID)
+			if err != nil {
+				return Address{}, errors.Wrapf(err, "Failed to new address from hex %v networkID %v", addr.GetHexAddress(), _networkID)
+			}
 		}
 		return addr, nil
 	}
@@ -176,8 +183,9 @@ func NewFromBytes(hexAddress []byte, networkID ...uint32) (val Address, err erro
 		return val, errors.Wrapf(err, "failed to calc checksum by network type %v and body %x", val.networkType, val.body)
 	}
 
-	if err := val.setCache(); err != nil {
+	if err = val.setCache(); err != nil {
 		err = errors.Wrapf(err, "failed to set cache")
+		return
 	}
 
 	return val, nil
