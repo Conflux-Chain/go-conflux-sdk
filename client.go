@@ -743,6 +743,7 @@ func (client *Client) GetContract(abiJSON []byte, deployedAt *types.Address) (*C
 }
 
 // =====Debug RPC=====
+
 func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
 	err = client.wrappedCallRPC(&receipts, "cfx_getEpochReceipts", epoch)
 	return

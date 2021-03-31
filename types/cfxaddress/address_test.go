@@ -57,7 +57,27 @@ func TestUnmarshalJSON(t *testing.T) {
 	if !reflect.DeepEqual(actual, expect) {
 		t.Fatalf("expect %#v, actual %#v", expect, actual)
 	}
+}
 
+func TestNewAddress(t *testing.T) {
+	expect := MustNewFromBase32("net333:acbz3pb47pyhxe0zb9j60bn8fspgpfrtwe5m81sa4w")
+	addr, err := New("cfxtest:acbz3pb47pyhxe0zb9j60bn8fspgpfrtwehypyj6mm", 333)
+	fatalIfErr(t, err)
+	if !reflect.DeepEqual(addr, expect) {
+		t.Fatalf("expect %v, actual %v", expect, addr)
+	}
+
+	addr, err = New("0x835cB03Aeb287992D50FD1Cb057e2B986615aF91", 333)
+	fatalIfErr(t, err)
+	if !reflect.DeepEqual(addr, expect) {
+		t.Fatalf("expect %v, actual %v", expect, addr)
+	}
+
+	addr, err = New("net333:acbz3pb47pyhxe0zb9j60bn8fspgpfrtwe5m81sa4w")
+	fatalIfErr(t, err)
+	if !reflect.DeepEqual(addr, expect) {
+		t.Fatalf("expect %v, actual %v", expect, addr)
+	}
 }
 
 func verify(t *testing.T, hexAddressStr string, networkID uint32, base32Address string) {
