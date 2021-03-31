@@ -72,6 +72,12 @@ func TestNewAddress(t *testing.T) {
 	if !reflect.DeepEqual(addr, expect) {
 		t.Fatalf("expect %v, actual %v", expect, addr)
 	}
+
+	addr, err = New("net333:acbz3pb47pyhxe0zb9j60bn8fspgpfrtwe5m81sa4w")
+	fatalIfErr(t, err)
+	if !reflect.DeepEqual(addr, expect) {
+		t.Fatalf("expect %v, actual %v", expect, addr)
+	}
 }
 
 func verify(t *testing.T, hexAddressStr string, networkID uint32, base32Address string) {
