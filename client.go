@@ -932,8 +932,11 @@ func (client *Client) SubscribeNewHeads(channel chan types.BlockHeader) (*rpc.Cl
 	return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "newHeads")
 }
 
-// SubscribeEpochs subscribes consensus results: the total order of blocks, as expressed by a sequence of epochs.
-func (client *Client) SubscribeEpochs(channel chan types.WebsocketEpochResponse) (*rpc.ClientSubscription, error) {
+// SubscribeEpochs subscribes consensus results: the total order of blocks, as expressed by a sequence of epochs. Currently subscriptionEpochType only support "latest_mined" and "latest_state"
+func (client *Client) SubscribeEpochs(channel chan types.WebsocketEpochResponse, subscriptionEpochType ...types.Epoch) (*rpc.ClientSubscription, error) {
+	if len(subscriptionEpochType) > 0 {
+		return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "epochs", subscriptionEpochType[0].String())
+	}
 	return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "epochs")
 }
 
