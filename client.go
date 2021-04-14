@@ -136,29 +136,6 @@ func (client *Client) MustNewAddress(base32OrHex string) types.Address {
 // The result must be a pointer so that package json can unmarshal into it. You
 // can also pass nil, in which case the result is ignored.
 func (client *Client) CallRPC(result interface{}, method string, args ...interface{}) error {
-	// start := time.Now()
-
-	// if client.option.RpcHook != nil {
-	// 	// client.option.RpcHook()
-	// }
-
-	// if client.option.RpcPreHook != nil {
-	// 	client.option.RpcPreHook(method, args, start)
-	// }
-
-	// if client.option.CallRpcHook != nil {
-	// 	client.option.CallRpcHook(client.rpcRequester.Call)
-	// 	return nil
-	// }
-	// return client.rpcRequester.Call(result, method, args...)
-
-	// err := client.rpcRequester.Call(result, method, args...)
-
-	// end := time.Now()
-	// if client.option.RpcPostHook != nil {
-	// 	client.option.RpcPostHook(err, result, end, end.Sub(start))
-	// }
-	// return err
 
 	if client.option.CallRpcLogger != nil {
 		start := time.Now()
