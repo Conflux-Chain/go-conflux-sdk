@@ -26,8 +26,9 @@ const errMsgApplyTxValues = "failed to apply default transaction values"
 type Client struct {
 	AccountManager AccountManagerOperator
 	nodeURL        string
-	rpcRequester   rpcRequester
+	rpcRequester   RpcRequester
 	networkID      uint32
+	option         ClientOption
 }
 
 // ClientOption for set keystore path and flags for retry
@@ -35,6 +36,11 @@ type ClientOption struct {
 	KeystorePath  string
 	RetryCount    int
 	RetryInterval time.Duration
+	// RpcPreHook    func(method string, args []interface{}, requestAt time.Time)
+	// RpcPostHook   func(err error, result interface{}, responseAt time.Time, spendTime time.Duration)
+	// CallRpcHook   func(callRpc func(result interface{}, method string, args ...interface{}) error, result interface{}, method string, args ...interface{})
+	CallRpcLogger      CallRPCLogger
+	BatchCallRPCLogger BatchCallRPCLogger
 }
 
 // NewClient creates an instance of Client with specified conflux node url, it will creat account manager if option.KeystorePath not empty.
@@ -44,7 +50,7 @@ func NewClient(nodeURL string, option ...ClientOption) (*Client, error) {
 		realOption = option[0]
 	}
 
-	client, err := newClientWithRetry(nodeURL, realOption.KeystorePath, realOption.RetryCount, realOption.RetryInterval)
+	client, err := newClientWithRetry(nodeURL, realOption)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to new client with retry")
 	}
@@ -53,7 +59,7 @@ func NewClient(nodeURL string, option ...ClientOption) (*Client, error) {
 }
 
 // NewClientWithRPCRequester creates client with specified rpcRequester
-func NewClientWithRPCRequester(rpcRequester rpcRequester) (*Client, error) {
+func NewClientWithRPCRequester(rpcRequester RpcRequester) (*Client, error) {
 	return &Client{
 		rpcRequester: rpcRequester,
 	}, nil
@@ -61,29 +67,30 @@ func NewClientWithRPCRequester(rpcRequester rpcRequester) (*Client, error) {
 
 // NewClientWithRetry creates a retryable new instance of Client with specified conflux node url and retry options.
 //
-// the retryInterval will be set to 1 second if pass 0
-func newClientWithRetry(nodeURL string, keystorePath string, retryCount int, retryInterval time.Duration) (*Client, error) {
+// the clientOption.RetryInterval will be set to 1 second if pass 0
+func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, error) {
 
 	var client Client
 	client.nodeURL = nodeURL
+	client.option = clientOption
 
 	rpcClient, err := rpc.Dial(nodeURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to dial to fullnode")
 	}
 
-	if retryCount == 0 {
+	if clientOption.RetryCount == 0 {
 		client.rpcRequester = rpcClient
 	} else {
 		// Interval 0 is meaningless and may lead full node busy, so default sets it to 1 second
-		if retryInterval == 0 {
-			retryInterval = time.Second
+		if clientOption.RetryInterval == 0 {
+			clientOption.RetryInterval = time.Second
 		}
 
 		client.rpcRequester = &rpcClientWithRetry{
 			inner:      rpcClient,
-			retryCount: retryCount,
-			interval:   retryInterval,
+			retryCount: clientOption.RetryCount,
+			interval:   clientOption.RetryInterval,
 		}
 	}
 
@@ -92,8 +99,8 @@ func newClientWithRetry(nodeURL string, keystorePath string, retryCount int, ret
 		return nil, errors.Wrap(err, "failed to get networkID")
 	}
 
-	if keystorePath != "" {
-		am := NewAccountManager(keystorePath, client.networkID)
+	if clientOption.KeystorePath != "" {
+		am := NewAccountManager(clientOption.KeystorePath, client.networkID)
 		client.SetAccountManager(am)
 	}
 
@@ -105,7 +112,7 @@ func (client *Client) GetNodeURL() string {
 	return client.nodeURL
 }
 
-// NewAddress create conflux address by base32 string or hex40 string, if base32OrHex is base32 and networkID is setted it will check if networkID match.
+// NewAddress create conflux address by base32 string or hex40 string, if base32OrHex is base32 and networkID is passed it will create cfx Address use networkID of current client.
 func (client *Client) NewAddress(base32OrHex string) (types.Address, error) {
 	networkID, err := client.GetNetworkID()
 	if err != nil {
@@ -114,7 +121,7 @@ func (client *Client) NewAddress(base32OrHex string) (types.Address, error) {
 	return cfxaddress.New(base32OrHex, networkID)
 }
 
-// MustNewAddress create conflux address by base32 string or hex40 string, if base32OrHex is base32 and networkID is setted it will check if networkID match.
+// MustNewAddress create conflux address by base32 string or hex40 string, if base32OrHex is base32 and networkID is passed it will create cfx Address use networkID of current client.
 // it will painc if error occured.
 func (client *Client) MustNewAddress(base32OrHex string) types.Address {
 	address, err := client.NewAddress(base32OrHex)
@@ -130,6 +137,40 @@ func (client *Client) MustNewAddress(base32OrHex string) types.Address {
 // The result must be a pointer so that package json can unmarshal into it. You
 // can also pass nil, in which case the result is ignored.
 func (client *Client) CallRPC(result interface{}, method string, args ...interface{}) error {
+	// start := time.Now()
+
+	// if client.option.RpcHook != nil {
+	// 	// client.option.RpcHook()
+	// }
+
+	// if client.option.RpcPreHook != nil {
+	// 	client.option.RpcPreHook(method, args, start)
+	// }
+
+	// if client.option.CallRpcHook != nil {
+	// 	client.option.CallRpcHook(client.rpcRequester.Call)
+	// 	return nil
+	// }
+	// return client.rpcRequester.Call(result, method, args...)
+
+	// err := client.rpcRequester.Call(result, method, args...)
+
+	// end := time.Now()
+	// if client.option.RpcPostHook != nil {
+	// 	client.option.RpcPostHook(err, result, end, end.Sub(start))
+	// }
+	// return err
+
+	if client.option.CallRpcLogger != nil {
+		start := time.Now()
+		err := client.rpcRequester.Call(result, method, args...)
+		if err != nil {
+			client.option.CallRpcLogger.Error(method, args, err, time.Since(start))
+		} else {
+			client.option.CallRpcLogger.Info(method, args, result, time.Since(start))
+		}
+		return err
+	}
 	return client.rpcRequester.Call(result, method, args...)
 }
 
@@ -141,6 +182,16 @@ func (client *Client) CallRPC(result interface{}, method string, args ...interfa
 //
 // Note that batch calls may not be executed atomically on the server side.
 func (client *Client) BatchCallRPC(b []rpc.BatchElem) error {
+	if client.option.BatchCallRPCLogger != nil {
+		start := time.Now()
+		err := client.rpcRequester.BatchCall(b)
+		if err != nil {
+			client.option.BatchCallRPCLogger.Error(b, err, time.Since(start))
+		} else {
+			client.option.BatchCallRPCLogger.Info(b, time.Since(start))
+		}
+		return err
+	}
 	return client.rpcRequester.BatchCall(b)
 }
 

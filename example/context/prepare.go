@@ -2,7 +2,6 @@ package context
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path"
 	"runtime"
@@ -59,7 +58,7 @@ func getConfig() {
 	config = exampletypes.Config{}
 	_, err := toml.DecodeFile(configPath, &config)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	fmt.Printf("- to get config done: %+v\n", JSONFmt(config))
@@ -74,6 +73,8 @@ func initClient() {
 		KeystorePath:  path.Join(currentDir, "keystore"),
 		RetryCount:    10,
 		RetryInterval: time.Second,
+		// CallRpcLogger:      types.DefaultCallRPCLogger{},
+		// BatchCallRPCLogger: types.DefaultBatchCallRPCLogger{},
 	}
 	client, err = sdk.NewClient(config.NodeURL, option)
 	if err != nil {
