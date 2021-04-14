@@ -32,13 +32,12 @@ type Client struct {
 }
 
 // ClientOption for set keystore path and flags for retry
+//
+// The simplest way to set logger is to use the types.DefaultCallRpcLogger and types.DefaultBatchCallRPCLogger
 type ClientOption struct {
-	KeystorePath  string
-	RetryCount    int
-	RetryInterval time.Duration
-	// RpcPreHook    func(method string, args []interface{}, requestAt time.Time)
-	// RpcPostHook   func(err error, result interface{}, responseAt time.Time, spendTime time.Duration)
-	// CallRpcHook   func(callRpc func(result interface{}, method string, args ...interface{}) error, result interface{}, method string, args ...interface{})
+	KeystorePath       string
+	RetryCount         int
+	RetryInterval      time.Duration
 	CallRpcLogger      CallRPCLogger
 	BatchCallRPCLogger BatchCallRPCLogger
 }
