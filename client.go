@@ -33,13 +33,13 @@ type Client struct {
 
 // ClientOption for set keystore path and flags for retry
 //
-// The simplest way to set logger is to use the types.DefaultCallRpcLogger and types.DefaultBatchCallRPCLogger
+// The simplest way to set logger is to use the types.DefaultCallRpcLog and types.DefaultBatchCallRPCLog
 type ClientOption struct {
-	KeystorePath       string
-	RetryCount         int
-	RetryInterval      time.Duration
-	CallRpcLogger      CallRPCLogger
-	BatchCallRPCLogger BatchCallRPCLogger
+	KeystorePath    string
+	RetryCount      int
+	RetryInterval   time.Duration
+	CallRpcLog      func(method string, args []interface{}, result interface{}, resultError error, duration time.Duration)
+	BatchCallRPCLog func(b []rpc.BatchElem, err error, duration time.Duration)
 }
 
 // NewClient creates an instance of Client with specified conflux node url, it will creat account manager if option.KeystorePath not empty.
@@ -78,19 +78,28 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 		return nil, errors.Wrap(err, "failed to dial to fullnode")
 	}
 
-	if clientOption.RetryCount == 0 {
+	if client.option.RetryCount == 0 {
 		client.rpcRequester = rpcClient
 	} else {
 		// Interval 0 is meaningless and may lead full node busy, so default sets it to 1 second
-		if clientOption.RetryInterval == 0 {
-			clientOption.RetryInterval = time.Second
+		if client.option.RetryInterval == 0 {
+			client.option.RetryInterval = time.Second
 		}
 
 		client.rpcRequester = &rpcClientWithRetry{
 			inner:      rpcClient,
-			retryCount: clientOption.RetryCount,
-			interval:   clientOption.RetryInterval,
+			retryCount: client.option.RetryCount,
+			interval:   client.option.RetryInterval,
 		}
+	}
+
+	if client.option.CallRpcLog == nil {
+		client.option.CallRpcLog = func(method string, args []interface{}, result interface{}, resultError error, duration time.Duration) {
+		}
+	}
+
+	if client.option.BatchCallRPCLog == nil {
+		client.option.BatchCallRPCLog = func(b []rpc.BatchElem, err error, duration time.Duration) {}
 	}
 
 	_, err = client.GetNetworkID()
@@ -98,8 +107,8 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 		return nil, errors.Wrap(err, "failed to get networkID")
 	}
 
-	if clientOption.KeystorePath != "" {
-		am := NewAccountManager(clientOption.KeystorePath, client.networkID)
+	if client.option.KeystorePath != "" {
+		am := NewAccountManager(client.option.KeystorePath, client.networkID)
 		client.SetAccountManager(am)
 	}
 
@@ -136,18 +145,10 @@ func (client *Client) MustNewAddress(base32OrHex string) types.Address {
 // The result must be a pointer so that package json can unmarshal into it. You
 // can also pass nil, in which case the result is ignored.
 func (client *Client) CallRPC(result interface{}, method string, args ...interface{}) error {
-
-	if client.option.CallRpcLogger != nil {
-		start := time.Now()
-		err := client.rpcRequester.Call(result, method, args...)
-		if err != nil {
-			client.option.CallRpcLogger.Error(method, args, err, time.Since(start))
-		} else {
-			client.option.CallRpcLogger.Info(method, args, result, time.Since(start))
-		}
-		return err
-	}
-	return client.rpcRequester.Call(result, method, args...)
+	start := time.Now()
+	err := client.rpcRequester.Call(result, method, args...)
+	client.option.CallRpcLog(method, args, result, err, time.Since(start))
+	return err
 }
 
 // BatchCallRPC sends all given requests as a single batch and waits for the server
@@ -158,17 +159,10 @@ func (client *Client) CallRPC(result interface{}, method string, args ...interfa
 //
 // Note that batch calls may not be executed atomically on the server side.
 func (client *Client) BatchCallRPC(b []rpc.BatchElem) error {
-	if client.option.BatchCallRPCLogger != nil {
-		start := time.Now()
-		err := client.rpcRequester.BatchCall(b)
-		if err != nil {
-			client.option.BatchCallRPCLogger.Error(b, err, time.Since(start))
-		} else {
-			client.option.BatchCallRPCLogger.Info(b, time.Since(start))
-		}
-		return err
-	}
-	return client.rpcRequester.BatchCall(b)
+	start := time.Now()
+	err := client.rpcRequester.BatchCall(b)
+	client.option.BatchCallRPCLog(b, err, time.Since(start))
+	return err
 }
 
 // SetAccountManager sets account manager for sign transaction

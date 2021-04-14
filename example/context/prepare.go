@@ -73,8 +73,8 @@ func initClient() {
 		KeystorePath:  path.Join(currentDir, "keystore"),
 		RetryCount:    10,
 		RetryInterval: time.Second,
-		// CallRpcLogger:      types.DefaultCallRPCLogger{},
-		// BatchCallRPCLogger: types.DefaultBatchCallRPCLogger{},
+		// CallRpcLog:      types.DefaultCallRPCLog,
+		// BatchCallRPCLog: types.DefaultBatchCallRPCLog,
 	}
 	client, err = sdk.NewClient(config.NodeURL, option)
 	if err != nil {
