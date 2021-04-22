@@ -32,7 +32,7 @@ func _TestNewClient(t *testing.T) {
 				})
 				defer guard.Unpatch()
 
-				client, err := newClientWithRetry("", "", 0, 0)
+				client, err := newClientWithRetry("", ClientOption{})
 				Convey("Return error", func() {
 					So(err, ShouldNotEqual, nil)
 					So(client, ShouldEqual, nil)
@@ -46,7 +46,7 @@ func _TestNewClient(t *testing.T) {
 				})
 				defer guard.Unpatch()
 
-				client, err := newClientWithRetry("", "", 0, 0)
+				client, err := newClientWithRetry("", ClientOption{})
 				// fmt.Printf("client:%+v,err:%+v", client, err)
 
 				Convey("Return client instance", func() {

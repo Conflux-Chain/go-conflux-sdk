@@ -120,9 +120,19 @@ type AccountManagerOperator interface {
 	Sign(tx types.UnsignedTransaction, passphrase string) (v byte, r, s []byte, err error)
 }
 
-type rpcRequester interface {
+type RpcRequester interface {
 	Call(resultPtr interface{}, method string, args ...interface{}) error
 	BatchCall(b []rpc.BatchElem) error
 	Subscribe(ctx context.Context, namespace string, channel interface{}, args ...interface{}) (*rpc.ClientSubscription, error)
 	Close()
+}
+
+type CallRPCLogger interface {
+	Info(method string, args []interface{}, result interface{}, duration time.Duration)
+	Error(method string, args []interface{}, resultError error, duration time.Duration)
+}
+
+type BatchCallRPCLogger interface {
+	Info(b []rpc.BatchElem, duration time.Duration)
+	Error(b []rpc.BatchElem, err error, duration time.Duration)
 }

@@ -211,7 +211,7 @@ creat account manager if option.KeystorePath not empty.
 #### func  NewClientWithRPCRequester
 
 ```go
-func NewClientWithRPCRequester(rpcRequester rpcRequester) (*Client, error)
+func NewClientWithRPCRequester(rpcRequester RpcRequester) (*Client, error)
 ```
 NewClientWithRPCRequester creates client with specified rpcRequester
 
@@ -631,8 +631,8 @@ GetVoteList returns vote list of the given account.
 func (client *Client) MustNewAddress(base32OrHex string) types.Address
 ```
 MustNewAddress create conflux address by base32 string or hex40 string, if
-base32OrHex is base32 and networkID is setted it will check if networkID match.
-it will painc if error occured.
+base32OrHex is base32 and networkID is passed it will create cfx Address use
+networkID of current client. it will painc if error occured.
 
 #### func (*Client) NewAddress
 
@@ -640,7 +640,8 @@ it will painc if error occured.
 func (client *Client) NewAddress(base32OrHex string) (types.Address, error)
 ```
 NewAddress create conflux address by base32 string or hex40 string, if
-base32OrHex is base32 and networkID is setted it will check if networkID match.
+base32OrHex is base32 and networkID is passed it will create cfx Address use
+networkID of current client.
 
 #### func (*Client) SendRawTransaction
 
@@ -675,10 +676,11 @@ signature "r,s,v" and sends it to node, and returns responsed transaction.
 #### func (*Client) SubscribeEpochs
 
 ```go
-func (client *Client) SubscribeEpochs(channel chan types.WebsocketEpochResponse) (*rpc.ClientSubscription, error)
+func (client *Client) SubscribeEpochs(channel chan types.WebsocketEpochResponse, subscriptionEpochType ...types.Epoch) (*rpc.ClientSubscription, error)
 ```
 SubscribeEpochs subscribes consensus results: the total order of blocks, as
-expressed by a sequence of epochs.
+expressed by a sequence of epochs. Currently subscriptionEpochType only support
+"latest_mined" and "latest_state"
 
 #### func (*Client) SubscribeLogs
 
@@ -713,13 +715,18 @@ WaitForTransationReceipt waits for transaction receipt valid
 
 ```go
 type ClientOption struct {
-	KeystorePath  string
-	RetryCount    int
-	RetryInterval time.Duration
+	KeystorePath       string
+	RetryCount         int
+	RetryInterval      time.Duration
+	CallRpcLogger      CallRPCLogger
+	BatchCallRPCLogger BatchCallRPCLogger
 }
 ```
 
 ClientOption for set keystore path and flags for retry
+
+The simplest way to set logger is to use the types.DefaultCallRpcLogger and
+types.DefaultBatchCallRPCLogger
 
 ### type Contract
 
