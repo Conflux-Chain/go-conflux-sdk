@@ -93,6 +93,7 @@ func run(_client *sdk.Client) {
 	getBlockRewardInfo()
 	getClientVersion()
 	getEpochReceipts()
+	getAccountPendingInfo()
 
 	traceBlock()
 	traceFilter()
@@ -450,6 +451,12 @@ func getEpochReceipts() {
 	} else {
 		fmt.Printf("- get rpoch receipts info:%v \n", context.JSONFmt(receipts))
 	}
+}
+
+func getAccountPendingInfo() {
+	fmt.Println("default account:", *defaultAccount)
+	result, err := client.GetAccountPendingInfo(*defaultAccount)
+	printResult("GetAccountPendingInfo", []interface{}{*defaultAccount}, result, err)
 }
 
 func traceBlock() {

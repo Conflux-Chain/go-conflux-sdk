@@ -85,3 +85,10 @@ type TokenSupplyInfo struct {
 type ChainReorg struct {
 	RevertTo *hexutil.Big `json:"revertTo"`
 }
+
+type AccountPendingInfo struct {
+	LocalNonce    *hexutil.Big `json:"localNonce"`
+	PendingCount  *hexutil.Big `json:"pendingCount"`
+	PendingNonce  *hexutil.Big `json:"pendingNonce"`
+	NextPendingTx Hash         `json:"nextPendingTx"`
+}

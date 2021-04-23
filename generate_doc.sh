@@ -1,3 +1,5 @@
+cd "$(dirname "$0")"
+
 mv ./interface.go ./interface.go.tmd
 mv ./interface_mock.go ./interface_mock.go.tmd
 
@@ -17,21 +19,23 @@ rm -f client.md
 rm -f utils.md
 rm -f internal_contract.md
 
-read -r -p "The api.md will be overwritten, are you sure ? [y/n] " input
+mv ./tmp.md ./api.md
 
-case $input in
-    [yY][eE][sS]|[yY])
-		echo "Yes"
-        mv ./tmp.md ./api.md
-		;;
+# read -r -p "The api.md will be overwritten, are you sure ? [y/n] " input
 
-    [nN][oO]|[nN])
-		echo "No"
-       	;;
+# case $input in
+#     [yY][eE][sS]|[yY])
+# 		echo "Yes"
+#         mv ./tmp.md ./api.md
+# 		;;
 
-    *)
-		echo "Invalid input..."
-        rm ./tmp.md
-		exit 1
-		;;
-esac
+#     [nN][oO]|[nN])
+# 		echo "No"
+#        	;;
+
+#     *)
+# 		echo "Invalid input..."
+#         rm ./tmp.md
+# 		exit 1
+# 		;;
+# esac

@@ -20,6 +20,7 @@ type LogFilter struct {
 	BlockHashes []Hash          `json:"blockHashes,omitempty"`
 	Address     []Address       `json:"address,omitempty"`
 	Topics      [][]Hash        `json:"topics,omitempty"`
+	Offset      *hexutil.Uint64 `json:"offset,omitempty"`
 	Limit       *hexutil.Uint64 `json:"limit,omitempty"`
 }
 

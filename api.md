@@ -346,6 +346,13 @@ func (client *Client) GetAccountInfo(account types.Address, epoch ...*types.Epoc
 ```
 GetAccountInfo returns account related states of the given account
 
+#### func (*Client) GetAccountPendingInfo
+
+```go
+func (client *Client) GetAccountPendingInfo(address types.Address) (pendignInfo *types.AccountPendingInfo, err error)
+```
+GetAccountPendingInfo gets transaction pending info by account address
+
 #### func (*Client) GetAccumulateInterestRate
 
 ```go
@@ -715,18 +722,18 @@ WaitForTransationReceipt waits for transaction receipt valid
 
 ```go
 type ClientOption struct {
-	KeystorePath       string
-	RetryCount         int
-	RetryInterval      time.Duration
-	CallRpcLogger      CallRPCLogger
-	BatchCallRPCLogger BatchCallRPCLogger
+	KeystorePath    string
+	RetryCount      int
+	RetryInterval   time.Duration
+	CallRpcLog      func(method string, args []interface{}, result interface{}, resultError error, duration time.Duration)
+	BatchCallRPCLog func(b []rpc.BatchElem, err error, duration time.Duration)
 }
 ```
 
 ClientOption for set keystore path and flags for retry
 
-The simplest way to set logger is to use the types.DefaultCallRpcLogger and
-types.DefaultBatchCallRPCLogger
+The simplest way to set logger is to use the types.DefaultCallRpcLog and
+types.DefaultBatchCallRPCLog
 
 ### type Contract
 
