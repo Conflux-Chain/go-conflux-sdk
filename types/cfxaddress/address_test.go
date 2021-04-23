@@ -39,7 +39,7 @@ func TestMarshalJSON(t *testing.T) {
 	j, e := json.Marshal(cfxAddressFromHex)
 	// encoding.TextMarshaler
 	fatalIfErr(t, e)
-	expect := "\"CFX:TYPE.USER:AASR8SNKYUYMSYF2XP369E8KPZUSFTJ14EC1N0VXJ1\""
+	expect := "\"cfx:aasr8snkyuymsyf2xp369e8kpzusftj14ec1n0vxj1\""
 	if string(j) != expect {
 		t.Fatalf("expect %#v, actual %#v", expect, string(j))
 	}
