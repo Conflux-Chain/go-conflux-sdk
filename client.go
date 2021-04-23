@@ -763,6 +763,12 @@ func (client *Client) GetContract(abiJSON []byte, deployedAt *types.Address) (*C
 	return contract, nil
 }
 
+// GetAccountPendingInfo gets transaction pending info by account address
+func (client *Client) GetAccountPendingInfo(address types.Address) (pendignInfo *types.AccountPendingInfo, err error) {
+	err = client.wrappedCallRPC(&pendignInfo, "cfx_getAccountPendingInfo", address)
+	return
+}
+
 // =====Debug RPC=====
 
 func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
