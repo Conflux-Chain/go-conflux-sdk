@@ -26,15 +26,20 @@ const errMsgApplyTxValues = "failed to apply default transaction values"
 type Client struct {
 	AccountManager AccountManagerOperator
 	nodeURL        string
-	rpcRequester   rpcRequester
+	rpcRequester   RpcRequester
 	networkID      uint32
+	option         ClientOption
 }
 
 // ClientOption for set keystore path and flags for retry
+//
+// The simplest way to set logger is to use the types.DefaultCallRpcLog and types.DefaultBatchCallRPCLog
 type ClientOption struct {
-	KeystorePath  string
-	RetryCount    int
-	RetryInterval time.Duration
+	KeystorePath    string
+	RetryCount      int
+	RetryInterval   time.Duration
+	CallRpcLog      func(method string, args []interface{}, result interface{}, resultError error, duration time.Duration)
+	BatchCallRPCLog func(b []rpc.BatchElem, err error, duration time.Duration)
 }
 
 // NewClient creates an instance of Client with specified conflux node url, it will creat account manager if option.KeystorePath not empty.
@@ -44,7 +49,7 @@ func NewClient(nodeURL string, option ...ClientOption) (*Client, error) {
 		realOption = option[0]
 	}
 
-	client, err := newClientWithRetry(nodeURL, realOption.KeystorePath, realOption.RetryCount, realOption.RetryInterval)
+	client, err := newClientWithRetry(nodeURL, realOption)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to new client with retry")
 	}
@@ -53,7 +58,7 @@ func NewClient(nodeURL string, option ...ClientOption) (*Client, error) {
 }
 
 // NewClientWithRPCRequester creates client with specified rpcRequester
-func NewClientWithRPCRequester(rpcRequester rpcRequester) (*Client, error) {
+func NewClientWithRPCRequester(rpcRequester RpcRequester) (*Client, error) {
 	return &Client{
 		rpcRequester: rpcRequester,
 	}, nil
@@ -61,30 +66,40 @@ func NewClientWithRPCRequester(rpcRequester rpcRequester) (*Client, error) {
 
 // NewClientWithRetry creates a retryable new instance of Client with specified conflux node url and retry options.
 //
-// the retryInterval will be set to 1 second if pass 0
-func newClientWithRetry(nodeURL string, keystorePath string, retryCount int, retryInterval time.Duration) (*Client, error) {
+// the clientOption.RetryInterval will be set to 1 second if pass 0
+func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, error) {
 
 	var client Client
 	client.nodeURL = nodeURL
+	client.option = clientOption
 
 	rpcClient, err := rpc.Dial(nodeURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to dial to fullnode")
 	}
 
-	if retryCount == 0 {
+	if client.option.RetryCount == 0 {
 		client.rpcRequester = rpcClient
 	} else {
 		// Interval 0 is meaningless and may lead full node busy, so default sets it to 1 second
-		if retryInterval == 0 {
-			retryInterval = time.Second
+		if client.option.RetryInterval == 0 {
+			client.option.RetryInterval = time.Second
 		}
 
 		client.rpcRequester = &rpcClientWithRetry{
 			inner:      rpcClient,
-			retryCount: retryCount,
-			interval:   retryInterval,
+			retryCount: client.option.RetryCount,
+			interval:   client.option.RetryInterval,
 		}
+	}
+
+	if client.option.CallRpcLog == nil {
+		client.option.CallRpcLog = func(method string, args []interface{}, result interface{}, resultError error, duration time.Duration) {
+		}
+	}
+
+	if client.option.BatchCallRPCLog == nil {
+		client.option.BatchCallRPCLog = func(b []rpc.BatchElem, err error, duration time.Duration) {}
 	}
 
 	_, err = client.GetNetworkID()
@@ -92,8 +107,8 @@ func newClientWithRetry(nodeURL string, keystorePath string, retryCount int, ret
 		return nil, errors.Wrap(err, "failed to get networkID")
 	}
 
-	if keystorePath != "" {
-		am := NewAccountManager(keystorePath, client.networkID)
+	if client.option.KeystorePath != "" {
+		am := NewAccountManager(client.option.KeystorePath, client.networkID)
 		client.SetAccountManager(am)
 	}
 
@@ -105,7 +120,7 @@ func (client *Client) GetNodeURL() string {
 	return client.nodeURL
 }
 
-// NewAddress create conflux address by base32 string or hex40 string, if base32OrHex is base32 and networkID is setted it will check if networkID match.
+// NewAddress create conflux address by base32 string or hex40 string, if base32OrHex is base32 and networkID is passed it will create cfx Address use networkID of current client.
 func (client *Client) NewAddress(base32OrHex string) (types.Address, error) {
 	networkID, err := client.GetNetworkID()
 	if err != nil {
@@ -114,7 +129,7 @@ func (client *Client) NewAddress(base32OrHex string) (types.Address, error) {
 	return cfxaddress.New(base32OrHex, networkID)
 }
 
-// MustNewAddress create conflux address by base32 string or hex40 string, if base32OrHex is base32 and networkID is setted it will check if networkID match.
+// MustNewAddress create conflux address by base32 string or hex40 string, if base32OrHex is base32 and networkID is passed it will create cfx Address use networkID of current client.
 // it will painc if error occured.
 func (client *Client) MustNewAddress(base32OrHex string) types.Address {
 	address, err := client.NewAddress(base32OrHex)
@@ -130,7 +145,10 @@ func (client *Client) MustNewAddress(base32OrHex string) types.Address {
 // The result must be a pointer so that package json can unmarshal into it. You
 // can also pass nil, in which case the result is ignored.
 func (client *Client) CallRPC(result interface{}, method string, args ...interface{}) error {
-	return client.rpcRequester.Call(result, method, args...)
+	start := time.Now()
+	err := client.rpcRequester.Call(result, method, args...)
+	client.option.CallRpcLog(method, args, result, err, time.Since(start))
+	return err
 }
 
 // BatchCallRPC sends all given requests as a single batch and waits for the server
@@ -141,7 +159,10 @@ func (client *Client) CallRPC(result interface{}, method string, args ...interfa
 //
 // Note that batch calls may not be executed atomically on the server side.
 func (client *Client) BatchCallRPC(b []rpc.BatchElem) error {
-	return client.rpcRequester.BatchCall(b)
+	start := time.Now()
+	err := client.rpcRequester.BatchCall(b)
+	client.option.BatchCallRPCLog(b, err, time.Since(start))
+	return err
 }
 
 // SetAccountManager sets account manager for sign transaction
@@ -742,6 +763,12 @@ func (client *Client) GetContract(abiJSON []byte, deployedAt *types.Address) (*C
 	return contract, nil
 }
 
+// GetAccountPendingInfo gets transaction pending info by account address
+func (client *Client) GetAccountPendingInfo(address types.Address) (pendignInfo *types.AccountPendingInfo, err error) {
+	err = client.wrappedCallRPC(&pendignInfo, "cfx_getAccountPendingInfo", address)
+	return
+}
+
 // =====Debug RPC=====
 
 func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
@@ -932,8 +959,11 @@ func (client *Client) SubscribeNewHeads(channel chan types.BlockHeader) (*rpc.Cl
 	return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "newHeads")
 }
 
-// SubscribeEpochs subscribes consensus results: the total order of blocks, as expressed by a sequence of epochs.
-func (client *Client) SubscribeEpochs(channel chan types.WebsocketEpochResponse) (*rpc.ClientSubscription, error) {
+// SubscribeEpochs subscribes consensus results: the total order of blocks, as expressed by a sequence of epochs. Currently subscriptionEpochType only support "latest_mined" and "latest_state"
+func (client *Client) SubscribeEpochs(channel chan types.WebsocketEpochResponse, subscriptionEpochType ...types.Epoch) (*rpc.ClientSubscription, error) {
+	if len(subscriptionEpochType) > 0 {
+		return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "epochs", subscriptionEpochType[0].String())
+	}
 	return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "epochs")
 }
 

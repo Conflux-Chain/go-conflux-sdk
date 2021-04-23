@@ -8,6 +8,7 @@ import (
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/example/context"
 	exampletypes "github.com/Conflux-Chain/go-conflux-sdk/example/context/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
@@ -92,6 +93,7 @@ func run(_client *sdk.Client) {
 	getBlockRewardInfo()
 	getClientVersion()
 	getEpochReceipts()
+	getAccountPendingInfo()
 
 	traceBlock()
 	traceFilter()
@@ -100,6 +102,8 @@ func run(_client *sdk.Client) {
 	subscribeNewHeads()
 	subscribeEpochs()
 	subscribeLogs()
+
+	batchCall()
 }
 
 func newAddress() {
@@ -449,6 +453,12 @@ func getEpochReceipts() {
 	}
 }
 
+func getAccountPendingInfo() {
+	fmt.Println("default account:", *defaultAccount)
+	result, err := client.GetAccountPendingInfo(*defaultAccount)
+	printResult("GetAccountPendingInfo", []interface{}{*defaultAccount}, result, err)
+}
+
 func traceBlock() {
 	traces, err := client.GetBlockTraces(config.BlockHashOfNewContract)
 	if err != nil {
@@ -593,6 +603,18 @@ func subscribeLogs() {
 		}
 	}
 	sub.Unsubscribe()
+}
+
+func batchCall() {
+	elems := make([]rpc.BatchElem, 2)
+	elems[0] = rpc.BatchElem{Method: "cfx_epochNumber", Result: &hexutil.Big{}, Args: []interface{}{}}
+	elems[1] = rpc.BatchElem{Method: "cfx_getBalance", Result: &hexutil.Big{}, Args: []interface{}{client.MustNewAddress("cfxtest:aap9kthvctunvf030rbkk9k7zbzyz12dajp1u3sp4g")}}
+	err := client.BatchCallRPC(elems)
+	if err != nil {
+		panic(err)
+	} else {
+		fmt.Printf("batch call rpc done:%+v\n", elems)
+	}
 }
 
 func printResult(method string, args []interface{}, result interface{}, err error) {
