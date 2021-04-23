@@ -52,7 +52,6 @@ func Has0xPrefix(input string) bool {
 // IsRPCJSONError returns true if err is rpc error
 func IsRPCJSONError(err error) bool {
 	t := reflect.TypeOf(errors.Cause(err)).String()
-	fmt.Printf("error type:%v", t)
 	return t == "*rpc.jsonError" || t == "rpc.jsonError"
 }
 
