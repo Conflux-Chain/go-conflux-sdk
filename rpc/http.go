@@ -125,7 +125,8 @@ func DialHTTPWithClient(endpoint string, client *fasthttp.Client) (*Client, erro
 		req.Header.SetMethod("POST")
 		req.Header.Set("Content-Type", contentType)
 		req.Header.Set("Accept", contentType)
-		req.Header.Set("Connection", "close")
+		// req.Header.Set("Connection", "close")
+		req.Header.Set("Connection", "Keep-Alive")
 		return &httpConn{client: client, req: &req, closeCh: make(chan interface{})}, nil
 	})
 }
