@@ -16,13 +16,13 @@ type CallRpcHandler interface {
 
 type CallRpcHandlerFunc func(result interface{}, method string, args ...interface{}) error
 
-type CallRpcMiddleWare func(CallRpcHandler) CallRpcHandler
+type CallRpcMiddleware func(CallRpcHandler) CallRpcHandler
 
 func (c CallRpcHandlerFunc) Handle(result interface{}, method string, args ...interface{}) error {
 	return c(result, method, args...)
 }
 
-func CallRpcLogMiddleWare(handler CallRpcHandler) CallRpcHandler {
+func CallRpcLogMiddleware(handler CallRpcHandler) CallRpcHandler {
 	logFn := func(result interface{}, method string, args ...interface{}) error {
 		start := time.Now()
 

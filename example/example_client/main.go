@@ -41,11 +41,11 @@ func init() {
 }
 
 func main() {
-	config.GetClient().UseCallRpcMiddleWire(middleware.CallRpcLogMiddleWare)
-	config.GetClient().UseBatchCallRpcMiddleWire(middleware.BatchCallRpcLogMiddleWare)
+	config.GetClient().UseCallRpcMiddleware(middleware.CallRpcLogMiddleware)
+	config.GetClient().UseBatchCallRpcMiddleware(middleware.BatchCallRpcLogMiddleware)
 
-	config.GetRetryClient().UseCallRpcMiddleWire(middleware.CallRpcLogMiddleWare)
-	config.GetRetryClient().UseBatchCallRpcMiddleWire(middleware.BatchCallRpcLogMiddleWare)
+	config.GetRetryClient().UseCallRpcMiddleware(middleware.CallRpcLogMiddleware)
+	config.GetRetryClient().UseBatchCallRpcMiddleware(middleware.BatchCallRpcLogMiddleware)
 
 	fmt.Printf("\n=======start excute client methods without retry=========\n")
 	run(config.GetClient())

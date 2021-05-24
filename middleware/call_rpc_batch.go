@@ -15,13 +15,13 @@ type BatchCallRpcHandler interface {
 
 type BatchCallRpcHandlerFunc func(b []rpc.BatchElem) error
 
-type BatchCallRpcMiddleWare func(BatchCallRpcHandler) BatchCallRpcHandler
+type BatchCallRpcMiddleware func(BatchCallRpcHandler) BatchCallRpcHandler
 
 func (brh BatchCallRpcHandlerFunc) Handle(b []rpc.BatchElem) error {
 	return brh(b)
 }
 
-func BatchCallRpcLogMiddleWare(handler BatchCallRpcHandler) BatchCallRpcHandler {
+func BatchCallRpcLogMiddleware(handler BatchCallRpcHandler) BatchCallRpcHandler {
 	logFn := func(b []rpc.BatchElem) error {
 		start := time.Now()
 

@@ -45,9 +45,6 @@ type ClientOption struct {
 	RetryInterval time.Duration
 	// timeout of request
 	RequestTimeout time.Duration
-	// log
-	// CallRpcLog      func(method string, args []interface{}, result interface{}, resultError error, duration time.Duration)
-	// BatchCallRPCLog func(b []rpc.BatchElem, err error, duration time.Duration)
 }
 
 // NewClient creates an instance of Client with specified conflux node url, it will creat account manager if option.KeystorePath not empty.
@@ -155,7 +152,7 @@ func (client *Client) MustNewAddress(base32OrHex string) types.Address {
 // The result must be a pointer so that package json can unmarshal into it. You
 // can also pass nil, in which case the result is ignored.
 //
-// You could use UseCallRpcMiddleWire to add middlewire for hooking CallRPC
+// You could use UseCallRpcMiddleware to add middleware for hooking CallRPC
 func (client *Client) CallRPC(result interface{}, method string, args ...interface{}) error {
 	return client.callRpcHandler.Handle(result, method, args...)
 }
@@ -168,10 +165,10 @@ func (client *Client) callRpc(result interface{}, method string, args ...interfa
 	return err
 }
 
-// UseCallRpcMiddleWire set middlewire to hook CallRpc, for example use middleware.CallRpcLogMiddleWare for logging request info.
-// You can customize your CallRpcMiddleWire and use multi CallRpcMiddleWire.
-func (client *Client) UseCallRpcMiddleWire(middlewire middleware.CallRpcMiddleWare) {
-	client.callRpcHandler = middlewire(client.callRpcHandler)
+// UseCallRpcMiddleware set middleware to hook CallRpc, for example use middleware.CallRpcLogMiddleware for logging request info.
+// You can customize your CallRpcMiddleware and use multi CallRpcMiddleware.
+func (client *Client) UseCallRpcMiddleware(middleware middleware.CallRpcMiddleware) {
+	client.callRpcHandler = middleware(client.callRpcHandler)
 }
 
 // BatchCallRPC sends all given requests as a single batch and waits for the server
@@ -182,7 +179,7 @@ func (client *Client) UseCallRpcMiddleWire(middlewire middleware.CallRpcMiddleWa
 //
 // Note that batch calls may not be executed atomically on the server side.
 //
-// You could use UseBatchCallRpcMiddleWire to add middlewire for hooking BatchCallRPC
+// You could use UseBatchCallRpcMiddleware to add middleware for hooking BatchCallRPC
 func (client *Client) BatchCallRPC(b []rpc.BatchElem) error {
 	return client.batchCallRpcHandler.Handle(b)
 }
@@ -193,10 +190,10 @@ func (client *Client) batchCallRPC(b []rpc.BatchElem) error {
 	return err
 }
 
-// UseBatchCallRpcMiddleWire set middlewire to hook BatchCallRpc, for example use middleware.BatchCallRpcLogMiddleWare for logging batch request info.
-// You can customize your BatchCallRpcMiddleWire and use multi BatchCallRpcMiddleWire.
-func (client *Client) UseBatchCallRpcMiddleWire(middlewire middleware.BatchCallRpcMiddleWare) {
-	client.batchCallRpcHandler = middlewire(client.batchCallRpcHandler)
+// UseBatchCallRpcMiddleware set middleware to hook BatchCallRpc, for example use middleware.BatchCallRpcLogMiddleware for logging batch request info.
+// You can customize your BatchCallRpcMiddleware and use multi BatchCallRpcMiddleware.
+func (client *Client) UseBatchCallRpcMiddleware(middleware middleware.BatchCallRpcMiddleware) {
+	client.batchCallRpcHandler = middleware(client.batchCallRpcHandler)
 }
 
 // SetAccountManager sets account manager for sign transaction
