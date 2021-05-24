@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/constants"
-	"github.com/Conflux-Chain/go-conflux-sdk/middlewire"
+	"github.com/Conflux-Chain/go-conflux-sdk/middleware"
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
@@ -31,8 +31,8 @@ type Client struct {
 	rpcRequester        RpcRequester
 	networkID           uint32
 	option              ClientOption
-	callRpcHandler      middlewire.CallRpcHandler
-	batchCallRpcHandler middlewire.BatchCallRpcHandler
+	callRpcHandler      middleware.CallRpcHandler
+	batchCallRpcHandler middleware.BatchCallRpcHandler
 }
 
 // ClientOption for set keystore path and flags for retry
@@ -80,8 +80,8 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 	var client Client
 	client.nodeURL = nodeURL
 	client.option = clientOption
-	client.callRpcHandler = middlewire.CallRpcHandlerFunc(client.callRpc)
-	client.batchCallRpcHandler = middlewire.BatchCallRpcHandlerFunc(client.batchCallRPC)
+	client.callRpcHandler = middleware.CallRpcHandlerFunc(client.callRpc)
+	client.batchCallRpcHandler = middleware.BatchCallRpcHandlerFunc(client.batchCallRPC)
 
 	rpcClient, err := rpc.Dial(nodeURL)
 	if err != nil {
@@ -168,9 +168,9 @@ func (client *Client) callRpc(result interface{}, method string, args ...interfa
 	return err
 }
 
-// UseCallRpcMiddleWire set middlewire to hook CallRpc, for example use middlewire.CallRpcLogMiddleWire for logging request info.
+// UseCallRpcMiddleWire set middlewire to hook CallRpc, for example use middleware.CallRpcLogMiddleWare for logging request info.
 // You can customize your CallRpcMiddleWire and use multi CallRpcMiddleWire.
-func (client *Client) UseCallRpcMiddleWire(middlewire middlewire.CallRpcMiddleWire) {
+func (client *Client) UseCallRpcMiddleWire(middlewire middleware.CallRpcMiddleWare) {
 	client.callRpcHandler = middlewire(client.callRpcHandler)
 }
 
@@ -193,9 +193,9 @@ func (client *Client) batchCallRPC(b []rpc.BatchElem) error {
 	return err
 }
 
-// UseBatchCallRpcMiddleWire set middlewire to hook BatchCallRpc, for example use middlewire.BatchCallRpcLogMiddleWire for logging batch request info.
+// UseBatchCallRpcMiddleWire set middlewire to hook BatchCallRpc, for example use middleware.BatchCallRpcLogMiddleWare for logging batch request info.
 // You can customize your BatchCallRpcMiddleWire and use multi BatchCallRpcMiddleWire.
-func (client *Client) UseBatchCallRpcMiddleWire(middlewire middlewire.BatchCallRpcMiddleWire) {
+func (client *Client) UseBatchCallRpcMiddleWire(middlewire middleware.BatchCallRpcMiddleWare) {
 	client.batchCallRpcHandler = middlewire(client.batchCallRpcHandler)
 }
 

@@ -712,19 +712,19 @@ consensus.
 #### func (*Client) UseBatchCallRpcMiddleWire
 
 ```go
-func (client *Client) UseBatchCallRpcMiddleWire(middlewire middlewire.BatchCallRpcMiddleWire)
+func (client *Client) UseBatchCallRpcMiddleWire(middlewire middleware.BatchCallRpcMiddleWare)
 ```
 UseBatchCallRpcMiddleWire set middlewire to hook BatchCallRpc, for example use
-middlewire.BatchCallRpcLogMiddleWire for logging batch request info. You can
+middleware.BatchCallRpcLogMiddleWare for logging batch request info. You can
 customize your BatchCallRpcMiddleWire and use multi BatchCallRpcMiddleWire.
 
 #### func (*Client) UseCallRpcMiddleWire
 
 ```go
-func (client *Client) UseCallRpcMiddleWire(middlewire middlewire.CallRpcMiddleWire)
+func (client *Client) UseCallRpcMiddleWire(middlewire middleware.CallRpcMiddleWare)
 ```
 UseCallRpcMiddleWire set middlewire to hook CallRpc, for example use
-middlewire.CallRpcLogMiddleWire for logging request info. You can customize your
+middleware.CallRpcLogMiddleWare for logging request info. You can customize your
 CallRpcMiddleWire and use multi CallRpcMiddleWire.
 
 #### func (*Client) WaitForTransationBePacked

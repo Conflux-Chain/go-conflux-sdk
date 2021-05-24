@@ -8,7 +8,7 @@ import (
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/example/context"
 	exampletypes "github.com/Conflux-Chain/go-conflux-sdk/example/context/types"
-	"github.com/Conflux-Chain/go-conflux-sdk/middlewire"
+	"github.com/Conflux-Chain/go-conflux-sdk/middleware"
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
@@ -41,11 +41,11 @@ func init() {
 }
 
 func main() {
-	config.GetClient().UseCallRpcMiddleWire(middlewire.CallRpcLogMiddleWire)
-	config.GetClient().UseBatchCallRpcMiddleWire(middlewire.BatchCallRpcLogMiddleWire)
+	config.GetClient().UseCallRpcMiddleWire(middleware.CallRpcLogMiddleWare)
+	config.GetClient().UseBatchCallRpcMiddleWire(middleware.BatchCallRpcLogMiddleWare)
 
-	config.GetRetryClient().UseCallRpcMiddleWire(middlewire.CallRpcLogMiddleWire)
-	config.GetRetryClient().UseBatchCallRpcMiddleWire(middlewire.BatchCallRpcLogMiddleWire)
+	config.GetRetryClient().UseCallRpcMiddleWire(middleware.CallRpcLogMiddleWare)
+	config.GetRetryClient().UseBatchCallRpcMiddleWire(middleware.BatchCallRpcLogMiddleWare)
 
 	fmt.Printf("\n=======start excute client methods without retry=========\n")
 	run(config.GetClient())
