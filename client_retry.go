@@ -16,11 +16,14 @@ type rpcClientWithRetry struct {
 }
 
 func (r *rpcClientWithRetry) Call(resultPtr interface{}, method string, args ...interface{}) error {
+	return r.CallContext(context.Background(), resultPtr, method, args...)
+}
 
+func (r *rpcClientWithRetry) CallContext(ctx context.Context, resultPtr interface{}, method string, args ...interface{}) error {
 	remain := r.retryCount
 	for {
 
-		err := r.inner.Call(resultPtr, method, args...)
+		err := r.inner.CallContext(ctx, resultPtr, method, args...)
 		if err == nil {
 			return nil
 		}
@@ -42,7 +45,11 @@ func (r *rpcClientWithRetry) Call(resultPtr interface{}, method string, args ...
 }
 
 func (r *rpcClientWithRetry) BatchCall(b []rpc.BatchElem) error {
-	err := r.inner.BatchCall(b)
+	return r.BatchCallContext(context.Background(), b)
+}
+
+func (r *rpcClientWithRetry) BatchCallContext(ctx context.Context, b []rpc.BatchElem) error {
+	err := r.inner.BatchCallContext(ctx, b)
 	if err == nil {
 		return nil
 	}
@@ -53,7 +60,7 @@ func (r *rpcClientWithRetry) BatchCall(b []rpc.BatchElem) error {
 
 	remain := r.retryCount
 	for {
-		if err = r.inner.BatchCall(b); err == nil {
+		if err = r.inner.BatchCallContext(ctx, b); err == nil {
 			return nil
 		}
 
