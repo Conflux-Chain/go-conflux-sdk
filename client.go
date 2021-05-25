@@ -100,15 +100,6 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 		}
 	}
 
-	// if client.option.CallRpcLog == nil {
-	// 	client.option.CallRpcLog = func(method string, args []interface{}, result interface{}, resultError error, duration time.Duration) {
-	// 	}
-	// }
-
-	// if client.option.BatchCallRPCLog == nil {
-	// 	client.option.BatchCallRPCLog = func(b []rpc.BatchElem, err error, duration time.Duration) {}
-	// }
-
 	_, err = client.GetNetworkID()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get networkID")
@@ -158,11 +149,14 @@ func (client *Client) CallRPC(result interface{}, method string, args ...interfa
 }
 
 func (client *Client) callRpc(result interface{}, method string, args ...interface{}) error {
+	ctx, cancelFunc := client.genContext()
+	defer func() {
+		if cancelFunc != nil {
+			cancelFunc()
+		}
+	}()
 
-	ctx := client.genContext()
-	err := client.rpcRequester.CallContext(ctx, result, method, args...)
-
-	return err
+	return client.rpcRequester.CallContext(ctx, result, method, args...)
 }
 
 // UseCallRpcMiddleware set middleware to hook CallRpc, for example use middleware.CallRpcLogMiddleware for logging request info.
@@ -185,9 +179,14 @@ func (client *Client) BatchCallRPC(b []rpc.BatchElem) error {
 }
 
 func (client *Client) batchCallRPC(b []rpc.BatchElem) error {
-	ctx := client.genContext()
-	err := client.rpcRequester.BatchCallContext(ctx, b)
-	return err
+	ctx, cancelFunc := client.genContext()
+	defer func() {
+		if cancelFunc != nil {
+			cancelFunc()
+		}
+	}()
+
+	return client.rpcRequester.BatchCallContext(ctx, b)
 }
 
 // UseBatchCallRpcMiddleware set middleware to hook BatchCallRpc, for example use middleware.BatchCallRpcLogMiddleware for logging batch request info.
@@ -1121,11 +1120,9 @@ func get1stEpochIfy(epoch []*types.Epoch) *types.Epoch {
 	return realEpoch
 }
 
-func (client *Client) genContext() context.Context {
-	var ctx context.Context
-	ctx = context.Background()
+func (client *Client) genContext() (context.Context, context.CancelFunc) {
 	if client.option.RequestTimeout > 0 {
-		ctx, _ = context.WithTimeout(context.Background(), client.option.RequestTimeout)
+		return context.WithTimeout(context.Background(), client.option.RequestTimeout)
 	}
-	return ctx
+	return context.Background(), nil
 }

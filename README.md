@@ -234,8 +234,8 @@ client.UseCallRpcMiddleware(A)
 client.UseCallRpcMiddleware(B)
 ```
 the middleware execution order is
-```mermaid
-B-->A-->client.callRpc-->A-->B
+```
+B --> A --> client.callRpc --> A --> B
 ```
 
 ## Appendix

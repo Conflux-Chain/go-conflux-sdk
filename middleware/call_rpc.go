@@ -24,22 +24,27 @@ func (c CallRpcHandlerFunc) Handle(result interface{}, method string, args ...in
 
 func CallRpcLogMiddleware(handler CallRpcHandler) CallRpcHandler {
 	logFn := func(result interface{}, method string, args ...interface{}) error {
+
+		argsStr := fmt.Sprintf("%+v", args)
+		argsJson, err := json.Marshal(args)
+		if err == nil {
+			argsStr = string(argsJson)
+		}
+
 		start := time.Now()
-
-		err := handler.Handle(result, method, args...)
-
+		err = handler.Handle(result, method, args...)
 		duration := time.Since(start)
-		argsJson, _ := json.Marshal(args)
 
 		if err == nil {
 			fmt.Printf("%v Method %v, Params %v, Result %v, Use %v\n",
 				color.GreenString("[Call RPC Done]"),
 				color.YellowString(method),
-				color.CyanString(string(argsJson)),
+				color.CyanString(argsStr),
 				color.CyanString(utils.PrettyJSON(result)),
 				color.CyanString(duration.String()))
 			return nil
 		}
+
 		color.Red("%v Method %v, Params %v, Error %v, Use %v\n",
 			color.RedString("[Call RPC Fail]"),
 			color.YellowString(method),
