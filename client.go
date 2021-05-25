@@ -150,12 +150,9 @@ func (client *Client) CallRPC(result interface{}, method string, args ...interfa
 
 func (client *Client) callRpc(result interface{}, method string, args ...interface{}) error {
 	ctx, cancelFunc := client.genContext()
-	defer func() {
-		if cancelFunc != nil {
-			cancelFunc()
-		}
-	}()
-
+	if cancelFunc != nil {
+		defer cancelFunc()
+	}
 	return client.rpcRequester.CallContext(ctx, result, method, args...)
 }
 
@@ -180,11 +177,9 @@ func (client *Client) BatchCallRPC(b []rpc.BatchElem) error {
 
 func (client *Client) batchCallRPC(b []rpc.BatchElem) error {
 	ctx, cancelFunc := client.genContext()
-	defer func() {
-		if cancelFunc != nil {
-			cancelFunc()
-		}
-	}()
+	if cancelFunc != nil {
+		defer cancelFunc()
+	}
 
 	return client.rpcRequester.BatchCallContext(ctx, b)
 }
