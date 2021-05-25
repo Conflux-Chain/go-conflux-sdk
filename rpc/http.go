@@ -105,18 +105,6 @@ var DefaultHTTPTimeouts = HTTPTimeouts{
 // DialHTTPWithClient creates a new RPC client that connects to an RPC server over HTTP
 // using the provided HTTP Client.
 func DialHTTPWithClient(endpoint string, client *fasthttp.Client) (*Client, error) {
-	// req, err := http.NewRequest(http.MethodPost, endpoint, nil)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// req := fasthttp.Request{}
-	// req.SetRequestURI(endpoint)
-
-	// req.Header.SetMethod("POST")
-	// req.Header.Set("Content-Type", contentType)
-	// req.Header.Set("Accept", contentType)
-
 	initctx := context.Background()
 	return newClient(initctx, func(context.Context) (ServerCodec, error) {
 		req := fasthttp.Request{}
@@ -139,9 +127,6 @@ func DialHTTP(endpoint string) (*Client, error) {
 func (c *Client) sendHTTP(ctx context.Context, op *requestOp, msg interface{}) error {
 	hc := c.writeConn.(*httpConn)
 	respBody, err := hc.doRequest(ctx, msg)
-	// if respBody != nil {
-	// 	defer respBody.Close()
-	// }
 
 	if err != nil {
 		if respBody != nil {
@@ -195,7 +180,13 @@ func (hc *httpConn) doRequest(ctx context.Context, msg interface{}) (io.Reader, 
 
 	resp := &fasthttp.Response{}
 	// resp, err := hc.client.Do(req)
-	err = hc.client.Do(req, resp)
+	deadline, ok := ctx.Deadline()
+	timeout := time.Duration(0)
+	if ok {
+		timeout = time.Until(deadline)
+	}
+
+	err = hc.client.DoTimeout(req, resp, timeout)
 	if err != nil {
 		return nil, err
 	}

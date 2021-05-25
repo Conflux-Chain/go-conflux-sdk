@@ -1,5 +1,7 @@
 # Go-conflux-sdk Change Log
-
+## v1.0.9
+- Apply middleware for hooking call rpc and batch call rpc
+- Support set request rpc timeout in Client
 ## v1.0.0
 Note: v1.0.0 is not impatable with v0.x, the changes are
 - Change address format follow [CIP-37](https://github.com/Conflux-Chain/CIPs/blob/master/CIPs/cip-37.md)

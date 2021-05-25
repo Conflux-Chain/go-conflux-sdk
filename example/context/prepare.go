@@ -71,7 +71,10 @@ func initClient() {
 	var err error
 
 	keyStorePath := path.Join(currentDir, "keystore")
-	client, err = sdk.NewClient(config.NodeURL, sdk.ClientOption{KeystorePath: keyStorePath})
+	client, err = sdk.NewClient(config.NodeURL, sdk.ClientOption{
+		KeystorePath:   keyStorePath,
+		RequestTimeout: time.Second * 10,
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -80,11 +83,10 @@ func initClient() {
 
 	// init retry client
 	option := sdk.ClientOption{
-		KeystorePath:  keyStorePath,
-		RetryCount:    10,
-		RetryInterval: time.Second,
-		// CallRpcLog:      types.DefaultCallRPCLog,
-		// BatchCallRPCLog: types.DefaultBatchCallRPCLog,
+		KeystorePath:   keyStorePath,
+		RetryCount:     10,
+		RetryInterval:  time.Second,
+		RequestTimeout: time.Second * 10,
 	}
 	retryclient, err := sdk.NewClient(config.NodeURL, option)
 	if err != nil {

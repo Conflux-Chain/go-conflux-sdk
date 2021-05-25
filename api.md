@@ -236,6 +236,9 @@ request is reported through the Error field of the corresponding BatchElem.
 
 Note that batch calls may not be executed atomically on the server side.
 
+You could use UseBatchCallRpcMiddleware to add middleware for hooking
+BatchCallRPC
+
 #### func (*Client) BatchGetBlockConfirmationRisk
 
 ```go
@@ -285,6 +288,8 @@ result if no error occurred.
 
 The result must be a pointer so that package json can unmarshal into it. You can
 also pass nil, in which case the result is ignored.
+
+You could use UseCallRpcMiddleware to add middleware for hooking CallRPC
 
 #### func (*Client) CheckBalanceAgainstTransaction
 
@@ -704,6 +709,24 @@ func (client *Client) SubscribeNewHeads(channel chan types.BlockHeader) (*rpc.Cl
 SubscribeNewHeads subscribes all new block headers participating in the
 consensus.
 
+#### func (*Client) UseBatchCallRpcMiddleware
+
+```go
+func (client *Client) UseBatchCallRpcMiddleware(middleware middleware.BatchCallRpcMiddleware)
+```
+UseBatchCallRpcMiddleware set middleware to hook BatchCallRpc, for example use
+middleware.BatchCallRpcLogMiddleware for logging batch request info. You can
+customize your BatchCallRpcMiddleware and use multi BatchCallRpcMiddleware.
+
+#### func (*Client) UseCallRpcMiddleware
+
+```go
+func (client *Client) UseCallRpcMiddleware(middleware middleware.CallRpcMiddleware)
+```
+UseCallRpcMiddleware set middleware to hook CallRpc, for example use
+middleware.CallRpcLogMiddleware for logging request info. You can customize your
+CallRpcMiddleware and use multi CallRpcMiddleware.
+
 #### func (*Client) WaitForTransationBePacked
 
 ```go
@@ -722,11 +745,12 @@ WaitForTransationReceipt waits for transaction receipt valid
 
 ```go
 type ClientOption struct {
-	KeystorePath    string
-	RetryCount      int
-	RetryInterval   time.Duration
-	CallRpcLog      func(method string, args []interface{}, result interface{}, resultError error, duration time.Duration)
-	BatchCallRPCLog func(b []rpc.BatchElem, err error, duration time.Duration)
+	KeystorePath string
+	// retry
+	RetryCount    int
+	RetryInterval time.Duration
+	// timeout of request
+	RequestTimeout time.Duration
 }
 ```
 

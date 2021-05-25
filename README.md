@@ -215,6 +215,29 @@ func main() {
 }
 
 ```
+### Use middleware to hook rpc request
+
+Client applies method `UseCallRpcMiddleware` to set middleware for hooking `callRpc` method which is the core of all single rpc related methods. And `UseBatchCallRpcMiddleware` to set middleware for hooking `batchCallRPC`.
+
+For example, use `CallRpcLogMiddleware` to log for rpc requests.
+```golang
+client.UseCallRpcMiddleware(middleware.CallRpcLogMiddleware)
+```
+
+Also you could 
+- customize middleware
+- use multiple middleware
+
+Notice that the middleware chain exectuion order is like onion, for example, use middleware A first and then middleware B
+```go
+client.UseCallRpcMiddleware(A)
+client.UseCallRpcMiddleware(B)
+```
+the middleware execution order is
+```
+B --> A --> client.callRpc --> A --> B
+```
+
 ## Appendix
 ### Mapping of solidity types to go types 
 This is a mapping table for map solidity types to go types when using contract methods GetData/Call/SendTransaction/DecodeEvent

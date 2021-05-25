@@ -47,15 +47,5 @@ func main() {
 	fmt.Printf("send transaction hash: %v\n\n", txhash)
 
 	fmt.Println("wait for transaction be packed")
-	for {
-		time.Sleep(time.Duration(1) * time.Second)
-		tx, err := client.GetTransactionByHash(txhash)
-		if err != nil {
-			panic(err)
-		}
-		if tx.Status != nil {
-			fmt.Printf("transaction is packed:%+v\n\n", tx)
-			break
-		}
-	}
+	context.WaitPacked(client, txhash)
 }

@@ -6,11 +6,13 @@ package sdk
 
 import (
 	"context"
+
 	"math/big"
 	"reflect"
 	"time"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/constants"
+	"github.com/Conflux-Chain/go-conflux-sdk/middleware"
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
@@ -24,22 +26,25 @@ const errMsgApplyTxValues = "failed to apply default transaction values"
 
 // Client represents a client to interact with Conflux blockchain.
 type Client struct {
-	AccountManager AccountManagerOperator
-	nodeURL        string
-	rpcRequester   RpcRequester
-	networkID      uint32
-	option         ClientOption
+	AccountManager      AccountManagerOperator
+	nodeURL             string
+	rpcRequester        RpcRequester
+	networkID           uint32
+	option              ClientOption
+	callRpcHandler      middleware.CallRpcHandler
+	batchCallRpcHandler middleware.BatchCallRpcHandler
 }
 
 // ClientOption for set keystore path and flags for retry
 //
 // The simplest way to set logger is to use the types.DefaultCallRpcLog and types.DefaultBatchCallRPCLog
 type ClientOption struct {
-	KeystorePath    string
-	RetryCount      int
-	RetryInterval   time.Duration
-	CallRpcLog      func(method string, args []interface{}, result interface{}, resultError error, duration time.Duration)
-	BatchCallRPCLog func(b []rpc.BatchElem, err error, duration time.Duration)
+	KeystorePath string
+	// retry
+	RetryCount    int
+	RetryInterval time.Duration
+	// timeout of request
+	RequestTimeout time.Duration
 }
 
 // NewClient creates an instance of Client with specified conflux node url, it will creat account manager if option.KeystorePath not empty.
@@ -72,6 +77,8 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 	var client Client
 	client.nodeURL = nodeURL
 	client.option = clientOption
+	client.callRpcHandler = middleware.CallRpcHandlerFunc(client.callRpc)
+	client.batchCallRpcHandler = middleware.BatchCallRpcHandlerFunc(client.batchCallRPC)
 
 	rpcClient, err := rpc.Dial(nodeURL)
 	if err != nil {
@@ -91,15 +98,6 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 			retryCount: client.option.RetryCount,
 			interval:   client.option.RetryInterval,
 		}
-	}
-
-	if client.option.CallRpcLog == nil {
-		client.option.CallRpcLog = func(method string, args []interface{}, result interface{}, resultError error, duration time.Duration) {
-		}
-	}
-
-	if client.option.BatchCallRPCLog == nil {
-		client.option.BatchCallRPCLog = func(b []rpc.BatchElem, err error, duration time.Duration) {}
 	}
 
 	_, err = client.GetNetworkID()
@@ -144,11 +142,24 @@ func (client *Client) MustNewAddress(base32OrHex string) types.Address {
 //
 // The result must be a pointer so that package json can unmarshal into it. You
 // can also pass nil, in which case the result is ignored.
+//
+// You could use UseCallRpcMiddleware to add middleware for hooking CallRPC
 func (client *Client) CallRPC(result interface{}, method string, args ...interface{}) error {
-	start := time.Now()
-	err := client.rpcRequester.Call(result, method, args...)
-	client.option.CallRpcLog(method, args, result, err, time.Since(start))
-	return err
+	return client.callRpcHandler.Handle(result, method, args...)
+}
+
+func (client *Client) callRpc(result interface{}, method string, args ...interface{}) error {
+	ctx, cancelFunc := client.genContext()
+	if cancelFunc != nil {
+		defer cancelFunc()
+	}
+	return client.rpcRequester.CallContext(ctx, result, method, args...)
+}
+
+// UseCallRpcMiddleware set middleware to hook CallRpc, for example use middleware.CallRpcLogMiddleware for logging request info.
+// You can customize your CallRpcMiddleware and use multi CallRpcMiddleware.
+func (client *Client) UseCallRpcMiddleware(middleware middleware.CallRpcMiddleware) {
+	client.callRpcHandler = middleware(client.callRpcHandler)
 }
 
 // BatchCallRPC sends all given requests as a single batch and waits for the server
@@ -158,11 +169,25 @@ func (client *Client) CallRPC(result interface{}, method string, args ...interfa
 // a request is reported through the Error field of the corresponding BatchElem.
 //
 // Note that batch calls may not be executed atomically on the server side.
+//
+// You could use UseBatchCallRpcMiddleware to add middleware for hooking BatchCallRPC
 func (client *Client) BatchCallRPC(b []rpc.BatchElem) error {
-	start := time.Now()
-	err := client.rpcRequester.BatchCall(b)
-	client.option.BatchCallRPCLog(b, err, time.Since(start))
-	return err
+	return client.batchCallRpcHandler.Handle(b)
+}
+
+func (client *Client) batchCallRPC(b []rpc.BatchElem) error {
+	ctx, cancelFunc := client.genContext()
+	if cancelFunc != nil {
+		defer cancelFunc()
+	}
+
+	return client.rpcRequester.BatchCallContext(ctx, b)
+}
+
+// UseBatchCallRpcMiddleware set middleware to hook BatchCallRpc, for example use middleware.BatchCallRpcLogMiddleware for logging batch request info.
+// You can customize your BatchCallRpcMiddleware and use multi BatchCallRpcMiddleware.
+func (client *Client) UseBatchCallRpcMiddleware(middleware middleware.BatchCallRpcMiddleware) {
+	client.batchCallRpcHandler = middleware(client.batchCallRpcHandler)
 }
 
 // SetAccountManager sets account manager for sign transaction
@@ -1088,4 +1113,11 @@ func get1stEpochIfy(epoch []*types.Epoch) *types.Epoch {
 		realEpoch = epoch[0]
 	}
 	return realEpoch
+}
+
+func (client *Client) genContext() (context.Context, context.CancelFunc) {
+	if client.option.RequestTimeout > 0 {
+		return context.WithTimeout(context.Background(), client.option.RequestTimeout)
+	}
+	return context.Background(), nil
 }
