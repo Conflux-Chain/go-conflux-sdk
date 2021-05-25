@@ -21,7 +21,7 @@ func (brh BatchCallRpcHandlerFunc) Handle(b []rpc.BatchElem) error {
 	return brh(b)
 }
 
-func BatchCallRpcLogMiddleware(handler BatchCallRpcHandler) BatchCallRpcHandler {
+func BatchCallRpcConsoleMiddleware(handler BatchCallRpcHandler) BatchCallRpcHandler {
 	logFn := func(b []rpc.BatchElem) error {
 		start := time.Now()
 

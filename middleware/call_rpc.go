@@ -22,7 +22,7 @@ func (c CallRpcHandlerFunc) Handle(result interface{}, method string, args ...in
 	return c(result, method, args...)
 }
 
-func CallRpcLogMiddleware(handler CallRpcHandler) CallRpcHandler {
+func CallRpcConsoleMiddleware(handler CallRpcHandler) CallRpcHandler {
 	logFn := func(result interface{}, method string, args ...interface{}) error {
 
 		argsStr := fmt.Sprintf("%+v", args)
