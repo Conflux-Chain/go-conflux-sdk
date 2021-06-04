@@ -125,8 +125,8 @@ type StorageChange struct {
 	Collaterals hexutil.Uint64 `json:"collaterals"`
 }
 
-// wrappedTransactionReceipt transaction receipt struct used for rlp encoding
-type wrappedTransactionReceipt struct {
+// rlpEncodableTransactionReceipt transaction receipt struct used for rlp encoding
+type rlpEncodableTransactionReceipt struct {
 	TransactionHash Hash
 	Index           hexutil.Uint64
 	BlockHash       Hash
@@ -153,7 +153,7 @@ type wrappedTransactionReceipt struct {
 
 // EncodeRLP implements the rlp.Encoder interface.
 func (tr TransactionReceipt) EncodeRLP(w io.Writer) error {
-	rtx := wrappedTransactionReceipt{
+	rtx := rlpEncodableTransactionReceipt{
 		tr.TransactionHash, tr.Index, tr.BlockHash, tr.EpochNumber, tr.From, tr.To,
 		tr.GasUsed.ToInt(), tr.GasFee.ToInt(), tr.ContractCreated, tr.Logs, tr.LogsBloom,
 		tr.StateRoot, tr.OutcomeStatus, tr.TxExecErrorMsg, tr.GasCoveredBySponsor,
@@ -165,7 +165,7 @@ func (tr TransactionReceipt) EncodeRLP(w io.Writer) error {
 
 // DecodeRLP implements the rlp.Decoder interface.
 func (tr *TransactionReceipt) DecodeRLP(r *rlp.Stream) error {
-	var rtr wrappedTransactionReceipt
+	var rtr rlpEncodableTransactionReceipt
 	if err := r.Decode(&rtr); err != nil {
 		return err
 	}
