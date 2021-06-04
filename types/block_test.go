@@ -62,9 +62,6 @@ func TestRLPMarshalBlock(t *testing.T) {
 		fatalIfErr(t, err)
 		blockJsonStr2 := string(jBytes2)
 
-		fmt.Printf("%v\n", blockJsonStr)
-		fmt.Printf("%v\n", blockJsonStr2)
-
 		if blockJsonStr != blockJsonStr2 {
 			t.Fatalf("expect %#v, actual %#v", blockJsonStr, blockJsonStr2)
 		}
