@@ -40,14 +40,14 @@ type Log struct {
 	TransactionLogIndex *hexutil.Big  `json:"transactionLogIndex,omitempty"`
 }
 
-// wrappedRLPLog wrapped log struct used for rlp encoding
-type wrappedRLPReceiptLog struct {
+// rlpEncodableLog log struct used for rlp encoding
+type rlpEncodableReceiptLog struct {
 	Address Address
 	Topics  []Hash
 	Data    hexutil.Bytes
 }
 
-type wrappedRLPLog struct {
+type rlpEncodableLog struct {
 	Address             Address
 	Topics              []Hash
 	Data                hexutil.Bytes
@@ -62,14 +62,14 @@ type wrappedRLPLog struct {
 // EncodeRLP implements the rlp.Encoder interface.
 func (log Log) EncodeRLP(w io.Writer) error {
 	if log.BlockHash == nil || log.EpochNumber == nil || log.TransactionHash == nil {
-		rlog := wrappedRLPReceiptLog{
+		rlog := rlpEncodableReceiptLog{
 			log.Address, log.Topics, log.Data,
 		}
 
 		return rlp.Encode(w, rlog)
 	}
 
-	rlog := wrappedRLPLog{
+	rlog := rlpEncodableLog{
 		log.Address, log.Topics, log.Data, log.BlockHash, log.EpochNumber.ToInt(),
 		log.TransactionHash, log.TransactionIndex.ToInt(), log.LogIndex.ToInt(),
 		log.TransactionLogIndex.ToInt(),
@@ -80,14 +80,14 @@ func (log Log) EncodeRLP(w io.Writer) error {
 
 // DecodeRLP implements the rlp.Decoder interface.
 func (log *Log) DecodeRLP(r *rlp.Stream) error {
-	var rclog wrappedRLPReceiptLog
+	var rclog rlpEncodableReceiptLog
 	if err := r.Decode(&rclog); err == nil {
 		log.Address, log.Topics, log.Data = rclog.Address, rclog.Topics, rclog.Data
 
 		return nil
 	}
 
-	var rlog wrappedRLPLog
+	var rlog rlpEncodableLog
 	if err := r.Decode(&rlog); err != nil {
 		return err
 	}

@@ -323,8 +323,8 @@ func (a *Address) IsValid() bool {
 		a.addressType == AddressTypeBuiltin
 }
 
-// wrappedRLPAddress wrapped address struct used for rlp encoding
-type wrappedRLPAddress struct {
+// rlpEncodableAddress address struct used for rlp encoding
+type rlpEncodableAddress struct {
 	NetworkType NetworkType
 	AddressType AddressType
 	Body        Body
@@ -333,7 +333,7 @@ type wrappedRLPAddress struct {
 
 // EncodeRLP implements the rlp.Encoder interface.
 func (a Address) EncodeRLP(w io.Writer) error {
-	ra := wrappedRLPAddress{
+	ra := rlpEncodableAddress{
 		a.networkType, a.addressType, a.body, a.checksum,
 	}
 
@@ -342,7 +342,7 @@ func (a Address) EncodeRLP(w io.Writer) error {
 
 // DecodeRLP implements the rlp.Decoder interface.
 func (a *Address) DecodeRLP(r *rlp.Stream) error {
-	var ra wrappedRLPAddress
+	var ra rlpEncodableAddress
 	if err := r.Decode(&ra); err != nil {
 		return err
 	}

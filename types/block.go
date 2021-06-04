@@ -35,8 +35,8 @@ type BlockHeader struct {
 	Size                  *hexutil.Big   `json:"size"`
 }
 
-// wrappedBlockHeader wrapped block header struct used for rlp encoding
-type wrappedBlockHeader struct {
+// rlpEncodableBlockHeader block header struct used for rlp encoding
+type rlpEncodableBlockHeader struct {
 	Hash                  Hash
 	ParentHash            Hash
 	Height                *big.Int
@@ -60,7 +60,7 @@ type wrappedBlockHeader struct {
 
 // EncodeRLP implements the rlp.Encoder interface.
 func (bh BlockHeader) EncodeRLP(w io.Writer) error {
-	rbh := wrappedBlockHeader{
+	rbh := rlpEncodableBlockHeader{
 		bh.Hash, bh.ParentHash, bh.Height.ToInt(), bh.Miner, bh.DeferredStateRoot,
 		bh.DeferredReceiptsRoot, bh.DeferredLogsBloomHash, bh.Blame, bh.TransactionsRoot,
 		bh.EpochNumber.ToInt(), bh.GasLimit.ToInt(), bh.GasUsed.ToInt(), bh.Timestamp.ToInt(),
@@ -73,7 +73,7 @@ func (bh BlockHeader) EncodeRLP(w io.Writer) error {
 
 // DecodeRLP implements the rlp.Decoder interface.
 func (bh *BlockHeader) DecodeRLP(r *rlp.Stream) error {
-	var rbh wrappedBlockHeader
+	var rbh rlpEncodableBlockHeader
 	if err := r.Decode(&rbh); err != nil {
 		return err
 	}
@@ -97,15 +97,15 @@ type BlockSummary struct {
 	Transactions []Hash `json:"transactions"`
 }
 
-// wrappedRLPBlockSummary wrapped block summary struct used for rlp encoding
-type wrappedRLPBlockSummary struct {
+// rlpEncodableBlockSummary block summary struct used for rlp encoding
+type rlpEncodableBlockSummary struct {
 	BlockHeader  BlockHeader
 	Transactions []Hash
 }
 
 // EncodeRLP implements the rlp.Encoder interface.
 func (bs BlockSummary) EncodeRLP(w io.Writer) error {
-	rbs := wrappedRLPBlockSummary{
+	rbs := rlpEncodableBlockSummary{
 		bs.BlockHeader, bs.Transactions,
 	}
 
@@ -114,7 +114,7 @@ func (bs BlockSummary) EncodeRLP(w io.Writer) error {
 
 // DecodeRLP implements the rlp.Decoder interface.
 func (bs *BlockSummary) DecodeRLP(r *rlp.Stream) error {
-	var rbs wrappedRLPBlockSummary
+	var rbs rlpEncodableBlockSummary
 	if err := r.Decode(&rbs); err != nil {
 		return err
 	}
@@ -132,15 +132,15 @@ type Block struct {
 	Transactions []Transaction `json:"transactions"`
 }
 
-// wrappedRLPBlock wrapped block struct used for rlp encoding
-type wrappedRLPBlock struct {
+// rlpEncodableBlock block struct used for rlp encoding
+type rlpEncodableBlock struct {
 	BlockHeader  BlockHeader
 	Transactions []Transaction
 }
 
 // EncodeRLP implements the rlp.Encoder interface.
 func (block Block) EncodeRLP(w io.Writer) error {
-	rblock := wrappedRLPBlock{
+	rblock := rlpEncodableBlock{
 		block.BlockHeader, block.Transactions,
 	}
 
@@ -149,7 +149,7 @@ func (block Block) EncodeRLP(w io.Writer) error {
 
 // DecodeRLP implements the rlp.Decoder interface.
 func (block *Block) DecodeRLP(r *rlp.Stream) error {
-	var rblock wrappedRLPBlock
+	var rblock rlpEncodableBlock
 	if err := r.Decode(&rblock); err != nil {
 		return err
 	}

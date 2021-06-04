@@ -37,8 +37,8 @@ type Transaction struct {
 	S *hexutil.Big `json:"s"`
 }
 
-// wrappedRLPTransaction wrapped transaction struct used for rlp encoding
-type wrappedRLPTransaction struct {
+// rlpEncodableTransaction transaction struct used for rlp encoding
+type rlpEncodableTransaction struct {
 	Hash             Hash
 	Nonce            *big.Int
 	BlockHash        *Hash
@@ -63,7 +63,7 @@ type wrappedRLPTransaction struct {
 
 // EncodeRLP implements the rlp.Encoder interface.
 func (tx Transaction) EncodeRLP(w io.Writer) error {
-	rtx := wrappedRLPTransaction{
+	rtx := rlpEncodableTransaction{
 		tx.Hash, tx.Nonce.ToInt(), tx.BlockHash, tx.TransactionIndex, tx.From, tx.To,
 		tx.Value.ToInt(), tx.GasPrice.ToInt(), tx.Gas.ToInt(), tx.ContractCreated, tx.Data,
 		tx.StorageLimit.ToInt(), tx.EpochHeight.ToInt(), tx.ChainID.ToInt(), tx.Status,
@@ -75,7 +75,7 @@ func (tx Transaction) EncodeRLP(w io.Writer) error {
 
 // DecodeRLP implements the rlp.Decoder interface.
 func (tx *Transaction) DecodeRLP(r *rlp.Stream) error {
-	var rtx wrappedRLPTransaction
+	var rtx rlpEncodableTransaction
 	if err := r.Decode(&rtx); err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ type StorageChange struct {
 	Collaterals hexutil.Uint64 `json:"collaterals"`
 }
 
-// wrappedTransactionReceipt wrapped transaction receipt struct used for rlp encoding
+// wrappedTransactionReceipt transaction receipt struct used for rlp encoding
 type wrappedTransactionReceipt struct {
 	TransactionHash Hash
 	Index           hexutil.Uint64
