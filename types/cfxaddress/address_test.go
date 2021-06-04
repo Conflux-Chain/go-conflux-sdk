@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/ethereum/go-ethereum/rlp"
 )
 
 func TestCfxAddress(t *testing.T) {
@@ -31,6 +33,30 @@ func TestCfxAddress(t *testing.T) {
 	verify(t, "0888000000000000000000000000000000000002", 1029, "cfx:aaejuaaaaaaaaaaaaaaaaaaaaaaaaaaaajrwuc9jnb")
 	verify(t, "0888000000000000000000000000000000000002", 1, "cfxtest:aaejuaaaaaaaaaaaaaaaaaaaaaaaaaaaajh3dw3ctn")
 	verify(t, "0888000000000000000000000000000000000002", 1, "cfxtest:type.builtin:aaejuaaaaaaaaaaaaaaaaaaaaaaaaaaaajh3dw3ctn")
+}
+
+func TestRLPMarshalAddress(t *testing.T) {
+	from := MustNewFromBase32("cfx:acckucyy5fhzknbxmeexwtaj3bxmeg25b2b50pta6v")
+
+	// RLP marshal address to bytes
+	dBytes, err := rlp.EncodeToBytes(from)
+	fatalIfErr(t, err)
+	// RLP unmarshal bytes to new address
+	var from2 Address
+	err = rlp.DecodeBytes(dBytes, &from2)
+	fatalIfErr(t, err)
+	// Json marshal from
+	jBytes1, err := json.Marshal(from)
+	fatalIfErr(t, err)
+	txJsonStr := string(jBytes1)
+	// Json marshal from2
+	jBytes2, err := json.Marshal(from2)
+	fatalIfErr(t, err)
+	txJsonStr2 := string(jBytes2)
+
+	if txJsonStr2 != txJsonStr {
+		t.Fatalf("expect %#v, actual %#v", txJsonStr, txJsonStr2)
+	}
 }
 
 func TestMarshalJSON(t *testing.T) {
