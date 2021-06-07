@@ -79,6 +79,7 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 	client.option = clientOption
 	client.callRpcHandler = middleware.CallRpcHandlerFunc(client.callRpc)
 	client.batchCallRpcHandler = middleware.BatchCallRpcHandlerFunc(client.batchCallRPC)
+	client.option.setDefault()
 
 	rpcClient, err := rpc.Dial(nodeURL)
 	if err != nil {
@@ -88,11 +89,6 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 	if client.option.RetryCount == 0 {
 		client.rpcRequester = rpcClient
 	} else {
-		// Interval 0 is meaningless and may lead full node busy, so default sets it to 1 second
-		if client.option.RetryInterval == 0 {
-			client.option.RetryInterval = time.Second
-		}
-
 		client.rpcRequester = &rpcClientWithRetry{
 			inner:      rpcClient,
 			retryCount: client.option.RetryCount,
@@ -111,6 +107,16 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 	}
 
 	return &client, nil
+}
+
+func (co *ClientOption) setDefault() {
+	if co.RequestTimeout == 0 {
+		co.RequestTimeout = time.Second * 30
+	}
+	// Interval 0 is meaningless and may lead full node busy, so default sets it to 1 second
+	if co.RetryInterval == 0 {
+		co.RetryInterval = time.Second
+	}
 }
 
 // GetNodeURL returns node url
