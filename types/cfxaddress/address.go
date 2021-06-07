@@ -3,12 +3,14 @@ package cfxaddress
 import (
 	"encoding/hex"
 	"fmt"
+	"io"
 	"reflect"
 	"regexp"
 	"strings"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/pkg/errors"
 )
 
@@ -319,6 +321,40 @@ func (a *Address) IsValid() bool {
 		a.addressType == AddressTypeContract ||
 		a.addressType == AddressTypeUser ||
 		a.addressType == AddressTypeBuiltin
+}
+
+// rlpEncodableAddress address struct used for rlp encoding
+type rlpEncodableAddress struct {
+	NetworkType NetworkType
+	AddressType AddressType
+	Body        Body
+	Checksum    Checksum
+}
+
+// EncodeRLP implements the rlp.Encoder interface.
+func (a Address) EncodeRLP(w io.Writer) error {
+	ra := rlpEncodableAddress{
+		a.networkType, a.addressType, a.body, a.checksum,
+	}
+
+	return rlp.Encode(w, ra)
+}
+
+// DecodeRLP implements the rlp.Decoder interface.
+func (a *Address) DecodeRLP(r *rlp.Stream) error {
+	var ra rlpEncodableAddress
+	if err := r.Decode(&ra); err != nil {
+		return err
+	}
+
+	a.networkType, a.addressType = ra.NetworkType, ra.AddressType
+	a.body, a.checksum = ra.Body, ra.Checksum
+
+	if err := a.setCache(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // MarshalText implements the encoding.TextMarshaler interface.

@@ -6,10 +6,13 @@ package types
 
 import (
 	"encoding/json"
+	"io"
+	"math/big"
 	"reflect"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/pkg/errors"
 )
 
@@ -29,12 +32,72 @@ type Log struct {
 	Address             Address       `json:"address"`
 	Topics              []Hash        `json:"topics"`
 	Data                hexutil.Bytes `json:"data"`
-	BlockHash           *Hash         `json:"blockHash"`
-	EpochNumber         *hexutil.Big  `json:"epochNumber"`
-	TransactionHash     *Hash         `json:"transactionHash"`
-	TransactionIndex    *hexutil.Big  `json:"transactionIndex"`
-	LogIndex            *hexutil.Big  `json:"logIndex"`
-	TransactionLogIndex *hexutil.Big  `json:"transactionLogIndex"`
+	BlockHash           *Hash         `json:"blockHash,omitempty"`
+	EpochNumber         *hexutil.Big  `json:"epochNumber,omitempty"`
+	TransactionHash     *Hash         `json:"transactionHash,omitempty"`
+	TransactionIndex    *hexutil.Big  `json:"transactionIndex,omitempty"`
+	LogIndex            *hexutil.Big  `json:"logIndex,omitempty"`
+	TransactionLogIndex *hexutil.Big  `json:"transactionLogIndex,omitempty"`
+}
+
+// rlpEncodableLog log struct used for rlp encoding
+type rlpEncodableReceiptLog struct {
+	Address Address
+	Topics  []Hash
+	Data    hexutil.Bytes
+}
+
+type rlpEncodableLog struct {
+	Address             Address
+	Topics              []Hash
+	Data                hexutil.Bytes
+	BlockHash           *Hash
+	EpochNumber         *big.Int
+	TransactionHash     *Hash
+	TransactionIndex    *big.Int
+	LogIndex            *big.Int
+	TransactionLogIndex *big.Int
+}
+
+// EncodeRLP implements the rlp.Encoder interface.
+func (log Log) EncodeRLP(w io.Writer) error {
+	if log.BlockHash == nil || log.EpochNumber == nil || log.TransactionHash == nil {
+		rlog := rlpEncodableReceiptLog{
+			log.Address, log.Topics, log.Data,
+		}
+
+		return rlp.Encode(w, rlog)
+	}
+
+	rlog := rlpEncodableLog{
+		log.Address, log.Topics, log.Data, log.BlockHash, log.EpochNumber.ToInt(),
+		log.TransactionHash, log.TransactionIndex.ToInt(), log.LogIndex.ToInt(),
+		log.TransactionLogIndex.ToInt(),
+	}
+
+	return rlp.Encode(w, rlog)
+}
+
+// DecodeRLP implements the rlp.Decoder interface.
+func (log *Log) DecodeRLP(r *rlp.Stream) error {
+	var rclog rlpEncodableReceiptLog
+	if err := r.Decode(&rclog); err == nil {
+		log.Address, log.Topics, log.Data = rclog.Address, rclog.Topics, rclog.Data
+
+		return nil
+	}
+
+	var rlog rlpEncodableLog
+	if err := r.Decode(&rlog); err != nil {
+		return err
+	}
+
+	log.Address, log.Topics, log.Data = rlog.Address, rlog.Topics, rlog.Data
+	log.BlockHash, log.EpochNumber = rlog.BlockHash, (*hexutil.Big)(rlog.EpochNumber)
+	log.TransactionHash, log.TransactionIndex = rlog.TransactionHash, (*hexutil.Big)(rlog.TransactionIndex)
+	log.LogIndex, log.TransactionLogIndex = (*hexutil.Big)(rlog.LogIndex), (*hexutil.Big)(rlog.TransactionLogIndex)
+
+	return nil
 }
 
 type SubscriptionLog struct {
