@@ -1073,8 +1073,7 @@ func (client *Client) WaitForTransationReceipt(txhash types.Hash, duration time.
 
 func (client *Client) wrappedCallRPC(result interface{}, method string, args ...interface{}) error {
 	fmtedArgs := client.genRPCParams(args...)
-	err := client.CallRPC(result, method, fmtedArgs...)
-	return errors.Wrapf(err, "failed to call rpc %v with args %v, and the fromated args is %v", method, args, fmtedArgs)
+	return client.CallRPC(result, method, fmtedArgs...)
 }
 
 func (client *Client) genRPCParams(args ...interface{}) []interface{} {
