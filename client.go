@@ -351,14 +351,9 @@ func (client *Client) SendTransaction(tx types.UnsignedTransaction) (types.Hash,
 }
 
 // SendRawTransaction sends signed transaction and returns its hash.
-func (client *Client) SendRawTransaction(rawData []byte) (types.Hash, error) {
-	var result interface{}
-
-	if err := client.rpcRequester.Call(&result, "cfx_sendRawTransaction", hexutil.Encode(rawData)); err != nil {
-		return "", err
-	}
-
-	return types.Hash(result.(string)), nil
+func (client *Client) SendRawTransaction(rawData []byte) (hash types.Hash, err error) {
+	err = client.wrappedCallRPC(&hash, "cfx_sendRawTransaction", hexutil.Encode(rawData))
+	return
 }
 
 // SignEncodedTransactionAndSend signs RLP encoded transaction "encodedTx" by signature "r,s,v" and sends it to node,
@@ -761,21 +756,23 @@ func (client *Client) DeployContract(option *types.ContractDeployOption, abiJSON
 				return
 			// Got a tick
 			case <-ticker:
-				transaction, err := client.GetTransactionByHash(txhash)
+				txReceipt, err := client.GetTransactionReceipt(txhash)
 				if err != nil {
-					result.Error = errors.Wrapf(err, "failed to get transaction by hash %v", txhash)
+					result.Error = errors.Wrapf(err, "failed to get transaction receipt by hash %v", txhash)
 					return
 				}
 
-				if transaction.Status != nil {
-					if *transaction.Status == 1 {
-						result.Error = errors.Errorf("transaction execution failed, hash = %v", txhash)
-						return
-					}
+				if txReceipt == nil {
+					continue
+				}
 
-					result.DeployedContract = &Contract{abi, client, transaction.ContractCreated}
+				if txReceipt.OutcomeStatus == 1 {
+					result.Error = errors.Errorf("transaction execution failed, reason %v, hash = %v", txReceipt.TxExecErrorMsg, txhash)
 					return
 				}
+
+				result.DeployedContract = &Contract{abi, client, txReceipt.ContractCreated}
+				return
 			}
 		}
 	}()
@@ -797,6 +794,11 @@ func (client *Client) GetContract(abiJSON []byte, deployedAt *types.Address) (*C
 // GetAccountPendingInfo gets transaction pending info by account address
 func (client *Client) GetAccountPendingInfo(address types.Address) (pendignInfo *types.AccountPendingInfo, err error) {
 	err = client.wrappedCallRPC(&pendignInfo, "cfx_getAccountPendingInfo", address)
+	return
+}
+
+func (client *Client) GetAccountPendingTransactions(address types.Address, startNonce *hexutil.Big, limit *hexutil.Uint64) (pendingTxs types.AccountPendingTransactions, err error) {
+	err = client.wrappedCallRPC(&pendingTxs, "cfx_getAccountPendingTransactions", address, startNonce, limit)
 	return
 }
 

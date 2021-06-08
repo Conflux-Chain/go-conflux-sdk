@@ -13,6 +13,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -100,6 +101,7 @@ func run(_client *sdk.Client) {
 	getClientVersion()
 	getEpochReceipts()
 	getAccountPendingInfo()
+	getAccountPendingTransactions()
 
 	traceBlock()
 	traceFilter()
@@ -342,10 +344,10 @@ func createAndSendUnsignedTransaction() {
 	fmt.Println("\n- start create and send unsigned transaction")
 	chainID, err := client.GetNetworkID()
 	context.PanicIfErrf(err, "failed to get chainID")
+
 	utx, err := client.CreateUnsignedTransaction(*defaultAccount, cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d", chainID), types.NewBigInt(1000000), nil)
-	if err != nil {
-		panic(err)
-	}
+	context.PanicIfErrf(err, "failed to creat unsigned tx")
+
 	utx.Nonce = context.GetNextNonceAndIncrease()
 	fmt.Printf("- creat a new unsigned transaction:\n%v\n\n", context.JSONFmt(utx))
 
@@ -388,6 +390,29 @@ func getAccountPendingInfo() {
 	fmt.Println("default account:", *defaultAccount)
 	client.GetAccountPendingInfo(*defaultAccount)
 	// printResult("GetAccountPendingInfo", []interface{}{*defaultAccount}, result, err)
+}
+
+func getAccountPendingTransactions() {
+	fmt.Println("\n- start get account pending transactions")
+	accountPendingTxs, err := client.GetAccountPendingTransactions(*defaultAccount, types.NewBigInt(0), types.NewUint64(100))
+	utils.PanicIfErr(err, "failed to get account pending txs")
+	if len(accountPendingTxs.PendingTransactions) > 0 {
+		return
+	}
+
+	to := client.MustNewAddress("cfxtest:aasm4c231py7j34fghntcfkdt2nm9xv1tyce66w5u3")
+	utx, err := client.CreateUnsignedTransaction(*defaultAccount, to, types.NewBigInt(1000000), nil)
+	utx.Nonce = context.GetNextNonceAndIncrease()
+	utils.PanicIfErr(err, "failed to create unsigned tx")
+
+	_, err = client.SendTransaction(utx)
+	utils.PanicIfErr(err, "failed to send tx")
+
+	_, err = client.GetAccountPendingTransactions(*defaultAccount, types.NewBigInt(0), types.NewUint64(100))
+	utils.PanicIfErr(err, "failed to get account pending txs")
+
+	// for avoiding block following tests
+	// client.WaitForTransationReceipt(hash, time.Second*2)
 }
 
 func traceBlock() {
@@ -482,7 +507,7 @@ func subscribeLogs() {
 				panic(fmt.Sprintf("get erc20 contract error: %v", err.Error()))
 			}
 			//send transction for contract method
-			to := cfxaddress.MustNewFromHex("0x160ebef20c1f739957bf9eecd040bce699cc42c6")
+			to := client.MustNewAddress("0x160ebef20c1f739957bf9eecd040bce699cc42c6")
 			nonce := context.GetNextNonceAndIncrease()
 			txhash, err := contract.SendTransaction(&types.ContractMethodSendOption{
 				Nonce: nonce,
@@ -507,7 +532,7 @@ func subscribeLogs() {
 			// sub.Unsubscribe()
 			// return
 		case log := <-logChannel:
-			fmt.Printf("received new log:%+v\n\n", log)
+			fmt.Printf("received %v log:%+v\n\n", i+1, log)
 		case reorg := <-reorgChannel:
 			fmt.Printf("received new reorg:%+v\n\n", reorg)
 		}

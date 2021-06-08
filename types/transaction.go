@@ -5,11 +5,14 @@
 package types
 
 import (
+	"encoding/json"
 	"io"
 	"math/big"
+	"reflect"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/pkg/errors"
 )
 
 // Transaction represents a transaction with signature in Conflux.
@@ -178,5 +181,47 @@ func (tr *TransactionReceipt) DecodeRLP(r *rlp.Stream) error {
 	tr.GasCoveredBySponsor, tr.StorageCoveredBySponsor = rtr.GasCoveredBySponsor, rtr.StorageCoveredBySponsor
 	tr.StorageCollateralized, tr.StorageReleased = rtr.StorageCollateralized, rtr.StorageReleased
 
+	return nil
+}
+
+type AccountPendingTransactions struct {
+	PendingTransactions []Transaction `json:"pendingTransactions"`
+	// type maybe string/Pending
+	FirstTxStatus interface{}    `json:"firstTxStatus"`
+	PendingCount  hexutil.Uint64 `json:"pendingCount"`
+}
+
+type Pending struct {
+	Pending string `json:"pending"`
+}
+
+func (apt *AccountPendingTransactions) UnmarshalJSON(data []byte) error {
+	tmp := struct {
+		PendingTransactions []Transaction `json:"pendingTransactions"`
+		// type maybe string/PendingStatus
+		FirstTxStatus interface{}    `json:"firstTxStatus"`
+		PendingCount  hexutil.Uint64 `json:"pendingCount"`
+	}{}
+
+	err := json.Unmarshal(data, &tmp)
+	if err != nil {
+		return err
+	}
+
+	apt.PendingTransactions, apt.FirstTxStatus, apt.PendingCount = tmp.PendingTransactions, tmp.FirstTxStatus, tmp.PendingCount
+
+	if tmp.FirstTxStatus != nil && reflect.TypeOf(tmp.FirstTxStatus).Name() != "string" {
+		pendingReasonJson, err := json.Marshal(tmp.FirstTxStatus)
+		if err != nil {
+			return errors.Wrapf(err, "failed to json marshal %v", tmp.FirstTxStatus)
+		}
+
+		txPendingReason := Pending{}
+		err = json.Unmarshal(pendingReasonJson, &txPendingReason)
+		if err != nil {
+			return errors.Wrapf(err, "failed to json unmarshal %x to TxPendingReason", pendingReasonJson)
+		}
+		apt.FirstTxStatus = txPendingReason
+	}
 	return nil
 }

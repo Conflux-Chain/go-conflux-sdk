@@ -358,6 +358,12 @@ func (client *Client) GetAccountPendingInfo(address types.Address) (pendignInfo 
 ```
 GetAccountPendingInfo gets transaction pending info by account address
 
+#### func (*Client) GetAccountPendingTransactions
+
+```go
+func (client *Client) GetAccountPendingTransactions(address types.Address, startNonce *hexutil.Big, limit *hexutil.Uint64) (pendingTxs types.AccountPendingTransactions, err error)
+```
+
 #### func (*Client) GetAccumulateInterestRate
 
 ```go
@@ -658,7 +664,7 @@ networkID of current client.
 #### func (*Client) SendRawTransaction
 
 ```go
-func (client *Client) SendRawTransaction(rawData []byte) (types.Hash, error)
+func (client *Client) SendRawTransaction(rawData []byte) (hash types.Hash, err error)
 ```
 SendRawTransaction sends signed transaction and returns its hash.
 

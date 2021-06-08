@@ -99,6 +99,8 @@ func initClient() {
 		panic(err)
 	}
 	client.AccountManager.UnlockDefault("hello")
+	retryclient.AccountManager.UnlockDefault("hello")
+
 	config.SetAccountManager(client.AccountManager)
 
 	nextNonce, err = client.GetNextNonce(*defaultAccount, nil)

@@ -67,7 +67,7 @@ To send a transaction, you need to sign the transaction at local machine, and se
 
 - Send a unsigned transaction
 
-    `Client.SendTransaction(tx *types.UnsignedTransaction)`
+    `Client.SendTransaction(tx types.UnsignedTransaction)`
 
 - Send a encoded transaction
 
@@ -95,109 +95,59 @@ import (
 	"time"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
-	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/common"
 )
 
 func main() {
 
-	//unlock account
-	am := sdk.NewAccountManager("../keystore")
-	err := am.TimedUnlockDefault("hello", 300*time.Second)
-	if err != nil {
-		panic(err)
-	}
-
 	//init client
-	client, err := sdk.NewClient("http://testnet-jsonrpc.conflux-chain.org:12537")
-	if err != nil {
-		panic(err)
-	}
-	client.SetAccountManager(am)
+	client, err := sdk.NewClient("https://test.confluxrpc.com", sdk.ClientOption{
+		KeystorePath: "../context/keystore",
+	})
+	utils.PanicIfErr(err, "failed to new client")
+
+	// unlock default account
+	client.AccountManager.TimedUnlockDefault("hello", 300*time.Second)
 
 	//deploy contract
-	fmt.Println("start deploy contract...")
-	abiPath := "./contract/erc20.abi"
-	bytecodePath := "./contract/erc20.bytecode"
-	var contract *sdk.Contract
-
-	abi, err := ioutil.ReadFile(abiPath)
-	if err != nil {
-		panic(err)
-	}
-
-	bytecodeHexStr, err := ioutil.ReadFile(bytecodePath)
-	if err != nil {
-		panic(err)
-	}
-
-	bytecode, err := hex.DecodeString(string(bytecodeHexStr))
-	if err != nil {
-		panic(err)
-	}
+	abi := your contract abi
+	bytecode := your contract bytecode
 
 	result := client.DeployContract(nil, abi, bytecode, big.NewInt(100000), "biu", uint8(10), "BIU")
-	_ = <-result.DoneChannel
-	if result.Error != nil {
-		panic(result.Error)
-	}
-	contract = result.DeployedContract
+	<-result.DoneChannel
+	utils.PanicIfErr(result.Error, "failed to deploy contract")
+
+	contract := result.DeployedContract
 	fmt.Printf("deploy contract by client.DeployContract done\ncontract address: %+v\ntxhash:%v\n\n", contract.Address, result.TransactionHash)
 
-	time.Sleep(10 * time.Second)
-
 	// or get contract by deployed address
-	// deployedAt := types.Address("0x8d1089f00c40dcc290968b366889e85e67024662")
-	// contract, err := client.GetContract(string(abi), &deployedAt)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	// deployedAt := client.MustNewAddress("cfxtest:acgkhpdz61g11parejzbftznnt8gds15mp4wg54j5c")
+	// contract, err := client.GetContract(abi, &deployedAt)
 
 	//get data for send/call contract method
-	user := types.Address("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302")
-	data, err := contract.GetData("balanceOf", user.ToCommonAddress())
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("get data of method balanceOf result: 0x%x\n\n", data)
+	user := client.MustNewAddress("cfxtest:aap9kthvctunvf030rbkk9k7zbzyz12dajp1u3sp4g")
+	data, err := contract.GetData("balanceOf", user.MustGetCommonAddress())
+	utils.PanicIfErr(err, "failed to get data")
+	fmt.Printf("get data of method balanceOf: 0x%x\n\n", data)
 
 	//call contract method
 	//Note: the output struct type need match method output type of ABI, go type "*big.Int" match abi type "uint256", go type "struct{Balance *big.Int}" match abi tuple type "(balance uint256)"
 	balance := &struct{ Balance *big.Int }{}
-	err = contract.Call(nil, balance, "balanceOf", user.ToCommonAddress())
-	if err != nil {
-		panic(err)
-	}
+	err = contract.Call(nil, balance, "balanceOf", user.MustGetCommonAddress())
+	utils.PanicIfErr(err, "failed to get balance")
 	fmt.Printf("balance of address %v in contract is: %+v\n\n", user, balance)
 
 	//send transction for contract method
-	to := types.Address("0x160ebef20c1f739957bf9eecd040bce699cc42c6")
-	txhash, err := contract.SendTransaction(nil, "transfer", to.ToCommonAddress(), big.NewInt(10))
-	if err != nil {
-		panic(err)
-	}
-
+	to := client.MustNewAddress("cfxtest:acgkhpdz61g11parejzbftznnt8gds15mp4wg54j5c")
+	txhash, err := contract.SendTransaction(nil, "transfer", to.MustGetCommonAddress(), big.NewInt(10))
+	utils.PanicIfErr(err, "failed to transfer")
 	fmt.Printf("transfer %v erc20 token to %v done, tx hash: %v\n\n", 10, to, txhash)
 
-	fmt.Println("wait for transaction be packed...")
-	for {
-		time.Sleep(time.Duration(1) * time.Second)
-		tx, err := client.GetTransactionByHash(*txhash)
-		if err != nil {
-			panic(err)
-		}
-		if tx.Status != nil {
-			fmt.Printf("transaction is packed.")
-			break
-		}
-	}
-	time.Sleep(10 * time.Second)
-
 	//get event log and decode it
-	receipt, err := client.GetTransactionReceipt(*txhash)
-	if err != nil {
-		panic(err)
-	}
+	fmt.Println("wait for transaction be packed...")
+	receipt, err := client.WaitForTransationReceipt(txhash, time.Second*2)
+	utils.PanicIfErr(err, "failed to get tx receipt")
 	fmt.Printf("get receipt: %+v\n\n", receipt)
 
 	// decode Transfer Event
@@ -208,12 +158,9 @@ func main() {
 	}
 
 	err = contract.DecodeEvent(&Transfer, "Transfer", receipt.Logs[0])
-	if err != nil {
-		panic(err)
-	}
+	utils.PanicIfErr(err, "failed to decode event")
 	fmt.Printf("decoded transfer event: {From: 0x%x, To: 0x%x, Value: %v} ", Transfer.From, Transfer.To, Transfer.Value)
 }
-
 ```
 ### Use middleware to hook rpc request
 
