@@ -40,39 +40,45 @@ type Log struct {
 	TransactionLogIndex *hexutil.Big  `json:"transactionLogIndex,omitempty"`
 }
 
-// rlpEncodableLog log struct used for rlp encoding
-type rlpEncodableReceiptLog struct {
-	Address Address
-	Topics  []Hash
-	Data    hexutil.Bytes
+// rlpNilableBigInt nilable pointer to big int used for rlp encoding
+type rlpNilableBigInt struct {
+	Val *big.Int
 }
 
+// rlpEncodableLog log struct used for rlp encoding
 type rlpEncodableLog struct {
 	Address             Address
 	Topics              []Hash
 	Data                hexutil.Bytes
-	BlockHash           *Hash
-	EpochNumber         *big.Int
-	TransactionHash     *Hash
-	TransactionIndex    *big.Int
-	LogIndex            *big.Int
-	TransactionLogIndex *big.Int
+	BlockHash           *Hash             `rlp:"nil"`
+	EpochNumber         *rlpNilableBigInt `rlp:"nil"`
+	TransactionHash     *Hash             `rlp:"nil"`
+	TransactionIndex    *rlpNilableBigInt `rlp:"nil"`
+	LogIndex            *rlpNilableBigInt `rlp:"nil"`
+	TransactionLogIndex *rlpNilableBigInt `rlp:"nil"`
 }
 
 // EncodeRLP implements the rlp.Encoder interface.
 func (log Log) EncodeRLP(w io.Writer) error {
-	if log.BlockHash == nil || log.EpochNumber == nil || log.TransactionHash == nil {
-		rlog := rlpEncodableReceiptLog{
-			log.Address, log.Topics, log.Data,
-		}
-
-		return rlp.Encode(w, rlog)
+	rlog := rlpEncodableLog{
+		Address: log.Address, Topics: log.Topics, Data: log.Data,
+		BlockHash: log.BlockHash, TransactionHash: log.TransactionHash,
 	}
 
-	rlog := rlpEncodableLog{
-		log.Address, log.Topics, log.Data, log.BlockHash, log.EpochNumber.ToInt(),
-		log.TransactionHash, log.TransactionIndex.ToInt(), log.LogIndex.ToInt(),
-		log.TransactionLogIndex.ToInt(),
+	if log.EpochNumber != nil {
+		rlog.EpochNumber = &rlpNilableBigInt{log.EpochNumber.ToInt()}
+	}
+
+	if log.TransactionIndex != nil {
+		rlog.TransactionIndex = &rlpNilableBigInt{log.TransactionIndex.ToInt()}
+	}
+
+	if log.LogIndex != nil {
+		rlog.LogIndex = &rlpNilableBigInt{log.LogIndex.ToInt()}
+	}
+
+	if log.TransactionLogIndex != nil {
+		rlog.TransactionLogIndex = &rlpNilableBigInt{log.TransactionLogIndex.ToInt()}
 	}
 
 	return rlp.Encode(w, rlog)
@@ -80,22 +86,29 @@ func (log Log) EncodeRLP(w io.Writer) error {
 
 // DecodeRLP implements the rlp.Decoder interface.
 func (log *Log) DecodeRLP(r *rlp.Stream) error {
-	var rclog rlpEncodableReceiptLog
-	if err := r.Decode(&rclog); err == nil {
-		log.Address, log.Topics, log.Data = rclog.Address, rclog.Topics, rclog.Data
-
-		return nil
-	}
-
 	var rlog rlpEncodableLog
 	if err := r.Decode(&rlog); err != nil {
 		return err
 	}
 
 	log.Address, log.Topics, log.Data = rlog.Address, rlog.Topics, rlog.Data
-	log.BlockHash, log.EpochNumber = rlog.BlockHash, (*hexutil.Big)(rlog.EpochNumber)
-	log.TransactionHash, log.TransactionIndex = rlog.TransactionHash, (*hexutil.Big)(rlog.TransactionIndex)
-	log.LogIndex, log.TransactionLogIndex = (*hexutil.Big)(rlog.LogIndex), (*hexutil.Big)(rlog.TransactionLogIndex)
+	log.BlockHash, log.TransactionHash = rlog.BlockHash, rlog.TransactionHash
+
+	if rlog.EpochNumber != nil {
+		log.EpochNumber = (*hexutil.Big)(rlog.EpochNumber.Val)
+	}
+
+	if rlog.TransactionIndex != nil {
+		log.TransactionIndex = (*hexutil.Big)(rlog.TransactionIndex.Val)
+	}
+
+	if rlog.LogIndex != nil {
+		log.LogIndex = (*hexutil.Big)(rlog.LogIndex.Val)
+	}
+
+	if rlog.TransactionLogIndex != nil {
+		log.TransactionLogIndex = (*hexutil.Big)(rlog.TransactionLogIndex.Val)
+	}
 
 	return nil
 }
