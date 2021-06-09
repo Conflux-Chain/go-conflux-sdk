@@ -239,6 +239,6 @@ func (ts *TransactionStatus) UnmarshalJSON(data []byte) error {
 	return errors.Errorf("failed to json unmarshal %v to TransactionStatus", string(data))
 }
 
-func (ts *TransactionStatus) ToPendingReason() Pending {
+func (ts *TransactionStatus) ToPending() Pending {
 	return ts.pending
 }
