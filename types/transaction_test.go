@@ -68,7 +68,7 @@ func TestMarshalTransactionStatus(t *testing.T) {
 	}, "packed", []byte("\"packed\""))
 
 	testMarshalTransactionStatus(t, TransactionStatus{
-		pending: Pending{"futureNonce"},
+		pending: pending{"futureNonce"},
 	}, "futureNonce", []byte("{\"pending\":\"futureNonce\"}"))
 
 }
@@ -88,7 +88,7 @@ func TestUnmarshalTransactionStatus(t *testing.T) {
 		packedOrReady: "packed",
 	})
 	testUnmarshalTransactionStatus(t, []byte("{\"pending\": \"futureNonce\"}"), TransactionStatus{
-		pending: Pending{"futureNonce"},
+		pending: pending{"futureNonce"},
 	})
 }
 
