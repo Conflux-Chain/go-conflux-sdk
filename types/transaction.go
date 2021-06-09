@@ -44,7 +44,7 @@ type rlpEncodableTransaction struct {
 	BlockHash        *Hash
 	TransactionIndex *hexutil.Uint64
 	From             Address
-	To               *Address
+	To               *Address `rlp:"nil"`
 	Value            *big.Int
 	GasPrice         *big.Int
 	Gas              *big.Int
@@ -132,7 +132,7 @@ type rlpEncodableTransactionReceipt struct {
 	BlockHash       Hash
 	EpochNumber     *hexutil.Uint64
 	From            Address
-	To              *Address
+	To              *Address `rlp:"nil"`
 	GasUsed         *big.Int
 	GasFee          *big.Int
 	ContractCreated *Address `rlp:"nil"` // nil means contract creation
