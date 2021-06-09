@@ -5,11 +5,13 @@
 package types
 
 import (
+	"encoding/json"
 	"io"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/pkg/errors"
 )
 
 // Transaction represents a transaction with signature in Conflux.
@@ -179,4 +181,64 @@ func (tr *TransactionReceipt) DecodeRLP(r *rlp.Stream) error {
 	tr.StorageCollateralized, tr.StorageReleased = rtr.StorageCollateralized, rtr.StorageReleased
 
 	return nil
+}
+
+type AccountPendingTransactions struct {
+	PendingTransactions []Transaction `json:"pendingTransactions"`
+	// type maybe string/Pending
+	FirstTxStatus *TransactionStatus `json:"firstTxStatus"`
+	PendingCount  hexutil.Uint64     `json:"pendingCount"`
+}
+
+type pending struct {
+	PendingReason string `json:"pending"`
+}
+
+type TransactionStatus struct {
+	packedOrReady string
+	pending       pending
+}
+
+func (ts TransactionStatus) String() string {
+	if ts.packedOrReady != "" {
+		return ts.packedOrReady
+	}
+	if (ts.pending != pending{}) {
+		return ts.pending.PendingReason
+	}
+	return ""
+}
+
+func (ts TransactionStatus) MarshalJSON() ([]byte, error) {
+	if ts.packedOrReady != "" {
+		return json.Marshal(ts.packedOrReady)
+	}
+	if (ts.pending != pending{}) {
+		return json.Marshal(ts.pending)
+	}
+	return []byte{}, nil
+}
+
+func (ts *TransactionStatus) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		return nil
+	}
+
+	var pendingreason pending
+	if err := json.Unmarshal(data, &pendingreason); err == nil {
+		ts.pending = pendingreason
+		return nil
+	}
+
+	var tmp string
+	if err := json.Unmarshal(data, &tmp); err == nil {
+		ts.packedOrReady = tmp
+		return nil
+	}
+
+	return errors.Errorf("failed to json unmarshal %v to TransactionStatus", string(data))
+}
+
+func (ts *TransactionStatus) IsPending() (bool, string) {
+	return ts.pending != pending{}, ts.pending.PendingReason
 }

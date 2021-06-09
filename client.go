@@ -79,6 +79,7 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 	client.option = clientOption
 	client.callRpcHandler = middleware.CallRpcHandlerFunc(client.callRpc)
 	client.batchCallRpcHandler = middleware.BatchCallRpcHandlerFunc(client.batchCallRPC)
+	client.option.setDefault()
 
 	rpcClient, err := rpc.Dial(nodeURL)
 	if err != nil {
@@ -88,11 +89,6 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 	if client.option.RetryCount == 0 {
 		client.rpcRequester = rpcClient
 	} else {
-		// Interval 0 is meaningless and may lead full node busy, so default sets it to 1 second
-		if client.option.RetryInterval == 0 {
-			client.option.RetryInterval = time.Second
-		}
-
 		client.rpcRequester = &rpcClientWithRetry{
 			inner:      rpcClient,
 			retryCount: client.option.RetryCount,
@@ -111,6 +107,16 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 	}
 
 	return &client, nil
+}
+
+func (co *ClientOption) setDefault() {
+	if co.RequestTimeout == 0 {
+		co.RequestTimeout = time.Second * 30
+	}
+	// Interval 0 is meaningless and may lead full node busy, so default sets it to 1 second
+	if co.RetryInterval == 0 {
+		co.RetryInterval = time.Second
+	}
 }
 
 // GetNodeURL returns node url
@@ -345,14 +351,9 @@ func (client *Client) SendTransaction(tx types.UnsignedTransaction) (types.Hash,
 }
 
 // SendRawTransaction sends signed transaction and returns its hash.
-func (client *Client) SendRawTransaction(rawData []byte) (types.Hash, error) {
-	var result interface{}
-
-	if err := client.rpcRequester.Call(&result, "cfx_sendRawTransaction", hexutil.Encode(rawData)); err != nil {
-		return "", err
-	}
-
-	return types.Hash(result.(string)), nil
+func (client *Client) SendRawTransaction(rawData []byte) (hash types.Hash, err error) {
+	err = client.wrappedCallRPC(&hash, "cfx_sendRawTransaction", hexutil.Encode(rawData))
+	return
 }
 
 // SignEncodedTransactionAndSend signs RLP encoded transaction "encodedTx" by signature "r,s,v" and sends it to node,
@@ -755,21 +756,23 @@ func (client *Client) DeployContract(option *types.ContractDeployOption, abiJSON
 				return
 			// Got a tick
 			case <-ticker:
-				transaction, err := client.GetTransactionByHash(txhash)
+				txReceipt, err := client.GetTransactionReceipt(txhash)
 				if err != nil {
-					result.Error = errors.Wrapf(err, "failed to get transaction by hash %v", txhash)
+					result.Error = errors.Wrapf(err, "failed to get transaction receipt by hash %v", txhash)
 					return
 				}
 
-				if transaction.Status != nil {
-					if *transaction.Status == 1 {
-						result.Error = errors.Errorf("transaction execution failed, hash = %v", txhash)
-						return
-					}
+				if txReceipt == nil {
+					continue
+				}
 
-					result.DeployedContract = &Contract{abi, client, transaction.ContractCreated}
+				if txReceipt.OutcomeStatus == 1 {
+					result.Error = errors.Errorf("transaction execution failed, reason %v, hash = %v", txReceipt.TxExecErrorMsg, txhash)
 					return
 				}
+
+				result.DeployedContract = &Contract{abi, client, txReceipt.ContractCreated}
+				return
 			}
 		}
 	}()
@@ -791,6 +794,11 @@ func (client *Client) GetContract(abiJSON []byte, deployedAt *types.Address) (*C
 // GetAccountPendingInfo gets transaction pending info by account address
 func (client *Client) GetAccountPendingInfo(address types.Address) (pendignInfo *types.AccountPendingInfo, err error) {
 	err = client.wrappedCallRPC(&pendignInfo, "cfx_getAccountPendingInfo", address)
+	return
+}
+
+func (client *Client) GetAccountPendingTransactions(address types.Address, startNonce *hexutil.Big, limit *hexutil.Uint64) (pendingTxs types.AccountPendingTransactions, err error) {
+	err = client.wrappedCallRPC(&pendingTxs, "cfx_getAccountPendingTransactions", address, startNonce, limit)
 	return
 }
 
@@ -1067,8 +1075,7 @@ func (client *Client) WaitForTransationReceipt(txhash types.Hash, duration time.
 
 func (client *Client) wrappedCallRPC(result interface{}, method string, args ...interface{}) error {
 	fmtedArgs := client.genRPCParams(args...)
-	err := client.CallRPC(result, method, fmtedArgs...)
-	return errors.Wrapf(err, "failed to call rpc %v with args %v, and the fromated args is %v", method, args, fmtedArgs)
+	return client.CallRPC(result, method, fmtedArgs...)
 }
 
 func (client *Client) genRPCParams(args ...interface{}) []interface{} {
