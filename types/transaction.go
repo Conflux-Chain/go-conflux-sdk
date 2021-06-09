@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"io"
 	"math/big"
-	"reflect"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -187,41 +186,59 @@ func (tr *TransactionReceipt) DecodeRLP(r *rlp.Stream) error {
 type AccountPendingTransactions struct {
 	PendingTransactions []Transaction `json:"pendingTransactions"`
 	// type maybe string/Pending
-	FirstTxStatus interface{}    `json:"firstTxStatus"`
-	PendingCount  hexutil.Uint64 `json:"pendingCount"`
+	FirstTxStatus *TransactionStatus `json:"firstTxStatus"`
+	PendingCount  hexutil.Uint64     `json:"pendingCount"`
 }
 
 type Pending struct {
-	Pending string `json:"pending"`
+	PendingReason string `json:"pending"`
 }
 
-func (apt *AccountPendingTransactions) UnmarshalJSON(data []byte) error {
-	tmp := struct {
-		PendingTransactions []Transaction `json:"pendingTransactions"`
-		// type maybe string/PendingStatus
-		FirstTxStatus interface{}    `json:"firstTxStatus"`
-		PendingCount  hexutil.Uint64 `json:"pendingCount"`
-	}{}
+type TransactionStatus struct {
+	packedOrReady string
+	pending       Pending
+}
 
-	err := json.Unmarshal(data, &tmp)
-	if err != nil {
-		return err
+func (ts TransactionStatus) String() string {
+	if ts.packedOrReady != "" {
+		return ts.packedOrReady
+	}
+	if (ts.pending != Pending{}) {
+		return ts.pending.PendingReason
+	}
+	return ""
+}
+
+func (ts TransactionStatus) MarshalJSON() ([]byte, error) {
+	if ts.packedOrReady != "" {
+		return json.Marshal(ts.packedOrReady)
+	}
+	if (ts.pending != Pending{}) {
+		return json.Marshal(ts.pending)
+	}
+	return []byte{}, nil
+}
+
+func (ts *TransactionStatus) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		return nil
 	}
 
-	apt.PendingTransactions, apt.FirstTxStatus, apt.PendingCount = tmp.PendingTransactions, tmp.FirstTxStatus, tmp.PendingCount
-
-	if tmp.FirstTxStatus != nil && reflect.TypeOf(tmp.FirstTxStatus).Name() != "string" {
-		pendingReasonJson, err := json.Marshal(tmp.FirstTxStatus)
-		if err != nil {
-			return errors.Wrapf(err, "failed to json marshal %v", tmp.FirstTxStatus)
-		}
-
-		txPendingReason := Pending{}
-		err = json.Unmarshal(pendingReasonJson, &txPendingReason)
-		if err != nil {
-			return errors.Wrapf(err, "failed to json unmarshal %x to TxPendingReason", pendingReasonJson)
-		}
-		apt.FirstTxStatus = txPendingReason
+	var pendingreason Pending
+	if err := json.Unmarshal(data, &pendingreason); err == nil {
+		ts.pending = pendingreason
+		return nil
 	}
-	return nil
+
+	var tmp string
+	if err := json.Unmarshal(data, &tmp); err == nil {
+		ts.packedOrReady = tmp
+		return nil
+	}
+
+	return errors.Errorf("failed to json unmarshal %v to TransactionStatus", string(data))
+}
+
+func (ts *TransactionStatus) ToPendingReason() Pending {
+	return ts.pending
 }

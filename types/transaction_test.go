@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/rlp"
@@ -58,6 +59,44 @@ func TestRLPMarshalTransactionReceipt(t *testing.T) {
 
 	if trJsonStr2 != trJsonStr {
 		t.Fatalf("expect %#v, actual %#v", trJsonStr, trJsonStr2)
+	}
+}
+
+func TestMarshalTransactionStatus(t *testing.T) {
+	testMarshalTransactionStatus(t, TransactionStatus{
+		packedOrReady: "packed",
+	}, "packed", []byte("\"packed\""))
+
+	testMarshalTransactionStatus(t, TransactionStatus{
+		pending: Pending{"futureNonce"},
+	}, "futureNonce", []byte("{\"pending\":\"futureNonce\"}"))
+
+}
+func testMarshalTransactionStatus(t *testing.T, originTxStatus TransactionStatus, expectString string, expectJson []byte) {
+	if originTxStatus.String() != expectString {
+		t.Fatalf("expect string %#v, actual %#v", expectString, originTxStatus.String())
+	}
+
+	actualJson, _ := json.Marshal(originTxStatus)
+	if !reflect.DeepEqual(actualJson, expectJson) {
+		t.Fatalf("expect json %#v, actual %#v", string(expectJson), string(actualJson))
+	}
+}
+
+func TestUnmarshalTransactionStatus(t *testing.T) {
+	testUnmarshalTransactionStatus(t, []byte("\"packed\""), TransactionStatus{
+		packedOrReady: "packed",
+	})
+	testUnmarshalTransactionStatus(t, []byte("{\"pending\": \"futureNonce\"}"), TransactionStatus{
+		pending: Pending{"futureNonce"},
+	})
+}
+
+func testUnmarshalTransactionStatus(t *testing.T, originTxStatusJson []byte, expectTxStatus TransactionStatus) {
+	actualTxStatus := TransactionStatus{}
+	json.Unmarshal(originTxStatusJson, &actualTxStatus)
+	if !reflect.DeepEqual(actualTxStatus, expectTxStatus) {
+		t.Fatalf("expect %#v, actual %#v", expectTxStatus, actualTxStatus)
 	}
 }
 
