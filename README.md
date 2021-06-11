@@ -166,9 +166,9 @@ func main() {
 
 Client applies method `UseCallRpcMiddleware` to set middleware for hooking `callRpc` method which is the core of all single rpc related methods. And `UseBatchCallRpcMiddleware` to set middleware for hooking `batchCallRPC`.
 
-For example, use `CallRpcLogMiddleware` to log for rpc requests.
+For example, use `CallRpcConsoleMiddleware` to log for rpc requests.
 ```golang
-client.UseCallRpcMiddleware(middleware.CallRpcLogMiddleware)
+client.UseCallRpcMiddleware(middleware.CallRpcConsoleMiddleware)
 ```
 
 Also you could 
