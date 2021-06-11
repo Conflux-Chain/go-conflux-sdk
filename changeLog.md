@@ -1,4 +1,9 @@
 # Go-conflux-sdk Change Log
+
+## v1.0.10
+- Set default rpc request timeout to 30s
+- Remove addition error msg in wrappedCallRPC
+- Add method getAccountPendingTransactions in client
 ## v1.0.9
 - Apply middleware for hooking call rpc and batch call rpc
 - Support set request rpc timeout in Client
