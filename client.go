@@ -6,6 +6,7 @@ package sdk
 
 import (
 	"context"
+	"fmt"
 
 	"math/big"
 	"reflect"
@@ -806,6 +807,11 @@ func (client *Client) GetAccountPendingTransactions(address types.Address, start
 
 func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
 	err = client.wrappedCallRPC(&receipts, "cfx_getEpochReceipts", epoch)
+	return
+}
+
+func (client *Client) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error) {
+	err = client.wrappedCallRPC(&receipts, "cfx_getEpochReceipts", fmt.Sprintf("hash:%v", hash))
 	return
 }
 

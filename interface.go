@@ -105,6 +105,7 @@ type ClientOperator interface {
 	GetAccountPendingInfo(address types.Address) (pendignInfo *types.AccountPendingInfo, err error)
 	GetAccountPendingTransactions(address types.Address, startNonce *hexutil.Big, limit *hexutil.Uint64) (pendingTxs types.AccountPendingTransactions, err error)
 	GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error)
+	GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error)
 
 	BatchGetTxByHashes(txhashes []types.Hash) (map[types.Hash]*types.Transaction, error)
 	BatchGetBlockSummarys(blockhashes []types.Hash) (map[types.Hash]*types.BlockSummary, error)

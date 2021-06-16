@@ -13,7 +13,6 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
-	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -100,6 +99,7 @@ func run(_client *sdk.Client) {
 	getBlockRewardInfo()
 	getClientVersion()
 	getEpochReceipts()
+	getEpochReceiptsByPivotBlockHash()
 	getAccountPendingInfo()
 	getAccountPendingTransactions()
 
@@ -385,6 +385,11 @@ func getEpochReceipts() {
 	client.GetEpochReceipts(*types.NewEpochNumber(b.EpochNumber))
 }
 
+func getEpochReceiptsByPivotBlockHash() {
+	fmt.Println("\n- start get epoch receipts by block hash")
+	client.GetEpochReceiptsByPivotBlockHash(config.BlockHashOfNewContract)
+}
+
 func getAccountPendingInfo() {
 	fmt.Println("\n- start get account pending info")
 	fmt.Println("default account:", *defaultAccount)
@@ -394,23 +399,14 @@ func getAccountPendingInfo() {
 
 func getAccountPendingTransactions() {
 	fmt.Println("\n- start get account pending transactions")
-	accountPendingTxs, err := client.GetAccountPendingTransactions(*defaultAccount, types.NewBigInt(0), types.NewUint64(100))
-	utils.PanicIfErr(err, "failed to get account pending txs")
-	if len(accountPendingTxs.PendingTransactions) > 0 {
-		return
-	}
+	client.GetAccountPendingTransactions(*defaultAccount, types.NewBigInt(0), types.NewUint64(100))
 
 	to := client.MustNewAddress("cfxtest:aasm4c231py7j34fghntcfkdt2nm9xv1tyce66w5u3")
-	utx, err := client.CreateUnsignedTransaction(*defaultAccount, to, types.NewBigInt(1000000), nil)
+	utx, _ := client.CreateUnsignedTransaction(*defaultAccount, to, types.NewBigInt(1000000), nil)
 	utx.Nonce = context.GetNextNonceAndIncrease()
-	utils.PanicIfErr(err, "failed to create unsigned tx")
 
-	_, err = client.SendTransaction(utx)
-	utils.PanicIfErr(err, "failed to send tx")
-
-	_, err = client.GetAccountPendingTransactions(*defaultAccount, types.NewBigInt(0), types.NewUint64(100))
-	utils.PanicIfErr(err, "failed to get account pending txs")
-
+	client.SendTransaction(utx)
+	client.GetAccountPendingTransactions(*defaultAccount, types.NewBigInt(0), types.NewUint64(100))
 	// for avoiding block following tests
 	// client.WaitForTransationReceipt(hash, time.Second*2)
 }
