@@ -386,7 +386,7 @@ func getEpochReceipts() {
 }
 
 func getEpochReceiptsByPivotBlockHash() {
-	fmt.Println("\n- start get epoch receipts")
+	fmt.Println("\n- start get epoch receipts by block hash")
 	client.GetEpochReceiptsByPivotBlockHash(config.BlockHashOfNewContract)
 }
 
