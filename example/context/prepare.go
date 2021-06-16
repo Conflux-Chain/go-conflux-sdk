@@ -12,6 +12,7 @@ import (
 	exampletypes "github.com/Conflux-Chain/go-conflux-sdk/example/context/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -76,7 +77,7 @@ func initClient() {
 		RequestTimeout: time.Second * 10,
 	})
 	if err != nil {
-		panic(err)
+		utils.PanicIfErr(err, "failed to create client")
 	}
 
 	config.SetClient(client)
