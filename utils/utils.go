@@ -61,14 +61,13 @@ func PanicIfErrf(err error, msg string, args ...interface{}) {
 		fmt.Printf(msg, args...)
 		fmt.Printf("%+v\n", err)
 		fmt.Println()
-		panic(err)
+		panic(err.Error())
 	}
 }
 
 // PanicIfErr panic and reports error message
-func PanicIfErr(err error, msg string) {
+func PanicIfErr(err error) {
 	if err != nil {
-		fmt.Println(msg)
 		fmt.Printf("%+v\n", err)
 		fmt.Println()
 		panic(err.Error())

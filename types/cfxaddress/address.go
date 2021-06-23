@@ -376,6 +376,10 @@ func (a *Address) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
+	if len(data) <= 1 {
+		return errors.New(fmt.Sprintf("data length must be large than 1, but get %v", string(data)))
+	}
+
 	data = data[1 : len(data)-1]
 
 	addr, err := NewFromBase32(string(data))
