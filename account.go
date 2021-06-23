@@ -13,6 +13,7 @@ import (
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	sdkErrors "github.com/Conflux-Chain/go-conflux-sdk/types/errors"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -203,7 +204,7 @@ func (m *AccountManager) GetDefault() (*types.Address, error) {
 func (m *AccountManager) account(address types.Address) (accounts.Account, error) {
 	realAccount := m.cfxAddressDic[address.GetHexAddress()]
 	if realAccount == emptyAccount {
-		return emptyAccount, types.NewAccountNotFoundError(address)
+		return emptyAccount, sdkErrors.NewAccountNotFoundError(address)
 	}
 
 	return realAccount, nil

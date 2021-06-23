@@ -17,6 +17,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	sdkErrors "github.com/Conflux-Chain/go-conflux-sdk/types/errors"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -807,11 +808,17 @@ func (client *Client) GetAccountPendingTransactions(address types.Address, start
 
 func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
 	err = client.wrappedCallRPC(&receipts, "cfx_getEpochReceipts", epoch)
+	if sdkErrors.IsPivotSwitch(err) {
+		err = sdkErrors.ExcutionError{Code: sdkErrors.CodePivotSwitch, Message: err.Error()}
+	}
 	return
 }
 
 func (client *Client) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error) {
 	err = client.wrappedCallRPC(&receipts, "cfx_getEpochReceipts", fmt.Sprintf("hash:%v", hash))
+	if sdkErrors.IsPivotSwitch(err) {
+		err = sdkErrors.ExcutionError{Code: sdkErrors.CodePivotSwitch, Message: err.Error()}
+	}
 	return
 }
 
