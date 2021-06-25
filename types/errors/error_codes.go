@@ -5,12 +5,14 @@ type ErrorCode int
 var codeStringMap map[ErrorCode]string
 
 const (
-	CodePivotSwitch ErrorCode = iota
+	CodePivotAssumption ErrorCode = 1
+	CodeBlockNotFound
 )
 
 func init() {
 	codeStringMap = make(map[ErrorCode]string)
-	codeStringMap[CodePivotSwitch] = "CodePivotSwitch"
+	codeStringMap[CodePivotAssumption] = "CodePivotAssumption"
+	codeStringMap[CodeBlockNotFound] = "CodeBlockNotFound"
 }
 
 func (e ErrorCode) String() string {

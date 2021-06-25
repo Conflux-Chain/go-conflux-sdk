@@ -38,11 +38,18 @@ func IsBusinessError(err error) bool {
 	return reflect.TypeOf(err).Name() == "BusinessError"
 }
 
-func IsPivotSwitch(err error) bool {
+// DetectErrorCode detect error code according to string of err.Error(), ok indicate accroding errorcode is found
+func DetectErrorCode(err error) (ok bool, code ErrorCode) {
 	if err != nil {
 		errStr := strings.ToLower(err.Error())
-		// pivot hash assumption failed, must be pivot switched
-		return strings.Contains(errStr, "pivot assumption failed") || strings.Contains(errStr, "block not found")
+
+		if strings.Contains(errStr, "pivot assumption failed") {
+			return true, CodePivotAssumption
+		}
+
+		if strings.Contains(errStr, "block not found") {
+			return true, CodeBlockNotFound
+		}
 	}
-	return false
+	return false, 0
 }

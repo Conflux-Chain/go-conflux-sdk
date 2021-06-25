@@ -808,16 +808,16 @@ func (client *Client) GetAccountPendingTransactions(address types.Address, start
 
 func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
 	err = client.wrappedCallRPC(&receipts, "cfx_getEpochReceipts", epoch)
-	if sdkErrors.IsPivotSwitch(err) {
-		err = sdkErrors.BusinessError{Code: sdkErrors.CodePivotSwitch, Inner: err}
+	if ok, code := sdkErrors.DetectErrorCode(err); ok {
+		err = sdkErrors.BusinessError{Code: code, Inner: err}
 	}
 	return
 }
 
 func (client *Client) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error) {
 	err = client.wrappedCallRPC(&receipts, "cfx_getEpochReceipts", fmt.Sprintf("hash:%v", hash))
-	if sdkErrors.IsPivotSwitch(err) {
-		err = sdkErrors.BusinessError{Code: sdkErrors.CodePivotSwitch, Inner: err}
+	if ok, code := sdkErrors.DetectErrorCode(err); ok {
+		err = sdkErrors.BusinessError{Code: code, Inner: err}
 	}
 	return
 }

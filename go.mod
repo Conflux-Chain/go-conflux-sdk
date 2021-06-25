@@ -11,10 +11,14 @@ require (
 	github.com/fatih/color v1.3.0
 	github.com/golang/mock v1.4.3
 	github.com/gorilla/websocket v1.4.1-0.20190629185528-ae1634f6a989
+	github.com/influxdata/influxdb v1.2.3-0.20180221223340-01288bdb0883
+	github.com/influxdata/influxql v1.1.0 // indirect
+	github.com/jsternberg/zap-logfmt v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/smartystreets/goconvey v1.6.4
-	github.com/stretchr/testify v1.5.1 // indirect
 	github.com/valyala/fasthttp v1.13.1
+	github.com/xlab/treeprint v1.1.0 // indirect
+	go.uber.org/zap v1.17.0 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce
 )
