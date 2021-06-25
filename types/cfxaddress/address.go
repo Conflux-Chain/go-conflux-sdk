@@ -365,8 +365,8 @@ func (a Address) MarshalText() ([]byte, error) {
 }
 
 func (a *Address) UnmarshalText(data []byte) error {
-	data = append([]byte{0}, data...)
-	data = append(data, 0)
+	data = append([]byte("\""), data...)
+	data = append(data, []byte("\"")...)
 	return a.UnmarshalJSON(data)
 }
 
