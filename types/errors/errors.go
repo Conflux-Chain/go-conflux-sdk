@@ -26,12 +26,12 @@ func (e *AccountNotFoundError) Error() string {
 }
 
 type BusinessError struct {
-	Code    ErrorCode
-	Message string
+	Code  ErrorCode
+	Inner error
 }
 
 func (e BusinessError) Error() string {
-	return e.Message
+	return e.Inner.Error()
 }
 
 func IsBusinessError(err error) bool {

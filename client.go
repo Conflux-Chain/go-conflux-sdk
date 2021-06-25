@@ -809,7 +809,7 @@ func (client *Client) GetAccountPendingTransactions(address types.Address, start
 func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
 	err = client.wrappedCallRPC(&receipts, "cfx_getEpochReceipts", epoch)
 	if sdkErrors.IsPivotSwitch(err) {
-		err = sdkErrors.ExcutionError{Code: sdkErrors.CodePivotSwitch, Message: err.Error()}
+		err = sdkErrors.BusinessError{Code: sdkErrors.CodePivotSwitch, Inner: err}
 	}
 	return
 }
@@ -817,7 +817,7 @@ func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.Tr
 func (client *Client) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error) {
 	err = client.wrappedCallRPC(&receipts, "cfx_getEpochReceipts", fmt.Sprintf("hash:%v", hash))
 	if sdkErrors.IsPivotSwitch(err) {
-		err = sdkErrors.ExcutionError{Code: sdkErrors.CodePivotSwitch, Message: err.Error()}
+		err = sdkErrors.BusinessError{Code: sdkErrors.CodePivotSwitch, Inner: err}
 	}
 	return
 }
