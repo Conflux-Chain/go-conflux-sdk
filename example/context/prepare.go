@@ -77,7 +77,7 @@ func initClient() {
 		RequestTimeout: time.Second * 10,
 	})
 	if err != nil {
-		utils.PanicIfErr(err, "failed to create client")
+		utils.PanicIfErr(err)
 	}
 
 	config.SetClient(client)

@@ -58,20 +58,15 @@ func IsRPCJSONError(err error) bool {
 // PanicIfErrf panic and reports error message with args
 func PanicIfErrf(err error, msg string, args ...interface{}) {
 	if err != nil {
-		fmt.Printf(msg, args...)
-		fmt.Printf("%+v\n", err)
-		fmt.Println()
-		panic(err)
+		msgWithArg := fmt.Sprintf(msg, args...)
+		panic(fmt.Sprintf("msg: %v\n%+v", msgWithArg, err))
 	}
 }
 
 // PanicIfErr panic and reports error message
-func PanicIfErr(err error, msg string) {
+func PanicIfErr(err error) {
 	if err != nil {
-		fmt.Println(msg)
-		fmt.Printf("%+v\n", err)
-		fmt.Println()
-		panic(err.Error())
+		panic(fmt.Sprintf("%+v", err))
 	}
 }
 

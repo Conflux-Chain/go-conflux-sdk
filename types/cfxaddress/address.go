@@ -2,6 +2,7 @@ package cfxaddress
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"reflect"
@@ -364,23 +365,26 @@ func (a Address) MarshalText() ([]byte, error) {
 }
 
 func (a *Address) UnmarshalText(data []byte) error {
-	data = append([]byte{0}, data...)
-	data = append(data, 0)
+	data = append([]byte("\""), data...)
+	data = append(data, []byte("\"")...)
 	return a.UnmarshalJSON(data)
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface.
 func (a *Address) UnmarshalJSON(data []byte) error {
-	// fmt.Println("json unmarshal address")
-	if string(data) == "null" {
+	var str string
+	err := json.Unmarshal(data, &str)
+	if err != nil {
+		return errors.Wrapf(err, "failed to unmarshal %x to string", data)
+	}
+
+	if str == "" {
 		return nil
 	}
 
-	data = data[1 : len(data)-1]
-
-	addr, err := NewFromBase32(string(data))
+	addr, err := NewFromBase32(str)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create address from base32 string %v", string(data))
+		return errors.Wrapf(err, "failed to create address from base32 string %v", str)
 	}
 	*a = addr
 	return nil
