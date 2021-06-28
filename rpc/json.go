@@ -27,6 +27,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 const (
@@ -184,9 +186,13 @@ func NewFuncCodec(conn deadlineCloser, encode, decode func(v interface{}) error)
 		decode:  decode,
 		conn:    conn,
 	}
+
 	if ra, ok := conn.(ConnRemoteAddr); ok {
 		codec.remote = ra.RemoteAddr()
+	} else if c, ok := conn.(*websocket.Conn); ok { // extract remote address from websocket connection
+		codec.remote = c.RemoteAddr().String()
 	}
+
 	return codec
 }
 
