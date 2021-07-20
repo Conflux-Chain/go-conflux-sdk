@@ -111,7 +111,10 @@ type clientConn struct {
 
 func (c *Client) newClientConn(conn ServerCodec) *clientConn {
 	ctx := context.WithValue(context.Background(), clientContextKey{}, c)
+	// add websocket remote address to the context
 	ctx = context.WithValue(ctx, "remote", conn.remoteAddr())
+	// add rpc client to the context
+	ctx = context.WithValue(ctx, "client", c)
 	handler := newHandler(ctx, conn, c.idgen, c.services)
 	return &clientConn{conn, handler}
 }
