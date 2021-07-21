@@ -279,7 +279,7 @@ func isBatch(raw json.RawMessage) bool {
 // parsePositionalArguments tries to parse the given args to an array of values with the
 // given types. It returns the parsed values or an error when the args could not be
 // parsed. Missing optional arguments are returned as reflect.Zero values.
-func parsePositionalArguments(rawArgs json.RawMessage, types []reflect.Type) ([]reflect.Value, error) {
+func parsePositionalArguments(rawArgs json.RawMessage, types []reflect.Type, isVariadic bool) ([]reflect.Value, error) {
 	dec := json.NewDecoder(bytes.NewReader(rawArgs))
 	var args []reflect.Value
 	tok, err := dec.Token()
@@ -291,7 +291,7 @@ func parsePositionalArguments(rawArgs json.RawMessage, types []reflect.Type) ([]
 		return nil, err
 	case tok == json.Delim('['):
 		// Read argument array.
-		if args, err = parseArgumentArray(dec, types); err != nil {
+		if args, err = parseArgumentArray(dec, types, isVariadic); err != nil {
 			return nil, err
 		}
 	default:
@@ -299,21 +299,39 @@ func parsePositionalArguments(rawArgs json.RawMessage, types []reflect.Type) ([]
 	}
 	// Set any missing args to nil.
 	for i := len(args); i < len(types); i++ {
+		// If the function type's final input parameter is a "..." parameter, the final argument type must be slice.
+		// We don't even need to append any zero value neither, since they are optional.
+		if isVariadic && i == len(types)-1 && types[i].Kind() == reflect.Slice {
+			continue
+		}
+
 		if types[i].Kind() != reflect.Ptr {
 			return nil, fmt.Errorf("missing value for required argument %d", i)
 		}
+
 		args = append(args, reflect.Zero(types[i]))
 	}
 	return args, nil
 }
 
-func parseArgumentArray(dec *json.Decoder, types []reflect.Type) ([]reflect.Value, error) {
+func parseArgumentArray(dec *json.Decoder, types []reflect.Type, isVariadic bool) ([]reflect.Value, error) {
+	// Sanity check to make sure final argument type must be slice for variadic parameters.
+	if isVariadic && types[len(types)-1].Kind() != reflect.Slice {
+		return []reflect.Value{}, fmt.Errorf("argument type of variadic parameters must be slice rathan than %v", types[len(types)-1].String())
+	}
+
 	args := make([]reflect.Value, 0, len(types))
 	for i := 0; dec.More(); i++ {
-		if i >= len(types) {
+		if i >= len(types) && !isVariadic { // more parameters than argument types are only allowed for variadic parameters.
 			return args, fmt.Errorf("too many arguments, want at most %d", len(types))
 		}
+
 		argval := reflect.New(types[i])
+		// For variadic parameters, final argument type is slice but they are passed one by one as an element type.
+		if isVariadic && i >= len(types)-1 {
+			argval = reflect.New(types[len(types)-1].Elem())
+		}
+
 		if err := dec.Decode(argval.Interface()); err != nil {
 			return args, fmt.Errorf("invalid argument %d: %v", i, err)
 		}

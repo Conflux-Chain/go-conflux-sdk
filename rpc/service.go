@@ -53,6 +53,7 @@ type callback struct {
 	fn          reflect.Value  // the function
 	rcvr        reflect.Value  // receiver object of method, set if fn is method
 	argTypes    []reflect.Type // input argument types
+	isVariadic  bool           // true if the function type's final input parameter is a "..." parameter
 	hasCtx      bool           // method's first argument is a context (not included in argTypes)
 	errPos      int            // err return idx, of -1 when method cannot return error
 	isSubscribe bool           // true if this is a subscription callback
@@ -135,7 +136,7 @@ func suitableCallbacks(receiver reflect.Value) map[string]*callback {
 // is unsuitable as an RPC callback.
 func newCallback(receiver, fn reflect.Value) *callback {
 	fntype := fn.Type()
-	c := &callback{fn: fn, rcvr: receiver, errPos: -1, isSubscribe: isPubSub(fntype)}
+	c := &callback{fn: fn, rcvr: receiver, errPos: -1, isSubscribe: isPubSub(fntype), isVariadic: fntype.IsVariadic()}
 	// Determine parameter types. They must all be exported or builtin types.
 	c.makeArgTypes()
 
