@@ -326,10 +326,11 @@ func parseArgumentArray(dec *json.Decoder, types []reflect.Type, isVariadic bool
 			return args, fmt.Errorf("too many arguments, want at most %d", len(types))
 		}
 
-		argval := reflect.New(types[i])
-		// For variadic parameters, final argument type is slice but they are passed one by one as an element type.
-		if isVariadic && i >= len(types)-1 {
+		var argval reflect.Value
+		if isVariadic && i >= len(types)-1 { // final argument type is slice, but variadic parameters are passed one by one as an element item type.
 			argval = reflect.New(types[len(types)-1].Elem())
+		} else {
+			argval = reflect.New(types[i])
 		}
 
 		if err := dec.Decode(argval.Interface()); err != nil {
