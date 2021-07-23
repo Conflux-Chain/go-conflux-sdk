@@ -48,6 +48,13 @@ func WaitPacked(client *sdk.Client, txhash types.Hash) *types.TransactionReceipt
 
 // GetNextNonceAndIncrease ...
 func GetNextNonceAndIncrease() *hexutil.Big {
+	if nextNonce == nil {
+		var err error
+		if nextNonce, err = client.GetNextNonce(*defaultAccount, nil); err != nil {
+			panic(err)
+		}
+	}
+
 	currentNonce := types.NewBigIntByRaw(nextNonce.ToInt())
 	nextNonce = types.NewBigIntByRaw(big.NewInt(1).Add(nextNonce.ToInt(), big.NewInt(1)))
 	return currentNonce

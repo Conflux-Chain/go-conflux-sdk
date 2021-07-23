@@ -33,6 +33,7 @@ type BlockHeader struct {
 	Adaptive              bool           `json:"adaptive"`
 	Nonce                 *hexutil.Big   `json:"nonce"`
 	Size                  *hexutil.Big   `json:"size"`
+	Custom                [][]byte       `json:"custom"`
 }
 
 // rlpEncodableBlockHeader block header struct used for rlp encoding
@@ -56,6 +57,7 @@ type rlpEncodableBlockHeader struct {
 	Adaptive              bool
 	Nonce                 *big.Int
 	Size                  *big.Int
+	Custom                [][]byte
 }
 
 // EncodeRLP implements the rlp.Encoder interface.
@@ -65,7 +67,7 @@ func (bh BlockHeader) EncodeRLP(w io.Writer) error {
 		bh.DeferredReceiptsRoot, bh.DeferredLogsBloomHash, bh.Blame, bh.TransactionsRoot,
 		bh.EpochNumber.ToInt(), bh.GasLimit.ToInt(), bh.GasUsed.ToInt(), bh.Timestamp.ToInt(),
 		bh.Difficulty.ToInt(), bh.PowQuality.ToInt(), bh.RefereeHashes, bh.Adaptive,
-		bh.Nonce.ToInt(), bh.Size.ToInt(),
+		bh.Nonce.ToInt(), bh.Size.ToInt(), bh.Custom,
 	}
 
 	return rlp.Encode(w, rbh)
@@ -86,7 +88,7 @@ func (bh *BlockHeader) DecodeRLP(r *rlp.Stream) error {
 	bh.GasUsed, bh.Timestamp = (*hexutil.Big)(rbh.GasUsed), (*hexutil.Big)(rbh.Timestamp)
 	bh.Difficulty, bh.PowQuality = (*hexutil.Big)(rbh.Difficulty), (*hexutil.Big)(rbh.PowQuality)
 	bh.RefereeHashes, bh.Adaptive = rbh.RefereeHashes, rbh.Adaptive
-	bh.Nonce, bh.Size = (*hexutil.Big)(rbh.Nonce), (*hexutil.Big)(rbh.Size)
+	bh.Nonce, bh.Size, bh.Custom = (*hexutil.Big)(rbh.Nonce), (*hexutil.Big)(rbh.Size), rbh.Custom
 
 	return nil
 }
