@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -61,7 +60,7 @@ func TestUnmarshalJSONForAction(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to unmarshl %v,err:%v", k, err.Error())
 		}
-		fmt.Printf("k %v l:%#v \n", k, l)
+		// fmt.Printf("k %v l:%#v \n", k, l)
 		if reflect.TypeOf(l.Action).Name() != v {
 			t.Fatalf("failed to unmarshal action, expected to type %v,actual:%v", v, reflect.TypeOf(l.Action).Name())
 		}
