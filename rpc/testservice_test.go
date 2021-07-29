@@ -126,6 +126,21 @@ func (s *testService) Subscription(ctx context.Context) (*Subscription, error) {
 	return nil, nil
 }
 
+func (s *testService) VariadicArgs(str string, i int, args ...*echoArgs) []echoResult {
+	res := make([]echoResult, 0, 1)
+
+	if len(args) == 0 {
+		res = append(res, echoResult{str, i, nil})
+		return res
+	}
+
+	for _, arg := range args {
+		res = append(res, echoResult{str, i, arg})
+	}
+
+	return res
+}
+
 type notificationTestService struct {
 	unsubscribed            chan string
 	gotHangSubscriptionReq  chan struct{}
@@ -181,6 +196,33 @@ func (s *notificationTestService) HangSubscription(ctx context.Context, val int)
 
 	go func() {
 		notifier.Notify(subscription.ID, val)
+	}()
+	return subscription, nil
+}
+
+// EchoVariadicArgs say hello to name(s) passed in as variadic arg(s)
+func (s *notificationTestService) EchoVariadicArgs(ctx context.Context, names ...string) (*Subscription, error) {
+	notifier, supported := NotifierFromContext(ctx)
+	if !supported {
+		return nil, ErrNotificationsUnsupported
+	}
+
+	subscription := notifier.CreateSubscription()
+	go func() {
+		echos := append([]string{"world"}, names...)
+		for _, e := range echos {
+			if err := notifier.Notify(subscription.ID, "hi "+e); err != nil {
+				return
+			}
+		}
+
+		select {
+		case <-notifier.Closed():
+		case <-subscription.Err():
+		}
+		if s.unsubscribed != nil {
+			s.unsubscribed <- string(subscription.ID)
+		}
 	}()
 	return subscription, nil
 }
