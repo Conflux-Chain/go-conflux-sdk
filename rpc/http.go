@@ -192,7 +192,7 @@ func (hc *httpConn) doRequest(ctx context.Context, msg interface{}) (io.Reader, 
 	}
 	// fmt.Printf("do request done req:%+v\n respbody:%#v\n\n", req, resp.Body)
 	if resp.StatusCode() < 200 || resp.StatusCode() >= 300 {
-		return bytes.NewReader(resp.Body()), errors.New(string(resp.StatusCode()))
+		return bytes.NewReader(resp.Body()), fmt.Errorf("%v", resp.StatusCode())
 	}
 	return bytes.NewReader(resp.Body()), nil
 }
