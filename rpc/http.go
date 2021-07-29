@@ -179,14 +179,23 @@ func (hc *httpConn) doRequest(ctx context.Context, msg interface{}) (io.Reader, 
 	req.SetBody(body)
 
 	resp := &fasthttp.Response{}
-	// resp, err := hc.client.Do(req)
 	deadline, ok := ctx.Deadline()
-	timeout := time.Duration(0)
+
 	if ok {
-		timeout = time.Until(deadline)
+		err = hc.client.DoDeadline(req, resp, deadline)
+	} else {
+		fCh := make(chan struct{})
+		go func() {
+			err = hc.client.Do(req, resp)
+			fCh <- struct{}{}
+		}()
+		select {
+		case <-ctx.Done():
+			err = ctx.Err()
+		case <-fCh:
+		}
 	}
 
-	err = hc.client.DoTimeout(req, resp, timeout)
 	if err != nil {
 		return nil, err
 	}
