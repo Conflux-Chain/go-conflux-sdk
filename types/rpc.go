@@ -1,6 +1,10 @@
 package types
 
-import "github.com/ethereum/go-ethereum/common/hexutil"
+import (
+	"math/big"
+
+	"github.com/ethereum/go-ethereum/common/hexutil"
+)
 
 type AccountInfo struct {
 	Balance *hexutil.Big `json:"balance"`
@@ -84,6 +88,24 @@ type TokenSupplyInfo struct {
 
 type ChainReorg struct {
 	RevertTo *hexutil.Big `json:"revertTo"`
+}
+
+type rlpEncodableChainReorg struct {
+	RevertTo *big.Int
+}
+
+func (c ChainReorg) toRlpEncodable() rlpEncodableChainReorg {
+	if c.RevertTo != nil {
+		return rlpEncodableChainReorg{c.RevertTo.ToInt()}
+	}
+	return rlpEncodableChainReorg{}
+}
+
+func (r rlpEncodableChainReorg) toNormal() ChainReorg {
+	if r.RevertTo != nil {
+		return ChainReorg{NewBigIntByRaw(r.RevertTo)}
+	}
+	return ChainReorg{}
 }
 
 type AccountPendingInfo struct {

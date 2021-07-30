@@ -13,6 +13,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -23,7 +24,6 @@ var (
 	config         *exampletypes.Config
 	epochs         []*types.Epoch
 	defaultAccount *types.Address
-	nextNonce      *big.Int
 )
 
 func init() {
@@ -59,59 +59,59 @@ func main() {
 func run(_client *sdk.Client) {
 	client = _client
 
-	newAddress()
-	mustNewAddress()
+	// newAddress()
+	// mustNewAddress()
 
-	getEpochNumber()
-	getGasPrice()
-	getNextNonce()
-	getStatus()
-	getBalance()
-	getBestBlockHash()
-	getBlockByEpoch()
-	getBlocksByEpoch()
-	getBlockByHash()
-	getBlockSummaryByEpoch()
-	getBlockSummaryByHash()
-	getCode()
-	getTransactionByHash()
-	estimateGasAndCollateral()
-	getTransactionReceipt()
-	sendRawTransaction()
-	createAndSendUnsignedTransaction()
-	getRawBlockConfirmationRisk()
-	getBlockConfirmationRisk()
-	getSupplyInfo()
-	callRPC()
+	// getEpochNumber()
+	// getGasPrice()
+	// getNextNonce()
+	// getStatus()
+	// getBalance()
+	// getBestBlockHash()
+	// getBlockByEpoch()
+	// getBlocksByEpoch()
+	// getBlockByHash()
+	// getBlockSummaryByEpoch()
+	// getBlockSummaryByHash()
+	// getCode()
+	// getTransactionByHash()
+	// estimateGasAndCollateral()
+	// getTransactionReceipt()
+	// sendRawTransaction()
+	// createAndSendUnsignedTransaction()
+	// getRawBlockConfirmationRisk()
+	// getBlockConfirmationRisk()
+	// getSupplyInfo()
+	// callRPC()
 
-	getAdmin()
-	getSponsorInfo()
-	getStakingBalance()
-	getCollateralForStorage()
-	getStorageAt()
-	getStorageRoot()
-	getBlockByHashWithPivotAssumption()
-	checkBalanceAgainstTransaction()
-	getSkippedBlocksByEpoch()
-	getAccountInfo()
-	getInterestRate()
-	getAccumulateInterestRate()
-	getBlockRewardInfo()
-	getClientVersion()
-	getEpochReceipts()
-	getEpochReceiptsByPivotBlockHash()
-	getAccountPendingInfo()
-	getAccountPendingTransactions()
+	// getAdmin()
+	// getSponsorInfo()
+	// getStakingBalance()
+	// getCollateralForStorage()
+	// getStorageAt()
+	// getStorageRoot()
+	// getBlockByHashWithPivotAssumption()
+	// checkBalanceAgainstTransaction()
+	// getSkippedBlocksByEpoch()
+	// getAccountInfo()
+	// getInterestRate()
+	// getAccumulateInterestRate()
+	// getBlockRewardInfo()
+	// getClientVersion()
+	// getEpochReceipts()
+	// getEpochReceiptsByPivotBlockHash()
+	// getAccountPendingInfo()
+	// getAccountPendingTransactions()
 
-	traceBlock()
-	traceFilter()
-	tarceTransaction()
+	// traceBlock()
+	// traceFilter()
+	// tarceTransaction()
 
-	subscribeNewHeads()
-	subscribeEpochs()
+	// subscribeNewHeads()
+	// subscribeEpochs()
 	subscribeLogs()
 
-	batchCall()
+	// batchCall()
 }
 
 func newAddress() {
@@ -485,9 +485,11 @@ func subscribeEpochs() {
 
 func subscribeLogs() {
 	fmt.Printf("\n- subscribe logs\n")
-	logChannel := make(chan types.Log, 100)
-	reorgChannel := make(chan types.ChainReorg, 100)
-	sub, err := client.SubscribeLogs(logChannel, reorgChannel, types.LogFilter{
+	channel := make(chan types.SubscriptionLog, 100)
+	// logChannel := make(chan types.Log, 100)
+	// reorgChannel := make(chan types.ChainReorg, 100)
+	// sub, err := client.SubscribeLogs(logChannel, reorgChannel, types.LogFilter{
+	sub, err := client.SubscribeLogs(channel, types.LogFilter{
 		Topics: [][]types.Hash{{"0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"}}})
 	if err != nil {
 		fmt.Printf("subscribe log error:%+v\n", err.Error())
@@ -525,12 +527,11 @@ func subscribeLogs() {
 		select {
 		case err = <-errorchan:
 			fmt.Printf("subscription error:%v\n", err.Error())
-			// sub.Unsubscribe()
-			// return
-		case log := <-logChannel:
-			fmt.Printf("received %v log:%+v\n\n", i+1, log)
-		case reorg := <-reorgChannel:
-			fmt.Printf("received new reorg:%+v\n\n", reorg)
+		// case log := <-logChannel:
+		// 	fmt.Printf("received %v log:%+v\n\n", i+1, log)
+		// case reorg := <-reorgChannel:
+		case log := <-channel:
+			fmt.Printf("received new log:%v\n\n", utils.PrettyJSON(log))
 		}
 	}
 	sub.Unsubscribe()
