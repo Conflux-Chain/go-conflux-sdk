@@ -111,7 +111,7 @@ func run(_client *sdk.Client) {
 	subscribeEpochs()
 	subscribeLogs()
 
-	// batchCall()
+	batchCall()
 }
 
 func newAddress() {
@@ -486,9 +486,6 @@ func subscribeEpochs() {
 func subscribeLogs() {
 	fmt.Printf("\n- subscribe logs\n")
 	channel := make(chan types.SubscriptionLog, 100)
-	// logChannel := make(chan types.Log, 100)
-	// reorgChannel := make(chan types.ChainReorg, 100)
-	// sub, err := client.SubscribeLogs(logChannel, reorgChannel, types.LogFilter{
 	sub, err := client.SubscribeLogs(channel, types.LogFilter{
 		Topics: [][]types.Hash{{"0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"}}})
 	if err != nil {
