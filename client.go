@@ -292,6 +292,11 @@ func (client *Client) GetBlockByEpoch(epoch *types.Epoch) (block *types.Block, e
 	return
 }
 
+func (client *Client) GetBlockByBlockNumber(blockNumer hexutil.Uint64, includeTxs ...bool) (block *types.Block, err error) {
+	err = client.wrappedCallRPC(&block, "cfx_getBlockByBlockNumber", blockNumer, get1stBoolIfy(includeTxs))
+	return
+}
+
 // GetBestBlockHash returns the current best block hash.
 func (client *Client) GetBestBlockHash() (hash types.Hash, err error) {
 	err = client.wrappedCallRPC(&hash, "cfx_getBestBlockHash")
@@ -1133,6 +1138,14 @@ func get1stEpochIfy(epoch []*types.Epoch) *types.Epoch {
 		realEpoch = epoch[0]
 	}
 	return realEpoch
+}
+
+func get1stBoolIfy(values []bool) bool {
+	value := false
+	if len(values) > 0 {
+		value = values[0]
+	}
+	return value
 }
 
 func (client *Client) genContext() (context.Context, context.CancelFunc) {
