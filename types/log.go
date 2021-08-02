@@ -240,8 +240,14 @@ type SubscriptionLog struct {
 	*ChainReorg
 }
 
+type rlpEncodableSubscriptionLog struct {
+	Log        *rlpEncodableLog        `rlp:"nil"`
+	ChainReorg *rlpEncodableChainReorg `rlp:"nil"`
+}
+
 func (s SubscriptionLog) IsRevertLog() bool {
 	return s.ChainReorg != nil
+	// return !reflect.DeepEqual(s.ChainReorg, ChainReorg{})
 }
 
 func (s SubscriptionLog) MarshalJSON() ([]byte, error) {
@@ -249,4 +255,48 @@ func (s SubscriptionLog) MarshalJSON() ([]byte, error) {
 		return json.Marshal(s.ChainReorg)
 	}
 	return json.Marshal(s.Log)
+}
+
+func (s SubscriptionLog) toRlpEncodable() rlpEncodableSubscriptionLog {
+	var rlpLog *rlpEncodableLog
+	if s.Log != nil {
+		_rlpLog := s.Log.toRlpEncodable()
+		rlpLog = &_rlpLog
+	}
+
+	var rlpReorg *rlpEncodableChainReorg
+	if s.ChainReorg != nil {
+		_rlpReorg := s.ChainReorg.toRlpEncodable()
+		rlpReorg = &_rlpReorg
+	}
+
+	r := rlpEncodableSubscriptionLog{rlpLog, rlpReorg}
+	return r
+}
+
+func (r rlpEncodableSubscriptionLog) toNormal() SubscriptionLog {
+	slog := SubscriptionLog{}
+	if r.Log != nil {
+		_log := r.Log.toNormal()
+		slog.Log = &_log
+	}
+
+	if r.ChainReorg != nil {
+		_reorg := r.ChainReorg.toNormal()
+		slog.ChainReorg = &_reorg
+	}
+	return slog
+}
+
+func (s SubscriptionLog) EncodeRLP(w io.Writer) error {
+	return rlp.Encode(w, s.toRlpEncodable())
+}
+
+func (s *SubscriptionLog) DecodeRLP(r *rlp.Stream) error {
+	rlpSubLog := rlpEncodableSubscriptionLog{}
+	if err := r.Decode(&rlpSubLog); err != nil {
+		return err
+	}
+	*s = rlpSubLog.toNormal()
+	return nil
 }
