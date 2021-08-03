@@ -1,9 +1,13 @@
 # Go-conflux-sdk Change Log
-
+## v1.0.11
+- Add `blockNumber` to block related methods `cfx_getBlockByHash`, `cfx_getBlockByEpochNumber`, `cfx_getBlockByHashWithPivotAssumption` which need `Conflux-rust v1.1.5` or above.
+- Add new RPC method `cfx_getBlockByBlockNubmer`
+- Refactor SubscribeLogs for avoiding lossing timing sequence of Chain-Reorg and Log
+- Add variadic arguments support for rpc service
 ## v1.0.10
 - Set default rpc request timeout to 30s
 - Remove addition error msg in wrappedCallRPC
-- Add method getAccountPendingTransactions in client
+- Add method GetAccountPendingTransactions in client
 ## v1.0.9
 - Apply middleware for hooking call rpc and batch call rpc
 - Support set request rpc timeout in Client

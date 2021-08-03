@@ -58,30 +58,57 @@ type rlpEncodableLog struct {
 	TransactionLogIndex *rlpNilableBigInt `rlp:"nil"`
 }
 
+func (l Log) toRlpEncodable() rlpEncodableLog {
+	rlog := rlpEncodableLog{
+		Address: l.Address, Topics: l.Topics, Data: l.Data,
+		BlockHash: l.BlockHash, TransactionHash: l.TransactionHash,
+	}
+
+	if l.EpochNumber != nil {
+		rlog.EpochNumber = &rlpNilableBigInt{l.EpochNumber.ToInt()}
+	}
+
+	if l.TransactionIndex != nil {
+		rlog.TransactionIndex = &rlpNilableBigInt{l.TransactionIndex.ToInt()}
+	}
+
+	if l.LogIndex != nil {
+		rlog.LogIndex = &rlpNilableBigInt{l.LogIndex.ToInt()}
+	}
+
+	if l.TransactionLogIndex != nil {
+		rlog.TransactionLogIndex = &rlpNilableBigInt{l.TransactionLogIndex.ToInt()}
+	}
+	return rlog
+}
+
+func (r rlpEncodableLog) toNormal() Log {
+	log := Log{}
+
+	log.Address, log.Topics, log.Data = r.Address, r.Topics, r.Data
+	log.BlockHash, log.TransactionHash = r.BlockHash, r.TransactionHash
+
+	if r.EpochNumber != nil {
+		log.EpochNumber = (*hexutil.Big)(r.EpochNumber.Val)
+	}
+
+	if r.TransactionIndex != nil {
+		log.TransactionIndex = (*hexutil.Big)(r.TransactionIndex.Val)
+	}
+
+	if r.LogIndex != nil {
+		log.LogIndex = (*hexutil.Big)(r.LogIndex.Val)
+	}
+
+	if r.TransactionLogIndex != nil {
+		log.TransactionLogIndex = (*hexutil.Big)(r.TransactionLogIndex.Val)
+	}
+	return log
+}
+
 // EncodeRLP implements the rlp.Encoder interface.
 func (log Log) EncodeRLP(w io.Writer) error {
-	rlog := rlpEncodableLog{
-		Address: log.Address, Topics: log.Topics, Data: log.Data,
-		BlockHash: log.BlockHash, TransactionHash: log.TransactionHash,
-	}
-
-	if log.EpochNumber != nil {
-		rlog.EpochNumber = &rlpNilableBigInt{log.EpochNumber.ToInt()}
-	}
-
-	if log.TransactionIndex != nil {
-		rlog.TransactionIndex = &rlpNilableBigInt{log.TransactionIndex.ToInt()}
-	}
-
-	if log.LogIndex != nil {
-		rlog.LogIndex = &rlpNilableBigInt{log.LogIndex.ToInt()}
-	}
-
-	if log.TransactionLogIndex != nil {
-		rlog.TransactionLogIndex = &rlpNilableBigInt{log.TransactionLogIndex.ToInt()}
-	}
-
-	return rlp.Encode(w, rlog)
+	return rlp.Encode(w, log.toRlpEncodable())
 }
 
 // DecodeRLP implements the rlp.Decoder interface.
@@ -91,35 +118,8 @@ func (log *Log) DecodeRLP(r *rlp.Stream) error {
 		return err
 	}
 
-	log.Address, log.Topics, log.Data = rlog.Address, rlog.Topics, rlog.Data
-	log.BlockHash, log.TransactionHash = rlog.BlockHash, rlog.TransactionHash
-
-	if rlog.EpochNumber != nil {
-		log.EpochNumber = (*hexutil.Big)(rlog.EpochNumber.Val)
-	}
-
-	if rlog.TransactionIndex != nil {
-		log.TransactionIndex = (*hexutil.Big)(rlog.TransactionIndex.Val)
-	}
-
-	if rlog.LogIndex != nil {
-		log.LogIndex = (*hexutil.Big)(rlog.LogIndex.Val)
-	}
-
-	if rlog.TransactionLogIndex != nil {
-		log.TransactionLogIndex = (*hexutil.Big)(rlog.TransactionLogIndex.Val)
-	}
-
+	*log = rlog.toNormal()
 	return nil
-}
-
-type SubscriptionLog struct {
-	Log
-	ChainReorg
-}
-
-func (s SubscriptionLog) IsRevertLog() bool {
-	return !reflect.DeepEqual(s.ChainReorg, ChainReorg{})
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface.
@@ -233,4 +233,70 @@ func resolveToHashes(val interface{}) ([]Hash, error) {
 	}
 
 	return nil, errors.Errorf("failed to convert %v to hash or hashes", val)
+}
+
+type SubscriptionLog struct {
+	*Log
+	*ChainReorg
+}
+
+type rlpEncodableSubscriptionLog struct {
+	Log        *rlpEncodableLog        `rlp:"nil"`
+	ChainReorg *rlpEncodableChainReorg `rlp:"nil"`
+}
+
+func (s SubscriptionLog) IsRevertLog() bool {
+	return s.ChainReorg != nil
+	// return !reflect.DeepEqual(s.ChainReorg, ChainReorg{})
+}
+
+func (s SubscriptionLog) MarshalJSON() ([]byte, error) {
+	if s.IsRevertLog() {
+		return json.Marshal(s.ChainReorg)
+	}
+	return json.Marshal(s.Log)
+}
+
+func (s SubscriptionLog) toRlpEncodable() rlpEncodableSubscriptionLog {
+	var rlpLog *rlpEncodableLog
+	if s.Log != nil {
+		_rlpLog := s.Log.toRlpEncodable()
+		rlpLog = &_rlpLog
+	}
+
+	var rlpReorg *rlpEncodableChainReorg
+	if s.ChainReorg != nil {
+		_rlpReorg := s.ChainReorg.toRlpEncodable()
+		rlpReorg = &_rlpReorg
+	}
+
+	r := rlpEncodableSubscriptionLog{rlpLog, rlpReorg}
+	return r
+}
+
+func (r rlpEncodableSubscriptionLog) toNormal() SubscriptionLog {
+	slog := SubscriptionLog{}
+	if r.Log != nil {
+		_log := r.Log.toNormal()
+		slog.Log = &_log
+	}
+
+	if r.ChainReorg != nil {
+		_reorg := r.ChainReorg.toNormal()
+		slog.ChainReorg = &_reorg
+	}
+	return slog
+}
+
+func (s SubscriptionLog) EncodeRLP(w io.Writer) error {
+	return rlp.Encode(w, s.toRlpEncodable())
+}
+
+func (s *SubscriptionLog) DecodeRLP(r *rlp.Stream) error {
+	rlpSubLog := rlpEncodableSubscriptionLog{}
+	if err := r.Decode(&rlpSubLog); err != nil {
+		return err
+	}
+	*s = rlpSubLog.toNormal()
+	return nil
 }

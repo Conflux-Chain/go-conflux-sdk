@@ -168,7 +168,14 @@ func main() {
 	fmt.Printf("decoded transfer event: {From: 0x%x, To: 0x%x, Value: %v} ", Transfer.From, Transfer.To, Transfer.Value)
 }
 ```
-### Use middleware to hook rpc request
+
+## Subscribe Epochs/BlockHeads/Logs
+
+Please find Publish-Subscribe API documentation from https://developer.confluxnetwork.org/conflux-doc/docs/pubsub
+
+It should be noted that when subscribing logs, a `SubscribeLogs` object is received. It has two fields `Log` and `ChainRerog`, one of them must be nil and the other not. When Log is not nil, it means that a Log is received. When field `ChainReorg` is not nil, that means chainreorg is occurred. That represents the log related to epoch greater than or equal to `ChainReog.RevertTo` will become invalid, and the dapp needs to be dealt with at the business level.
+
+## Use middleware to hook rpc request
 
 Client applies method `UseCallRpcMiddleware` to set middleware for hooking `callRpc` method which is the core of all single rpc related methods. And `UseBatchCallRpcMiddleware` to set middleware for hooking `batchCallRPC`.
 

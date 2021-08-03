@@ -117,7 +117,7 @@ type ClientOperator interface {
 
 	SubscribeNewHeads(channel chan types.BlockHeader) (*rpc.ClientSubscription, error)
 	SubscribeEpochs(channel chan types.WebsocketEpochResponse, subscriptionEpochType ...types.Epoch) (*rpc.ClientSubscription, error)
-	SubscribeLogs(logChannel chan types.Log, chainReorgChannel chan types.ChainReorg, filter types.LogFilter) (*rpc.ClientSubscription, error)
+	SubscribeLogs(channel chan types.SubscriptionLog, filter types.LogFilter) (*rpc.ClientSubscription, error)
 
 	WaitForTransationBePacked(txhash types.Hash, duration time.Duration) (*types.Transaction, error)
 	WaitForTransationReceipt(txhash types.Hash, duration time.Duration) (*types.TransactionReceipt, error)

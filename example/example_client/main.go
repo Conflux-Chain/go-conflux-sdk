@@ -11,6 +11,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/middleware"
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -495,9 +496,8 @@ func subscribeEpochs() {
 
 func subscribeLogs() {
 	fmt.Printf("\n- subscribe logs\n")
-	logChannel := make(chan types.Log, 100)
-	reorgChannel := make(chan types.ChainReorg, 100)
-	sub, err := client.SubscribeLogs(logChannel, reorgChannel, types.LogFilter{
+	channel := make(chan types.SubscriptionLog, 100)
+	sub, err := client.SubscribeLogs(channel, types.LogFilter{
 		Topics: [][]types.Hash{{"0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"}}})
 	if err != nil {
 		fmt.Printf("subscribe log error:%+v\n", err.Error())
@@ -535,12 +535,8 @@ func subscribeLogs() {
 		select {
 		case err = <-errorchan:
 			fmt.Printf("subscription error:%v\n", err.Error())
-			// sub.Unsubscribe()
-			// return
-		case log := <-logChannel:
-			fmt.Printf("received %v log:%+v\n\n", i+1, log)
-		case reorg := <-reorgChannel:
-			fmt.Printf("received new reorg:%+v\n\n", reorg)
+		case log := <-channel:
+			fmt.Printf("received new log:%v\n\n", utils.PrettyJSON(log))
 		}
 	}
 	sub.Unsubscribe()
