@@ -54,6 +54,7 @@ type ClientOperator interface {
 	GetBlockByHash(blockHash types.Hash) (*types.Block, error)
 	GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary, error)
 	GetBlockByEpoch(epoch *types.Epoch) (*types.Block, error)
+	GetBlockByBlockNumber(blockNumer hexutil.Uint64, includeTxs ...bool) (block *types.Block, err error)
 	GetBestBlockHash() (types.Hash, error)
 	GetRawBlockConfirmationRisk(blockhash types.Hash) (*hexutil.Big, error)
 	GetBlockConfirmationRisk(blockHash types.Hash) (*big.Float, error)

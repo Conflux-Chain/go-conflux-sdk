@@ -11,9 +11,9 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/middleware"
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
-	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
-	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
+
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -69,6 +69,7 @@ func run(_client *sdk.Client) {
 	getBalance()
 	getBestBlockHash()
 	getBlockByEpoch()
+	GetBlockByBlockNumber()
 	getBlocksByEpoch()
 	getBlockByHash()
 	getBlockSummaryByEpoch()
@@ -145,7 +146,7 @@ func getAdmin() {
 	client.GetAdmin(config.ERC20Address, nil)
 	// printResult("GetAdmin", []interface{}{config.ERC20Address, nil}, result, err)
 
-	client.GetAdmin(address.MustNewFromHex("0x0000000000000000000000000000000000000000"), nil)
+	client.GetAdmin(cfxaddress.MustNewFromHex("0x0000000000000000000000000000000000000000"), nil)
 	// printResult("GetAdmin", []interface{}{address.MustNewFromHex("0x0000000000000000000000000000000000000000"), nil}, result, err)
 }
 
@@ -274,6 +275,16 @@ func getBlockByEpoch() {
 	}
 }
 
+func GetBlockByBlockNumber() {
+	fmt.Println("\n- start get block by block number")
+	if epochNumber, err := client.GetEpochNumber(); err == nil {
+		_blockNumber := hexutil.Uint64(epochNumber.ToInt().Uint64())
+		client.GetBlockByBlockNumber(_blockNumber)
+		client.GetBlockByBlockNumber(_blockNumber, true)
+	}
+
+}
+
 func getBlocksByEpoch() {
 	fmt.Println("\n- start get blocks by epoch")
 	if epochNumber, err := client.GetEpochNumber(); err == nil {
@@ -304,7 +315,7 @@ func getCode() {
 	fmt.Println("\n- start get code")
 	contractAddr := *defaultAccount // config.ERC20Address
 	client.GetCode(contractAddr)
-	client.GetCode(address.MustNewFromHex("0x19f4bcf113e0b896d9b34294fd3da86b4adf0301"))
+	client.GetCode(cfxaddress.MustNewFromHex("0x19f4bcf113e0b896d9b34294fd3da86b4adf0301"))
 }
 
 func getTransactionByHash() {
