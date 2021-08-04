@@ -1,4 +1,6 @@
 # Go-conflux-sdk Change Log
+## v1.0.12
+- Fix test for Marshal/UnMarshal Block
 ## v1.0.11
 - Add `blockNumber` to block related methods `cfx_getBlockByHash`, `cfx_getBlockByEpochNumber`, `cfx_getBlockByHashWithPivotAssumption` which need `Conflux-rust v1.1.5` or above.
 - Add new RPC method `cfx_getBlockByBlockNubmer`
