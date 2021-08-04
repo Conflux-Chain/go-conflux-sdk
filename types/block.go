@@ -49,6 +49,7 @@ type rlpEncodableBlockHeader struct {
 	Blame                 hexutil.Uint64
 	TransactionsRoot      Hash
 	EpochNumber           *big.Int
+	BlockNumber           *big.Int
 	GasLimit              *big.Int
 	GasUsed               *big.Int
 	Timestamp             *big.Int
@@ -66,9 +67,9 @@ func (bh BlockHeader) EncodeRLP(w io.Writer) error {
 	rbh := rlpEncodableBlockHeader{
 		bh.Hash, bh.ParentHash, bh.Height.ToInt(), bh.Miner, bh.DeferredStateRoot,
 		bh.DeferredReceiptsRoot, bh.DeferredLogsBloomHash, bh.Blame, bh.TransactionsRoot,
-		bh.EpochNumber.ToInt(), bh.GasLimit.ToInt(), bh.GasUsed.ToInt(), bh.Timestamp.ToInt(),
-		bh.Difficulty.ToInt(), bh.PowQuality.ToInt(), bh.RefereeHashes, bh.Adaptive,
-		bh.Nonce.ToInt(), bh.Size.ToInt(), bh.Custom,
+		bh.EpochNumber.ToInt(), bh.BlockNumber.ToInt(), bh.GasLimit.ToInt(), bh.GasUsed.ToInt(),
+		bh.Timestamp.ToInt(), bh.Difficulty.ToInt(), bh.PowQuality.ToInt(), bh.RefereeHashes,
+		bh.Adaptive, bh.Nonce.ToInt(), bh.Size.ToInt(), bh.Custom,
 	}
 
 	return rlp.Encode(w, rbh)
@@ -85,7 +86,9 @@ func (bh *BlockHeader) DecodeRLP(r *rlp.Stream) error {
 	bh.Miner, bh.DeferredStateRoot = rbh.Miner, rbh.DeferredStateRoot
 	bh.DeferredReceiptsRoot, bh.DeferredLogsBloomHash = rbh.DeferredReceiptsRoot, rbh.DeferredLogsBloomHash
 	bh.Blame, bh.TransactionsRoot = rbh.Blame, rbh.TransactionsRoot
-	bh.EpochNumber, bh.GasLimit = (*hexutil.Big)(rbh.EpochNumber), (*hexutil.Big)(rbh.GasLimit)
+	bh.EpochNumber = (*hexutil.Big)(rbh.EpochNumber)
+	bh.BlockNumber = (*hexutil.Big)(rbh.BlockNumber)
+	bh.GasLimit = (*hexutil.Big)(rbh.GasLimit)
 	bh.GasUsed, bh.Timestamp = (*hexutil.Big)(rbh.GasUsed), (*hexutil.Big)(rbh.Timestamp)
 	bh.Difficulty, bh.PowQuality = (*hexutil.Big)(rbh.Difficulty), (*hexutil.Big)(rbh.PowQuality)
 	bh.RefereeHashes, bh.Adaptive = rbh.RefereeHashes, rbh.Adaptive
