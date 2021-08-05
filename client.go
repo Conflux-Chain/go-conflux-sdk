@@ -285,15 +285,20 @@ func (client *Client) GetBlockSummaryByEpoch(epoch *types.Epoch) (blockSummary *
 	return
 }
 
+func (client *Client) GetBlockByBlockNumber(blockNumer hexutil.Uint64) (block *types.Block, err error) {
+	err = client.wrappedCallRPC(&block, "cfx_getBlockByBlockNumber", blockNumer, true)
+	return
+}
+
+func (client *Client) GetBlockSummaryByBlockNumber(blockNumer hexutil.Uint64) (block *types.BlockSummary, err error) {
+	err = client.wrappedCallRPC(&block, "cfx_getBlockByBlockNumber", blockNumer, false)
+	return
+}
+
 // GetBlockByEpoch returns the block of specified epoch.
 // If the epoch is invalid, return the concrete error.
 func (client *Client) GetBlockByEpoch(epoch *types.Epoch) (block *types.Block, err error) {
 	err = client.wrappedCallRPC(&block, "cfx_getBlockByEpochNumber", epoch, true)
-	return
-}
-
-func (client *Client) GetBlockByBlockNumber(blockNumer hexutil.Uint64, includeTxs ...bool) (block *types.Block, err error) {
-	err = client.wrappedCallRPC(&block, "cfx_getBlockByBlockNumber", blockNumer, get1stBoolIfy(includeTxs))
 	return
 }
 

@@ -277,12 +277,13 @@ func getBlockByEpoch() {
 
 func GetBlockByBlockNumber() {
 	fmt.Println("\n- start get block by block number")
-	if epochNumber, err := client.GetEpochNumber(); err == nil {
-		_blockNumber := hexutil.Uint64(epochNumber.ToInt().Uint64())
-		client.GetBlockByBlockNumber(_blockNumber)
-		client.GetBlockByBlockNumber(_blockNumber, true)
-	}
 
+	b, err := client.GetBlockByHash(config.BlockHash)
+	utils.PanicIfErr(err)
+
+	_blockNumber := hexutil.Uint64(b.BlockNumber.ToInt().Uint64())
+	client.GetBlockByBlockNumber(_blockNumber)
+	client.GetBlockSummaryByBlockNumber(_blockNumber)
 }
 
 func getBlocksByEpoch() {
