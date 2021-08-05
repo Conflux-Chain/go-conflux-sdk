@@ -1,9 +1,11 @@
 # Go-conflux-sdk Change Log
+## v1.0.13
+- Add API GetBlockSummaryByBlockNumber
 ## v1.0.12
 - Fix test for Marshal/UnMarshal Block
 ## v1.0.11
 - Add `blockNumber` to block related methods `cfx_getBlockByHash`, `cfx_getBlockByEpochNumber`, `cfx_getBlockByHashWithPivotAssumption` which need `Conflux-rust v1.1.5` or above.
-- Add new RPC method `cfx_getBlockByBlockNubmer`
+- Add new RPC method `cfx_getBlockByBlockNumber`
 - Refactor SubscribeLogs for avoiding lossing timing sequence of Chain-Reorg and Log
 - Add variadic arguments support for rpc service
 ## v1.0.10
