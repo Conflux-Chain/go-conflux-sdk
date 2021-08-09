@@ -49,9 +49,9 @@ type rlpEncodableBlockHeader struct {
 	Blame                 hexutil.Uint64
 	TransactionsRoot      Hash
 	EpochNumber           *big.Int
-	BlockNumber           *big.Int
+	BlockNumber           *rlpNilableBigInt `rlp:"nil"`
 	GasLimit              *big.Int
-	GasUsed               *big.Int
+	GasUsed               *rlpNilableBigInt `rlp:"nil"`
 	Timestamp             *big.Int
 	Difficulty            *big.Int
 	PowQuality            *big.Int
@@ -65,11 +65,33 @@ type rlpEncodableBlockHeader struct {
 // EncodeRLP implements the rlp.Encoder interface.
 func (bh BlockHeader) EncodeRLP(w io.Writer) error {
 	rbh := rlpEncodableBlockHeader{
-		bh.Hash, bh.ParentHash, bh.Height.ToInt(), bh.Miner, bh.DeferredStateRoot,
-		bh.DeferredReceiptsRoot, bh.DeferredLogsBloomHash, bh.Blame, bh.TransactionsRoot,
-		bh.EpochNumber.ToInt(), bh.BlockNumber.ToInt(), bh.GasLimit.ToInt(), bh.GasUsed.ToInt(),
-		bh.Timestamp.ToInt(), bh.Difficulty.ToInt(), bh.PowQuality.ToInt(), bh.RefereeHashes,
-		bh.Adaptive, bh.Nonce.ToInt(), bh.Size.ToInt(), bh.Custom,
+		Hash:                  bh.Hash,
+		ParentHash:            bh.ParentHash,
+		Height:                bh.Height.ToInt(),
+		Miner:                 bh.Miner,
+		DeferredStateRoot:     bh.DeferredStateRoot,
+		DeferredReceiptsRoot:  bh.DeferredReceiptsRoot,
+		DeferredLogsBloomHash: bh.DeferredLogsBloomHash,
+		Blame:                 bh.Blame,
+		TransactionsRoot:      bh.TransactionsRoot,
+		EpochNumber:           bh.EpochNumber.ToInt(),
+		GasLimit:              bh.GasLimit.ToInt(),
+		Timestamp:             bh.Timestamp.ToInt(),
+		Difficulty:            bh.Difficulty.ToInt(),
+		PowQuality:            bh.PowQuality.ToInt(),
+		RefereeHashes:         bh.RefereeHashes,
+		Adaptive:              bh.Adaptive,
+		Nonce:                 bh.Nonce.ToInt(),
+		Size:                  bh.Size.ToInt(),
+		Custom:                bh.Custom,
+	}
+
+	if bh.BlockNumber != nil {
+		rbh.BlockNumber = &rlpNilableBigInt{bh.BlockNumber.ToInt()}
+	}
+
+	if bh.GasUsed != nil {
+		rbh.GasUsed = &rlpNilableBigInt{bh.GasUsed.ToInt()}
 	}
 
 	return rlp.Encode(w, rbh)
@@ -87,12 +109,19 @@ func (bh *BlockHeader) DecodeRLP(r *rlp.Stream) error {
 	bh.DeferredReceiptsRoot, bh.DeferredLogsBloomHash = rbh.DeferredReceiptsRoot, rbh.DeferredLogsBloomHash
 	bh.Blame, bh.TransactionsRoot = rbh.Blame, rbh.TransactionsRoot
 	bh.EpochNumber = (*hexutil.Big)(rbh.EpochNumber)
-	bh.BlockNumber = (*hexutil.Big)(rbh.BlockNumber)
 	bh.GasLimit = (*hexutil.Big)(rbh.GasLimit)
-	bh.GasUsed, bh.Timestamp = (*hexutil.Big)(rbh.GasUsed), (*hexutil.Big)(rbh.Timestamp)
+	bh.Timestamp = (*hexutil.Big)(rbh.Timestamp)
 	bh.Difficulty, bh.PowQuality = (*hexutil.Big)(rbh.Difficulty), (*hexutil.Big)(rbh.PowQuality)
 	bh.RefereeHashes, bh.Adaptive = rbh.RefereeHashes, rbh.Adaptive
 	bh.Nonce, bh.Size, bh.Custom = (*hexutil.Big)(rbh.Nonce), (*hexutil.Big)(rbh.Size), rbh.Custom
+
+	if rbh.BlockNumber != nil {
+		bh.BlockNumber = (*hexutil.Big)(rbh.BlockNumber.Val)
+	}
+
+	if rbh.GasUsed != nil {
+		bh.GasUsed = (*hexutil.Big)(rbh.GasUsed.Val)
+	}
 
 	return nil
 }
