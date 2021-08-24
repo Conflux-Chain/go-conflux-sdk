@@ -129,6 +129,8 @@ func (l *LogFilter) UnmarshalJSON(data []byte) error {
 	type tmpLogFilter struct {
 		FromEpoch   *Epoch          `json:"fromEpoch,omitempty"`
 		ToEpoch     *Epoch          `json:"toEpoch,omitempty"`
+		FromBlock   *hexutil.Big    `json:"fromBlock,omitempty"`
+		ToBlock     *hexutil.Big    `json:"toBlock,omitempty"`
 		BlockHashes []Hash          `json:"blockHashes,omitempty"`
 		Address     interface{}     `json:"address,omitempty"`
 		Topics      []interface{}   `json:"topics,omitempty"`
@@ -143,6 +145,8 @@ func (l *LogFilter) UnmarshalJSON(data []byte) error {
 	var err error
 	l.FromEpoch = t.FromEpoch
 	l.ToEpoch = t.ToEpoch
+	l.FromBlock = t.FromBlock
+	l.ToBlock = t.ToBlock
 	l.BlockHashes = t.BlockHashes
 	l.Limit = t.Limit
 	if l.Address, err = resolveToAddresses(t.Address); err != nil {
