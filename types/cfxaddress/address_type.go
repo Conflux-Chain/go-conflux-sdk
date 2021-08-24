@@ -27,6 +27,10 @@ const (
 
 // CalcAddressType calculate address type of hexAddress
 func CalcAddressType(hexAddress []byte) (AddressType, error) {
+	if len(hexAddress) != 20 {
+		return "", errors.Errorf("address must be 20 bytes, but it's %x", hexAddress)
+	}
+
 	nullAddr, err := hex.DecodeString("0000000000000000000000000000000000000000")
 	if err != nil {
 		return "", err

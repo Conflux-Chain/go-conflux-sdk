@@ -133,10 +133,12 @@ func NewFromBase32(base32Str string) (cfxAddress Address, err error) {
 	actualChk := bodyWithChecksum[len(bodyWithChecksum)-8:]
 	if expectChk != actualChk {
 		err = errors.Errorf("invalid checksum, expect %v actual %v", expectChk, actualChk)
+		return
 	}
 
-	if err := cfxAddress.setCache(); err != nil {
+	if err = cfxAddress.setCache(); err != nil {
 		err = errors.Wrapf(err, "failed to set cache")
+		return
 	}
 
 	return
@@ -226,11 +228,13 @@ func MustNewFromBytes(hexAddress []byte, networkID ...uint32) (address Address) 
 
 // ToHex returns hex address and networkID
 func (a *Address) ToHex() (hexAddressStr string, networkID uint32) {
+	a.setToDefaultIfEmpty()
 	return "0x" + hex.EncodeToString(a.hex), a.networkID
 }
 
 // ToCommon returns common.Address and networkID
 func (a *Address) ToCommon() (address common.Address, networkID uint32, err error) {
+	a.setToDefaultIfEmpty()
 	if len(a.hex) > 42 {
 		err = errors.Errorf("could not convert %v to common address which length large than 42", a.hex)
 		return
@@ -241,22 +245,26 @@ func (a *Address) ToCommon() (address common.Address, networkID uint32, err erro
 
 // MustGetBase32Address returns base32 string of address which doesn't include address type
 func (a *Address) MustGetBase32Address() string {
+	a.setToDefaultIfEmpty()
 	return strings.ToLower(fmt.Sprintf("%v:%v%v", a.networkType, a.body, a.checksum))
 }
 
 // MustGetVerboseBase32Address returns base32 string of address with address type
 func (a *Address) MustGetVerboseBase32Address() string {
+	a.setToDefaultIfEmpty()
 	return strings.ToUpper(fmt.Sprintf("%v:%v:%v%v", a.networkType, a.addressType, a.body, a.checksum))
 }
 
 // GetHexAddress returns hex format address and panic if error
 func (a *Address) GetHexAddress() string {
+	a.setToDefaultIfEmpty()
 	addr, _ := a.ToHex()
 	return addr
 }
 
 // GetNetworkID returns networkID and panic if error
 func (a *Address) GetNetworkID() uint32 {
+	a.setToDefaultIfEmpty()
 	id, err := a.networkType.ToNetworkID()
 	utils.PanicIfErrf(err, "failed to get networkID of %v", a)
 	return id
@@ -271,21 +279,25 @@ func (a *Address) MustGetCommonAddress() common.Address {
 
 // GetNetworkType returns network type
 func (a *Address) GetNetworkType() NetworkType {
+	a.setToDefaultIfEmpty()
 	return a.networkType
 }
 
 // GetAddressType returuns address type
 func (a *Address) GetAddressType() AddressType {
+	a.setToDefaultIfEmpty()
 	return a.addressType
 }
 
 // GetBody returns body
 func (a *Address) GetBody() Body {
+	a.setToDefaultIfEmpty()
 	return a.body
 }
 
 // GetChecksum returns checksum
 func (a *Address) GetChecksum() Checksum {
+	a.setToDefaultIfEmpty()
 	return a.checksum
 }
 
@@ -372,14 +384,14 @@ func (a *Address) UnmarshalText(data []byte) error {
 
 // UnmarshalJSON implements the json.Unmarshaler interface.
 func (a *Address) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		return nil
+	}
+
 	var str string
 	err := json.Unmarshal(data, &str)
 	if err != nil {
 		return errors.Wrapf(err, "failed to unmarshal %x to string", data)
-	}
-
-	if str == "" {
-		return nil
 	}
 
 	addr, err := NewFromBase32(str)
@@ -411,6 +423,18 @@ func (a *Address) setCache() error {
 	}
 	a.networkID = networkID
 	return nil
+}
+
+func getDefaultAddress() *Address {
+	var zeroAddr common.Address
+	cfxaddr := MustNewFromBytes(zeroAddr.Bytes(), 0)
+	return &cfxaddr
+}
+
+func (a *Address) setToDefaultIfEmpty() {
+	if (reflect.DeepEqual(*a, Address{})) {
+		*a = *getDefaultAddress()
+	}
 }
 
 // networkIDGetter is a interface for obtaining networkID
