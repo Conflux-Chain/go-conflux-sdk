@@ -20,6 +20,8 @@ import (
 type LogFilter struct {
 	FromEpoch   *Epoch          `json:"fromEpoch,omitempty"`
 	ToEpoch     *Epoch          `json:"toEpoch,omitempty"`
+	FromBlock   *hexutil.Big    `json:"fromBlock,omitempty"`
+	ToBlock     *hexutil.Big    `json:"toBlock,omitempty"`
 	BlockHashes []Hash          `json:"blockHashes,omitempty"`
 	Address     []Address       `json:"address,omitempty"`
 	Topics      [][]Hash        `json:"topics,omitempty"`
