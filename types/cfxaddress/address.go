@@ -15,7 +15,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Address represents
+// Address represents base32 address accroding to CIP37
+// Use NewXXX or MustNewXXX to create an Address object and don't use Address{} which is an invalid address.
 type Address struct {
 	networkType NetworkType
 	addressType AddressType
