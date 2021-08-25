@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -80,17 +79,17 @@ func TestRLPMarshalSubscriptionLog(t *testing.T) {
 		err := json.Unmarshal([]byte(logJson), &log)
 		fatalIfErr(t, err)
 
-		fmt.Printf("log:%v\n", utils.PrettyJSON(log))
+		// fmt.Printf("log:%v\n", utils.PrettyJSON(log))
 		// RLP marshal log to bytes
 		dBytes, err := rlp.EncodeToBytes(log)
 		fatalIfErr(t, err)
 
-		fmt.Printf("log dBytes:%+x\n", dBytes)
+		// fmt.Printf("log dBytes:%+x\n", dBytes)
 		// RLP unmarshal bytes back to log
 		var log2 SubscriptionLog
 		err = rlp.DecodeBytes(dBytes, &log2)
 		fatalIfErr(t, err)
-		fmt.Printf("dlog :%+v\n", log2)
+		// fmt.Printf("dlog :%+v\n", log2)
 		// Json marshal log
 		jBytes1, err := json.Marshal(log)
 		fatalIfErr(t, err)

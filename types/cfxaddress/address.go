@@ -228,44 +228,42 @@ func MustNewFromBytes(hexAddress []byte, networkID ...uint32) (address Address) 
 
 // ToHex returns hex address and networkID
 func (a *Address) ToHex() (hexAddressStr string, networkID uint32) {
-	a.setToDefaultIfEmpty()
-	return "0x" + hex.EncodeToString(a.hex), a.networkID
+	validAddr := a.getDefaultIfEmpty()
+	return "0x" + hex.EncodeToString(validAddr.hex), validAddr.networkID
 }
 
 // ToCommon returns common.Address and networkID
 func (a *Address) ToCommon() (address common.Address, networkID uint32, err error) {
-	a.setToDefaultIfEmpty()
-	if len(a.hex) > 42 {
-		err = errors.Errorf("could not convert %v to common address which length large than 42", a.hex)
+	validAddr := a.getDefaultIfEmpty()
+	if len(validAddr.hex) > 42 {
+		err = errors.Errorf("could not convert %v to common address which length large than 42", validAddr.hex)
 		return
 	}
-	address = common.BytesToAddress(a.hex)
+	address = common.BytesToAddress(validAddr.hex)
 	return
 }
 
 // MustGetBase32Address returns base32 string of address which doesn't include address type
 func (a *Address) MustGetBase32Address() string {
-	a.setToDefaultIfEmpty()
-	return strings.ToLower(fmt.Sprintf("%v:%v%v", a.networkType, a.body, a.checksum))
+	validAddr := a.getDefaultIfEmpty()
+	return strings.ToLower(fmt.Sprintf("%v:%v%v", validAddr.networkType, validAddr.body, validAddr.checksum))
 }
 
 // MustGetVerboseBase32Address returns base32 string of address with address type
 func (a *Address) MustGetVerboseBase32Address() string {
-	a.setToDefaultIfEmpty()
-	return strings.ToUpper(fmt.Sprintf("%v:%v:%v%v", a.networkType, a.addressType, a.body, a.checksum))
+	validAddr := a.getDefaultIfEmpty()
+	return strings.ToUpper(fmt.Sprintf("%v:%v:%v%v", validAddr.networkType, validAddr.addressType, validAddr.body, a.checksum))
 }
 
 // GetHexAddress returns hex format address and panic if error
 func (a *Address) GetHexAddress() string {
-	a.setToDefaultIfEmpty()
-	addr, _ := a.ToHex()
+	addr, _ := a.getDefaultIfEmpty().ToHex()
 	return addr
 }
 
 // GetNetworkID returns networkID and panic if error
 func (a *Address) GetNetworkID() uint32 {
-	a.setToDefaultIfEmpty()
-	id, err := a.networkType.ToNetworkID()
+	id, err := a.getDefaultIfEmpty().networkType.ToNetworkID()
 	utils.PanicIfErrf(err, "failed to get networkID of %v", a)
 	return id
 }
@@ -279,26 +277,22 @@ func (a *Address) MustGetCommonAddress() common.Address {
 
 // GetNetworkType returns network type
 func (a *Address) GetNetworkType() NetworkType {
-	a.setToDefaultIfEmpty()
-	return a.networkType
+	return a.getDefaultIfEmpty().networkType
 }
 
 // GetAddressType returuns address type
 func (a *Address) GetAddressType() AddressType {
-	a.setToDefaultIfEmpty()
-	return a.addressType
+	return a.getDefaultIfEmpty().addressType
 }
 
 // GetBody returns body
 func (a *Address) GetBody() Body {
-	a.setToDefaultIfEmpty()
-	return a.body
+	return a.getDefaultIfEmpty().body
 }
 
 // GetChecksum returns checksum
 func (a *Address) GetChecksum() Checksum {
-	a.setToDefaultIfEmpty()
-	return a.checksum
+	return a.getDefaultIfEmpty().checksum
 }
 
 // CompleteByClient will set networkID by client.GetNetworkID() if a.networkID not be 0
@@ -425,16 +419,13 @@ func (a *Address) setCache() error {
 	return nil
 }
 
-func getDefaultAddress() *Address {
-	var zeroAddr common.Address
-	cfxaddr := MustNewFromBytes(zeroAddr.Bytes(), 0)
-	return &cfxaddr
-}
-
-func (a *Address) setToDefaultIfEmpty() {
+func (a *Address) getDefaultIfEmpty() *Address {
 	if (reflect.DeepEqual(*a, Address{})) {
-		*a = *getDefaultAddress()
+		var zeroAddr common.Address
+		cfxaddr := MustNewFromBytes(zeroAddr.Bytes(), 0)
+		return &cfxaddr
 	}
+	return a
 }
 
 // networkIDGetter is a interface for obtaining networkID

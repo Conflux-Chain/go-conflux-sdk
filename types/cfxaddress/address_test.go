@@ -174,6 +174,24 @@ func TestNewAddress(t *testing.T) {
 	}
 }
 
+func TestString(t *testing.T) {
+	table := []struct {
+		input  Address
+		output string
+	}{
+		{
+			input:  Address{},
+			output: "net0:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaay73ttx1z",
+		},
+	}
+
+	for _, v := range table {
+		if v.input.String() != v.output {
+			t.Fatalf("expect %v, got %v", v.output, v.input.String())
+		}
+	}
+}
+
 func verify(t *testing.T, hexAddressStr string, networkID uint32, base32Address string) {
 	cfxAddressFromHex, err := NewFromHex(hexAddressStr, networkID)
 	fatalIfErr(t, err)
