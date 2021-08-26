@@ -46,7 +46,7 @@ func CalcChecksum(nt NetworkType, body Body) (c Checksum, err error) {
 	template := [8]byte{}
 
 	checksumInput := append(lower5bitsNettype, separator)
-	checksumInput = append(checksumInput, payload5Bits...)
+	checksumInput = append(checksumInput, payload5Bits[:]...)
 	checksumInput = append(checksumInput, template[:]...)
 
 	// fmt.Printf("checksumInput:%x\n", checksumInput)

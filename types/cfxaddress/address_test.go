@@ -2,7 +2,6 @@ package cfxaddress
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -60,28 +59,92 @@ func TestRLPMarshalAddress(t *testing.T) {
 }
 
 func TestMarshalJSON(t *testing.T) {
-	cfxAddressFromHex, e := NewFromHex("1cdf3969a428a750b89b33cf93c96560e2bd17d1", 1029)
-	fatalIfErr(t, e)
-	j, e := json.Marshal(cfxAddressFromHex)
-	// encoding.TextMarshaler
-	fatalIfErr(t, e)
-	expect := "\"cfx:aasr8snkyuymsyf2xp369e8kpzusftj14ec1n0vxj1\""
-	if string(j) != expect {
-		t.Fatalf("expect %#v, actual %#v", expect, string(j))
+	cases := []struct {
+		input  Address
+		expect string
+		err    error
+	}{
+		{
+			input:  MustNewFromHex("1cdf3969a428a750b89b33cf93c96560e2bd17d1", 1029),
+			expect: "\"cfx:aasr8snkyuymsyf2xp369e8kpzusftj14ec1n0vxj1\"",
+			err:    nil,
+		},
+		{
+			input:  Address{},
+			expect: "\"net0:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaay73ttx1z\"",
+		},
+	}
+
+	for _, v := range cases {
+		j, e := json.Marshal(v.input)
+
+		if v.err != nil && v.err != e {
+			t.Fatalf("expect error %v, actual %v", v.err, e)
+		}
+
+		fatalIfErr(t, e)
+		if string(j) != v.expect {
+			t.Fatalf("expect %#v, actual %#v", v.expect, string(j))
+		}
 	}
 }
 
 func TestUnmarshalJSON(t *testing.T) {
-	fmt.Println("start")
-	var actual Address
-	err := json.Unmarshal([]byte("null"), &actual)
-	fatalIfErr(t, err)
-	err = json.Unmarshal([]byte("\"CFX:TYPE.USER:AASR8SNKYUYMSYF2XP369E8KPZUSFTJ14EC1N0VXJ1\""), &actual)
-	fatalIfErr(t, err)
-	expect, err := NewFromHex("1cdf3969a428a750b89b33cf93c96560e2bd17d1", 1029)
-	fatalIfErr(t, err)
-	if !reflect.DeepEqual(actual, expect) {
-		t.Fatalf("expect %#v, actual %#v", expect, actual)
+	marshaledToPtr := []struct {
+		input  string
+		expect *Address
+	}{
+		{
+			input:  "null",
+			expect: nil,
+		},
+		{
+			input:  "\"CFX:TYPE.USER:AASR8SNKYUYMSYF2XP369E8KPZUSFTJ14EC1N0VXJ1\"",
+			expect: GetAddressPtr(MustNewFromHex("1cdf3969a428a750b89b33cf93c96560e2bd17d1", 1029)),
+		},
+	}
+
+	for _, v := range marshaledToPtr {
+		var actual *Address = &Address{}
+		err := json.Unmarshal([]byte(v.input), &actual)
+		fatalIfErr(t, err)
+		if !reflect.DeepEqual(actual, v.expect) {
+			t.Fatalf("expect %#v, actual %#v", v.expect, actual)
+		}
+	}
+
+	marshaledToValue := []struct {
+		input  string
+		expect Address
+	}{
+		{
+			input:  "null",
+			expect: Address{},
+		},
+		{
+			input:  "\"CFX:TYPE.USER:AASR8SNKYUYMSYF2XP369E8KPZUSFTJ14EC1N0VXJ1\"",
+			expect: MustNewFromHex("1cdf3969a428a750b89b33cf93c96560e2bd17d1", 1029),
+		},
+	}
+	for _, v := range marshaledToValue {
+		var actual Address
+		err := json.Unmarshal([]byte(v.input), &actual)
+		fatalIfErr(t, err)
+		if !reflect.DeepEqual(actual, v.expect) {
+			t.Fatalf("expect %+v, actual %+v", v.expect, actual)
+		}
+	}
+
+	wrongs := []string{
+		"", "\"\"", "\"cfx:0x000000000\"",
+	}
+
+	for _, v := range wrongs {
+		var actual *Address
+		err := json.Unmarshal([]byte(v), &actual)
+		if err == nil {
+			t.Errorf("expect unmarshal %v error, bug get %v", v, actual)
+		}
 	}
 }
 
@@ -104,6 +167,29 @@ func TestNewAddress(t *testing.T) {
 	if !reflect.DeepEqual(addr, expect) {
 		t.Fatalf("expect %v, actual %v", expect, addr)
 	}
+
+	_, err = New("")
+	if err == nil {
+		t.Fatalf("expect error, actual %v", err)
+	}
+}
+
+func TestString(t *testing.T) {
+	table := []struct {
+		input  Address
+		output string
+	}{
+		{
+			input:  Address{},
+			output: "net0:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaay73ttx1z",
+		},
+	}
+
+	for _, v := range table {
+		if v.input.String() != v.output {
+			t.Fatalf("expect %v, got %v", v.output, v.input.String())
+		}
+	}
 }
 
 func verify(t *testing.T, hexAddressStr string, networkID uint32, base32Address string) {
@@ -123,4 +209,8 @@ func fatalIfErr(t *testing.T, err error) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func GetAddressPtr(addr Address) *Address {
+	return &addr
 }

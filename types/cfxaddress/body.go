@@ -4,6 +4,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+var (
+	ErrorBodyLen = errors.New("Body length must be 34")
+)
+
 /*
 Base32-encode address:
 To create the payload, first, concatenate the version-byte with addr to get a 21-byte array. Then, encode it left-to-right, mapping each 5-bit sequence to the corresponding ASCII character (see alphabet below). Pad to the right with zero bits to complete any unfinished chunk at the end. In our case, 21-byte payload + 2 bit 0-padding will result in a 34-byte base32-encoded string.
@@ -21,17 +25,22 @@ We use the following alphabet: abcdefghjkmnprstuvwxyz0123456789 (i, l, o, q remo
 */
 
 // Body reperents 5bits byte array of concating version byte with hex address
-type Body []byte
+type Body [34]byte
 
 // NewBodyByString creates body by base32 string which contains version byte and hex address
 func NewBodyByString(base32Str string) (body Body, err error) {
-	for _, v := range base32Str {
+	if len(base32Str) != 34 {
+		return body, ErrorBodyLen
+	}
+
+	for i, v := range base32Str {
 		index, ok := alphabetToIndexMap[v]
 		if !ok {
 			err = errors.New("invalid base32 string for body")
 		}
-		body = append(body, index)
+		body[i] = index
 	}
+
 	return
 }
 
@@ -48,17 +57,19 @@ func NewBodyByHexAddress(vrsByte VersionByte, hexAddress []byte) (b Body, err er
 		err = errors.Wrapf(err, "failed to convert %x from 8 to 5 bits array", concatenate)
 		return
 	}
-	b = bits5
+	// b = bits5
+	copy(b[:], bits5[:])
 	return
 }
 
 // ToHexAddress decode bits5 array to version byte and hex address
 func (b Body) ToHexAddress() (vrsType VersionByte, hexAddress []byte, err error) {
-	if len(b) == 0 {
-		err = errors.New("invalid base32 body")
+	if len(b) != 34 {
+		err = errors.New("invalid base32 body, body need be 34 bytes")
+		return
 	}
 
-	val, err := convert(b, 5, 8)
+	val, err := convert(b[:], 5, 8)
 	vrsType = NewVersionByte(val[0])
 	hexAddress = val[1:]
 	return
@@ -66,5 +77,5 @@ func (b Body) ToHexAddress() (vrsType VersionByte, hexAddress []byte, err error)
 
 // String return base32 string
 func (b Body) String() string {
-	return bits5sToString(b)
+	return bits5sToString(b[:])
 }
