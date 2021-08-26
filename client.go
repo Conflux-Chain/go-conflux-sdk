@@ -908,13 +908,56 @@ func (client *Client) BatchGetBlockSummarys(blockhashes []types.Hash) (map[types
 
 	for _, bh := range blockhashes {
 		be := cache[bh]
-		if reflect.DeepEqual(be.Result, types.Transaction{}) {
-			hashToBlocksummaryMap[bh] = nil
+		if reflect.DeepEqual(be.Result, &types.BlockSummary{}) {
+			delete(hashToBlocksummaryMap, bh)
 			continue
 		}
 		hashToBlocksummaryMap[bh] = be.Result.(*types.BlockSummary)
 	}
 	return hashToBlocksummaryMap, nil
+}
+
+// BatchGetBlockSummarysByNumber requests block summary informations in bulk by blocknumbers
+func (client *Client) BatchGetBlockSummarysByNumber(blocknumbers []hexutil.Uint64) (map[hexutil.Uint64]*types.BlockSummary, error) {
+
+	if len(blocknumbers) == 0 {
+		return make(map[hexutil.Uint64]*types.BlockSummary), nil
+	}
+
+	cache := make(map[hexutil.Uint64]*rpc.BatchElem)
+
+	for i := range blocknumbers {
+		if cache[blocknumbers[i]] == nil {
+			be := rpc.BatchElem{
+				Method: "cfx_getBlockByBlockNumber",
+				Args:   []interface{}{blocknumbers[i], false},
+				Result: &types.BlockSummary{},
+			}
+			cache[blocknumbers[i]] = &be
+		}
+	}
+
+	// generate bes
+	bes := make([]rpc.BatchElem, 0, len(cache))
+	for _, v := range cache {
+		bes = append(bes, *v)
+	}
+
+	if err := client.BatchCallRPC(bes); err != nil {
+		return nil, err
+	}
+
+	numberToBlocksummaryMap := make(map[hexutil.Uint64]*types.BlockSummary)
+
+	for _, bn := range blocknumbers {
+		be := cache[bn]
+		if reflect.DeepEqual(be.Result, &types.BlockSummary{}) {
+			delete(numberToBlocksummaryMap, bn)
+			continue
+		}
+		numberToBlocksummaryMap[bn] = be.Result.(*types.BlockSummary)
+	}
+	return numberToBlocksummaryMap, nil
 }
 
 // BatchGetRawBlockConfirmationRisk requests raw confirmation risk informations in bulk by blockhashes
