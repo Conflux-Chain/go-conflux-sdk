@@ -134,6 +134,7 @@ func (l *LogFilter) UnmarshalJSON(data []byte) error {
 		BlockHashes []Hash          `json:"blockHashes,omitempty"`
 		Address     interface{}     `json:"address,omitempty"`
 		Topics      []interface{}   `json:"topics,omitempty"`
+		Offset      *hexutil.Uint64 `json:"offset,omitempty"`
 		Limit       *hexutil.Uint64 `json:"limit,omitempty"`
 	}
 
@@ -148,6 +149,7 @@ func (l *LogFilter) UnmarshalJSON(data []byte) error {
 	l.FromBlock = t.FromBlock
 	l.ToBlock = t.ToBlock
 	l.BlockHashes = t.BlockHashes
+	l.Offset = t.Offset
 	l.Limit = t.Limit
 	if l.Address, err = resolveToAddresses(t.Address); err != nil {
 		return err
