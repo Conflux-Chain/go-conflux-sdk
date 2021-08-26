@@ -686,6 +686,21 @@ func (mr *MockClientOperatorMockRecorder) BatchGetBlockSummarys(blockhashes inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchGetBlockSummarys", reflect.TypeOf((*MockClientOperator)(nil).BatchGetBlockSummarys), blockhashes)
 }
 
+// BatchGetBlockSummarysByNumber mocks base method
+func (m *MockClientOperator) BatchGetBlockSummarysByNumber(blocknumbers []hexutil.Uint64) (map[hexutil.Uint64]*types.BlockSummary, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BatchGetBlockSummarysByNumber", blocknumbers)
+	ret0, _ := ret[0].(map[hexutil.Uint64]*types.BlockSummary)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BatchGetBlockSummarysByNumber indicates an expected call of BatchGetBlockSummarysByNumber
+func (mr *MockClientOperatorMockRecorder) BatchGetBlockSummarysByNumber(blocknumbers interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchGetBlockSummarysByNumber", reflect.TypeOf((*MockClientOperator)(nil).BatchGetBlockSummarysByNumber), blocknumbers)
+}
+
 // GetNodeURL mocks base method
 func (m *MockClientOperator) GetNodeURL() string {
 	m.ctrl.T.Helper()
