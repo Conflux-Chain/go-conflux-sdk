@@ -254,6 +254,14 @@ func (client *Client) BatchGetBlockSummarys(blockhashes []types.Hash) (map[types
 ```
 BatchGetBlockSummarys requests block summary informations in bulk by blockhashes
 
+#### func (*Client) BatchGetBlockSummarysByNumber
+
+```go
+func (client *Client) BatchGetBlockSummarysByNumber(blocknumbers []hexutil.Uint64) (map[hexutil.Uint64]*types.BlockSummary, error)
+
+```
+BatchGetBlockSummarysByNumber requests block summary informations in bulk by blocknumbers
+
 #### func (*Client) BatchGetRawBlockConfirmationRisk
 
 ```go
