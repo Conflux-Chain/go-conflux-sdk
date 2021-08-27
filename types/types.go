@@ -5,6 +5,7 @@
 package types
 
 import (
+	"encoding/json"
 	"math/big"
 
 	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
@@ -26,6 +27,15 @@ func (hash Hash) ToCommonHash() *common.Hash {
 // String implements the interface stringer
 func (hash Hash) String() string {
 	return string(hash)
+}
+
+func (hash *Hash) UnmarshalJSON(input []byte) error {
+	var h common.Hash
+	if err := json.Unmarshal(input, &h); err != nil {
+		return err
+	}
+	*hash = Hash(h.String())
+	return nil
 }
 
 // Bloom is a hash type with 256 bytes.
