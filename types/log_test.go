@@ -16,8 +16,8 @@ var (
 		"fromEpoch": "0x1",
 		"toEpoch": "0x2",
 		"blockHashes": [
-			"0x1",
-			"0x2"
+			"0x0b50338ca31401a6ccb81a799b4c774ce86af93c1b740c52d12958e35461d999",
+			"0x0b50338ca31401a6ccb81a799b4c774ce86af93c1b740c52d12958e35461d99a"
 		],
 		"address": [],
 		"topics": [],
@@ -28,7 +28,7 @@ var (
 	expectTemplate = LogFilter{
 		FromEpoch:   NewEpochNumberUint64(0x1),
 		ToEpoch:     NewEpochNumberUint64(0x2),
-		BlockHashes: []Hash{"0x1", "0x2"},
+		BlockHashes: []Hash{"0x0b50338ca31401a6ccb81a799b4c774ce86af93c1b740c52d12958e35461d999", "0x0b50338ca31401a6ccb81a799b4c774ce86af93c1b740c52d12958e35461d99a"},
 		Address:     []Address{},
 		Topics: [][]Hash{
 			{"0xA"},
@@ -106,13 +106,15 @@ func TestRLPMarshalSubscriptionLog(t *testing.T) {
 }
 
 func TestUnmarshalJSONToLogFilter(t *testing.T) {
-	verifyLogFilter(t, `"address": null`,
+	verifyLogFilter(t,
+		`"address": null`,
 		`"topics": null`,
 		nil,
 		nil,
 	)
 
-	verifyLogFilter(t, `"address": ["cfx:acc7uawf5ubtnmezvhu9dhc6sghea0403y2dgpyfjp","cfx:aaejuaaaaaaaaaaaaaaaaaaaaaaaaaaaajrwuc9jnb"]`,
+	verifyLogFilter(t,
+		`"address": ["cfx:acc7uawf5ubtnmezvhu9dhc6sghea0403y2dgpyfjp","cfx:aaejuaaaaaaaaaaaaaaaaaaaaaaaaaaaajrwuc9jnb"]`,
 		`"topics": ["0xA",null,["0xB","0xC"],null]`,
 		[]Address{cfxaddress.MustNewFromBase32("cfx:acc7uawf5ubtnmezvhu9dhc6sghea0403y2dgpyfjp"),
 			cfxaddress.MustNewFromBase32("cfx:aaejuaaaaaaaaaaaaaaaaaaaaaaaaaaaajrwuc9jnb")},
@@ -124,7 +126,8 @@ func TestUnmarshalJSONToLogFilter(t *testing.T) {
 		},
 	)
 
-	verifyLogFilter(t, `"address": "cfx:acc7uawf5ubtnmezvhu9dhc6sghea0403y2dgpyfjp"`,
+	verifyLogFilter(t,
+		`"address": "cfx:acc7uawf5ubtnmezvhu9dhc6sghea0403y2dgpyfjp"`,
 		`"topics": ["0xA",null,["0xB","0xC"],null]`,
 		[]Address{cfxaddress.MustNewFromBase32("cfx:acc7uawf5ubtnmezvhu9dhc6sghea0403y2dgpyfjp")},
 		[][]Hash{
@@ -135,7 +138,8 @@ func TestUnmarshalJSONToLogFilter(t *testing.T) {
 		},
 	)
 
-	verifyLogFilter(t, `"address": "cfx:acc7uawf5ubtnmezvhu9dhc6sghea0403y2dgpyfjp"`,
+	verifyLogFilter(t,
+		`"address": "cfx:acc7uawf5ubtnmezvhu9dhc6sghea0403y2dgpyfjp"`,
 		`"topics": ["0xA",null,"0xB",null]`,
 		[]Address{cfxaddress.MustNewFromBase32("cfx:acc7uawf5ubtnmezvhu9dhc6sghea0403y2dgpyfjp")},
 		[][]Hash{
@@ -146,7 +150,8 @@ func TestUnmarshalJSONToLogFilter(t *testing.T) {
 		},
 	)
 
-	verifyLogFilter(t, `"address": "cfx:acc7uawf5ubtnmezvhu9dhc6sghea0403y2dgpyfjp"`,
+	verifyLogFilter(t,
+		`"address": "cfx:acc7uawf5ubtnmezvhu9dhc6sghea0403y2dgpyfjp"`,
 		`"topics": ["0xA"]`,
 		[]Address{cfxaddress.MustNewFromBase32("cfx:acc7uawf5ubtnmezvhu9dhc6sghea0403y2dgpyfjp")},
 		[][]Hash{
