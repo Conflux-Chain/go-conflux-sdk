@@ -9,8 +9,9 @@ import (
 	"runtime"
 	"time"
 
-	sdk "github.com/Conflux-Chain/go-conflux-sdk"
+	"github.com/Conflux-Chain/go-conflux-sdk/contracts"
 	"github.com/Conflux-Chain/go-conflux-sdk/example/context"
+	"github.com/Conflux-Chain/go-conflux-sdk/interfaces"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -24,7 +25,7 @@ func main() {
 	fmt.Println("start deploy contract...")
 	abiPath := path.Join(currentDir, "./contract/erc20.abi")
 	bytecodePath := path.Join(currentDir, "./contract/erc20.bytecode")
-	var contract *sdk.Contract
+	var contract interfaces.Contractor
 
 	abi, err := ioutil.ReadFile(abiPath)
 	if err != nil {
@@ -41,13 +42,13 @@ func main() {
 		panic(err)
 	}
 
-	result := client.DeployContract(nil, abi, bytecode, big.NewInt(100000), "biu", uint8(10), "BIU")
-	_ = <-result.DoneChannel
+	result := contracts.DeployContract(client, nil, abi, bytecode, big.NewInt(100000), "biu", uint8(10), "BIU")
+	<-result.DoneChannel
 	if result.Error != nil {
 		panic(result.Error)
 	}
 	contract = result.DeployedContract
-	fmt.Printf("deploy contract by client.DeployContract done\ncontract address: %+v\ntxhash:%v\n\n", contract.Address, result.TransactionHash)
+	fmt.Printf("deploy contract by client.DeployContract done\ncontract address: %+v\ntxhash:%v\n\n", contract.Address(), result.TransactionHash)
 
 	time.Sleep(10 * time.Second)
 
@@ -59,7 +60,7 @@ func main() {
 	// }
 
 	//get data for send/call contract method
-	chainID, err := contract.Client.GetNetworkID()
+	chainID, err := contract.GetRpcCaller().GetNetworkID()
 	context.PanicIfErrf(err, "failed to get chainID")
 	user := cfxaddress.MustNewFromHex("0x19f4bcf113e0b896d9b34294fd3da86b4adf0302", chainID)
 	data, err := contract.GetData("balanceOf", user.MustGetCommonAddress())
@@ -114,7 +115,7 @@ func main() {
 	time.Sleep(10 * time.Second)
 
 	//get event log and decode it
-	receipt, err := client.GetTransactionReceipt(txhash)
+	receipt, err := client.Cfx().GetTransactionReceipt(txhash)
 	if err != nil {
 		panic(err)
 	}

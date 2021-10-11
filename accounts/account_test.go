@@ -1,15 +1,16 @@
-package sdk
+package accounts
 
 import (
 	"reflect"
 	"testing"
 
+	"github.com/Conflux-Chain/go-conflux-sdk/interfaces"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/accounts"
 )
 
 func TestGetAccountMatchAddress(t *testing.T) {
-	am := NewAccountManager("./tmp/keystore", 1)
+	am := NewKeystoreWallet("./tmp/keystore", 1)
 	testNum := 10
 
 	accounts := []accounts.Account{}
@@ -39,4 +40,9 @@ func TestGetAccountMatchAddress(t *testing.T) {
 	if err == nil {
 		t.Fatalf("expect <not found> error, actual %v", account.Address)
 	}
+}
+
+func TestInterfaceImpl(test *testing.T) {
+	h := NewKeystoreWallet("./tmp/keystore", 1)
+	var _ interfaces.Wallet = h
 }

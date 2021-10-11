@@ -2,10 +2,14 @@
 // Conflux is free software and distributed under GNU General Public License.
 // See http://www.gnu.org/licenses/
 
-package sdk
+package contracts
 
 import (
+	"time"
+
+	"github.com/Conflux-Chain/go-conflux-sdk/interfaces"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	cfxerrors "github.com/Conflux-Chain/go-conflux-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -17,26 +21,129 @@ import (
 // Contract represents a smart contract.
 // You can conveniently create contract by Client.GetContract or Client.DeployContract.
 type Contract struct {
-	ABI     abi.ABI
-	Client  ClientOperator
-	Address *types.Address
-}
-
-// ContractDeployResult for state change notification when deploying contract
-type ContractDeployResult struct {
-	//DoneChannel channel for notifying when contract deployed done
-	DoneChannel      <-chan struct{}
-	TransactionHash  *types.Hash
-	Error            error
-	DeployedContract *Contract
+	client   interfaces.SignableRpcCaller
+	abi      abi.ABI
+	bytecode []byte
+	address  *types.Address
 }
 
 // NewContract creates contract by abi and deployed address
-func NewContract(abiJSON []byte, client ClientOperator, address *types.Address) (*Contract, error) {
-	if client == nil {
-		client = (*Client)(nil)
+func NewContract(clientHelper interfaces.SignableRpcCaller, abiJSON []byte, address *types.Address) (*Contract, error) {
+	if clientHelper == nil {
+		return nil, errors.New("client is nessary")
 	}
-	return client.GetContract(abiJSON, address)
+
+	var abi abi.ABI
+	err := abi.UnmarshalJSON([]byte(abiJSON))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed unmarshal ABI")
+	}
+
+	contract := &Contract{clientHelper, abi, nil, address}
+	return contract, nil
+}
+
+// DeployContract deploys a contract by abiJSON, bytecode and consturctor params.
+// It returns a ContractDeployState instance which contains 3 channels for notifying when state changed.
+func DeployContract(client interfaces.SignableRpcCaller, option *types.ContractDeployOption, abiJSON []byte,
+	bytecode []byte, constroctorParams ...interface{}) *interfaces.ContractDeployResult {
+
+	doneChan := make(chan struct{})
+	result := interfaces.ContractDeployResult{DoneChannel: doneChan}
+
+	go func() {
+
+		defer func() {
+			doneChan <- struct{}{}
+			close(doneChan)
+		}()
+
+		//generate ABI
+		var abi abi.ABI
+		err := abi.UnmarshalJSON([]byte(abiJSON))
+		if err != nil {
+			result.Error = errors.Errorf("failed to unmarshal ABI: %+v", abiJSON)
+			return
+		}
+
+		tx := new(types.UnsignedTransaction)
+		if option != nil {
+			tx.UnsignedTransactionBase = types.UnsignedTransactionBase(option.UnsignedTransactionBase)
+		}
+
+		//recreate contract bytecode with consturctor params
+		if len(constroctorParams) > 0 {
+			input, err := abi.Pack("", constroctorParams...)
+			if err != nil {
+				result.Error = errors.Wrapf(err, "failed to encode constructor with args %+v", constroctorParams)
+				return
+			}
+
+			bytecode = append(bytecode, input...)
+		}
+		tx.Data = bytecode
+
+		//deploy contract
+		txhash, err := client.SignTransactionAndSend(*tx)
+		if err != nil {
+			result.Error = errors.Wrapf(err, "failed to send transaction, tx = %+v", tx)
+			return
+		}
+		result.TransactionHash = &txhash
+
+		// timeout := time.After(time.Duration(_timeoutIns) * time.Second)
+		timeout := time.After(3600 * time.Second)
+		if option != nil && option.Timeout != 0 {
+			timeout = time.After(option.Timeout)
+		}
+
+		ticker := time.Tick(2000 * time.Millisecond)
+		// Keep trying until we're time out or get a result or get an error
+		for {
+			select {
+			// Got a timeout! fail with a timeout error
+			case t := <-timeout:
+				result.Error = errors.Errorf("deploy contract timeout, time = %v, txhash = %v", t, txhash)
+				return
+			// Got a tick
+			case <-ticker:
+				txReceipt, err := client.Cfx().GetTransactionReceipt(txhash)
+				if err != nil {
+					result.Error = errors.Wrapf(err, "failed to get transaction receipt by hash %v", txhash)
+					return
+				}
+
+				if txReceipt == nil {
+					continue
+				}
+
+				if txReceipt.OutcomeStatus == 1 {
+					result.Error = errors.Errorf("transaction execution failed, reason %v, hash = %v", txReceipt.TxExecErrorMsg, txhash)
+					return
+				}
+
+				result.DeployedContract = &Contract{client, abi, bytecode, txReceipt.ContractCreated}
+				return
+			}
+		}
+	}()
+	return &result
+}
+
+func (contract *Contract) ABI() abi.ABI {
+	return contract.abi
+}
+
+func (contract *Contract) Address() *types.Address {
+	return contract.address
+}
+
+func (contract *Contract) Bytecode() []byte {
+	return contract.bytecode
+}
+
+func (contract *Contract) GetRpcCaller() interfaces.SignableRpcCaller {
+	return contract.client
 }
 
 // GetData packs the given method name to conform the ABI of the contract. Method call's data
@@ -48,7 +155,7 @@ func NewContract(abiJSON []byte, client ClientOperator, address *types.Address) 
 // please refer https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/README.md to
 // get the mappings of solidity types to go types
 func (contract *Contract) GetData(method string, args ...interface{}) ([]byte, error) {
-	packed, err := contract.ABI.Pack(method, args...)
+	packed, err := contract.abi.Pack(method, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +178,7 @@ func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr
 	}
 
 	callRequest := new(types.CallRequest)
-	callRequest.To = contract.Address
+	callRequest.To = contract.address
 	hexData := hexutil.Bytes(data).String()
 	callRequest.Data = &hexData
 	callRequest.FillByCallOption(option)
@@ -81,7 +188,7 @@ func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr
 		epoch = option.Epoch
 	}
 	// fmt.Printf("data: %x,hexdata:%v,callRequest.Data:%v\n", data, hexData, *callRequest.Data)
-	resultHexStr, err := contract.Client.Call(*callRequest, epoch)
+	resultHexStr, err := contract.client.Cfx().Call(*callRequest, epoch)
 	if err != nil {
 		return errors.Wrapf(err, "failed to call %+v at epoch %v", *callRequest, epoch)
 	}
@@ -92,7 +199,7 @@ func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr
 
 	bytes := []byte(resultHexStr)
 
-	err = contract.ABI.UnpackIntoInterface(resultPtr, method, bytes)
+	err = contract.abi.UnpackIntoInterface(resultPtr, method, bytes)
 	if err != nil {
 		return errors.Wrapf(err, "failed to decode call result, encoded data = %v", resultHexStr)
 	}
@@ -115,15 +222,15 @@ func (contract *Contract) SendTransaction(option *types.ContractMethodSendOption
 	if option != nil {
 		tx.UnsignedTransactionBase = types.UnsignedTransactionBase(*option)
 	}
-	tx.To = contract.Address
+	tx.To = contract.address
 	tx.Data = data
 
-	err = contract.Client.ApplyUnsignedTransactionDefault(tx)
+	err = contract.client.PopulateTransaction(tx)
 	if err != nil {
-		return "", errors.Wrap(err, errMsgApplyTxValues)
+		return "", errors.Wrap(err, cfxerrors.ErrMsgApplyTxValues)
 	}
 
-	txhash, err := contract.Client.SendTransaction(*tx)
+	txhash, err := contract.client.SignTransactionAndSend(*tx)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to send transaction %+v", tx)
 	}
@@ -146,15 +253,15 @@ func (contract *Contract) DecodeEvent(out interface{}, event string, log types.L
 	// fmt.Printf("elog: %+v\n", eLog)
 
 	addressPtr := new(common.Address)
-	if contract.Address != nil {
+	if contract.address != nil {
 		var err error
-		*addressPtr, _, err = contract.Address.ToCommon()
+		*addressPtr, _, err = contract.address.ToCommon()
 		if err != nil {
 			return errors.Wrap(err, "failed to parse contract address to hex address")
 		}
 	}
 
-	boundContract := bind.NewBoundContract(*addressPtr, contract.ABI, nil, nil, nil)
+	boundContract := bind.NewBoundContract(*addressPtr, contract.abi, nil, nil, nil)
 	err := boundContract.UnpackLog(out, event, eLog)
 	if err != nil {
 		return errors.Wrapf(err, "failed to unpack log")

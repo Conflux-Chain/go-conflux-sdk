@@ -8,6 +8,8 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 )
 
+const ErrMsgApplyTxValues = "failed to apply default transaction values"
+
 // AccountNotFoundError represents error of account not found.
 type AccountNotFoundError struct {
 	Account types.Address
