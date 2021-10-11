@@ -382,7 +382,7 @@ func (mr *MockClientOperatorMockRecorder) SendTransaction(tx interface{}) *gomoc
 }
 
 // SetAccountManager mocks base method
-func (m *MockClientOperator) SetAccountManager(accountManager AccountManagerOperator) {
+func (m *MockClientOperator) SetAccountManager(accountManager Wallet) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetAccountManager", accountManager)
 }
@@ -546,18 +546,18 @@ func (mr *MockClientOperatorMockRecorder) CreateUnsignedTransaction(from, to, am
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUnsignedTransaction", reflect.TypeOf((*MockClientOperator)(nil).CreateUnsignedTransaction), from, to, amount, data)
 }
 
-// ApplyUnsignedTransactionDefault mocks base method
-func (m *MockClientOperator) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) error {
+// PopulateTransaction mocks base method
+func (m *MockClientOperator) PopulateTransaction(tx *types.UnsignedTransaction) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ApplyUnsignedTransactionDefault", tx)
+	ret := m.ctrl.Call(m, "PopulateTransaction", tx)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// ApplyUnsignedTransactionDefault indicates an expected call of ApplyUnsignedTransactionDefault
-func (mr *MockClientOperatorMockRecorder) ApplyUnsignedTransactionDefault(tx interface{}) *gomock.Call {
+// PopulateTransaction indicates an expected call of PopulateTransaction
+func (mr *MockClientOperatorMockRecorder) PopulateTransaction(tx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyUnsignedTransactionDefault", reflect.TypeOf((*MockClientOperator)(nil).ApplyUnsignedTransactionDefault), tx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PopulateTransaction", reflect.TypeOf((*MockClientOperator)(nil).PopulateTransaction), tx)
 }
 
 // Debug mocks base method
@@ -593,10 +593,10 @@ func (mr *MockClientOperatorMockRecorder) Close() *gomock.Call {
 }
 
 // GetContract mocks base method
-func (m *MockClientOperator) GetContract(abiJSON []byte, deployedAt *types.Address) (*Contract, error) {
+func (m *MockClientOperator) GetContract(abiJSON []byte, deployedAt *types.Address) (Contractor, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContract", abiJSON, deployedAt)
-	ret0, _ := ret[0].(*Contract)
+	ret0, _ := ret[0].(Contractor)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

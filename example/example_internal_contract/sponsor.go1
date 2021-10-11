@@ -17,14 +17,14 @@ func testSponsor() {
 	context.PanicIfErrf(err, "failed to new sponsor")
 	// new erc20 contract
 	contract := context.DeployNewErc20()
-	contractAddr := *contract.Address
+	contractAddr := *contract.Address()
 	time.Sleep(time.Second * 5)
 
 	// SetSponsorForGas
 	txhash, err := sponsor.SetSponsorForGas(&types.ContractMethodSendOption{
 		Value: types.NewBigInt(2e18),
 		Nonce: context.GetNextNonceAndIncrease(),
-	}, *contract.Address, big.NewInt(1e9))
+	}, *contract.Address(), big.NewInt(1e9))
 	context.PanicIfErrf(err, "SetSponsorForGas panic")
 	receipt, err := client.WaitForTransationReceipt(txhash, time.Second)
 	fmt.Printf("SetSponsorForGas is success?%v\n", receipt.OutcomeStatus == hexutil.Uint64(0))
@@ -48,7 +48,7 @@ func testSponsor() {
 	txhash, err = sponsor.SetSponsorForCollateral(&types.ContractMethodSendOption{
 		Value: types.NewBigInt(2e18),
 		Nonce: context.GetNextNonceAndIncrease(),
-	}, *contract.Address)
+	}, *contract.Address())
 	context.PanicIfErrf(err, "SetSponsorForCollateral panic")
 	receipt, err = client.WaitForTransationReceipt(txhash, time.Second)
 	fmt.Printf("SetSponsorForCollateral is success? %v\n", receipt.OutcomeStatus == hexutil.Uint64(0))
@@ -66,7 +66,7 @@ func testSponsor() {
 	// AddPrivilegeByAdmin
 	txhash, err = sponsor.AddPrivilegeByAdmin(&types.ContractMethodSendOption{
 		Nonce: context.GetNextNonceAndIncrease()},
-		*contract.Address, []types.Address{cfxaddress.MustNewFromHex("0x15294fd6b3452e657ac2424391d08250340970d4"), cfxaddress.MustNewFromHex("0x1cfa93e2e549c27a84b2121c2da532e18353ec5b")})
+		*contract.Address(), []types.Address{cfxaddress.MustNewFromHex("0x15294fd6b3452e657ac2424391d08250340970d4"), cfxaddress.MustNewFromHex("0x1cfa93e2e549c27a84b2121c2da532e18353ec5b")})
 	context.PanicIfErrf(err, "AddPrivilegeByAdmin panic")
 	receipt, err = client.WaitForTransationReceipt(txhash, time.Second)
 	fmt.Printf("AddPrivilegeByAdmin is success? %v\n", receipt.OutcomeStatus == hexutil.Uint64(0))
@@ -84,7 +84,7 @@ func testSponsor() {
 	// RemovePrivilegeByAdmin
 	txhash, err = sponsor.RemovePrivilegeByAdmin(&types.ContractMethodSendOption{
 		Nonce: context.GetNextNonceAndIncrease()},
-		*contract.Address, []types.Address{cfxaddress.MustNewFromHex("0x15294fd6b3452e657ac2424391d08250340970d4")})
+		*contract.Address(), []types.Address{cfxaddress.MustNewFromHex("0x15294fd6b3452e657ac2424391d08250340970d4")})
 	context.PanicIfErrf(err, "RemovePrivilegeByAdmin panic")
 
 	receipt, err = client.WaitForTransationReceipt(txhash, time.Second)

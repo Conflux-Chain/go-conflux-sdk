@@ -10,7 +10,7 @@ import (
 var (
 	client         *sdk.Client
 	config         *exampletypes.Config
-	accountManger  sdk.AccountManagerOperator
+	accountManger  sdk.Wallet
 	defaultAccount *types.Address
 )
 

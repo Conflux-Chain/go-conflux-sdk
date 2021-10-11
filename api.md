@@ -215,12 +215,12 @@ func NewClientWithRPCRequester(rpcRequester RpcRequester) (*Client, error)
 ```
 NewClientWithRPCRequester creates client with specified rpcRequester
 
-#### func (*Client) ApplyUnsignedTransactionDefault
+#### func (*Client) PopulateTransaction
 
 ```go
-func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) error
+func (client *Client) PopulateTransaction(tx *types.UnsignedTransaction) error
 ```
-ApplyUnsignedTransactionDefault set empty fields to value fetched from conflux
+PopulateTransaction set empty fields to value fetched from conflux
 node.
 
 #### func (*Client) BatchCallRPC

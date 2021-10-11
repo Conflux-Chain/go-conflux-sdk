@@ -6,13 +6,13 @@ import (
 	"io/ioutil"
 	"os"
 
-	sdk "github.com/Conflux-Chain/go-conflux-sdk"
+	"github.com/Conflux-Chain/go-conflux-sdk/accounts"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 )
 
-var am *sdk.AccountManager
+var am *accounts.KeystoreWallet
 
 func init() {
 	initAccountManager()
@@ -30,9 +30,9 @@ func main() {
 	decodeRawTx()
 }
 
-func initAccountManager() *sdk.AccountManager {
+func initAccountManager() *accounts.KeystoreWallet {
 	keydir := "./keystore"
-	am = sdk.NewAccountManager(keydir, 1)
+	am = accounts.NewKeystoreWallet(keydir, 1)
 	return am
 }
 
@@ -108,7 +108,7 @@ func signTx() []byte {
 		To: &to,
 	}
 
-	signedTx, err := am.SignAndEcodeTransactionWithPassphrase(unSignedTx, "hello")
+	signedTx, err := am.SignTransactionWithPassphraseAndEcode(unSignedTx, "hello")
 	if err != nil {
 		fmt.Printf("signed tx %+v error:%v\n\n", unSignedTx, err)
 		return nil

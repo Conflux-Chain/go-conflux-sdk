@@ -6,6 +6,7 @@ import (
 	"time"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
+	"github.com/Conflux-Chain/go-conflux-sdk/cfxclient"
 	"github.com/Conflux-Chain/go-conflux-sdk/example/context"
 	exampletypes "github.com/Conflux-Chain/go-conflux-sdk/example/context/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/middleware"
@@ -18,8 +19,8 @@ import (
 )
 
 var (
-	am     sdk.AccountManagerOperator
-	client *sdk.Client
+	am     sdk.Wallet
+	client cfxclient.SignableClient
 	// retryClient    *sdk.Client
 	config         *exampletypes.Config
 	epochs         []*types.Epoch
@@ -48,15 +49,15 @@ func main() {
 	config.GetRetryClient().UseBatchCallRpcMiddleware(middleware.BatchCallRpcConsoleMiddleware)
 
 	fmt.Printf("\n=======start excute client methods without retry=========\n")
-	run(config.GetClient())
+	run(*config.GetClient())
 	fmt.Printf("\n=======excute client methods without retry end!==========\n")
 
 	fmt.Printf("\n=======start excute client methods with retry============\n")
-	run(config.GetRetryClient())
+	run(*config.GetRetryClient())
 	fmt.Printf("\n=======excute client methods with retry end!=============\n")
 }
 
-func run(_client *sdk.Client) {
+func run(_client cfxclient.SignableClient) {
 	client = _client
 
 	newAddress()
@@ -343,7 +344,7 @@ func estimateGasAndCollateral() {
 
 func sendRawTransaction() {
 	fmt.Println("\n- start send raw transaction")
-	rawtx := context.CreateSignedTx(client)
+	rawtx := context.CreateSignedTx(&client)
 	txhash, err := client.SendRawTransaction(rawtx)
 	if err == nil {
 		context.WaitPacked(client, txhash)
@@ -357,13 +358,13 @@ func createAndSendUnsignedTransaction() {
 	chainID, err := client.GetNetworkID()
 	context.PanicIfErrf(err, "failed to get chainID")
 
-	utx, err := client.CreateUnsignedTransaction(*defaultAccount, cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d", chainID), types.NewBigInt(1000000), nil)
+	utx, err := client.NewTransaction(*defaultAccount, cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d", chainID), types.NewBigInt(1000000), nil)
 	context.PanicIfErrf(err, "failed to creat unsigned tx")
 
 	utx.Nonce = context.GetNextNonceAndIncrease()
 	fmt.Printf("- creat a new unsigned transaction:\n%v\n\n", context.JSONFmt(utx))
 
-	txhash, err := client.SendTransaction(utx)
+	txhash, err := client.SignTransactionAndSend(utx)
 	if err == nil {
 		context.WaitPacked(client, txhash)
 	}
@@ -414,10 +415,10 @@ func getAccountPendingTransactions() {
 	client.GetAccountPendingTransactions(*defaultAccount, types.NewBigInt(0), types.NewUint64(100))
 
 	to := client.MustNewAddress("cfxtest:aasm4c231py7j34fghntcfkdt2nm9xv1tyce66w5u3")
-	utx, _ := client.CreateUnsignedTransaction(*defaultAccount, to, types.NewBigInt(1000000), nil)
+	utx, _ := client.NewTransaction(*defaultAccount, to, types.NewBigInt(1000000), nil)
 	utx.Nonce = context.GetNextNonceAndIncrease()
 
-	client.SendTransaction(utx)
+	client.SignTransactionAndSend(utx)
 	client.GetAccountPendingTransactions(*defaultAccount, types.NewBigInt(0), types.NewUint64(100))
 	// for avoiding block following tests
 	// client.WaitForTransationReceipt(hash, time.Second*2)

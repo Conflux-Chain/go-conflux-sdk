@@ -7,6 +7,8 @@ import (
 )
 
 type AccountInfo struct {
+	Address Address `json:"address"`
+
 	Balance *hexutil.Big `json:"balance"`
 	// : U256,
 	Nonce *hexutil.Big `json:"nonce"`

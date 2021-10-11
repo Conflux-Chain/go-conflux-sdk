@@ -2,7 +2,7 @@
 // Conflux is free software and distributed under GNU General Public License.
 // See http://www.gnu.org/licenses/
 
-package sdk
+package accounts
 
 import (
 	"crypto/ecdsa"
@@ -32,17 +32,17 @@ var (
 	emptyAccount = accounts.Account{}
 )
 
-// AccountManager manages Conflux accounts.
-type AccountManager struct {
+// KeystoreWallet manages Conflux accounts.
+type KeystoreWallet struct {
 	ks            *keystore.KeyStore
 	cfxAddressDic map[string]accounts.Account
 	networkID     uint32
 }
 
-// NewAccountManager creates an instance of AccountManager
+// NewKeystoreWallet creates an instance of AccountManager
 // based on the keystore directory "keydir".
-func NewAccountManager(keydir string, networkID uint32) *AccountManager {
-	am := new(AccountManager)
+func NewKeystoreWallet(keydir string, networkID uint32) *KeystoreWallet {
+	am := new(KeystoreWallet)
 	am.networkID = networkID
 
 	am.ks = keystore.NewKeyStore(keydir, keystore.StandardScryptN, keystore.StandardScryptP)
@@ -57,7 +57,7 @@ func NewAccountManager(keydir string, networkID uint32) *AccountManager {
 }
 
 // Create creates a new account and puts the keystore file into keystore directory
-func (m *AccountManager) Create(passphrase string) (address types.Address, err error) {
+func (m *KeystoreWallet) Create(passphrase string) (address types.Address, err error) {
 	account, err := m.ks.NewAccount(passphrase)
 	if err != nil {
 		return address, err
@@ -69,7 +69,7 @@ func (m *AccountManager) Create(passphrase string) (address types.Address, err e
 }
 
 // CreateEthCompatible creates a new account compatible with eth and puts the keystore file into keystore directory
-func (m *AccountManager) CreateEthCompatible(passphrase string) (address types.Address, err error) {
+func (m *KeystoreWallet) CreateEthCompatible(passphrase string) (address types.Address, err error) {
 	for {
 		privateKeyECDSA, err := ecdsa.GenerateKey(crypto.S256(), crand.Reader)
 		if err != nil {
@@ -90,7 +90,7 @@ func (m *AccountManager) CreateEthCompatible(passphrase string) (address types.A
 
 // Import imports account from external key file to keystore directory.
 // Returns error if the account already exists.
-func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (address types.Address, err error) {
+func (m *KeystoreWallet) Import(keyFile, passphrase, newPassphrase string) (address types.Address, err error) {
 	keyJSON, err := ioutil.ReadFile(keyFile)
 	if err != nil {
 		return address, errors.Wrapf(err, "failed to read key file %v", keyFile)
@@ -117,7 +117,7 @@ func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (addr
 }
 
 // ImportKey import account from private key hex string and save to keystore directory
-func (m *AccountManager) ImportKey(keyString string, passphrase string) (address types.Address, err error) {
+func (m *KeystoreWallet) ImportKey(keyString string, passphrase string) (address types.Address, err error) {
 	if utils.Has0xPrefix(keyString) {
 		keyString = keyString[2:]
 	}
@@ -138,7 +138,7 @@ func (m *AccountManager) ImportKey(keyString string, passphrase string) (address
 }
 
 // Export exports private key string of address
-func (m *AccountManager) Export(address types.Address, passphrase string) (string, error) {
+func (m *KeystoreWallet) Export(address types.Address, passphrase string) (string, error) {
 
 	a, err := m.account(address)
 	if err != nil {
@@ -160,7 +160,7 @@ func (m *AccountManager) Export(address types.Address, passphrase string) (strin
 }
 
 // Delete deletes the specified account and remove the keystore file from keystore directory.
-func (m *AccountManager) Delete(address types.Address, passphrase string) error {
+func (m *KeystoreWallet) Delete(address types.Address, passphrase string) error {
 	account, err := m.account(address)
 	if err != nil {
 		return err
@@ -169,7 +169,7 @@ func (m *AccountManager) Delete(address types.Address, passphrase string) error 
 }
 
 // Update updates the passphrase of specified account.
-func (m *AccountManager) Update(address types.Address, passphrase, newPassphrase string) error {
+func (m *KeystoreWallet) Update(address types.Address, passphrase, newPassphrase string) error {
 	account, err := m.account(address)
 	if err != nil {
 		return err
@@ -178,7 +178,7 @@ func (m *AccountManager) Update(address types.Address, passphrase, newPassphrase
 }
 
 // List lists all accounts in keystore directory.
-func (m *AccountManager) List() []types.Address {
+func (m *KeystoreWallet) List() []types.Address {
 	result := make([]types.Address, 0)
 
 	for _, account := range m.ks.Accounts() {
@@ -192,7 +192,7 @@ func (m *AccountManager) List() []types.Address {
 }
 
 // GetDefault return first account in keystore directory
-func (m *AccountManager) GetDefault() (*types.Address, error) {
+func (m *KeystoreWallet) GetDefault() (*types.Address, error) {
 	list := m.List()
 	if len(list) > 0 {
 		return &list[0], nil
@@ -201,7 +201,7 @@ func (m *AccountManager) GetDefault() (*types.Address, error) {
 	return nil, errors.New("no account found")
 }
 
-func (m *AccountManager) account(address types.Address) (accounts.Account, error) {
+func (m *KeystoreWallet) account(address types.Address) (accounts.Account, error) {
 	realAccount := m.cfxAddressDic[address.GetHexAddress()]
 	if realAccount == emptyAccount {
 		return emptyAccount, sdkErrors.NewAccountNotFoundError(address)
@@ -211,7 +211,7 @@ func (m *AccountManager) account(address types.Address) (accounts.Account, error
 }
 
 // Unlock unlocks the specified account indefinitely.
-func (m *AccountManager) Unlock(address types.Address, passphrase string) error {
+func (m *KeystoreWallet) Unlock(address types.Address, passphrase string) error {
 	account, err := m.account(address)
 	if err != nil {
 		return err
@@ -220,7 +220,7 @@ func (m *AccountManager) Unlock(address types.Address, passphrase string) error 
 }
 
 // UnlockDefault unlocks the default account indefinitely.
-func (m *AccountManager) UnlockDefault(passphrase string) error {
+func (m *KeystoreWallet) UnlockDefault(passphrase string) error {
 	defaultAccount, err := m.GetDefault()
 	if err != nil {
 		return err
@@ -229,7 +229,7 @@ func (m *AccountManager) UnlockDefault(passphrase string) error {
 }
 
 // TimedUnlock unlocks the specified account for a period of time.
-func (m *AccountManager) TimedUnlock(address types.Address, passphrase string, timeout time.Duration) error {
+func (m *KeystoreWallet) TimedUnlock(address types.Address, passphrase string, timeout time.Duration) error {
 	account, err := m.account(address)
 	if err != nil {
 		return err
@@ -238,7 +238,7 @@ func (m *AccountManager) TimedUnlock(address types.Address, passphrase string, t
 }
 
 // TimedUnlockDefault unlocks the specified account for a period of time.
-func (m *AccountManager) TimedUnlockDefault(passphrase string, timeout time.Duration) error {
+func (m *KeystoreWallet) TimedUnlockDefault(passphrase string, timeout time.Duration) error {
 	defaultAccount, err := m.GetDefault()
 	if err != nil {
 		return err
@@ -247,7 +247,7 @@ func (m *AccountManager) TimedUnlockDefault(passphrase string, timeout time.Dura
 }
 
 // Lock locks the specified account.
-func (m *AccountManager) Lock(address types.Address) error {
+func (m *KeystoreWallet) Lock(address types.Address) error {
 	common, _, err := address.ToCommon()
 	if err != nil {
 		return err
@@ -255,68 +255,39 @@ func (m *AccountManager) Lock(address types.Address) error {
 	return m.ks.Lock(common)
 }
 
-// SignTransaction signs tx and returns its RLP encoded data.
-func (m *AccountManager) SignTransaction(tx types.UnsignedTransaction) ([]byte, error) {
+func (m *KeystoreWallet) SignTransaction(tx types.UnsignedTransaction) (types.SignedTransaction, error) {
 	// tx.ApplyDefault()
+	empty := types.SignedTransaction{}
 	if tx.From == nil {
-		return nil, errors.New(errMsgFromAddressEmpty)
+		return empty, errors.New(errMsgFromAddressEmpty)
 	}
 
 	account, err := m.account(*tx.From)
 	if err != nil {
-		return nil, err
+		return empty, err
 	}
 
 	hash, err := tx.Hash()
 	if err != nil {
-		return nil, errors.Wrap(err, errMsgCalculateTxHash)
+		return empty, errors.Wrap(err, errMsgCalculateTxHash)
 	}
 
 	sig, err := m.ks.SignHash(account, hash)
 	if err != nil {
-		return nil, errors.Wrap(err, errMsgSignTx)
+		return empty, errors.Wrap(err, errMsgSignTx)
 	}
 
-	encoded, err := tx.EncodeWithSignature(sig[64], sig[0:32], sig[32:64])
-	if err != nil {
-		return nil, errors.Wrap(err, errMsgEncodeSignature)
-	}
+	signdTx := types.SignedTransaction{}
+	signdTx.UnsignedTransaction = tx
+	signdTx.V = sig[64]
+	signdTx.R = sig[0:32]
+	signdTx.S = sig[32:64]
 
-	return encoded, nil
-}
-
-// SignAndEcodeTransactionWithPassphrase signs tx with given passphrase and return its RLP encoded data.
-func (m *AccountManager) SignAndEcodeTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) ([]byte, error) {
-	// tx.ApplyDefault()
-	if tx.From == nil {
-		return nil, errors.New(errMsgFromAddressEmpty)
-	}
-
-	account, err := m.account(*tx.From)
-	if err != nil {
-		return nil, err
-	}
-
-	hash, err := tx.Hash()
-	if err != nil {
-		return nil, errors.Wrap(err, errMsgCalculateTxHash)
-	}
-
-	sig, err := m.ks.SignHashWithPassphrase(account, passphrase, hash)
-	if err != nil {
-		return nil, errors.Wrap(err, errMsgSignTx)
-	}
-
-	encoded, err := tx.EncodeWithSignature(sig[64], sig[0:32], sig[32:64])
-	if err != nil {
-		return nil, errors.Wrap(err, errMsgEncodeSignature)
-	}
-
-	return encoded, nil
+	return signdTx, nil
 }
 
 // SignTransactionWithPassphrase signs tx with given passphrase and returns a transction with signature
-func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) (types.SignedTransaction, error) {
+func (m *KeystoreWallet) SignTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) (types.SignedTransaction, error) {
 	// tx.ApplyDefault()
 	empty := types.SignedTransaction{}
 	if tx.From == nil {
@@ -347,8 +318,28 @@ func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransact
 	return signdTx, nil
 }
 
-// Sign signs tx by passphrase and returns the signature
-func (m *AccountManager) Sign(tx types.UnsignedTransaction, passphrase string) (v byte, r, s []byte, err error) {
+// SignTransaction signs tx and returns its RLP encoded data.
+func (m *KeystoreWallet) SignTransactionAndEncode(tx types.UnsignedTransaction) ([]byte, error) {
+	signedTx, err := m.SignTransaction(tx)
+	if err != nil {
+		return nil, errors.Wrap(err, errMsgSignTx)
+	}
+
+	return signedTx.Encode()
+}
+
+// SignTransactionWithPassphraseAndEcode signs tx with given passphrase and return its RLP encoded data.
+func (m *KeystoreWallet) SignTransactionWithPassphraseAndEcode(tx types.UnsignedTransaction, passphrase string) ([]byte, error) {
+	signedTx, err := m.SignTransactionWithPassphrase(tx, passphrase)
+	if err != nil {
+		return nil, errors.Wrap(err, errMsgSignTx)
+	}
+
+	return signedTx.Encode()
+}
+
+// CalcSignature signs tx by passphrase and returns the signature
+func (m *KeystoreWallet) CalcSignature(tx types.UnsignedTransaction, passphrase string) (v byte, r, s []byte, err error) {
 	// tx.ApplyDefault()
 	if tx.From == nil {
 		return 0, nil, nil, errors.New(errMsgFromAddressEmpty)
