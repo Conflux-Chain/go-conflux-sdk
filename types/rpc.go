@@ -67,9 +67,9 @@ type Status struct {
 }
 
 type StorageRoot struct {
-	Delta        Hash `json:"delta"`        //delta: H256,
-	Intermediate Hash `json:"intermediate"` //intermediate: H256,
-	Snapshot     Hash `json:"snapshot"`     //snapshot: H256,
+	Delta        *string `json:"delta"`        //delta: H256,
+	Intermediate *string `json:"intermediate"` //intermediate: H256,
+	Snapshot     *Hash   `json:"snapshot"`     //snapshot: H256,
 }
 
 type CheckBalanceAgainstTransactionResponse struct {
