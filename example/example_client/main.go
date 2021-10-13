@@ -14,6 +14,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -111,6 +112,14 @@ func run(_client *sdk.Client) {
 	subscribeNewHeads()
 	subscribeEpochs()
 	subscribeLogs()
+
+	getPosStatus()
+	getPosAccount()
+	getPosCommittee()
+	getPosBlockByHash()
+	getPosBlockByNumber()
+	getPosTransactionByNumber()
+	getPosRewardsByEpoch()
 
 	batchCall()
 }
@@ -549,6 +558,41 @@ func batchCall() {
 	elems[0] = rpc.BatchElem{Method: "cfx_epochNumber", Result: &hexutil.Big{}, Args: []interface{}{}}
 	elems[1] = rpc.BatchElem{Method: "cfx_getBalance", Result: &hexutil.Big{}, Args: []interface{}{client.MustNewAddress("cfxtest:aap9kthvctunvf030rbkk9k7zbzyz12dajp1u3sp4g")}}
 	client.BatchCallRPC(elems)
+}
+
+func getPosStatus() {
+	fmt.Println("\n- start get pos status")
+	client.Pos().GetStatus()
+}
+
+func getPosAccount() {
+	fmt.Println("\n- start get pos account")
+	var address postypes.Address
+	client.Pos().GetAccount(address)
+}
+
+func getPosCommittee() {
+	fmt.Println("\n- start get pos committee")
+	client.Pos().GetCommittee()
+}
+
+func getPosBlockByHash() {
+	fmt.Println("\n- start get pos status")
+	client.Pos().GetBlockByHash("0x5ee215c5f0813d230c67b941a932901338923b74676e34f46ff2e3b3fc0140c7")
+}
+
+func getPosBlockByNumber() {
+	fmt.Println("\n- start get pos status")
+	client.Pos().GetBlockByNumber(postypes.NewBlockNumber(100))
+}
+
+func getPosTransactionByNumber() {
+	fmt.Println("\n- start get pos status")
+	client.Pos().GetTransactionByNumber(100)
+}
+func getPosRewardsByEpoch() {
+	fmt.Println("\n- start get pos rewards by epoch")
+	client.Pos().GetRewardsByEpoch(22)
 }
 
 func printResult(method string, args []interface{}, result interface{}, err error) {
