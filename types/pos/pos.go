@@ -6,6 +6,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/pkg/errors"
 )
 
 type Address = common.Hash
@@ -125,4 +126,77 @@ type Reward struct {
 	PosAddress Address            `json:"posAddress"`
 	PowAddress cfxaddress.Address `json:"powAddress"`
 	Reward     hexutil.Big        `json:"reward"`
+}
+
+func (b *Transaction) UnmarshalJSON(data []byte) error {
+
+	type tmpTransaction struct {
+		Hash        common.Hash     `json:"hash"`
+		From        Address         `json:"from"`
+		BlockHash   *common.Hash    `json:"blockHash"`
+		BlockNumber *hexutil.Uint64 `json:"blockNumber"`
+		Timestamp   *hexutil.Uint64 `json:"timestamp"`
+		Number      hexutil.Uint64  `json:"number"`
+		Payload     interface{}     `json:"payload"`
+		Status      *string         `json:"status"`
+		Type        string          `json:"type"`
+	}
+
+	type tmpPayload struct {
+		ElectionPayload
+		RetirePayload
+		// RegisterPayload
+		UpdateVotingPowerPayload
+		PivotBlockDecision
+		DisputePayload
+		ConflictSignature
+	}
+
+	tmpTx := tmpTransaction{}
+
+	if err := json.Unmarshal(data, &tmpTx); err != nil {
+		return errors.WithStack(err)
+	}
+
+	*b = Transaction{tmpTx.Hash, tmpTx.From, tmpTx.BlockHash, tmpTx.BlockNumber,
+		tmpTx.Timestamp, tmpTx.Number, nil, tmpTx.Status, tmpTx.Type}
+
+	if tmpTx.Payload != nil {
+		marshaed, err := json.Marshal(tmpTx.Payload)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		payload := tmpPayload{}
+		err = json.Unmarshal(marshaed, &payload)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		realPayload := TransactionPayload{}
+		switch tmpTx.Type {
+		case "Election":
+			realPayload.ElectionPayload = payload.ElectionPayload
+		case "Retire":
+			realPayload.RetirePayload = payload.RetirePayload
+		case "Register":
+			realPayload.RegisterPayload = RegisterPayload{
+				PublicKey:    payload.ElectionPayload.PublicKey,
+				VrfPublicKey: payload.ElectionPayload.VrfPublicKey,
+			}
+			// fmt.Printf("realPayload.RegisterPayload: %#v\n\n", realPayload.RegisterPayload)
+		case "UpdateVotingPower":
+			realPayload.UpdateVotingPowerPayload = payload.UpdateVotingPowerPayload
+		case "PivotDecision":
+			realPayload.PivotBlockDecision = payload.PivotBlockDecision
+		case "Dispute":
+			realPayload.DisputePayload = payload.DisputePayload
+		}
+
+		realPayload.SetTransactionType(tmpTx.Type)
+		// fmt.Printf("tmpTxType:%v,payload:%#v, realPayload %#v", tmpTx.Type, payload, realPayload)
+		b.Payload = &realPayload
+	}
+
+	return nil
 }

@@ -588,7 +588,7 @@ func getPosBlockByNumber() {
 
 func getPosTransactionByNumber() {
 	fmt.Println("\n- start get pos status")
-	client.Pos().GetTransactionByNumber(100)
+	client.Pos().GetTransactionByNumber(0x111)
 }
 func getPosRewardsByEpoch() {
 	fmt.Println("\n- start get pos rewards by epoch")

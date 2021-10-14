@@ -1,7 +1,6 @@
 package internalcontract
 
 import (
-	"fmt"
 	"sync"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
@@ -49,7 +48,7 @@ func (ac *AdminControl) GetAdmin(option *types.ContractMethodCallOption, contrac
 	empty := cfxaddress.Address{}
 
 	var tmp *common.Address = &common.Address{}
-	fmt.Printf("contract addr common address: %x\n", contractAddr.MustGetCommonAddress())
+	// fmt.Printf("contract addr common address: %x\n", contractAddr.MustGetCommonAddress())
 	err := ac.Call(option, tmp, "getAdmin", contractAddr.MustGetCommonAddress())
 	if err != nil {
 		return empty, errors.Wrap(err, "failed to call getAdmin")
