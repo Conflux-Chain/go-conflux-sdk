@@ -58,6 +58,8 @@ func (c *Client) Cfx() interfaces.RpcCfxCaller {
 func (c *Client) Debug() interfaces.RpcDebugCaller {
 	return c.debug
 }
+
+// TODO
 func (c *Client) Pos() interfaces.RpcPosCaller {
 	// return c.pos
 	return nil

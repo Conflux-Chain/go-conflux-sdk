@@ -17,7 +17,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Client represents a client to interact with Conflux blockchain.
+// ClientCore represents a client to interact with Conflux blockchain.
 type ClientCore struct {
 	// AccountManager      sdk.AccountManagerOperator
 	nodeURL     string
@@ -32,7 +32,7 @@ type ClientCore struct {
 	requestTimeout time.Duration
 }
 
-// NewClientWithRetry creates a retryable new instance of Client with specified conflux node url and retry options.
+// NewClientCore creates a retryable new instance of Client with specified conflux node url and retry options.
 //
 // the clientOption.RetryInterval will be set to 1 second if pass 0
 func NewClientCore(nodeURL string) (*ClientCore, error) {
@@ -179,33 +179,35 @@ func (c *ClientCore) genRPCParams(args ...interface{}) []interface{} {
 	params := []interface{}{}
 	for i := range args {
 		// fmt.Printf("args %v:%v\n", i, args[i])
-		if !utils.IsNil(args[i]) {
-			// fmt.Printf("args %v:%v is not nil\n", i, args[i])
-
-			if tmp, ok := args[i].(cfxaddress.Address); ok {
-				tmp.CompleteByNetworkID(c.networkID)
-				args[i] = tmp
-				// fmt.Printf("complete by networkID,%v; after %v\n", client.networkID, args[i])
-			}
-
-			if tmp, ok := args[i].(*cfxaddress.Address); ok {
-				tmp.CompleteByNetworkID(c.networkID)
-				// fmt.Printf("complete by networkID,%v; after %v\n", client.networkID, args[i])
-			}
-
-			if tmp, ok := args[i].(types.CallRequest); ok {
-				tmp.From.CompleteByNetworkID(c.networkID)
-				tmp.To.CompleteByNetworkID(c.networkID)
-				args[i] = tmp
-			}
-
-			if tmp, ok := args[i].(*types.CallRequest); ok {
-				tmp.From.CompleteByNetworkID(c.networkID)
-				tmp.To.CompleteByNetworkID(c.networkID)
-			}
-
-			params = append(params, args[i])
+		if utils.IsNil(args[i]) {
+			continue
 		}
+
+		switch args[i].(type) {
+
+		case cfxaddress.Address:
+			tmp, _ := args[i].(cfxaddress.Address)
+			tmp.CompleteByNetworkID(c.networkID)
+			args[i] = tmp
+
+		case *cfxaddress.Address:
+			tmp, _ := args[i].(*cfxaddress.Address)
+			tmp.CompleteByNetworkID(c.networkID)
+
+		case types.CallRequest:
+			tmp, _ := args[i].(types.CallRequest)
+			tmp.From.CompleteByNetworkID(c.networkID)
+			tmp.To.CompleteByNetworkID(c.networkID)
+			args[i] = tmp
+
+		case *types.CallRequest:
+			tmp, _ := args[i].(*types.CallRequest)
+			tmp.From.CompleteByNetworkID(c.networkID)
+			tmp.To.CompleteByNetworkID(c.networkID)
+		}
+
+		params = append(params, args[i])
+
 	}
 	return params
 }
