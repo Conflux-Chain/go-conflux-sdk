@@ -5,7 +5,7 @@ import (
 	"path"
 	"runtime"
 
-	"github.com/Conflux-Chain/go-conflux-sdk/cfxclient"
+	client "github.com/Conflux-Chain/go-conflux-sdk/cfxclient"
 	"github.com/Conflux-Chain/go-conflux-sdk/contracts"
 	"github.com/Conflux-Chain/go-conflux-sdk/interfaces"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
@@ -17,8 +17,8 @@ type Config struct {
 	TransactionHash        types.Hash
 	BlockHashOfNewContract types.Hash
 	ERC20Address           types.Address
-	client                 *cfxclient.SignableClient
-	retryClient            *cfxclient.SignableClient
+	client                 *client.SignableClient
+	retryClient            *client.SignableClient
 	accountManager         interfaces.Wallet
 }
 
@@ -30,19 +30,19 @@ func (c *Config) GetAccountManager() interfaces.Wallet {
 	return c.accountManager
 }
 
-func (c *Config) SetClient(client *cfxclient.SignableClient) {
-	c.client = client
+func (c *Config) SetClient(_client *client.SignableClient) {
+	c.client = _client
 }
 
-func (c *Config) GetClient() *cfxclient.SignableClient {
+func (c *Config) GetClient() *client.SignableClient {
 	return c.client
 }
 
-func (c *Config) SetRetryClient(client *cfxclient.SignableClient) {
-	c.retryClient = client
+func (c *Config) SetRetryClient(_client *client.SignableClient) {
+	c.retryClient = _client
 }
 
-func (c *Config) GetRetryClient() *cfxclient.SignableClient {
+func (c *Config) GetRetryClient() *client.SignableClient {
 	return c.retryClient
 }
 

@@ -1,4 +1,4 @@
-package cfxclient
+package client
 
 import (
 	"context"

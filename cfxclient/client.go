@@ -2,9 +2,11 @@
 // Conflux is free software and distributed under GNU General Public License.
 // See http://www.gnu.org/licenses/
 
-package cfxclient
+package client
 
 import (
+	"time"
+
 	"github.com/Conflux-Chain/go-conflux-sdk/interfaces"
 )
 
@@ -13,33 +15,45 @@ type Client struct {
 	*ClientCore
 	*ClientHelper
 
-	cfx    *RpcCfxClient
+	*RpcCfxClient
 	debug  *RpcDebugClient
 	pubsub *RpcPubsubClient
 	trace  *RpcTraceClient
-	// pos    *RpcPosClient
+	//TODO
+	//  pos    *RpcPosClient
 }
 
-// NewClient creates an instance of Client with specified conflux node url, it will creat account manager if option.KeystorePath not empty.
+// NewClient creates an instance of Client with specified conflux node url, it will create account manager if option.KeystorePath not empty.
 func NewClient(nodeURL string) (Client, error) {
-	core, err := newClientCore(nodeURL)
+	core, err := NewClientCore(nodeURL)
 	if err != nil {
 		return Client{}, err
 	}
 	client := Client{}
-	client.ClientCore = &core
-	client.cfx = &RpcCfxClient{&core}
-	client.debug = &RpcDebugClient{&core}
-	client.pubsub = &RpcPubsubClient{&core}
-	client.trace = &RpcTraceClient{&core}
+	client.ClientCore = core
+	client.RpcCfxClient = &RpcCfxClient{core}
+	client.debug = &RpcDebugClient{core}
+	client.pubsub = &RpcPubsubClient{core}
+	client.trace = &RpcTraceClient{core}
+	// TODO
 	// client.pos = &RpcPosClient{&core}
 
 	client.ClientHelper = &ClientHelper{&client}
 	return client, nil
 }
 
+func (c *Client) SetRetry(retryCount int, retryInterval time.Duration) *Client {
+	c.ClientCore.SetRetry(retryCount, retryInterval)
+	return c
+}
+
+func (c *Client) SetRequestTimeout(timeout time.Duration) *Client {
+	c.ClientCore.SetRequestTimeout(timeout)
+	return c
+}
+
 func (c *Client) Cfx() interfaces.RpcCfxCaller {
-	return c.cfx
+	return c.RpcCfxClient
 }
 func (c *Client) Debug() interfaces.RpcDebugCaller {
 	return c.debug

@@ -1,4 +1,4 @@
-package cfxclient
+package client
 
 import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types"

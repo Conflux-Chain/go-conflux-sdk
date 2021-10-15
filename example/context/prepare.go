@@ -9,7 +9,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	accounts "github.com/Conflux-Chain/go-conflux-sdk/accounts"
-	"github.com/Conflux-Chain/go-conflux-sdk/cfxclient"
+	client "github.com/Conflux-Chain/go-conflux-sdk/cfxclient"
 	exampletypes "github.com/Conflux-Chain/go-conflux-sdk/example/context/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/interfaces"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
@@ -73,7 +73,7 @@ func initClient() {
 	// init client
 	var err error
 
-	_client, err := cfxclient.NewClient(config.NodeURL)
+	_client, err := client.NewClient(config.NodeURL)
 	if err != nil {
 		utils.PanicIfErr(err)
 	}
@@ -88,7 +88,7 @@ func initClient() {
 	wallet := accounts.NewKeystoreWallet(keyStorePath, networkId)
 	config.SetWallet(wallet)
 
-	_signableClient := cfxclient.NewSignableClient(&_client, wallet)
+	_signableClient := client.NewSignableClient(&_client, wallet)
 	_signableClient.GetWallet().UnlockDefault("hello")
 	config.SetClient(&_signableClient)
 
@@ -101,7 +101,7 @@ func initClient() {
 	// }
 
 	_clientCopy := _client
-	_retryclient := cfxclient.NewSignableClient(&_clientCopy, wallet)
+	_retryclient := client.NewSignableClient(&_clientCopy, wallet)
 	_retryclient.SetRetry(10, time.Second).SetRequestTimeout(time.Second)
 	_retryclient.GetWallet().UnlockDefault("hello")
 	config.SetRetryClient(&_retryclient)

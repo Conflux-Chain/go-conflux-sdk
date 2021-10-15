@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/Conflux-Chain/go-conflux-sdk/cfxclient"
+	cfxclient "github.com/Conflux-Chain/go-conflux-sdk/cfxclient"
 	"github.com/Conflux-Chain/go-conflux-sdk/example/context"
 	exampletypes "github.com/Conflux-Chain/go-conflux-sdk/example/context/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/interfaces"

@@ -21,8 +21,7 @@ type Wallet interface {
 	Lock(address types.Address) error
 
 	SignTransaction(tx types.UnsignedTransaction) (types.SignedTransaction, error)
-	SignTransactionAndEncode(tx types.UnsignedTransaction) ([]byte, error)
 	SignTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) (types.SignedTransaction, error)
-	SignTransactionWithPassphraseAndEcode(tx types.UnsignedTransaction, passphrase string) ([]byte, error)
-	CalcSignature(tx types.UnsignedTransaction, passphrase string) (v byte, r, s []byte, err error)
+	// TODO:
+	// SignMessage()
 }

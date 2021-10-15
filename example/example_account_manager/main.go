@@ -108,13 +108,19 @@ func signTx() []byte {
 		To: &to,
 	}
 
-	signedTx, err := am.SignTransactionWithPassphraseAndEcode(unSignedTx, "hello")
+	signedTx, err := am.SignTransactionWithPassphrase(unSignedTx, "hello")
 	if err != nil {
 		fmt.Printf("signed tx %+v error:%v\n\n", unSignedTx, err)
 		return nil
 	}
-	fmt.Printf("signed tx %+v result:\n0x%x\n\n", unSignedTx, signedTx)
-	return signedTx
+	rawData, err := signedTx.Encode()
+	if err != nil {
+		fmt.Printf("encode signed tx %+v error:%v\n\n", signedTx, err)
+		return nil
+	}
+
+	fmt.Printf("signed tx %+v result \n0x%x\n\n", unSignedTx, rawData)
+	return rawData
 }
 
 func decodeRawTx() {

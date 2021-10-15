@@ -1,4 +1,4 @@
-package cfxclient
+package client
 
 // GoConvey COMPOSER
 // Test NewClient
@@ -65,5 +65,5 @@ func _TestNewClient(t *testing.T) {
 
 func TestInterfaceImpl(test *testing.T) {
 	c, _ := NewClient("http://localhost:8080")
-	var _ interfaces.RpcCaller = &c
+	var _ interfaces.RpcCaller = c
 }

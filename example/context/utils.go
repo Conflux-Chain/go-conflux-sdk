@@ -81,12 +81,17 @@ func CreateSignedTx(client interfaces.SignableRpcCaller) []byte {
 		panic(err)
 	}
 
-	signedTx, err := client.GetWallet().SignTransactionWithPassphraseAndEcode(unSignedTx, "hello")
+	signedTx, err := client.GetWallet().SignTransactionWithPassphrase(unSignedTx, "hello")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("signed tx %v result:\n0x%x\n\n", JSONFmt(unSignedTx), signedTx)
-	return signedTx
+	rawData, err := signedTx.Encode()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("signed tx %v result:\n0x%x\n\n", JSONFmt(unSignedTx), rawData)
+	return rawData
 }
 
 // DeployNewErc20 ...

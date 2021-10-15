@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/Conflux-Chain/go-conflux-sdk/cfxclient"
+	client "github.com/Conflux-Chain/go-conflux-sdk/cfxclient"
 	"github.com/Conflux-Chain/go-conflux-sdk/contracts"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
@@ -17,7 +17,7 @@ import (
 func main() {
 
 	//init client
-	client, err := cfxclient.NewSignalbeClientByPath("https://test.confluxrpc.com", "../context/keystore")
+	client, err := client.NewSignalbeClientByPath("https://test.confluxrpc.com", "../context/keystore")
 	utils.PanicIfErrf(err, "failed to new client")
 
 	// unlock default account

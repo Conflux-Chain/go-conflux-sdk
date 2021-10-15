@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/accounts"
-	"github.com/Conflux-Chain/go-conflux-sdk/cfxclient"
+	client "github.com/Conflux-Chain/go-conflux-sdk/cfxclient"
 	"github.com/Conflux-Chain/go-conflux-sdk/example/context"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
@@ -17,7 +17,7 @@ func main() {
 	//init client
 	url := "http://39.97.232.99:12537"
 	// url := "http://testnet-jsonrpc.conflux-chain.org:12537"
-	_client, err := cfxclient.NewClient(url)
+	_client, err := client.NewClient(url)
 	context.PanicIfErrf(err, "failed to new client")
 
 	networkId, err := _client.GetNetworkID()
@@ -30,7 +30,7 @@ func main() {
 		panic(err)
 	}
 
-	client := cfxclient.NewSignableClient(&_client, wallet)
+	client := client.NewSignableClient(&_client, wallet)
 
 	//send transaction
 	//send 0.01 cfx

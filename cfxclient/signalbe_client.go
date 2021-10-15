@@ -1,4 +1,4 @@
-package cfxclient
+package client
 
 import (
 	"math/big"
@@ -173,9 +173,13 @@ func (c *SignableClient) SignTransactionAndSend(tx types.UnsignedTransaction) (t
 		return "", errors.Wrap(err, cfxerrors.ErrMsgApplyTxValues)
 	}
 
-	rawData, err := c.GetWallet().SignTransactionAndEncode(tx)
+	signedTx, err := c.GetWallet().SignTransaction(tx)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to sign and encode transaction")
+	}
+	rawData, err := signedTx.Encode()
+	if err != nil {
+		return "", errors.Wrap(err, "failed to encoe transaction")
 	}
 
 	//send raw tx

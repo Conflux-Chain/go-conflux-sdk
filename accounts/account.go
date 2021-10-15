@@ -191,7 +191,7 @@ func (m *KeystoreWallet) List() []types.Address {
 	return result
 }
 
-// GetDefault return first account in keystore directory
+// GetDefault returns first account in keystore directory
 func (m *KeystoreWallet) GetDefault() (*types.Address, error) {
 	list := m.List()
 	if len(list) > 0 {
@@ -255,6 +255,7 @@ func (m *KeystoreWallet) Lock(address types.Address) error {
 	return m.ks.Lock(common)
 }
 
+// SignTransaction signs the hash of unsigned transaction and returns the signed transaction
 func (m *KeystoreWallet) SignTransaction(tx types.UnsignedTransaction) (types.SignedTransaction, error) {
 	// tx.ApplyDefault()
 	empty := types.SignedTransaction{}
@@ -316,53 +317,6 @@ func (m *KeystoreWallet) SignTransactionWithPassphrase(tx types.UnsignedTransact
 	signdTx.S = sig[32:64]
 
 	return signdTx, nil
-}
-
-// SignTransaction signs tx and returns its RLP encoded data.
-func (m *KeystoreWallet) SignTransactionAndEncode(tx types.UnsignedTransaction) ([]byte, error) {
-	signedTx, err := m.SignTransaction(tx)
-	if err != nil {
-		return nil, errors.Wrap(err, errMsgSignTx)
-	}
-
-	return signedTx.Encode()
-}
-
-// SignTransactionWithPassphraseAndEcode signs tx with given passphrase and return its RLP encoded data.
-func (m *KeystoreWallet) SignTransactionWithPassphraseAndEcode(tx types.UnsignedTransaction, passphrase string) ([]byte, error) {
-	signedTx, err := m.SignTransactionWithPassphrase(tx, passphrase)
-	if err != nil {
-		return nil, errors.Wrap(err, errMsgSignTx)
-	}
-
-	return signedTx.Encode()
-}
-
-// CalcSignature signs tx by passphrase and returns the signature
-func (m *KeystoreWallet) CalcSignature(tx types.UnsignedTransaction, passphrase string) (v byte, r, s []byte, err error) {
-	// tx.ApplyDefault()
-	if tx.From == nil {
-		return 0, nil, nil, errors.New(errMsgFromAddressEmpty)
-	}
-
-	account, err := m.account(*tx.From)
-	if account == emptyAccount {
-		return 0, nil, nil, err
-	}
-
-	hash, err := tx.Hash()
-	if err != nil {
-		return 0, nil, nil, errors.Wrap(err, errMsgCalculateTxHash)
-	}
-
-	sig, err := m.ks.SignHashWithPassphrase(account, passphrase, hash)
-	if err != nil {
-		return 0, nil, nil, errors.Wrap(err, errMsgSignTx)
-	}
-	v = sig[64]
-	r = sig[0:32]
-	s = sig[32:64]
-	return v, r, s, nil
 }
 
 func getCfxUserAddress(account accounts.Account, networkID uint32) cfxaddress.Address {
