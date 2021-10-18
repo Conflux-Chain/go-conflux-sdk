@@ -8,9 +8,9 @@ type BlockNumber struct {
 }
 
 var (
-	BlockEarliest        *BlockNumber = &BlockNumber{"Earliest", 0}
-	BlockLatestCommitted *BlockNumber = &BlockNumber{"LatestCommitted", 0}
-	BlockLatestVoted     *BlockNumber = &BlockNumber{"LatestVoted", 0}
+	BlockEarliest        *BlockNumber = &BlockNumber{"earliest", 0}
+	BlockLatestCommitted *BlockNumber = &BlockNumber{"latest_committed", 0}
+	BlockLatestVoted     *BlockNumber = &BlockNumber{"latest_voted", 0}
 )
 
 func NewBlockNumber(number uint64) BlockNumber {

@@ -17,7 +17,6 @@ type TransactionPayload struct {
 	UpdateVotingPowerPayload
 	PivotBlockDecision
 	DisputePayload
-	ConflictSignature
 }
 
 func (t *TransactionPayload) SetTransactionType(txType string) {

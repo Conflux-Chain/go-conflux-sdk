@@ -26,7 +26,7 @@ type Account struct {
 
 type NodeLockStatus struct {
 	InQueue  []VotePowerState `json:"inQueue"`
-	Locked   *hexutil.Uint64  `json:"locked"`
+	Locked   hexutil.Uint64   `json:"locked"`
 	OutQueue []VotePowerState `json:"outQueue"`
 	Unlocked hexutil.Uint64   `json:"unlocked"`
 
@@ -72,32 +72,12 @@ type Block struct {
 	Epoch         hexutil.Uint64  `json:"epoch"`
 	Round         hexutil.Uint64  `json:"round"`
 	NextTxNumber  hexutil.Uint64  `json:"nextTxNumber"`
-	Miner         Address         `json:"miner"`
+	Miner         *Address        `json:"miner"`
 	ParentHash    common.Hash     `json:"parentHash"`
 	Timestamp     hexutil.Uint64  `json:"timestamp"`
 	PivotDecision *hexutil.Uint64 `json:"pivotDecision"`
 	// Transactions  BlockTransactions `json:"transactions"`
 	Signatures []Signature `json:"signatures"`
-}
-
-type BlockTransactions struct {
-	Hashes []common.Hash
-	Full   []Transaction
-}
-
-func (b *BlockTransactions) UnmarshalJSON(data []byte) error {
-	if err := json.Unmarshal(data, &b.Hashes); err != nil {
-		err = json.Unmarshal(data, &b.Full)
-		return err
-	}
-	return nil
-}
-
-func (b BlockTransactions) MarshalJSON() ([]byte, error) {
-	if len(b.Hashes) > 0 {
-		return json.Marshal(b.Hashes)
-	}
-	return json.Marshal(b.Full)
 }
 
 type Signature struct {
