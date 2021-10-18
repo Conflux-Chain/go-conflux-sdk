@@ -1,6 +1,13 @@
 package postypes
 
-import "github.com/ethereum/go-ethereum/common/hexutil"
+import (
+	"encoding/json"
+	"fmt"
+	"regexp"
+
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/pkg/errors"
+)
 
 type BlockNumber struct {
 	name   string
@@ -30,4 +37,31 @@ func (e *BlockNumber) String() string {
 func (e BlockNumber) MarshalText() ([]byte, error) {
 	// fmt.Println("marshal text for epoch")
 	return []byte(e.String()), nil
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+func (e *BlockNumber) UnmarshalJSON(data []byte) error {
+	var input string
+
+	if err := json.Unmarshal(data, &input); err != nil {
+		return err
+	}
+
+	hexU64Pattern := `(?i)^0x[a-f0-9]*$`
+	if ok, _ := regexp.Match(hexU64Pattern, []byte(input)); ok {
+		numU64, err := hexutil.DecodeUint64(input)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		e.number = hexutil.Uint64(numU64)
+		return nil
+	}
+
+	switch input {
+	case BlockEarliest.name, BlockLatestCommitted.name, BlockLatestVoted.name:
+		e.name = input
+		return nil
+	}
+
+	return fmt.Errorf(`unsupported pos block number tag %v`, input)
 }
