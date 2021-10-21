@@ -13,6 +13,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/middleware"
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -123,6 +124,16 @@ type ClientOperator interface {
 
 	WaitForTransationBePacked(txhash types.Hash, duration time.Duration) (*types.Transaction, error)
 	WaitForTransationReceipt(txhash types.Hash, duration time.Duration) (*types.TransactionReceipt, error)
+}
+
+type RpcPos interface {
+	GetStatus() (postypes.Status, error)
+	GetAccount(address postypes.Address, view ...hexutil.Uint64) (postypes.Account, error)
+	GetCommittee(view ...hexutil.Uint64) (postypes.CommitteeState, error)
+	GetBlockByHash(types.Hash) (*postypes.Block, error)
+	GetBlockByNumber() (*postypes.Block, error)
+	GetTransactionByNumber() (*postypes.Transaction, error)
+	GetRewardsByEpoch() (*postypes.EpochReward, error)
 }
 
 // AccountManagerOperator is interface of operate actions on account manager

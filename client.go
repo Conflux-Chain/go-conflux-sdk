@@ -35,6 +35,8 @@ type Client struct {
 	option              ClientOption
 	callRpcHandler      middleware.CallRpcHandler
 	batchCallRpcHandler middleware.BatchCallRpcHandler
+
+	rpcPosClient RpcPosClient
 }
 
 // ClientOption for set keystore path and flags for retry
@@ -81,6 +83,7 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 	client.option = clientOption
 	client.callRpcHandler = middleware.CallRpcHandlerFunc(client.callRpc)
 	client.batchCallRpcHandler = middleware.BatchCallRpcHandlerFunc(client.batchCallRPC)
+	client.rpcPosClient = RpcPosClient{&client}
 	client.option.setDefault()
 
 	rpcClient, err := rpc.Dial(nodeURL)
@@ -119,6 +122,10 @@ func (co *ClientOption) setDefault() {
 	if co.RetryInterval == 0 {
 		co.RetryInterval = time.Second
 	}
+}
+
+func (client *Client) Pos() *RpcPosClient {
+	return &client.rpcPosClient
 }
 
 // GetNodeURL returns node url
@@ -1175,6 +1182,14 @@ func get1stBoolIfy(values []bool) bool {
 		value = values[0]
 	}
 	return value
+}
+
+func get1stU64Ify(values []uint64) *hexutil.Uint64 {
+	if len(values) > 0 {
+		_value := hexutil.Uint64(values[0])
+		return &_value
+	}
+	return nil
 }
 
 func (client *Client) genContext() (context.Context, context.CancelFunc) {
