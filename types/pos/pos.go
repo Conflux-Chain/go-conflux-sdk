@@ -31,16 +31,17 @@ type NodeLockStatus struct {
 	Unlocked hexutil.Uint64   `json:"unlocked"`
 
 	// Equals to the summation of in_queue + locked
-	AvailableVotes hexutil.Uint64 `json:"availableVotes"`
-	ForceRetired   bool           `json:"forceRetired"`
+	AvailableVotes hexutil.Uint64  `json:"availableVotes"`
+	ForceRetired   *hexutil.Uint64 `json:"forceRetired"`
+
 	// If the staking is forfeited, the unlocked votes before forfeiting is
 	// exempted.
-	ExemptFromForfeit *hexutil.Uint64 `json:"exemptFromForfeit"`
+	Forfeited hexutil.Uint64 `json:"forfeited"`
 }
 
 type VotePowerState struct {
-	StartBlockNumber hexutil.Uint64 `json:"startBlockNumber"`
-	Power            hexutil.Uint64 `json:"power"`
+	EndBlockNumber hexutil.Uint64 `json:"endBlockNumber"`
+	Power          hexutil.Uint64 `json:"power"`
 }
 
 type CommitteeState struct {

@@ -1,5 +1,5 @@
 NodeURL = "http://101.132.158.162:12537"
-BlockHash = "0xba01bc48a5f77bfbb3a97d79f01941e29592b314abcb2e988058b9d5ba32164f"
-TransactionHash = "0xffbd20949b2a0edaaae7b543d71cba64704d571afb24431483843db3f1eb06c6"
-BlockHashOfNewContract = "0x6dd1b0daa4742ff084d7857200c443226c68ba43e40101ec8149d26fad77ffb6"
+BlockHash = "0x42b1c6ad64d8567cca5748667e29cf5c12197410b5b40bf165aec42355db16e3"
+TransactionHash = "0xab293c1308239ae4e53a5bbddd4aa46e72a90f6023390309e2ed40382a858825"
+BlockHashOfNewContract = "0xbb880f040a27f3f631550641f7b0c0c14319f837322fe567a3cab5ebd58860ac"
 ERC20Address = "net8888:acc2pmewzkpr34n3deu10s2dm47ssbmxs26ur0x70c"
