@@ -43,7 +43,7 @@ func DetectErrorCode(err error) (ok bool, code ErrorCode) {
 	if err != nil {
 		errStr := strings.ToLower(err.Error())
 
-		if strings.Contains(errStr, "pivot assumption failed") {
+		if strings.Contains(errStr, "pivot chain assumption failed") {
 			return true, CodePivotAssumption
 		}
 
