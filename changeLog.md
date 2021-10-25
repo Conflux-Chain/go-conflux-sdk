@@ -1,4 +1,6 @@
 # Go-conflux-sdk Change Log
+## v1.0.14
+- Add POS RPC
 ## v1.0.13
 - Add API GetBlockSummaryByBlockNumber
 ## v1.0.12
