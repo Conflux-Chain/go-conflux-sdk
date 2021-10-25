@@ -15,6 +15,7 @@ import (
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -567,7 +568,7 @@ func getPosStatus() {
 
 func getPosAccount() {
 	fmt.Println("\n- start get pos account")
-	var address postypes.Address
+	var address postypes.Address = common.HexToHash("0x022596226d8095d9fe9721957bdf55cdd905c63415d275d53c29f16dcca33a7b")
 	client.Pos().GetAccount(address)
 }
 
