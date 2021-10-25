@@ -258,9 +258,9 @@ BatchGetBlockSummarys requests block summary informations in bulk by blockhashes
 
 ```go
 func (client *Client) BatchGetBlockSummarysByNumber(blocknumbers []hexutil.Uint64) (map[hexutil.Uint64]*types.BlockSummary, error)
-
 ```
-BatchGetBlockSummarysByNumber requests block summary informations in bulk by blocknumbers
+BatchGetBlockSummarysByNumber requests block summary informations in bulk by
+blocknumbers
 
 #### func (*Client) BatchGetRawBlockConfirmationRisk
 
@@ -401,6 +401,12 @@ func (client *Client) GetBestBlockHash() (hash types.Hash, err error)
 ```
 GetBestBlockHash returns the current best block hash.
 
+#### func (*Client) GetBlockByBlockNumber
+
+```go
+func (client *Client) GetBlockByBlockNumber(blockNumer hexutil.Uint64) (block *types.Block, err error)
+```
+
 #### func (*Client) GetBlockByEpoch
 
 ```go
@@ -441,6 +447,12 @@ it's (raw confirmation risk coefficient/ (2^256-1))
 func (client *Client) GetBlockRewardInfo(epoch types.Epoch) (rewardInfo []types.RewardInfo, err error)
 ```
 GetBlockRewardInfo returns block reward information in an epoch
+
+#### func (*Client) GetBlockSummaryByBlockNumber
+
+```go
+func (client *Client) GetBlockSummaryByBlockNumber(blockNumer hexutil.Uint64) (block *types.BlockSummary, err error)
+```
 
 #### func (*Client) GetBlockSummaryByEpoch
 
@@ -519,6 +531,12 @@ GetEpochNumber returns the highest or specified epoch number.
 
 ```go
 func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error)
+```
+
+#### func (*Client) GetEpochReceiptsByPivotBlockHash
+
+```go
+func (client *Client) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error)
 ```
 
 #### func (*Client) GetGasPrice
@@ -669,6 +687,12 @@ NewAddress create conflux address by base32 string or hex40 string, if
 base32OrHex is base32 and networkID is passed it will create cfx Address use
 networkID of current client.
 
+#### func (*Client) Pos
+
+```go
+func (client *Client) Pos() *RpcPosClient
+```
+
 #### func (*Client) SendRawTransaction
 
 ```go
@@ -711,7 +735,7 @@ expressed by a sequence of epochs. Currently subscriptionEpochType only support
 #### func (*Client) SubscribeLogs
 
 ```go
-func (client *Client) SubscribeLogs(logChannel chan types.Log, chainReorgChannel chan types.ChainReorg, filter types.LogFilter) (*rpc.ClientSubscription, error)
+func (client *Client) SubscribeLogs(channel chan types.SubscriptionLog, filter types.LogFilter) (*rpc.ClientSubscription, error)
 ```
 SubscribeLogs subscribes all logs matching a certain filter, in order.
 
@@ -858,6 +882,69 @@ type ContractDeployResult struct {
 ```
 
 ContractDeployResult for state change notification when deploying contract
+
+### type RpcPosClient
+
+```go
+type RpcPosClient struct {
+}
+```
+
+
+#### func  NewRpcPosClient
+
+```go
+func NewRpcPosClient(core *Client) RpcPosClient
+```
+
+#### func (*RpcPosClient) GetAccount
+
+```go
+func (c *RpcPosClient) GetAccount(address postypes.Address, blockNumber ...uint64) (account postypes.Account, err error)
+```
+GetAccount returns account info at block
+
+#### func (*RpcPosClient) GetBlockByHash
+
+```go
+func (c *RpcPosClient) GetBlockByHash(hash types.Hash) (block *postypes.Block, err error)
+```
+GetBlockByHash returns block info of block hash
+
+#### func (*RpcPosClient) GetBlockByNumber
+
+```go
+func (c *RpcPosClient) GetBlockByNumber(blockNumber postypes.BlockNumber) (block *postypes.Block, err error)
+```
+GetBlockByHash returns block at block number
+
+#### func (*RpcPosClient) GetCommittee
+
+```go
+func (c *RpcPosClient) GetCommittee(blockNumber ...uint64) (committee postypes.CommitteeState, err error)
+```
+GetCommittee returns committee info at block
+
+#### func (*RpcPosClient) GetRewardsByEpoch
+
+```go
+func (c *RpcPosClient) GetRewardsByEpoch(epochNumber uint64) (reward postypes.EpochReward, err error)
+```
+GetRewardsByEpoch returns rewards of epoch
+
+#### func (*RpcPosClient) GetStatus
+
+```go
+func (c *RpcPosClient) GetStatus() (status postypes.Status, err error)
+```
+GetStatus returns pos chain status
+
+#### func (*RpcPosClient) GetTransactionByNumber
+
+```go
+func (c *RpcPosClient) GetTransactionByNumber(txNumber uint64) (transaction *postypes.Transaction, err error)
+```
+GetTransactionByNumber returns transaction info of transaction number
 ## package utils
 ```
 import "."
@@ -927,7 +1014,7 @@ Keccak256 hashes hex string by keccak256 and returns it's hash value
 #### func  PanicIfErr
 
 ```go
-func PanicIfErr(err error, msg string)
+func PanicIfErr(err error)
 ```
 PanicIfErr panic and reports error message
 
