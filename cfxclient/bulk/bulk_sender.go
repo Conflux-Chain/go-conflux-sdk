@@ -199,7 +199,7 @@ func (b *BulkSender) SignAndSend() ([]*types.Hash, []error, error) {
 	hashes := make([]*types.Hash, len(rawTxs))
 	for i, rawTx := range rawTxs {
 		fmt.Printf("raw Tx: %x\n", rawTx)
-		hashes[i] = bulkCaller.Cfx().SendRawTransaction(rawTx)
+		hashes[i] = bulkCaller.SendRawTransaction(rawTx)
 	}
 
 	_errors, err := bulkCaller.Excute()
@@ -208,4 +208,3 @@ func (b *BulkSender) SignAndSend() ([]*types.Hash, []error, error) {
 	}
 	return hashes, _errors, err
 }
-

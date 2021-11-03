@@ -15,7 +15,7 @@ type BulkCaller struct {
 	batchElems  *[]rpc.BatchElem
 	outHandlers map[int]*OutputHandler
 
-	cfx      *BulkCfxCaller
+	*BulkCfxCaller
 	customer *BulkCustomCaller
 }
 
@@ -31,13 +31,13 @@ func NewBulkerCaller(rpcCaller sdk.ClientOperator) *BulkCaller {
 		batchElems:  &batchElems,
 		outHandlers: outHandlers,
 
-		cfx:      cfx,
-		customer: customer,
+		BulkCfxCaller: cfx,
+		customer:      customer,
 	}
 }
 
 func (b *BulkCaller) Cfx() *BulkCfxCaller {
-	return b.cfx
+	return b.BulkCfxCaller
 }
 
 func (b *BulkCaller) Customer() *BulkCustomCaller {
@@ -45,7 +45,6 @@ func (b *BulkCaller) Customer() *BulkCustomCaller {
 }
 
 func (b *BulkCaller) Excute() ([]error, error) {
-	// fmt.Printf("b: %#v", b)
 	return batchCall(b.caller, b.batchElems, b.outHandlers)
 }
 
@@ -75,9 +74,6 @@ func batchCall(caller sdk.ClientOperator,
 
 		handler := outHandlers[i]
 		if handler != nil {
-			// fmt.Printf("v.Result %v\n", reflect.ValueOf(v.Result).Elem())
-			// fmt.Printf("v.Result Type %v\n", reflect.TypeOf(v.Result))
-			// fmt.Printf("v.Result To hexutil.Bytes %v\n", (*v.Result.(*interface{})).(*hexutil.Bytes))
 
 			var rawOut interface{} = *v.Result.(*interface{})
 			val, ok := rawOut.(*hexutil.Bytes)
@@ -90,14 +86,6 @@ func batchCall(caller sdk.ClientOperator,
 			if err != nil {
 				_errors[i] = errors.WithStack(err)
 			}
-
-			// switch rawOut.(type) {
-			// case *hexutil.Bytes:
-			// 	err := (*handler)(*rawOut.(*hexutil.Bytes))
-			// 	if err != nil {
-			// 		_errors[i] = errors.WithStack(err)
-			// 	}
-			// }
 		}
 	}
 	return _errors, nil

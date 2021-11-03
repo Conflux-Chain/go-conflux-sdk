@@ -25,7 +25,7 @@ func TestBulkCall(t *testing.T) {
 	}
 	bulkCaller := NewBulkerCaller(_client)
 
-	gasPrice := bulkCaller.Cfx().GetGasPrice()
+	gasPrice := bulkCaller.GetGasPrice()
 	_errors, err := bulkCaller.Excute()
 	if err != nil {
 		panic(err)
@@ -48,7 +48,7 @@ func TestBulkCall(t *testing.T) {
 
 	var nonces [len(addresses)]*hexutil.Big
 	for i := 0; i < len(nonces); i++ {
-		nonces[i] = bulkCaller.Cfx().GetNextNonce(addresses[i])
+		nonces[i] = bulkCaller.GetNextNonce(addresses[i])
 	}
 
 	errors, err := bulkCaller.Excute()
