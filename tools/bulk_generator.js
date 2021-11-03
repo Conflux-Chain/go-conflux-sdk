@@ -1,10 +1,5 @@
 const fs = require("fs")
 
-const initResultMapping = {
-    "*types.Hash": "var hash types.Hash\n\tresult := &hash",
-    "*string": "var str string\n\tresult := &str",
-}
-
 function genBulkFile(filePath, clientName, missingFuncs) {
 
     // console.log("filepath", filePath, "client", clientName)
@@ -52,16 +47,16 @@ function genBulkFile(filePath, clientName, missingFuncs) {
  */
 function genBulkFuncs(func) {
     let any = "[\\s\\S]"
-    let reg = new RegExp(`func \\(client \\*(RpcCfxClient)\\)` +    // func (client *RpcCfxClient) <<<>>> 分组1---结构名称 RpcCfxClient
-        `(${any}*\\)).* ` +                                          // 分组2---方法签名 GetNextNonce(address types.Address, epoch ...*types.Epoch) 
-        `\\(.*? (.*?),.*?\\)` + `.*?\\{` +                            // (nonce *hexutil.Big, err error) {  <<<<>>>  分组3---返回值类型 *hexutil.Big
-        `(${any}*?)err` +                                           // realEpoch := get1stEpochIfy(epoch)\nerr <<<<>>> 分组4---call前操作 realEpoch := get1stEpochIfy(epoch) 
-        `.*?wrappedCallRPC\\(${any}*?,` +                                //  = client.core.wrappedCallRPC(&nonce, 
-        `(${any}*?)\\)` +                                                //  "cfx_getNextNonce", address, realEpoch) <<<<>>> 分组5---rpc元素 "cfx_getNextNonce", address, realEpoch
-        `(${any}*?)` +                                              // 分组6---call后操作
+    let reg = new RegExp(`func \\(client \\*(RpcCfxClient)\\)` +    // func (client *RpcCfxClient)              <<<>>> Group1:StructName            ---> RpcCfxClient
+        `(${any}*\\)).* ` +                                         // Group2:Function Sign                                                         ---> GetNextNonce(address types.Address, epoch ...*types.Epoch) 
+        `\\(.*? (.*?),.*?\\)` + `.*?\\{` +                          // (nonce *hexutil.Big, err error) {        <<<>>> Group3:ReturnType            ---> *hexutil.Big
+        `(${any}*?)err` +                                           // realEpoch := get1stEpochIfy(epoch)\nerr  <<<>>> Group4:Pre-Call              ---> realEpoch := get1stEpochIfy(epoch) 
+        `.*?wrappedCallRPC\\(${any}*?,` +                           //  = client.core.wrappedCallRPC(&nonce, 
+        `(${any}*?)\\)` +                                           //  "cfx_getNextNonce", address, realEpoch) <<<>>> Group5:RpcElements           ---> "cfx_getNextNonce", address, realEpoch
+        `(${any}*?)` +                                              // Group6:Post-Call
         `return${any}*?` +                                          // result
-        `\\}(${any}*)`                                              // }\n//comments <<<>>> 分组7---下一个function的comments
-        , "ig")                                                //}
+        `\\}(${any}*)`                                              // }\n//comments                            <<<>>> Group7:Comments of next func --->\n//comments
+        , "ig")                                                     //}
 
 
     //     func = `func (client *RpcCfxClient) CheckBalanceAgainstTransaction(accountAddress types.Address,
@@ -79,7 +74,6 @@ function genBulkFuncs(func) {
 
     let matchRes = reg.exec(func)
     console.log(reg)
-    // console.log(matchRes)
 
     if (matchRes == null) {
         console.log("not matched:", func)
@@ -114,18 +108,15 @@ function genBulkFuncs(func) {
         return result
     }`]
     const BulkCfxCaller = genBulkFile("/Users/wangdayong/myspace/mywork/go-conflux-sdk/cfxclient/rpc_cfx.go", "RpcCfxClient", missingFuncs)
-    fs.writeFileSync("./bulk_caller_cfx.go", BulkCfxCaller)
+    fs.writeFileSync("/Users/wangdayong/myspace/mywork/go-conflux-sdk/cfxclient/bulk/bulk_caller_cfx.go", BulkCfxCaller)
 })()
 
 
 function genInitResult(returnType) {
-    if (initResultMapping[returnType])
-        return initResultMapping[returnType]
-
     let initResult
     switch (returnType[0]) {
         case "*":
-            initResult = `result := &${returnType.substr(1)}{}`
+            initResult = `result:= new(${returnType.substr(1)})`
             break
         case "[":
             initResult = `result:= make(${returnType}, 0)`
@@ -133,7 +124,6 @@ function genInitResult(returnType) {
         default:
             break
     }
-
     return initResult
 }
 
