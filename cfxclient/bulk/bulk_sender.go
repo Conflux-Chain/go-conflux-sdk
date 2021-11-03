@@ -209,21 +209,3 @@ func (b *BulkSender) SignAndSend() ([]*types.Hash, []error, error) {
 	return hashes, _errors, err
 }
 
-// // ? nonce 是否可以由用户设置
-// // 每个用户数量不能大于2000
-// func (b *BulkSender) Execute() ([]types.Hash, []error, error) {
-// 	// get pending nonce
-// 	// check from, to, gasprice>1, epochheight<current+100000, chainID match, gas>=21000
-// 	// estimate all
-// 	// check balance
-// 	// 		1. gas = sponsored  ? 0 : gas; storage = sponsored ? 0 : sotrage/1024*1e18
-// 	// 		2. balance > value + gas * gasprice + storage
-// 	// sign txs
-// 	signedTxs := make([]types.SignedTransaction, len(b.unsignedTxs))
-// 	for i, v := range b.unsignedTxs {
-// 		signedTxs[i] = b.signalbeCaller.GetWallet().SignTransaction()
-
-// 	}
-// 	// batch call
-
-// }

@@ -43,6 +43,9 @@ type ClientOperator interface {
 	UseBatchCallRpcMiddleware(middleware middleware.BatchCallRpcMiddleware)
 
 	SetAccountManager(accountManager AccountManagerOperator)
+	GetAccountManager() AccountManagerOperator
+
+	Pos() *RpcPosClient
 
 	GetGasPrice() (*hexutil.Big, error)
 	GetNextNonce(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, error)
