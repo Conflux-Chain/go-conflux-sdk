@@ -83,18 +83,16 @@ func (b *BulkSender) PopulateTransactions() error {
 			utx.Nonce = (*hexutil.Big)(userNextNonceCache[from])
 			// avoid to reuse user used nonce, increase it if transactions used the nonce in cache
 			for {
-				fmt.Printf("check nonce use")
 				userNextNonceCache[from] = big.NewInt(0).Add(userNextNonceCache[from], big.NewInt(1))
 				if !b.checkIsNonceUsed(userUsedNoncesMap, utx.From, (*hexutil.Big)(userNextNonceCache[from])) {
 					break
 				}
 			}
 
-			fmt.Printf("utx.Nonce %v\n", utx.Nonce)
 		}
 	}
 
-	for _, utx := range b.unsignedTxs {
+	for i, utx := range b.unsignedTxs {
 		// The gas and storage limit may be influnced by all fileds of transaction ,so set them at last step.
 		if utx.StorageLimit == nil || utx.Gas == nil {
 			callReq := new(types.CallRequest)
@@ -102,7 +100,7 @@ func (b *BulkSender) PopulateTransactions() error {
 
 			estimat, err := b.signalbeCaller.EstimateGasAndCollateral(*callReq)
 			if err != nil {
-				return errors.Wrapf(err, "failed to estimate gas and collateral, request = %+v", *callReq)
+				return errors.Wrapf(err, "failed to estimate gas and collateral of %vth transaction, request = %+v", i, *callReq)
 			}
 
 			if utx.Gas == nil {
