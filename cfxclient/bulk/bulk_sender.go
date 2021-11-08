@@ -1,7 +1,6 @@
 package bulk
 
 import (
-	"fmt"
 	"math/big"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
@@ -181,6 +180,10 @@ func (b *BulkSender) getChainInfos() (
 	return defaultAccount, chainID, networkId, gasPrice, epochHeight, nil
 }
 
+func (b *BulkSender) Clear() {
+	b.unsignedTxs = b.unsignedTxs[:0]
+}
+
 func (b *BulkSender) SignAndSend() ([]*types.Hash, []error, error) {
 	rawTxs := make([][]byte, len(b.unsignedTxs))
 
@@ -196,11 +199,11 @@ func (b *BulkSender) SignAndSend() ([]*types.Hash, []error, error) {
 	bulkCaller := NewBulkerCaller(b.signalbeCaller)
 	hashes := make([]*types.Hash, len(rawTxs))
 	for i, rawTx := range rawTxs {
-		fmt.Printf("raw Tx: %x\n", rawTx)
+		// fmt.Printf("raw Tx: %x\n", rawTx)
 		hashes[i] = bulkCaller.SendRawTransaction(rawTx)
 	}
 
-	_errors, err := bulkCaller.Excute()
+	_errors, err := bulkCaller.Execute()
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to batch send transactions")
 	}

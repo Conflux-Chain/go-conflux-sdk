@@ -1,9 +1,6 @@
 const fs = require("fs")
 
 function genBulkFile(filePath, clientName, missingFuncs) {
-
-    // console.log("filepath", filePath, "client", clientName)
-
     let content = fs.readFileSync(filePath).toString()
     let bulkStrctName = clientName.replace(/Rpc(.*)Client/, "Bulk$1Caller")
 
@@ -83,8 +80,6 @@ function genBulkFuncs(func) {
     let [, clientName, funcSign, returnType, preCall, rpcBody, postCall, comments] = matchRes
 
     console.log(funcSign)
-    // if (funcSign.trim().startsWith("Call("))
-    //     return "//ignore\n\n\n"
 
     clientName = clientName.replace(/Rpc(.*)Client/, "Bulk$1Caller")
     returnType = (returnType[0] == "*" || returnType[0] == "[") ? returnType : "*" + returnType
@@ -99,17 +94,6 @@ function genBulkFuncs(func) {
 
     return newOne
 }
-
-(function () {
-    const missingFuncs = [`// GetStatus returns status of connecting conflux node
-    func (client *BulkCfxCaller) GetStatus() *hexutil.Big {
-        result := &hexutil.Big{}
-        *client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getStatus"))
-        return result
-    }`]
-    const BulkCfxCaller = genBulkFile("/Users/wangdayong/myspace/mywork/go-conflux-sdk/cfxclient/rpc_cfx.go", "RpcCfxClient", missingFuncs)
-    fs.writeFileSync("/Users/wangdayong/myspace/mywork/go-conflux-sdk/cfxclient/bulk/bulk_caller_cfx.go", BulkCfxCaller)
-})()
 
 
 function genInitResult(returnType) {
@@ -126,4 +110,15 @@ function genInitResult(returnType) {
     }
     return initResult
 }
+
+(function () {
+    const missingFuncs = [`// GetStatus returns status of connecting conflux node
+    func (client *BulkCfxCaller) GetStatus() *hexutil.Big {
+        result := &hexutil.Big{}
+        *client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getStatus"))
+        return result
+    }`]
+    const BulkCfxCaller = genBulkFile("../cfxclient/rpc_cfx.go", "RpcCfxClient", missingFuncs)
+    fs.writeFileSync("../cfxclient/bulk/bulk_caller_cfx.go", BulkCfxCaller)
+})()
 

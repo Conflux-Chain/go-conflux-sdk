@@ -1,7 +1,6 @@
 package bulk
 
 import (
-	"fmt"
 	"reflect"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
@@ -44,15 +43,22 @@ func (b *BulkCaller) Customer() *BulkCustomCaller {
 	return b.customer
 }
 
-func (b *BulkCaller) Excute() ([]error, error) {
+func (b *BulkCaller) Execute() ([]error, error) {
 	return batchCall(b.caller, b.batchElems, b.outHandlers)
+}
+
+func (b *BulkCaller) Clear() {
+	*b.batchElems = (*b.batchElems)[:0]
 }
 
 func batchCall(caller sdk.ClientOperator,
 	batchElems *[]rpc.BatchElem,
 	outHandlers map[int]*OutputHandler,
 ) ([]error, error) {
-	fmt.Printf("outHandlers %v\n", outHandlers)
+	if len(*batchElems) == 0 {
+		return nil, nil
+	}
+
 	err := caller.BatchCallRPC(*batchElems)
 	if err != nil {
 		return nil, errors.WithStack(err)
