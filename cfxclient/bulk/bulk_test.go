@@ -2,7 +2,6 @@ package bulk
 
 import (
 	"fmt"
-	"math/big"
 	"testing"
 
 	client "github.com/Conflux-Chain/go-conflux-sdk"
@@ -14,12 +13,6 @@ import (
 
 // use
 func TestBulkCall(t *testing.T) {
-
-	raw, success := big.NewInt(0).SetString("0x12837843846827364abcdef12334fbd45ac123acd", 0)
-	val := (*hexutil.Big)(raw)
-	fmt.Printf("raw %v, val %v, sucess: %v\n", raw, val, success)
-	// return
-
 	_client, err := client.NewClient("https://test.confluxrpc.com")
 	if err != nil {
 		panic(err)
@@ -27,7 +20,7 @@ func TestBulkCall(t *testing.T) {
 	bulkCaller := NewBulkerCaller(_client)
 
 	gasPrice, gasPriceError := bulkCaller.Cfx().GetGasPrice()
-	_, err = bulkCaller.Execute()
+	err = bulkCaller.Execute()
 	if err != nil {
 		panic(err)
 	}
@@ -41,6 +34,8 @@ func TestBulkCall(t *testing.T) {
 		panic("failed get gasPrice")
 	}
 
+	fmt.Printf("get get price %v\n", gasPrice)
+
 	addresses := [2]cfxaddress.Address{
 		cfxaddress.MustNew("cfxtest:aamjxdgz4m84hjvf2s9rmw5uzd4dkh8aa6krdsh0ep"),
 		cfxaddress.MustNew("cfxtest:aak2rra2njvd77ezwjvx04kkds9fzagfe6d5r8e957"),
@@ -49,10 +44,26 @@ func TestBulkCall(t *testing.T) {
 	var nonces [len(addresses)]*hexutil.Big
 	var nonceErrors [len(addresses)]*error
 	for i := 0; i < len(nonces); i++ {
-		nonces[i], nonceErrors[i] = bulkCaller.Cfx().GetNextNonce(addresses[i], types.NewEpochNumberUint64(0))
+		nonces[i], nonceErrors[i] = bulkCaller.Cfx().GetNextNonce(addresses[i], types.NewEpochNumberUint64(1000000000))
 	}
 
-	_, err = bulkCaller.Execute()
+	err = bulkCaller.Execute()
+	if err != nil {
+		panic(err)
+	}
+
+	for i := 0; i < len(nonceErrors); i++ {
+		if *nonceErrors[i] == nil {
+			t.Fatalf("expect get nonce error")
+		}
+		fmt.Printf("get nonce error: %v\n", *nonceErrors[i])
+	}
+
+	bulkCaller.Clear()
+	for i := 0; i < len(nonces); i++ {
+		nonces[i], nonceErrors[i] = bulkCaller.Cfx().GetNextNonce(addresses[i])
+	}
+	err = bulkCaller.Execute()
 	if err != nil {
 		panic(err)
 	}
@@ -61,8 +72,9 @@ func TestBulkCall(t *testing.T) {
 		if *nonceErrors[i] != nil {
 			panic(*nonceErrors[i])
 		}
-		fmt.Printf("get nonce of address %v %v\n", addresses[i], nonces[i])
+		fmt.Printf("get nonce: %v\n", nonces[i])
 	}
+
 }
 
 func TestBatchOne(t *testing.T) {

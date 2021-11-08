@@ -2,24 +2,17 @@
 package bulk
 
 import (
-	sdk "github.com/Conflux-Chain/go-conflux-sdk"
-	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// type BulkCfxCaller struct {
-// 	caller     sdk.ClientOperator
-// 	batchElems *[]rpc.BatchElem
-// }
+type BulkCfxCaller BulkCallerCore
 
-type BulkCfxCaller BulkCallerTemplate
-
-func NewBulkCfxCaller(caller sdk.ClientOperator, batchElems *[]rpc.BatchElem) *BulkCfxCaller {
-	return &BulkCfxCaller{caller, batchElems}
+func NewBulkCfxCaller(core BulkCallerCore) *BulkCfxCaller {
+	return (*BulkCfxCaller)(&core)
 }
 
-func (b *BulkCfxCaller) Excute() ([]error, error) {
+func (b *BulkCfxCaller) Execute() ([]error, error) {
 	return batchCall(b.caller, b.batchElems, nil)
 }
 
@@ -30,7 +23,9 @@ func (b *BulkCfxCaller) Excute() ([]error, error) {
 func (client *BulkCfxCaller) GetGasPrice() (*hexutil.Big, *error) {
 	result := new(hexutil.Big)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_gasPrice"))
+
+	elem := newBatchElem(result, "cfx_gasPrice")
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -39,7 +34,9 @@ func (client *BulkCfxCaller) GetNextNonce(address types.Address, epoch ...*types
 	result := new(hexutil.Big)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getNextNonce", address, realEpoch))
+
+	elem := newBatchElem(result, "cfx_getNextNonce", address, realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -50,7 +47,9 @@ func (client *BulkCfxCaller) GetEpochNumber(epoch ...*types.Epoch) (*hexutil.Big
 	result := new(hexutil.Big)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_epochNumber", realEpoch))
+
+	elem := newBatchElem(result, "cfx_epochNumber", realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 
 	return result, err
 }
@@ -60,7 +59,9 @@ func (client *BulkCfxCaller) GetBalance(address types.Address, epoch ...*types.E
 	result := new(hexutil.Big)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBalance", address, realEpoch))
+
+	elem := newBatchElem(result, "cfx_getBalance", address, realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 
 	return result, err
 }
@@ -70,7 +71,9 @@ func (client *BulkCfxCaller) GetCode(address types.Address, epoch ...*types.Epoc
 	result := new(hexutil.Bytes)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getCode", address, realEpoch))
+
+	elem := newBatchElem(result, "cfx_getCode", address, realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -79,7 +82,9 @@ func (client *BulkCfxCaller) GetCode(address types.Address, epoch ...*types.Epoc
 func (client *BulkCfxCaller) GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockSummary, *error) {
 	result := new(types.BlockSummary)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlockByHash", blockHash, false))
+
+	elem := newBatchElem(result, "cfx_getBlockByHash", blockHash, false)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -88,7 +93,9 @@ func (client *BulkCfxCaller) GetBlockSummaryByHash(blockHash types.Hash) (*types
 func (client *BulkCfxCaller) GetBlockByHash(blockHash types.Hash) (*types.Block, *error) {
 	result := new(types.Block)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlockByHash", blockHash, true))
+
+	elem := newBatchElem(result, "cfx_getBlockByHash", blockHash, true)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -97,21 +104,27 @@ func (client *BulkCfxCaller) GetBlockByHash(blockHash types.Hash) (*types.Block,
 func (client *BulkCfxCaller) GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary, *error) {
 	result := new(types.BlockSummary)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlockByEpochNumber", epoch, false))
+
+	elem := newBatchElem(result, "cfx_getBlockByEpochNumber", epoch, false)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
 func (client *BulkCfxCaller) GetBlockByBlockNumber(blockNumer hexutil.Uint64) (*types.Block, *error) {
 	result := new(types.Block)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlockByBlockNumber", blockNumer, true))
+
+	elem := newBatchElem(result, "cfx_getBlockByBlockNumber", blockNumer, true)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
 func (client *BulkCfxCaller) GetBlockSummaryByBlockNumber(blockNumer hexutil.Uint64) (*types.BlockSummary, *error) {
 	result := new(types.BlockSummary)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlockByBlockNumber", blockNumer, false))
+
+	elem := newBatchElem(result, "cfx_getBlockByBlockNumber", blockNumer, false)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -120,7 +133,9 @@ func (client *BulkCfxCaller) GetBlockSummaryByBlockNumber(blockNumer hexutil.Uin
 func (client *BulkCfxCaller) GetBlockByEpoch(epoch *types.Epoch) (*types.Block, *error) {
 	result := new(types.Block)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlockByEpochNumber", epoch, true))
+
+	elem := newBatchElem(result, "cfx_getBlockByEpochNumber", epoch, true)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -128,7 +143,9 @@ func (client *BulkCfxCaller) GetBlockByEpoch(epoch *types.Epoch) (*types.Block, 
 func (client *BulkCfxCaller) GetBestBlockHash() (*types.Hash, *error) {
 	result := new(types.Hash)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBestBlockHash"))
+
+	elem := newBatchElem(result, "cfx_getBestBlockHash")
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -138,7 +155,9 @@ func (client *BulkCfxCaller) GetBestBlockHash() (*types.Hash, *error) {
 func (client *BulkCfxCaller) GetRawBlockConfirmationRisk(blockhash types.Hash) (*hexutil.Big, *error) {
 	result := new(hexutil.Big)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getConfirmationRiskByHash", blockhash))
+
+	elem := newBatchElem(result, "cfx_getConfirmationRiskByHash", blockhash)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -153,7 +172,9 @@ func (client *BulkCfxCaller) GetRawBlockConfirmationRisk(blockhash types.Hash) (
 func (client *BulkCfxCaller) SendRawTransaction(rawData []byte) (*types.Hash, *error) {
 	result := new(types.Hash)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_sendRawTransaction", hexutil.Encode(rawData)))
+
+	elem := newBatchElem(result, "cfx_sendRawTransaction", hexutil.Encode(rawData))
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -163,7 +184,9 @@ func (client *BulkCfxCaller) SendRawTransaction(rawData []byte) (*types.Hash, *e
 func (client *BulkCfxCaller) Call(request types.CallRequest, epoch *types.Epoch) (*hexutil.Bytes, *error) {
 	result := new(hexutil.Bytes)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_call", request, epoch))
+
+	elem := newBatchElem(result, "cfx_call", request, epoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -171,7 +194,9 @@ func (client *BulkCfxCaller) Call(request types.CallRequest, epoch *types.Epoch)
 func (client *BulkCfxCaller) GetLogs(filter types.LogFilter) ([]types.Log, *error) {
 	result := make([]types.Log, 0)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getLogs", filter))
+
+	elem := newBatchElem(result, "cfx_getLogs", filter)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -180,7 +205,9 @@ func (client *BulkCfxCaller) GetLogs(filter types.LogFilter) ([]types.Log, *erro
 func (client *BulkCfxCaller) GetTransactionByHash(txHash types.Hash) (*types.Transaction, *error) {
 	result := new(types.Transaction)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getTransactionByHash", txHash))
+
+	elem := newBatchElem(result, "cfx_getTransactionByHash", txHash)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -190,7 +217,9 @@ func (client *BulkCfxCaller) EstimateGasAndCollateral(request types.CallRequest,
 	result := new(types.Estimate)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_estimateGasAndCollateral", request, realEpoch))
+
+	elem := newBatchElem(result, "cfx_estimateGasAndCollateral", request, realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -198,7 +227,9 @@ func (client *BulkCfxCaller) EstimateGasAndCollateral(request types.CallRequest,
 func (client *BulkCfxCaller) GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, *error) {
 	result := make([]types.Hash, 0)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlocksByEpoch", epoch))
+
+	elem := newBatchElem(result, "cfx_getBlocksByEpoch", epoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -207,7 +238,9 @@ func (client *BulkCfxCaller) GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash,
 func (client *BulkCfxCaller) GetTransactionReceipt(txHash types.Hash) (*types.TransactionReceipt, *error) {
 	result := new(types.TransactionReceipt)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getTransactionReceipt", txHash))
+
+	elem := newBatchElem(result, "cfx_getTransactionReceipt", txHash)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -218,7 +251,9 @@ func (client *BulkCfxCaller) GetAdmin(contractAddress types.Address, epoch ...*t
 	result := new(types.Address)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getAdmin", contractAddress, realEpoch))
+
+	elem := newBatchElem(result, "cfx_getAdmin", contractAddress, realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -227,7 +262,9 @@ func (client *BulkCfxCaller) GetSponsorInfo(contractAddress types.Address, epoch
 	result := new(types.SponsorInfo)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getSponsorInfo", contractAddress, realEpoch))
+
+	elem := newBatchElem(result, "cfx_getSponsorInfo", contractAddress, realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -236,7 +273,9 @@ func (client *BulkCfxCaller) GetStakingBalance(account types.Address, epoch ...*
 	result := new(hexutil.Big)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getStakingBalance", account, realEpoch))
+
+	elem := newBatchElem(result, "cfx_getStakingBalance", account, realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -245,7 +284,9 @@ func (client *BulkCfxCaller) GetCollateralForStorage(account types.Address, epoc
 	result := new(hexutil.Big)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getCollateralForStorage", account, realEpoch))
+
+	elem := newBatchElem(result, "cfx_getCollateralForStorage", account, realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -254,7 +295,9 @@ func (client *BulkCfxCaller) GetStorageAt(address types.Address, position types.
 	result := new(hexutil.Bytes)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getStorageAt", address, position, realEpoch))
+
+	elem := newBatchElem(result, "cfx_getStorageAt", address, position, realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -263,7 +306,9 @@ func (client *BulkCfxCaller) GetStorageRoot(address types.Address, epoch ...*typ
 	result := new(types.StorageRoot)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getStorageRoot", address, realEpoch))
+
+	elem := newBatchElem(result, "cfx_getStorageRoot", address, realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -271,7 +316,9 @@ func (client *BulkCfxCaller) GetStorageRoot(address types.Address, epoch ...*typ
 func (client *BulkCfxCaller) GetBlockByHashWithPivotAssumption(blockHash types.Hash, pivotHash types.Hash, epoch hexutil.Uint64) (*types.Block, *error) {
 	result := new(types.Block)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlockByHashWithPivotAssumption", blockHash, pivotHash, epoch))
+
+	elem := newBatchElem(result, "cfx_getBlockByHashWithPivotAssumption", blockHash, pivotHash, epoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -285,9 +332,11 @@ func (client *BulkCfxCaller) CheckBalanceAgainstTransaction(accountAddress types
 	result := new(types.CheckBalanceAgainstTransactionResponse)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result,
+
+	elem := newBatchElem(result,
 		"cfx_checkBalanceAgainstTransaction", accountAddress, contractAddress,
-		gasLimit, gasPrice, storageLimit, realEpoch))
+		gasLimit, gasPrice, storageLimit, realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -295,7 +344,9 @@ func (client *BulkCfxCaller) CheckBalanceAgainstTransaction(accountAddress types
 func (client *BulkCfxCaller) GetSkippedBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, *error) {
 	result := make([]types.Hash, 0)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getSkippedBlocksByEpoch", epoch))
+
+	elem := newBatchElem(result, "cfx_getSkippedBlocksByEpoch", epoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -304,7 +355,9 @@ func (client *BulkCfxCaller) GetAccountInfo(account types.Address, epoch ...*typ
 	result := new(types.AccountInfo)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getAccount", account, realEpoch))
+
+	elem := newBatchElem(result, "cfx_getAccount", account, realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -313,7 +366,9 @@ func (client *BulkCfxCaller) GetInterestRate(epoch ...*types.Epoch) (*hexutil.Bi
 	result := new(hexutil.Big)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getInterestRate", realEpoch))
+
+	elem := newBatchElem(result, "cfx_getInterestRate", realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 
 	return result, err
 }
@@ -323,7 +378,9 @@ func (client *BulkCfxCaller) GetAccumulateInterestRate(epoch ...*types.Epoch) (*
 	result := new(hexutil.Big)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getAccumulateInterestRate", realEpoch))
+
+	elem := newBatchElem(result, "cfx_getAccumulateInterestRate", realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 
 	return result, err
 }
@@ -332,7 +389,9 @@ func (client *BulkCfxCaller) GetAccumulateInterestRate(epoch ...*types.Epoch) (*
 func (client *BulkCfxCaller) GetBlockRewardInfo(epoch types.Epoch) ([]types.RewardInfo, *error) {
 	result := make([]types.RewardInfo, 0)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlockRewardInfo", epoch))
+
+	elem := newBatchElem(result, "cfx_getBlockRewardInfo", epoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -340,7 +399,9 @@ func (client *BulkCfxCaller) GetBlockRewardInfo(epoch types.Epoch) ([]types.Rewa
 func (client *BulkCfxCaller) GetClientVersion() (*string, *error) {
 	result := new(string)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_clientVersion"))
+
+	elem := newBatchElem(result, "cfx_clientVersion")
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -349,7 +410,9 @@ func (client *BulkCfxCaller) GetDepositList(address types.Address, epoch ...*typ
 	result := make([]types.DepositInfo, 0)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getDepositList", address, realEpoch))
+
+	elem := newBatchElem(result, "cfx_getDepositList", address, realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -358,7 +421,9 @@ func (client *BulkCfxCaller) GetVoteList(address types.Address, epoch ...*types.
 	result := make([]types.VoteStakeInfo, 0)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getVoteList", address, realEpoch))
+
+	elem := newBatchElem(result, "cfx_getVoteList", address, realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -367,7 +432,9 @@ func (client *BulkCfxCaller) GetSupplyInfo(epoch ...*types.Epoch) (*types.TokenS
 	result := new(types.TokenSupplyInfo)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getSupplyInfo", realEpoch))
+
+	elem := newBatchElem(result, "cfx_getSupplyInfo", realEpoch)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
@@ -375,13 +442,17 @@ func (client *BulkCfxCaller) GetSupplyInfo(epoch ...*types.Epoch) (*types.TokenS
 func (client *BulkCfxCaller) GetAccountPendingInfo(address types.Address) (*types.AccountPendingInfo, *error) {
 	result := new(types.AccountPendingInfo)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getAccountPendingInfo", address))
+
+	elem := newBatchElem(result, "cfx_getAccountPendingInfo", address)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
 func (client *BulkCfxCaller) GetAccountPendingTransactions(address types.Address, startNonce *hexutil.Big, limit *hexutil.Uint64) (*types.AccountPendingTransactions, *error) {
 	result := new(types.AccountPendingTransactions)
 	err := new(error)
-	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getAccountPendingTransactions", address, startNonce, limit))
+
+	elem := newBatchElem(result, "cfx_getAccountPendingTransactions", address, startNonce, limit)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }

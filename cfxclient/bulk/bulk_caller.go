@@ -9,13 +9,19 @@ import (
 	"github.com/pkg/errors"
 )
 
-type BulkCallerTemplate struct {
+type BulkCallerCore struct {
 	caller     sdk.ClientOperator
 	batchElems *[]rpc.BatchElem
+	errors     *[]*error
+}
+
+func (b *BulkCallerCore) appendElemsAndError(elem rpc.BatchElem, err *error) {
+	*b.batchElems = append(*b.batchElems, elem)
+	*b.errors = append(*b.errors, err)
 }
 
 type BulkCaller struct {
-	BulkCallerTemplate
+	BulkCallerCore
 
 	outHandlers map[int]*OutputHandler
 	*BulkCfxCaller
@@ -24,19 +30,23 @@ type BulkCaller struct {
 
 func NewBulkerCaller(rpcCaller sdk.ClientOperator) *BulkCaller {
 	batchElems := make([]rpc.BatchElem, 0, 10)
+	errors := make([]*error, 0, 10)
 	outHandlers := make(map[int]*OutputHandler)
 
-	cfx := NewBulkCfxCaller(rpcCaller, &batchElems)
-	customer := NewBulkCustomCaller(rpcCaller, &batchElems, outHandlers)
+	core := BulkCallerCore{
+		caller:     rpcCaller,
+		batchElems: &batchElems,
+		errors:     &errors,
+	}
+
+	cfx := NewBulkCfxCaller(core)
+	customer := NewBulkCustomCaller(core, outHandlers)
 
 	return &BulkCaller{
-		BulkCallerTemplate: BulkCallerTemplate{
-			caller:     rpcCaller,
-			batchElems: &batchElems,
-		},
-		outHandlers:   outHandlers,
-		BulkCfxCaller: cfx,
-		customer:      customer,
+		BulkCallerCore: core,
+		outHandlers:    outHandlers,
+		BulkCfxCaller:  cfx,
+		customer:       customer,
 	}
 }
 
@@ -48,12 +58,20 @@ func (b *BulkCaller) Customer() *BulkCustomCaller {
 	return b.customer
 }
 
-func (b *BulkCaller) Execute() ([]error, error) {
-	return batchCall(b.BulkCallerTemplate.caller, b.BulkCallerTemplate.batchElems, b.outHandlers)
+func (b *BulkCaller) Execute() error {
+	_errors, _err := batchCall(b.BulkCallerCore.caller, b.BulkCallerCore.batchElems, b.outHandlers)
+	if _err != nil {
+		return _err
+	}
+	for i, v := range _errors {
+		errPtr := (*b.BulkCallerCore.errors)[i]
+		*errPtr = v
+	}
+	return nil
 }
 
 func (b *BulkCaller) Clear() {
-	*b.BulkCallerTemplate.batchElems = (*b.BulkCallerTemplate.batchElems)[:0]
+	*b.BulkCallerCore.batchElems = (*b.BulkCallerCore.batchElems)[:0]
 }
 
 func batchCall(caller sdk.ClientOperator,

@@ -15,23 +15,21 @@ function genBulkFile(filePath, clientName, missingFuncs) {
         import (
             "fmt"
         
+            sdk "github.com/Conflux-Chain/go-conflux-sdk"
             "github.com/Conflux-Chain/go-conflux-sdk/interfaces"
             "github.com/Conflux-Chain/go-conflux-sdk/rpc"
             "github.com/Conflux-Chain/go-conflux-sdk/types"
             "github.com/ethereum/go-ethereum/common/hexutil"
         )
+
+        type ${bulkStrctName} BulkCallerCore
         
-        type ${bulkStrctName} struct {
-            caller     interfaces.RpcCallerCore
-            batchElems *[]rpc.BatchElem
-        }
-        
-        func New${bulkStrctName}(caller interfaces.RpcCallerCore, batchElems *[]rpc.BatchElem) *${bulkStrctName} {
-            return &${bulkStrctName}{caller, batchElems}
+        func New${bulkStrctName}(core BulkCallerCore) *${bulkStrctName} {
+            return (*${bulkStrctName})(&core)
         }
         
         func (b *${bulkStrctName}) Execute() ([]error, error) {
-            return batchCall(b.caller, b.batchElems)
+            return batchCall(b.caller, b.batchElems, nil)
         }\n\n`
 
 
@@ -49,7 +47,7 @@ function genBulkFuncs(func) {
         `\\(.*? (.*?),.*?\\)` + `.*?\\{` +                          // (nonce *hexutil.Big, err error) {        <<<>>> Group3:ReturnType            ---> *hexutil.Big
         `(${any}*?)err` +                                           // realEpoch := get1stEpochIfy(epoch)\nerr  <<<>>> Group4:Pre-Call              ---> realEpoch := get1stEpochIfy(epoch) 
         `.*?wrappedCallRPC\\(${any}*?,` +                           //  = client.core.wrappedCallRPC(&nonce, 
-        `(${any}*?)\\)` +                                           //  "cfx_getNextNonce", address, realEpoch) <<<>>> Group5:RpcElements           ---> "cfx_getNextNonce", address, realEpoch
+        `(${any}*)\\)\n` +                                           //  "cfx_getNextNonce", address, realEpoch) <<<>>> Group5:RpcElements           ---> "cfx_getNextNonce", address, realEpoch
         `(${any}*?)` +                                              // Group6:Post-Call
         `return${any}*?` +                                          // result
         `\\}(${any}*)`                                              // }\n//comments                            <<<>>> Group7:Comments of next func --->\n//comments
@@ -86,8 +84,9 @@ function genBulkFuncs(func) {
 
     let initResult = genInitResult(returnType)
     let newOne = `func(client *${clientName}) ${funcSign} (${returnType},*error) {\n\t${initResult}${preCall}` +
-        `*client.batchElems = append(*client.batchElems, newBatchElem(result, ` + `${rpcBody}))${postCall}` +
-        `return result,err\n` +
+        `\n\telem := newBatchElem(result, ` + `${rpcBody})` +
+        `\n\t(*BulkCallerCore)(client).appendElemsAndError(elem,err)${postCall}` +
+        `\n\treturn result,err\n` +
         `}\n${comments}`
 
     newOne = newOne.replace(/if err != nil {.*?}/gs, "")
@@ -121,11 +120,12 @@ function genInitResult(returnType) {
         *client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getStatus"))
         return result
     }`]
-    const BulkCfxCaller = genBulkFile("../cfxclient/rpc_cfx.go", "RpcCfxClient", cfxMissingFuncs)
+    const root = "/Users/wangdayong/myspace/mytemp/go-conflux-sdk"
+    const BulkCfxCaller = genBulkFile(`${root}/cfxclient/rpc_cfx.go`, "RpcCfxClient", cfxMissingFuncs)
     fs.writeFileSync("../cfxclient/bulk/bulk_caller_cfx.go", BulkCfxCaller)
-    const BulkDebugCaller = genBulkFile("../cfxclient/rpc_debug.go", "RpcDebugClient")
+    const BulkDebugCaller = genBulkFile(`${root}/cfxclient/rpc_debug.go`, "RpcDebugClient")
     fs.writeFileSync("../cfxclient/bulk/bulk_caller_debug.go", BulkDebugCaller)
-    const BulkTraceCaller = genBulkFile("../cfxclient/rpc_trace.go", "RpcTraceClient")
+    const BulkTraceCaller = genBulkFile(`${root}/cfxclient/rpc_trace.go`, "RpcTraceClient")
     fs.writeFileSync("../cfxclient/bulk/bulk_caller_trace.go", BulkTraceCaller)
 })()
 

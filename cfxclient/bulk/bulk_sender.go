@@ -203,9 +203,15 @@ func (b *BulkSender) SignAndSend() ([]*types.Hash, []error, error) {
 		hashes[i], errs[i] = bulkCaller.Cfx().SendRawTransaction(rawTx)
 	}
 
-	_errors, err := bulkCaller.Execute()
+	err := bulkCaller.Execute()
 	if err != nil {
 		return nil, nil, errors.Wrapf(err, "failed to batch send transactions")
 	}
-	return hashes, _errors, err
+
+	errorVals := make([]error, len(errs))
+	for i, err := range errs {
+		errorVals[i] = *err
+	}
+
+	return hashes, errorVals, err
 }
