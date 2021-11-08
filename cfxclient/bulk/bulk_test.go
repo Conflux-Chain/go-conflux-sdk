@@ -7,6 +7,7 @@ import (
 
 	client "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
+	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -25,21 +26,20 @@ func TestBulkCall(t *testing.T) {
 	}
 	bulkCaller := NewBulkerCaller(_client)
 
-	gasPrice := bulkCaller.GetGasPrice()
-	_errors, err := bulkCaller.Execute()
+	gasPrice, gasPriceError := bulkCaller.Cfx().GetGasPrice()
+	_, err = bulkCaller.Execute()
 	if err != nil {
 		panic(err)
 	}
-	gasPriceError := _errors[0]
-	if gasPriceError != nil {
+
+	if *gasPriceError != nil {
 		fmt.Printf("get price error %v", gasPriceError)
-		panic(gasPriceError)
+		panic(*gasPriceError)
 	}
 
 	if gasPrice == nil {
 		panic("failed get gasPrice")
 	}
-	// return
 
 	addresses := [2]cfxaddress.Address{
 		cfxaddress.MustNew("cfxtest:aamjxdgz4m84hjvf2s9rmw5uzd4dkh8aa6krdsh0ep"),
@@ -47,21 +47,21 @@ func TestBulkCall(t *testing.T) {
 	}
 
 	var nonces [len(addresses)]*hexutil.Big
+	var nonceErrors [len(addresses)]*error
 	for i := 0; i < len(nonces); i++ {
-		nonces[i] = bulkCaller.GetNextNonce(addresses[i])
+		nonces[i], nonceErrors[i] = bulkCaller.Cfx().GetNextNonce(addresses[i], types.NewEpochNumberUint64(0))
 	}
 
-	errors, err := bulkCaller.Execute()
+	_, err = bulkCaller.Execute()
 	if err != nil {
 		panic(err)
 	}
 
-	nonceErrors := errors[1 : 1+len(addresses)]
 	for i := 0; i < len(nonceErrors); i++ {
-		if nonceErrors[i] != nil {
-			panic(nonceErrors[i])
+		if *nonceErrors[i] != nil {
+			panic(*nonceErrors[i])
 		}
-		fmt.Printf("get nonce of address %v %v\n", addresses[i], &nonces[i])
+		fmt.Printf("get nonce of address %v %v\n", addresses[i], nonces[i])
 	}
 }
 

@@ -8,10 +8,12 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-type BulkCfxCaller struct {
-	caller     sdk.ClientOperator
-	batchElems *[]rpc.BatchElem
-}
+// type BulkCfxCaller struct {
+// 	caller     sdk.ClientOperator
+// 	batchElems *[]rpc.BatchElem
+// }
+
+type BulkCfxCaller BulkCallerTemplate
 
 func NewBulkCfxCaller(caller sdk.ClientOperator, batchElems *[]rpc.BatchElem) *BulkCfxCaller {
 	return &BulkCfxCaller{caller, batchElems}
@@ -25,106 +27,119 @@ func (b *BulkCfxCaller) Excute() ([]error, error) {
 
 //ignore
 
-func (client *BulkCfxCaller) GetGasPrice() *hexutil.Big {
+func (client *BulkCfxCaller) GetGasPrice() (*hexutil.Big, *error) {
 	result := new(hexutil.Big)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_gasPrice"))
-	return result
+	return result, err
 }
 
 // GetNextNonce returns the next transaction nonce of address
-func (client *BulkCfxCaller) GetNextNonce(address types.Address, epoch ...*types.Epoch) *hexutil.Big {
+func (client *BulkCfxCaller) GetNextNonce(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, *error) {
 	result := new(hexutil.Big)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getNextNonce", address, realEpoch))
-	return result
+	return result, err
 }
 
 // GetStatus returns status of connecting conflux node
 //ignore
 
-func (client *BulkCfxCaller) GetEpochNumber(epoch ...*types.Epoch) *hexutil.Big {
+func (client *BulkCfxCaller) GetEpochNumber(epoch ...*types.Epoch) (*hexutil.Big, *error) {
 	result := new(hexutil.Big)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_epochNumber", realEpoch))
 
-	return result
+	return result, err
 }
 
 // GetBalance returns the balance of specified address at epoch.
-func (client *BulkCfxCaller) GetBalance(address types.Address, epoch ...*types.Epoch) *hexutil.Big {
+func (client *BulkCfxCaller) GetBalance(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, *error) {
 	result := new(hexutil.Big)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBalance", address, realEpoch))
 
-	return result
+	return result, err
 }
 
 // GetCode returns the bytecode in HEX format of specified address at epoch.
-func (client *BulkCfxCaller) GetCode(address types.Address, epoch ...*types.Epoch) *hexutil.Bytes {
+func (client *BulkCfxCaller) GetCode(address types.Address, epoch ...*types.Epoch) (*hexutil.Bytes, *error) {
 	result := new(hexutil.Bytes)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getCode", address, realEpoch))
-	return result
+	return result, err
 }
 
 // GetBlockSummaryByHash returns the block summary of specified blockHash
 // If the block is not found, return nil.
-func (client *BulkCfxCaller) GetBlockSummaryByHash(blockHash types.Hash) *types.BlockSummary {
+func (client *BulkCfxCaller) GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockSummary, *error) {
 	result := new(types.BlockSummary)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlockByHash", blockHash, false))
-	return result
+	return result, err
 }
 
 // GetBlockByHash returns the block of specified blockHash
 // If the block is not found, return nil.
-func (client *BulkCfxCaller) GetBlockByHash(blockHash types.Hash) *types.Block {
+func (client *BulkCfxCaller) GetBlockByHash(blockHash types.Hash) (*types.Block, *error) {
 	result := new(types.Block)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlockByHash", blockHash, true))
-	return result
+	return result, err
 }
 
 // GetBlockSummaryByEpoch returns the block summary of specified epoch.
 // If the epoch is invalid, return the concrete error.
-func (client *BulkCfxCaller) GetBlockSummaryByEpoch(epoch *types.Epoch) *types.BlockSummary {
+func (client *BulkCfxCaller) GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary, *error) {
 	result := new(types.BlockSummary)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlockByEpochNumber", epoch, false))
-	return result
+	return result, err
 }
 
-func (client *BulkCfxCaller) GetBlockByBlockNumber(blockNumer hexutil.Uint64) *types.Block {
+func (client *BulkCfxCaller) GetBlockByBlockNumber(blockNumer hexutil.Uint64) (*types.Block, *error) {
 	result := new(types.Block)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlockByBlockNumber", blockNumer, true))
-	return result
+	return result, err
 }
 
-func (client *BulkCfxCaller) GetBlockSummaryByBlockNumber(blockNumer hexutil.Uint64) *types.BlockSummary {
+func (client *BulkCfxCaller) GetBlockSummaryByBlockNumber(blockNumer hexutil.Uint64) (*types.BlockSummary, *error) {
 	result := new(types.BlockSummary)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlockByBlockNumber", blockNumer, false))
-	return result
+	return result, err
 }
 
 // GetBlockByEpoch returns the block of specified epoch.
 // If the epoch is invalid, return the concrete error.
-func (client *BulkCfxCaller) GetBlockByEpoch(epoch *types.Epoch) *types.Block {
+func (client *BulkCfxCaller) GetBlockByEpoch(epoch *types.Epoch) (*types.Block, *error) {
 	result := new(types.Block)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlockByEpochNumber", epoch, true))
-	return result
+	return result, err
 }
 
 // GetBestBlockHash returns the current best block hash.
-func (client *BulkCfxCaller) GetBestBlockHash() *types.Hash {
+func (client *BulkCfxCaller) GetBestBlockHash() (*types.Hash, *error) {
 	result := new(types.Hash)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBestBlockHash"))
-	return result
+	return result, err
 }
 
 // GetRawBlockConfirmationRisk indicates the risk coefficient that
 // the pivot block of the epoch where the block is located becomes a normal block.
 // It will return nil if block not exist
-func (client *BulkCfxCaller) GetRawBlockConfirmationRisk(blockhash types.Hash) *hexutil.Big {
+func (client *BulkCfxCaller) GetRawBlockConfirmationRisk(blockhash types.Hash) (*hexutil.Big, *error) {
 	result := new(hexutil.Big)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getConfirmationRiskByHash", blockhash))
-	return result
+	return result, err
 }
 
 // GetBlockConfirmationRisk indicates the probability that
@@ -135,116 +150,129 @@ func (client *BulkCfxCaller) GetRawBlockConfirmationRisk(blockhash types.Hash) *
 
 //ignore
 
-func (client *BulkCfxCaller) SendRawTransaction(rawData []byte) *types.Hash {
+func (client *BulkCfxCaller) SendRawTransaction(rawData []byte) (*types.Hash, *error) {
 	result := new(types.Hash)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_sendRawTransaction", hexutil.Encode(rawData)))
-	return result
+	return result, err
 }
 
 // Call executes a message call transaction "request" at specified epoch,
 // which is directly executed in the VM of the node, but never mined into the block chain
 // and returns the contract execution result.
-func (client *BulkCfxCaller) Call(request types.CallRequest, epoch *types.Epoch) *hexutil.Bytes {
-	var bytes hexutil.Bytes
-	result := &bytes
+func (client *BulkCfxCaller) Call(request types.CallRequest, epoch *types.Epoch) (*hexutil.Bytes, *error) {
+	result := new(hexutil.Bytes)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_call", request, epoch))
-	return result
+	return result, err
 }
 
 // GetLogs returns logs that matching the specified filter.
-func (client *BulkCfxCaller) GetLogs(filter types.LogFilter) []types.Log {
+func (client *BulkCfxCaller) GetLogs(filter types.LogFilter) ([]types.Log, *error) {
 	result := make([]types.Log, 0)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getLogs", filter))
-	return result
+	return result, err
 }
 
 // GetTransactionByHash returns transaction for the specified txHash.
 // If the transaction is not found, return nil.
-func (client *BulkCfxCaller) GetTransactionByHash(txHash types.Hash) *types.Transaction {
+func (client *BulkCfxCaller) GetTransactionByHash(txHash types.Hash) (*types.Transaction, *error) {
 	result := new(types.Transaction)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getTransactionByHash", txHash))
-	return result
+	return result, err
 }
 
 // EstimateGasAndCollateral excutes a message call "request"
 // and returns the amount of the gas used and storage for collateral
-func (client *BulkCfxCaller) EstimateGasAndCollateral(request types.CallRequest, epoch ...*types.Epoch) *types.Estimate {
+func (client *BulkCfxCaller) EstimateGasAndCollateral(request types.CallRequest, epoch ...*types.Epoch) (*types.Estimate, *error) {
 	result := new(types.Estimate)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_estimateGasAndCollateral", request, realEpoch))
-	return result
+	return result, err
 }
 
 // GetBlocksByEpoch returns the blocks hash in the specified epoch.
-func (client *BulkCfxCaller) GetBlocksByEpoch(epoch *types.Epoch) []types.Hash {
+func (client *BulkCfxCaller) GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, *error) {
 	result := make([]types.Hash, 0)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlocksByEpoch", epoch))
-	return result
+	return result, err
 }
 
 // GetTransactionReceipt returns the receipt of specified transaction hash.
 // If no receipt is found, return nil.
-func (client *BulkCfxCaller) GetTransactionReceipt(txHash types.Hash) *types.TransactionReceipt {
+func (client *BulkCfxCaller) GetTransactionReceipt(txHash types.Hash) (*types.TransactionReceipt, *error) {
 	result := new(types.TransactionReceipt)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getTransactionReceipt", txHash))
-	return result
+	return result, err
 }
 
 // ===new rpc===
 
 // GetAdmin returns admin of the given contract, it will return nil if contract not exist
-func (client *BulkCfxCaller) GetAdmin(contractAddress types.Address, epoch ...*types.Epoch) *types.Address {
+func (client *BulkCfxCaller) GetAdmin(contractAddress types.Address, epoch ...*types.Epoch) (*types.Address, *error) {
 	result := new(types.Address)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getAdmin", contractAddress, realEpoch))
-	return result
+	return result, err
 }
 
 // GetSponsorInfo returns sponsor information of the given contract
-func (client *BulkCfxCaller) GetSponsorInfo(contractAddress types.Address, epoch ...*types.Epoch) *types.SponsorInfo {
+func (client *BulkCfxCaller) GetSponsorInfo(contractAddress types.Address, epoch ...*types.Epoch) (*types.SponsorInfo, *error) {
 	result := new(types.SponsorInfo)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getSponsorInfo", contractAddress, realEpoch))
-	return result
+	return result, err
 }
 
 // GetStakingBalance returns balance of the given account.
-func (client *BulkCfxCaller) GetStakingBalance(account types.Address, epoch ...*types.Epoch) *hexutil.Big {
+func (client *BulkCfxCaller) GetStakingBalance(account types.Address, epoch ...*types.Epoch) (*hexutil.Big, *error) {
 	result := new(hexutil.Big)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getStakingBalance", account, realEpoch))
-	return result
+	return result, err
 }
 
 // GetCollateralForStorage returns balance of the given account.
-func (client *BulkCfxCaller) GetCollateralForStorage(account types.Address, epoch ...*types.Epoch) *hexutil.Big {
+func (client *BulkCfxCaller) GetCollateralForStorage(account types.Address, epoch ...*types.Epoch) (*hexutil.Big, *error) {
 	result := new(hexutil.Big)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getCollateralForStorage", account, realEpoch))
-	return result
+	return result, err
 }
 
 // GetStorageAt returns storage entries from a given contract.
-func (client *BulkCfxCaller) GetStorageAt(address types.Address, position types.Hash, epoch ...*types.Epoch) *hexutil.Bytes {
+func (client *BulkCfxCaller) GetStorageAt(address types.Address, position types.Hash, epoch ...*types.Epoch) (*hexutil.Bytes, *error) {
 	result := new(hexutil.Bytes)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getStorageAt", address, position, realEpoch))
-	return result
+	return result, err
 }
 
 // GetStorageRoot returns storage root of given address
-func (client *BulkCfxCaller) GetStorageRoot(address types.Address, epoch ...*types.Epoch) *types.StorageRoot {
+func (client *BulkCfxCaller) GetStorageRoot(address types.Address, epoch ...*types.Epoch) (*types.StorageRoot, *error) {
 	result := new(types.StorageRoot)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getStorageRoot", address, realEpoch))
-	return result
+	return result, err
 }
 
 // GetBlockByHashWithPivotAssumption returns block with given hash and pivot chain assumption.
-func (client *BulkCfxCaller) GetBlockByHashWithPivotAssumption(blockHash types.Hash, pivotHash types.Hash, epoch hexutil.Uint64) *types.Block {
+func (client *BulkCfxCaller) GetBlockByHashWithPivotAssumption(blockHash types.Hash, pivotHash types.Hash, epoch hexutil.Uint64) (*types.Block, *error) {
 	result := new(types.Block)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlockByHashWithPivotAssumption", blockHash, pivotHash, epoch))
-	return result
+	return result, err
 }
 
 // CheckBalanceAgainstTransaction checks if user balance is enough for the transaction.
@@ -253,95 +281,107 @@ func (client *BulkCfxCaller) CheckBalanceAgainstTransaction(accountAddress types
 	gasLimit *hexutil.Big,
 	gasPrice *hexutil.Big,
 	storageLimit *hexutil.Big,
-	epoch ...*types.Epoch) *types.CheckBalanceAgainstTransactionResponse {
+	epoch ...*types.Epoch) (*types.CheckBalanceAgainstTransactionResponse, *error) {
 	result := new(types.CheckBalanceAgainstTransactionResponse)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result,
 		"cfx_checkBalanceAgainstTransaction", accountAddress, contractAddress,
 		gasLimit, gasPrice, storageLimit, realEpoch))
-	return result
+	return result, err
 }
 
 // GetSkippedBlocksByEpoch returns skipped block hashes of given epoch
-func (client *BulkCfxCaller) GetSkippedBlocksByEpoch(epoch *types.Epoch) []types.Hash {
+func (client *BulkCfxCaller) GetSkippedBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, *error) {
 	result := make([]types.Hash, 0)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getSkippedBlocksByEpoch", epoch))
-	return result
+	return result, err
 }
 
 // GetAccountInfo returns account related states of the given account
-func (client *BulkCfxCaller) GetAccountInfo(account types.Address, epoch ...*types.Epoch) *types.AccountInfo {
+func (client *BulkCfxCaller) GetAccountInfo(account types.Address, epoch ...*types.Epoch) (*types.AccountInfo, *error) {
 	result := new(types.AccountInfo)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getAccount", account, realEpoch))
-	return result
+	return result, err
 }
 
 // GetInterestRate returns interest rate of the given epoch
-func (client *BulkCfxCaller) GetInterestRate(epoch ...*types.Epoch) *hexutil.Big {
+func (client *BulkCfxCaller) GetInterestRate(epoch ...*types.Epoch) (*hexutil.Big, *error) {
 	result := new(hexutil.Big)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getInterestRate", realEpoch))
 
-	return result
+	return result, err
 }
 
 // GetAccumulateInterestRate returns accumulate interest rate of the given epoch
-func (client *BulkCfxCaller) GetAccumulateInterestRate(epoch ...*types.Epoch) *hexutil.Big {
+func (client *BulkCfxCaller) GetAccumulateInterestRate(epoch ...*types.Epoch) (*hexutil.Big, *error) {
 	result := new(hexutil.Big)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getAccumulateInterestRate", realEpoch))
 
-	return result
+	return result, err
 }
 
 // GetBlockRewardInfo returns block reward information in an epoch
-func (client *BulkCfxCaller) GetBlockRewardInfo(epoch types.Epoch) []types.RewardInfo {
+func (client *BulkCfxCaller) GetBlockRewardInfo(epoch types.Epoch) ([]types.RewardInfo, *error) {
 	result := make([]types.RewardInfo, 0)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getBlockRewardInfo", epoch))
-	return result
+	return result, err
 }
 
 // GetClientVersion returns the client version as a string
-func (client *BulkCfxCaller) GetClientVersion() *string {
+func (client *BulkCfxCaller) GetClientVersion() (*string, *error) {
 	result := new(string)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_clientVersion"))
-	return result
+	return result, err
 }
 
 // GetDepositList returns deposit list of the given account.
-func (client *BulkCfxCaller) GetDepositList(address types.Address, epoch ...*types.Epoch) []types.DepositInfo {
+func (client *BulkCfxCaller) GetDepositList(address types.Address, epoch ...*types.Epoch) ([]types.DepositInfo, *error) {
 	result := make([]types.DepositInfo, 0)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getDepositList", address, realEpoch))
-	return result
+	return result, err
 }
 
 // GetVoteList returns vote list of the given account.
-func (client *BulkCfxCaller) GetVoteList(address types.Address, epoch ...*types.Epoch) []types.VoteStakeInfo {
+func (client *BulkCfxCaller) GetVoteList(address types.Address, epoch ...*types.Epoch) ([]types.VoteStakeInfo, *error) {
 	result := make([]types.VoteStakeInfo, 0)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getVoteList", address, realEpoch))
-	return result
+	return result, err
 }
 
 // GetSupplyInfo Return information about total token supply.
-func (client *BulkCfxCaller) GetSupplyInfo(epoch ...*types.Epoch) *types.TokenSupplyInfo {
+func (client *BulkCfxCaller) GetSupplyInfo(epoch ...*types.Epoch) (*types.TokenSupplyInfo, *error) {
 	result := new(types.TokenSupplyInfo)
+	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getSupplyInfo", realEpoch))
-	return result
+	return result, err
 }
 
 // GetAccountPendingInfo gets transaction pending info by account address
-func (client *BulkCfxCaller) GetAccountPendingInfo(address types.Address) *types.AccountPendingInfo {
+func (client *BulkCfxCaller) GetAccountPendingInfo(address types.Address) (*types.AccountPendingInfo, *error) {
 	result := new(types.AccountPendingInfo)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getAccountPendingInfo", address))
-	return result
+	return result, err
 }
 
-func (client *BulkCfxCaller) GetAccountPendingTransactions(address types.Address, startNonce *hexutil.Big, limit *hexutil.Uint64) *types.AccountPendingTransactions {
+func (client *BulkCfxCaller) GetAccountPendingTransactions(address types.Address, startNonce *hexutil.Big, limit *hexutil.Uint64) (*types.AccountPendingTransactions, *error) {
 	result := new(types.AccountPendingTransactions)
+	err := new(error)
 	*client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getAccountPendingTransactions", address, startNonce, limit))
-	return result
+	return result, err
 }

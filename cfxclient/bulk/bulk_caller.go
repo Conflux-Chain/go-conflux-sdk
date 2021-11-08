@@ -9,11 +9,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-type BulkCaller struct {
-	caller      sdk.ClientOperator
-	batchElems  *[]rpc.BatchElem
-	outHandlers map[int]*OutputHandler
+type BulkCallerTemplate struct {
+	caller     sdk.ClientOperator
+	batchElems *[]rpc.BatchElem
+}
 
+type BulkCaller struct {
+	BulkCallerTemplate
+
+	outHandlers map[int]*OutputHandler
 	*BulkCfxCaller
 	customer *BulkCustomCaller
 }
@@ -26,10 +30,11 @@ func NewBulkerCaller(rpcCaller sdk.ClientOperator) *BulkCaller {
 	customer := NewBulkCustomCaller(rpcCaller, &batchElems, outHandlers)
 
 	return &BulkCaller{
-		caller:      rpcCaller,
-		batchElems:  &batchElems,
-		outHandlers: outHandlers,
-
+		BulkCallerTemplate: BulkCallerTemplate{
+			caller:     rpcCaller,
+			batchElems: &batchElems,
+		},
+		outHandlers:   outHandlers,
 		BulkCfxCaller: cfx,
 		customer:      customer,
 	}
@@ -44,11 +49,11 @@ func (b *BulkCaller) Customer() *BulkCustomCaller {
 }
 
 func (b *BulkCaller) Execute() ([]error, error) {
-	return batchCall(b.caller, b.batchElems, b.outHandlers)
+	return batchCall(b.BulkCallerTemplate.caller, b.BulkCallerTemplate.batchElems, b.outHandlers)
 }
 
 func (b *BulkCaller) Clear() {
-	*b.batchElems = (*b.batchElems)[:0]
+	*b.BulkCallerTemplate.batchElems = (*b.BulkCallerTemplate.batchElems)[:0]
 }
 
 func batchCall(caller sdk.ClientOperator,
@@ -104,3 +109,5 @@ func newBatchElem(result interface{}, method string, args ...interface{}) rpc.Ba
 		Args:   args,
 	}
 }
+
+// func appendBatchElem()

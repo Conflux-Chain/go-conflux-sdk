@@ -27,10 +27,10 @@ function genBulkFile(filePath, clientName, missingFuncs) {
         }
         
         func New${bulkStrctName}(caller interfaces.RpcCallerCore, batchElems *[]rpc.BatchElem) *${bulkStrctName} {
-            return &BulkCfxCaller{caller, batchElems}
+            return &${bulkStrctName}{caller, batchElems}
         }
         
-        func (b *${bulkStrctName}) Call() ([]error, error) {
+        func (b *${bulkStrctName}) Execute() ([]error, error) {
             return batchCall(b.caller, b.batchElems)
         }\n\n`
 
@@ -44,7 +44,7 @@ function genBulkFile(filePath, clientName, missingFuncs) {
  */
 function genBulkFuncs(func) {
     let any = "[\\s\\S]"
-    let reg = new RegExp(`func \\(client \\*(RpcCfxClient)\\)` +    // func (client *RpcCfxClient)              <<<>>> Group1:StructName            ---> RpcCfxClient
+    let reg = new RegExp(`func \\(client \\*(Rpc.*Client)\\)` +    // func (client *RpcCfxClient)              <<<>>> Group1:StructName            ---> RpcCfxClient
         `(${any}*\\)).* ` +                                         // Group2:Function Sign                                                         ---> GetNextNonce(address types.Address, epoch ...*types.Epoch) 
         `\\(.*? (.*?),.*?\\)` + `.*?\\{` +                          // (nonce *hexutil.Big, err error) {        <<<>>> Group3:ReturnType            ---> *hexutil.Big
         `(${any}*?)err` +                                           // realEpoch := get1stEpochIfy(epoch)\nerr  <<<>>> Group4:Pre-Call              ---> realEpoch := get1stEpochIfy(epoch) 
@@ -85,12 +85,14 @@ function genBulkFuncs(func) {
     returnType = (returnType[0] == "*" || returnType[0] == "[") ? returnType : "*" + returnType
 
     let initResult = genInitResult(returnType)
-    let newOne = `func(client *${clientName}) ${funcSign} ${returnType} {\n\t${initResult}${preCall}` +
+    let newOne = `func(client *${clientName}) ${funcSign} (${returnType},*error) {\n\t${initResult}${preCall}` +
         `*client.batchElems = append(*client.batchElems, newBatchElem(result, ` + `${rpcBody}))${postCall}` +
-        `return result\n` +
+        `return result,err\n` +
         `}\n${comments}`
 
     newOne = newOne.replace(/if err != nil {.*?}/gs, "")
+    newOne = newOne.replace(new RegExp(`if ok, code :=${any}*?\\{${any}*?\\}${any}*?\\}`, "ig"), "")
+    console.log("newOne", newOne)
 
     return newOne
 }
@@ -108,17 +110,22 @@ function genInitResult(returnType) {
         default:
             break
     }
+    initResult += `\n\terr := new(error)`
     return initResult
 }
 
 (function () {
-    const missingFuncs = [`// GetStatus returns status of connecting conflux node
+    const cfxMissingFuncs = [`// GetStatus returns status of connecting conflux node
     func (client *BulkCfxCaller) GetStatus() *hexutil.Big {
         result := &hexutil.Big{}
         *client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getStatus"))
         return result
     }`]
-    const BulkCfxCaller = genBulkFile("../cfxclient/rpc_cfx.go", "RpcCfxClient", missingFuncs)
+    const BulkCfxCaller = genBulkFile("../cfxclient/rpc_cfx.go", "RpcCfxClient", cfxMissingFuncs)
     fs.writeFileSync("../cfxclient/bulk/bulk_caller_cfx.go", BulkCfxCaller)
+    const BulkDebugCaller = genBulkFile("../cfxclient/rpc_debug.go", "RpcDebugClient")
+    fs.writeFileSync("../cfxclient/bulk/bulk_caller_debug.go", BulkDebugCaller)
+    const BulkTraceCaller = genBulkFile("../cfxclient/rpc_trace.go", "RpcTraceClient")
+    fs.writeFileSync("../cfxclient/bulk/bulk_caller_trace.go", BulkTraceCaller)
 })()
 
