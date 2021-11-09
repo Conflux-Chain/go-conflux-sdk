@@ -6,12 +6,15 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
+// BulkCfxCaller used for bulk call rpc in one request to improve efficiency
 type BulkCfxCaller BulkCallerCore
 
+// NewBulkCfxCaller creates new BulkCfxCaller instance
 func NewBulkCfxCaller(core BulkCallerCore) *BulkCfxCaller {
 	return (*BulkCfxCaller)(&core)
 }
 
+// Execute sends all rpc requests in queue by rpc call "batch" on one request
 func (b *BulkCfxCaller) Execute() ([]error, error) {
 	return batchCall(b.caller, b.batchElems, nil)
 }

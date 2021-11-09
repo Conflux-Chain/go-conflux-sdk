@@ -15,31 +15,41 @@ type BulkCallerCore struct {
 	errors     *[]*error
 }
 
+func NewBulkCallerCore(rpcCaller sdk.ClientOperator) BulkCallerCore {
+	batchElems := make([]rpc.BatchElem, 0, 10)
+	errors := make([]*error, 0, 10)
+
+	return BulkCallerCore{
+		caller:     rpcCaller,
+		batchElems: &batchElems,
+		errors:     &errors,
+	}
+}
+
 func (b *BulkCallerCore) appendElemsAndError(elem rpc.BatchElem, err *error) {
 	*b.batchElems = append(*b.batchElems, elem)
 	*b.errors = append(*b.errors, err)
 }
 
+// BulkCaller used for bulk call rpc in one request to improve efficiency
 type BulkCaller struct {
 	BulkCallerCore
 
 	outHandlers map[int]*OutputHandler
 	*BulkCfxCaller
+	debug    *BulkDebugCaller
+	trace    *BulkTraceCaller
+	pos      *BulkPosCaller
 	customer *BulkCustomCaller
 }
 
+// NewBulkerCaller creates new bulk caller instance
 func NewBulkerCaller(rpcCaller sdk.ClientOperator) *BulkCaller {
-	batchElems := make([]rpc.BatchElem, 0, 10)
-	errors := make([]*error, 0, 10)
-	outHandlers := make(map[int]*OutputHandler)
 
-	core := BulkCallerCore{
-		caller:     rpcCaller,
-		batchElems: &batchElems,
-		errors:     &errors,
-	}
-
+	core := NewBulkCallerCore(rpcCaller)
 	cfx := NewBulkCfxCaller(core)
+
+	outHandlers := make(map[int]*OutputHandler)
 	customer := NewBulkCustomCaller(core, outHandlers)
 
 	return &BulkCaller{
@@ -50,14 +60,32 @@ func NewBulkerCaller(rpcCaller sdk.ClientOperator) *BulkCaller {
 	}
 }
 
+// Cfx returns BulkCfxCaller for genereating "cfx" namespace relating rpc request
 func (b *BulkCaller) Cfx() *BulkCfxCaller {
 	return b.BulkCfxCaller
 }
 
+// Debug returns BulkDebugCaller for genereating "debug" namespace relating rpc request
+func (b *BulkCaller) Debug() *BulkDebugCaller {
+	return b.debug
+}
+
+// Trace returns BulkTraceCaller for genereating "trace" namespace relating rpc request
+func (b *BulkCaller) Trace() *BulkTraceCaller {
+	return b.trace
+}
+
+// Pos returns BulkTraceCaller for genereating "pos" namespace relating rpc request
+func (b *BulkCaller) Pos() *BulkPosCaller {
+	return b.pos
+}
+
+// Customer returns BulkCustomCaller for genereating contract relating rpc request which mainly for decoding contract call result with type *hexutil.Big to ABI defined types
 func (b *BulkCaller) Customer() *BulkCustomCaller {
 	return b.customer
 }
 
+// Execute sends all rpc requests in queue by rpc call "batch" on one request
 func (b *BulkCaller) Execute() error {
 	_errors, _err := batchCall(b.BulkCallerCore.caller, b.BulkCallerCore.batchElems, b.outHandlers)
 	if _err != nil {
@@ -70,8 +98,10 @@ func (b *BulkCaller) Execute() error {
 	return nil
 }
 
+// Clear clear requests and errors in queue for new bulk call action
 func (b *BulkCaller) Clear() {
 	*b.BulkCallerCore.batchElems = (*b.BulkCallerCore.batchElems)[:0]
+	*b.BulkCallerCore.errors = (*b.BulkCallerCore.errors)[:0]
 }
 
 func batchCall(caller sdk.ClientOperator,
@@ -119,13 +149,3 @@ func batchCall(caller sdk.ClientOperator,
 	}
 	return _errors, nil
 }
-
-func newBatchElem(result interface{}, method string, args ...interface{}) rpc.BatchElem {
-	return rpc.BatchElem{
-		Method: method,
-		Result: &result,
-		Args:   args,
-	}
-}
-
-// func appendBatchElem()

@@ -4,23 +4,24 @@
 
 # Conflux Golang API
 
-The Conflux Golang API allows any Golang client to interact with a local or remote Conflux node based on JSON-RPC 2.0 protocol. With Conflux Golang API, user can easily manage accounts, send transactions, deploy smart contracts and query blockchain information.
+The Conflux Golang API allows any Golang client to interact with a local or remote Conflux node based on JSON-RPC 2.0 protocol. With Conflux Golang API, users can easily manage accounts, send transactions, deploy smart contracts, and query blockchain information.
 
 ## Install
 ```
 go get github.com/Conflux-Chain/go-conflux-sdk
 ```
-You can also add the Conflux Golang API into vendor folder.
+You can also add the Conflux Golang API into the vendor folder.
 ```
 govendor fetch github.com/Conflux-Chain/go-conflux-sdk
 ```
 
 ## Usage
 
-[api document](https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/api.md)
+- [API document](https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/api.md)
+- [Examples](https://github.com/conflux-fans/go-conflux-sdk-examples)
 
 ## Manage Accounts
-Use `AccountManager` struct to manage accounts at local machine.
+Use `AccountManager` struct to manage accounts at the local machine.
 - Create/Import/Update/Delete an account.
 - List all accounts.
 - Unlock/Lock an account.
@@ -56,37 +57,65 @@ func main() {
 ```
 
 ## Send Transaction
-To send a transaction, you need to sign the transaction at local machine, and send the signed transaction to local or remote Conflux node.
-- Sign a transaction with unlocked account:
+To send a transaction, you need to sign the transaction at a local machine and send the signed transaction to a local or remote Conflux node.
+- Sign a transaction with an unlocked account:
 
     `AccountManager.SignTransaction(tx UnsignedTransaction)`
 
-- Sign a transaction with passphrase for locked account:
+- Sign a transaction with the passphrase for the locked account:
 
 	`AccountManager.SignTransactionWithPassphrase(tx UnsignedTransaction, passphrase string)`
 
-- Send a unsigned transaction
+- Send an unsigned transaction
 
     `Client.SendTransaction(tx types.UnsignedTransaction)`
 
-- Send a encoded transaction
+- Send an encoded transaction
 
     `Client.SendRawTransaction(rawData []byte)`
 
-- Encode a encoded unsigned transaction with signature and send transaction
+- Encode an encoded unsigned transaction with a signature and send the transaction
 
     `Client.SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte)`
 
-To send multiple transactions at a time, you can unlock the account at first, then send multiple transactions without passphrase. To send a single transaction, you can just only send the transaction with passphrase.
+To send multiple transactions at a time, you can unlock the account at first, then send multiple transactions without the passphrase. To send a single transaction, you can just only send the transaction with the passphrase.
+
+## Batch Query Information and Send Transaction
+When we need to query many pieces of information or send many transactions, we may need to send many requests to the RPC server, and it may cause request limitation and low efficiency. So we provided batch methods for you to send a batch request at one time to avoid this case and improve efficiency.
+
+Please see example from [example_bulk](https://github.com/conflux-fans/go-conflux-sdk-examples/tree/main/example_bulk)
+### Batch query information
+1. New `BulkCaller`
+2. `BulkCaller.Cfx().XXX` *(XXX means RPC methods)* to append request, and the returned result and error are pointers for saving results after requests are sent.
+   > Besides `Cfx`, there are also `Debug`, `Trace`, `Pos` methods for acquiring RPC methods for the corresponding namespace
+3. `BulkCaller.Execute` to send requests.
+4. The result and error pointer of step 2 are filled by request results
+5. `BulkCaller.Clear` to clear request cache for new bulk call action.
+
+### Batch call contract
+1. Use [`abigen`](https://github.com/Conflux-Chain/conflux-abigen) to generate contract binding
+2. There is a struct called `XXXBulkCaller` *(XXX means your contract name)* for bulk call contract methods
+3. `XXXBulkCaller.YourContractMethod` to append request to its first parameter which is BulkSender instance, and the returned result and error arepointersr for saving results after requests be sent.
+4. Same as step 4 of [`Batch query information`]()
+
+It's ok to batch call normal RPC methods and contract calls by BulkCaller.
+### Batch send transaction
+1. New `BulkSender`
+2. `BulkSender.AppendTransaction` to append an unsigned transaction
+3. `BulkSender.SignAndSend` to send requests. The transaction hashes and errors will be returned. All of them are slice with the same length of appended transactions.
+4. `BulkSender.Clear` to clear request cache for new bulk send action.
+
+### Batch send contract transaction
+1. Use [`abigen`](https://github.com/Conflux-Chain/conflux-abigen) to generate contract binding
+2. There is a struct called `XXXBulkTransactor` *(XXX means your contract name)* for bulk send contract transactions
+3. Same as step 3 of [`Batch send transaction`]()
 
 ## Deploy/Invoke Smart Contract
 
-**The simpiest and recommend way is to use [conflux-abigen](https://github.com/Conflux-Chain/conflux-abigen) to generate contract binding to deploy and invoke with contract**
+**The simplest and recommended way is to use [conflux-abigen](https://github.com/Conflux-Chain/conflux-abigen) to generate contract binding to deploy and invoke with contract**
 
 ***[Depreated]***
-However you also can use `Client.DeployContract` to deploy a contract or use `Client.GetContract` to get a contract by deployed address. Then you can use the contract instance to operate contract, there are GetData/Call/SendTransaction. Please see [api document](https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/api.md) for detail.
-
-
+However, you also can use `Client.DeployContract` to deploy a contract or use `Client.GetContract` to get a contract by deployed address. Then you can use the contract instance to operate the contract, there are GetData/Call/SendTransaction. Please see [api document](https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/api.md) for detail.
 
 ### Contract Example ***[Depreated]***
 Please reference [contract example]((https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/example/example_contract)) for all source code
@@ -173,22 +202,22 @@ func main() {
 
 Please find Publish-Subscribe API documentation from https://developer.confluxnetwork.org/conflux-doc/docs/pubsub
 
-It should be noted that when subscribing logs, a `SubscribeLogs` object is received. It has two fields `Log` and `ChainRerog`, one of them must be nil and the other not. When Log is not nil, it means that a Log is received. When field `ChainReorg` is not nil, that means chainreorg is occurred. That represents the log related to epoch greater than or equal to `ChainReog.RevertTo` will become invalid, and the dapp needs to be dealt with at the business level.
+It should be noted that when subscribing logs, a `SubscribeLogs` object is received. It has two fields `Log` and `ChainRerog`, one of them must be nil and the other not. When Log is not nil, it means that a Log is received. When field `ChainReorg` is not nil, that means chainreorg occurs. That represents the log related to epoch greater than or equal to `ChainReog.RevertTo` will become invalid, and the Dapp needs to be dealt with at the business level.
 
-## Use middleware to hook rpc request
+## Use middleware to hook RPC request
 
-Client applies method `UseCallRpcMiddleware` to set middleware for hooking `callRpc` method which is the core of all single rpc related methods. And `UseBatchCallRpcMiddleware` to set middleware for hooking `batchCallRPC`.
+Client applies the method `UseCallRpcMiddleware` to set middleware for hooking `callRpc` method which is the core of all single RPC-related methods. And `UseBatchCallRpcMiddleware` to set middleware for hooking `batchCallRPC`.
 
 For example, use `CallRpcConsoleMiddleware` to log for rpc requests.
 ```golang
 client.UseCallRpcMiddleware(middleware.CallRpcConsoleMiddleware)
 ```
 
-Also you could 
+Also, you could 
 - customize middleware
-- use multiple middleware
+- use multiple middlewares
 
-Notice that the middleware chain exectuion order is like onion, for example, use middleware A first and then middleware B
+Notice that the middleware chain execution order is like onion, for example, use middleware A first and then middleware B
 ```go
 client.UseCallRpcMiddleware(A)
 client.UseCallRpcMiddleware(B)
@@ -201,18 +230,18 @@ B --> A --> client.callRpc --> A --> B
 ## Appendix
 ### Mapping of solidity types to go types 
 This is a mapping table for map solidity types to go types when using contract methods GetData/Call/SendTransaction/DecodeEvent
-| solidity types                               | go types                                                                          |
-|----------------------------------------------|-----------------------------------------------------------------------------------|
-| address                                      | common.Address                                                                    |
-| uint8,uint16,uint32,uint64                   | uint8,uint16,uint32,uint64                                                        |
-| uint24,uint40,uint48,uint56,uint72...uint256 | *big.Int                                                                          |
-| int8,int16,int32,int64                       | int8,int16,int32,int64                                                            |
-| int24,int40,int48,int56,int72...int256       | *big.Int                                                                          |
-| fixed bytes (bytes1,bytes2...bytes32)        | [length]byte                                                                      |
-| fixed type T array (T[length])               | [length]TG (TG is go type matched with solidty type T)                            |
-| bytes                                        | []byte                                                                            |
-| dynamic type T array T[]                     | []TG ((TG is go type matched with solidty type T))                                |
-| function                                     | [24]byte                                                                          |
-| string                                       | string                                                                            |
-| bool                                         | bool                                                                              |
+| solidity types                               | go types                                                                        |
+| -------------------------------------------- | ------------------------------------------------------------------------------- |
+| address                                      | common.Address                                                                  |
+| uint8,uint16,uint32,uint64                   | uint8,uint16,uint32,uint64                                                      |
+| uint24,uint40,uint48,uint56,uint72...uint256 | *big.Int                                                                        |
+| int8,int16,int32,int64                       | int8,int16,int32,int64                                                          |
+| int24,int40,int48,int56,int72...int256       | *big.Int                                                                        |
+| fixed bytes (bytes1,bytes2...bytes32)        | [length]byte                                                                    |
+| fixed type T array (T[length])               | [length]TG (TG is go type matched with solidty type T)                          |
+| bytes                                        | []byte                                                                          |
+| dynamic type T array T[]                     | []TG ((TG is go type matched with solidty type T))                              |
+| function                                     | [24]byte                                                                        |
+| string                                       | string                                                                          |
+| bool                                         | bool                                                                            |
 | tuple                                        | struct  eg:[{"name": "balance","type": "uint256"}] => struct {Balance *big.Int} |
