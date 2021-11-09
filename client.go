@@ -133,6 +133,10 @@ func (client *Client) GetNodeURL() string {
 	return client.nodeURL
 }
 
+func (client *Client) GetAccountManager() AccountManagerOperator {
+	return client.AccountManager
+}
+
 // NewAddress create conflux address by base32 string or hex40 string, if base32OrHex is base32 and networkID is passed it will create cfx Address use networkID of current client.
 func (client *Client) NewAddress(base32OrHex string) (types.Address, error) {
 	networkID, err := client.GetNetworkID()
