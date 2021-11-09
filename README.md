@@ -85,7 +85,7 @@ To send multiple transactions at a time, you can unlock the account at first, th
 ## Batch Query Information and Send Transaction
 When we need query many informations or send many transactions, we may need send many requests to rpc server and it may cause request limitation and low efficiency. So we provided batch methods for you to send batch request at a time to avoid this case and imporve efficiency.
 
-Please see example from [go-conflux-sdk-examples/example_bulk](https://github.com/conflux-fans/go-conflux-sdk-examples/tree/main/example_bulk)
+Please see example from [example_bulk](https://github.com/conflux-fans/go-conflux-sdk-examples/tree/main/example_bulk)
 ### Batch query information
 1. New `BulkCaller`
 2. `BulkCaller.Cfx().XXX` *(XXX means rpc methods)* to append request, and the returned result and error are pointer for saving results after requests be sent.
