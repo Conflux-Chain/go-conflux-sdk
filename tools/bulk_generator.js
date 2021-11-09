@@ -20,14 +20,18 @@ function genBulkFile(filePath, clientName, missingFuncs) {
             "github.com/Conflux-Chain/go-conflux-sdk/rpc"
             "github.com/Conflux-Chain/go-conflux-sdk/types"
             "github.com/ethereum/go-ethereum/common/hexutil"
+            postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
         )
 
+        // ${bulkStrctName} used for bulk call rpc in one request to imporve efficiency
         type ${bulkStrctName} BulkCallerCore
         
+        // New${bulkStrctName} creates new ${bulkStrctName} instance
         func New${bulkStrctName}(core BulkCallerCore) *${bulkStrctName} {
             return (*${bulkStrctName})(&core)
         }
         
+        // Execute sends all rpc requests in queue by rpc call "batch" on one request
         func (b *${bulkStrctName}) Execute() ([]error, error) {
             return batchCall(b.caller, b.batchElems, nil)
         }\n\n`
@@ -42,11 +46,11 @@ function genBulkFile(filePath, clientName, missingFuncs) {
  */
 function genBulkFuncs(func) {
     let any = "[\\s\\S]"
-    let reg = new RegExp(`func \\(client \\*(Rpc.*Client)\\)` +    // func (client *RpcCfxClient)              <<<>>> Group1:StructName            ---> RpcCfxClient
+    let reg = new RegExp(`func \\(.* \\*(Rpc.*Client)\\)` +    // func (client *RpcCfxClient)              <<<>>> Group1:StructName            ---> RpcCfxClient
         `(${any}*\\)).* ` +                                         // Group2:Function Sign                                                         ---> GetNextNonce(address types.Address, epoch ...*types.Epoch) 
         `\\(.*? (.*?),.*?\\)` + `.*?\\{` +                          // (nonce *hexutil.Big, err error) {        <<<>>> Group3:ReturnType            ---> *hexutil.Big
         `(${any}*?)err` +                                           // realEpoch := get1stEpochIfy(epoch)\nerr  <<<>>> Group4:Pre-Call              ---> realEpoch := get1stEpochIfy(epoch) 
-        `.*?wrappedCallRPC\\(${any}*?,` +                           //  = client.core.wrappedCallRPC(&nonce, 
+        `.*?CallRPC\\(${any}*?,` +                           //  = client.core.wrappedCallRPC(&nonce, 
         `(${any}*)\\)\n` +                                           //  "cfx_getNextNonce", address, realEpoch) <<<>>> Group5:RpcElements           ---> "cfx_getNextNonce", address, realEpoch
         `(${any}*?)` +                                              // Group6:Post-Call
         `return${any}*?` +                                          // result
@@ -120,12 +124,17 @@ function genInitResult(returnType) {
         *client.batchElems = append(*client.batchElems, newBatchElem(result, "cfx_getStatus"))
         return result
     }`]
-    const root = "/Users/wangdayong/myspace/mytemp/go-conflux-sdk"
+    // Note: Use 2.x branch files to generate bulk functions
+    let root = "/Users/wangdayong/myspace/mytemp/go-conflux-sdk"
     const BulkCfxCaller = genBulkFile(`${root}/cfxclient/rpc_cfx.go`, "RpcCfxClient", cfxMissingFuncs)
     fs.writeFileSync("../cfxclient/bulk/bulk_caller_cfx.go", BulkCfxCaller)
     const BulkDebugCaller = genBulkFile(`${root}/cfxclient/rpc_debug.go`, "RpcDebugClient")
     fs.writeFileSync("../cfxclient/bulk/bulk_caller_debug.go", BulkDebugCaller)
     const BulkTraceCaller = genBulkFile(`${root}/cfxclient/rpc_trace.go`, "RpcTraceClient")
     fs.writeFileSync("../cfxclient/bulk/bulk_caller_trace.go", BulkTraceCaller)
+
+    root = "/Users/wangdayong/myspace/mywork/go-conflux-sdk"
+    const BulkPosCaller = genBulkFile(`${root}/client_pos.go`, "RpcPosClient")
+    fs.writeFileSync("../cfxclient/bulk/bulk_caller_pos.go", BulkPosCaller)
 })()
 

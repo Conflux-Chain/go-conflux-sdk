@@ -11,25 +11,27 @@ import (
 	"github.com/pkg/errors"
 )
 
+// BulkSender used for bulk send unsigned tranactions in one request to imporve efficiency,
+// it will auto populate missing fields and nonce of unsigned transactions in queue before send.
 type BulkSender struct {
-	// bulkCaller     *BulkCaller
 	signalbeCaller sdk.ClientOperator
 	unsignedTxs    []*types.UnsignedTransaction
-	// wallet         interfaces.Wallet
 }
 
+// NewBuckSender creates new bulk sender instance
 func NewBuckSender(signableClient sdk.Client) *BulkSender {
 	return &BulkSender{
-		// bulkCaller:     bulkCaller,
 		signalbeCaller: &signableClient,
 	}
 }
 
+// AppendTransaction append unsigned transaction to queue
 func (b *BulkSender) AppendTransaction(tx types.UnsignedTransaction) *BulkSender {
 	b.unsignedTxs = append(b.unsignedTxs, &tx)
 	return b
 }
 
+// PopulateTransactions fill missing fields and nonce for unsigned transactions in queue
 func (b *BulkSender) PopulateTransactions() error {
 	defaultAccount, chainID, networkId, gasPrice, epochHeight, err := b.getChainInfos()
 	if err != nil {
@@ -180,11 +182,16 @@ func (b *BulkSender) getChainInfos() (
 	return defaultAccount, chainID, networkId, gasPrice, epochHeight, nil
 }
 
+// Clear clear batch elems and errors in queue for new bulk call action
 func (b *BulkSender) Clear() {
 	b.unsignedTxs = b.unsignedTxs[:0]
 }
 
-func (b *BulkSender) SignAndSend() ([]*types.Hash, []error, error) {
+// SignAndSend signs and sends all unsigned transactions in queue by rpc call "batch" on one request
+// and returns the result of sending transactions.
+// If there is any error on rpc "batch", it will be returned with batchErr not nil.
+// If there is no error on rpc "batch", it will return the txHashes or txErrors of sending transactions.
+func (b *BulkSender) SignAndSend() (txHashes []*types.Hash, txErrors []error, batchErr error) {
 	rawTxs := make([][]byte, len(b.unsignedTxs))
 
 	for i, utx := range b.unsignedTxs {
@@ -203,9 +210,9 @@ func (b *BulkSender) SignAndSend() ([]*types.Hash, []error, error) {
 		hashes[i], errs[i] = bulkCaller.Cfx().SendRawTransaction(rawTx)
 	}
 
-	err := bulkCaller.Execute()
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "failed to batch send transactions")
+	batchErr = bulkCaller.Execute()
+	if batchErr != nil {
+		return nil, nil, errors.Wrapf(batchErr, "failed to batch send transactions")
 	}
 
 	errorVals := make([]error, len(errs))
@@ -213,5 +220,5 @@ func (b *BulkSender) SignAndSend() ([]*types.Hash, []error, error) {
 		errorVals[i] = *err
 	}
 
-	return hashes, errorVals, err
+	return hashes, errorVals, batchErr
 }

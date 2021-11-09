@@ -17,7 +17,10 @@ govendor fetch github.com/Conflux-Chain/go-conflux-sdk
 
 ## Usage
 
-[api document](https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/api.md)
+- [API document](https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/api.md)
+- [Examples](https://github.com/conflux-fans/go-conflux-sdk-examples)
+
+
 
 ## Manage Accounts
 Use `AccountManager` struct to manage accounts at local machine.
@@ -79,14 +82,42 @@ To send a transaction, you need to sign the transaction at local machine, and se
 
 To send multiple transactions at a time, you can unlock the account at first, then send multiple transactions without passphrase. To send a single transaction, you can just only send the transaction with passphrase.
 
+## Batch Query Information and Send Transaction
+When we need query many informations or send many transactions, we may need send many requests to rpc server and it may cause request limitation and low efficiency. So we provided batch methods for you to send batch request at a time to avoid this case and imporve efficiency.
+
+Please see example from [go-conflux-sdk-examples/example_bulk](https://github.com/conflux-fans/go-conflux-sdk-examples/tree/main/example_bulk)
+### Batch query information
+1. New `BulkCaller`
+2. `BulkCaller.Cfx().XXX` *(XXX means rpc methods)* to append request, and the returned result and error are pointer for saving results after requests be sent.
+   > Besides `Cfx`, there also `Debug`, `Trace`, `Pos` methods for acquire rpc methods for corresponding namespace
+3. `BulkCaller.Execute` to send requests.
+4. The result and error pointer of step 2 are filled by request results
+5. `BulkCaller.Clear` to clear request cache for new bulk call action.
+
+### Batch call contract
+1. Use abigen to generate contract binding
+2. There is a struct called `XXXBulkCaller` *(XXX means your contract name)* for bulk call contract methods
+3. `XXXBulkCaller.YourContractMethod` to append request to it's first parameter which is bulkSender instance, and the returned result and error are pointer for saving results after requests be sent.
+4. Same as step 4 of [`Batch query information`]()
+
+It's ok to bulk call normal rpc methods and contract call.
+### Batch send transaction
+1. New `BulkSender`
+2. `BulkSender.AppendTransaction` to append unsigned transaction
+3. `BulkSender.SignAndSend` to send requests. The transaction hashes and errors will be returned. All of them are slice with same length of step 2.
+4. `BulkSender.Clear` to clear request cache for new bulk send action.
+
+### Batch send contract transaction
+1. Use abigen to generate contract binding
+2. There is a struct called `XXXBulkTransactor` *(XXX means your contract name)* for bulk send contract transactions
+3. Same as step 3 of [`Batch send transaction`]()
+
 ## Deploy/Invoke Smart Contract
 
 **The simpiest and recommend way is to use [conflux-abigen](https://github.com/Conflux-Chain/conflux-abigen) to generate contract binding to deploy and invoke with contract**
 
 ***[Depreated]***
 However you also can use `Client.DeployContract` to deploy a contract or use `Client.GetContract` to get a contract by deployed address. Then you can use the contract instance to operate contract, there are GetData/Call/SendTransaction. Please see [api document](https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/api.md) for detail.
-
-
 
 ### Contract Example ***[Depreated]***
 Please reference [contract example]((https://github.com/Conflux-Chain/go-conflux-sdk/blob/master/example/example_contract)) for all source code
@@ -201,18 +232,18 @@ B --> A --> client.callRpc --> A --> B
 ## Appendix
 ### Mapping of solidity types to go types 
 This is a mapping table for map solidity types to go types when using contract methods GetData/Call/SendTransaction/DecodeEvent
-| solidity types                               | go types                                                                          |
-|----------------------------------------------|-----------------------------------------------------------------------------------|
-| address                                      | common.Address                                                                    |
-| uint8,uint16,uint32,uint64                   | uint8,uint16,uint32,uint64                                                        |
-| uint24,uint40,uint48,uint56,uint72...uint256 | *big.Int                                                                          |
-| int8,int16,int32,int64                       | int8,int16,int32,int64                                                            |
-| int24,int40,int48,int56,int72...int256       | *big.Int                                                                          |
-| fixed bytes (bytes1,bytes2...bytes32)        | [length]byte                                                                      |
-| fixed type T array (T[length])               | [length]TG (TG is go type matched with solidty type T)                            |
-| bytes                                        | []byte                                                                            |
-| dynamic type T array T[]                     | []TG ((TG is go type matched with solidty type T))                                |
-| function                                     | [24]byte                                                                          |
-| string                                       | string                                                                            |
-| bool                                         | bool                                                                              |
+| solidity types                               | go types                                                                        |
+| -------------------------------------------- | ------------------------------------------------------------------------------- |
+| address                                      | common.Address                                                                  |
+| uint8,uint16,uint32,uint64                   | uint8,uint16,uint32,uint64                                                      |
+| uint24,uint40,uint48,uint56,uint72...uint256 | *big.Int                                                                        |
+| int8,int16,int32,int64                       | int8,int16,int32,int64                                                          |
+| int24,int40,int48,int56,int72...int256       | *big.Int                                                                        |
+| fixed bytes (bytes1,bytes2...bytes32)        | [length]byte                                                                    |
+| fixed type T array (T[length])               | [length]TG (TG is go type matched with solidty type T)                          |
+| bytes                                        | []byte                                                                          |
+| dynamic type T array T[]                     | []TG ((TG is go type matched with solidty type T))                              |
+| function                                     | [24]byte                                                                        |
+| string                                       | string                                                                          |
+| bool                                         | bool                                                                            |
 | tuple                                        | struct  eg:[{"name": "balance","type": "uint256"}] => struct {Balance *big.Int} |

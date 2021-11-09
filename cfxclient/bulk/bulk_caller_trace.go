@@ -5,12 +5,15 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 )
 
+// BulkTraceCaller used for bulk call rpc in one request to imporve efficiency
 type BulkTraceCaller BulkCallerCore
 
+// NewBulkTraceCaller creates new BulkTraceCaller instance
 func NewBulkTraceCaller(core BulkCallerCore) *BulkTraceCaller {
 	return (*BulkTraceCaller)(&core)
 }
 
+// Execute sends all rpc requests in queue by rpc call "batch" on one request
 func (b *BulkTraceCaller) Execute() ([]error, error) {
 	return batchCall(b.caller, b.batchElems, nil)
 }

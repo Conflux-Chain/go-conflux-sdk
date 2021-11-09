@@ -6,8 +6,9 @@ mv ./interface_mock.go ./interface_mock.go.tmd
 godocdown -o client.md
 cd ./utils && godocdown -o ../utils.md && cd ..
 cd ./contract_meta/internal_contract && godocdown -o ../../internal_contract.md && cd ../..
+cd ./cfxclient/bulk && godocdown -o ../../cfxclient.md && cd ../..
 
-cat client.md utils.md internal_contract.md > tmp.md
+cat client.md utils.md internal_contract.md cfxclient.md > tmp.md
 
 mv ./interface.go.tmd ./interface.go
 mv ./interface_mock.go.tmd ./interface_mock.go 
