@@ -1,6 +1,7 @@
 # Go-conflux-sdk Change Log
 ## v1.0.15
 - Add bulk caller and bulk sender for sending batch RPC requests by one request, see the example from [example_bulk](https://github.com/conflux-fans/go-conflux-sdk-examples/tree/main/example_bulk)
+- Move example to independent repo [go-conflux-sdk-example](https://github.com/conflux-fans/go-conflux-sdk-examples)
 ## v1.0.14
 - Add POS RPC
 ## v1.0.13
