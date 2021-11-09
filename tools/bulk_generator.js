@@ -23,7 +23,7 @@ function genBulkFile(filePath, clientName, missingFuncs) {
             postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
         )
 
-        // ${bulkStrctName} used for bulk call rpc in one request to imporve efficiency
+        // ${bulkStrctName} used for bulk call rpc in one request to improve efficiency
         type ${bulkStrctName} BulkCallerCore
         
         // New${bulkStrctName} creates new ${bulkStrctName} instance

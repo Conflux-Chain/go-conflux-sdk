@@ -31,7 +31,7 @@ func (b *BulkCallerCore) appendElemsAndError(elem rpc.BatchElem, err *error) {
 	*b.errors = append(*b.errors, err)
 }
 
-// BulkCaller used for bulk call rpc in one request to imporve efficiency
+// BulkCaller used for bulk call rpc in one request to improve efficiency
 type BulkCaller struct {
 	BulkCallerCore
 

@@ -6,7 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// BulkCfxCaller used for bulk call rpc in one request to imporve efficiency
+// BulkCfxCaller used for bulk call rpc in one request to improve efficiency
 type BulkCfxCaller BulkCallerCore
 
 // NewBulkCfxCaller creates new BulkCfxCaller instance

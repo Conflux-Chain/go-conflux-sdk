@@ -5,7 +5,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 )
 
-// BulkTraceCaller used for bulk call rpc in one request to imporve efficiency
+// BulkTraceCaller used for bulk call rpc in one request to improve efficiency
 type BulkTraceCaller BulkCallerCore
 
 // NewBulkTraceCaller creates new BulkTraceCaller instance

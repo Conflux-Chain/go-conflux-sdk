@@ -7,7 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// BulkPosCaller used for bulk call rpc in one request to imporve efficiency
+// BulkPosCaller used for bulk call rpc in one request to improve efficiency
 type BulkPosCaller BulkCallerCore
 
 // NewBulkPosCaller creates new BulkPosCaller instance

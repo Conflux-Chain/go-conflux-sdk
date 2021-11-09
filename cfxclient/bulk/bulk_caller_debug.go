@@ -7,7 +7,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 )
 
-// BulkDebugCaller used for bulk call rpc in one request to imporve efficiency
+// BulkDebugCaller used for bulk call rpc in one request to improve efficiency
 type BulkDebugCaller BulkCallerCore
 
 // NewBulkDebugCaller creates new BulkDebugCaller instance

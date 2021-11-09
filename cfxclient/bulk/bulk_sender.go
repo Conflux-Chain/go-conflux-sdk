@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// BulkSender used for bulk send unsigned tranactions in one request to imporve efficiency,
+// BulkSender used for bulk send unsigned tranactions in one request to improve efficiency,
 // it will auto populate missing fields and nonce of unsigned transactions in queue before send.
 type BulkSender struct {
 	signalbeCaller sdk.ClientOperator

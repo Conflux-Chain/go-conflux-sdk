@@ -1270,7 +1270,7 @@ type BulkCaller struct {
 }
 ```
 
-BulkCaller used for bulk call rpc in one request to imporve efficiency
+BulkCaller used for bulk call rpc in one request to improve efficiency
 
 #### func  NewBulkerCaller
 
@@ -1352,7 +1352,7 @@ func NewBulkCallerCore(rpcCaller sdk.ClientOperator) BulkCallerCore
 type BulkCfxCaller BulkCallerCore
 ```
 
-BulkCfxCaller used for bulk call rpc in one request to imporve efficiency
+BulkCfxCaller used for bulk call rpc in one request to improve efficiency
 
 #### func  NewBulkCfxCaller
 
@@ -1687,7 +1687,7 @@ func (client *BulkCustomCaller) ContractCall(request types.CallRequest,
 type BulkDebugCaller BulkCallerCore
 ```
 
-BulkDebugCaller used for bulk call rpc in one request to imporve efficiency
+BulkDebugCaller used for bulk call rpc in one request to improve efficiency
 
 #### func  NewBulkDebugCaller
 
@@ -1721,7 +1721,7 @@ func (client *BulkDebugCaller) GetEpochReceiptsByPivotBlockHash(hash types.Hash)
 type BulkPosCaller BulkCallerCore
 ```
 
-BulkPosCaller used for bulk call rpc in one request to imporve efficiency
+BulkPosCaller used for bulk call rpc in one request to improve efficiency
 
 #### func  NewBulkPosCaller
 
@@ -1792,7 +1792,7 @@ type BulkSender struct {
 }
 ```
 
-BulkSender used for bulk send unsigned tranactions in one request to imporve
+BulkSender used for bulk send unsigned tranactions in one request to improve
 efficiency, it will auto populate missing fields and nonce of unsigned
 transactions in queue before send.
 
@@ -1842,7 +1842,7 @@ transactions.
 type BulkTraceCaller BulkCallerCore
 ```
 
-BulkTraceCaller used for bulk call rpc in one request to imporve efficiency
+BulkTraceCaller used for bulk call rpc in one request to improve efficiency
 
 #### func  NewBulkTraceCaller
 
