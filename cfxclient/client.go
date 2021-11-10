@@ -42,6 +42,14 @@ func NewClient(nodeURL string) (Client, error) {
 	return client, nil
 }
 
+func MustNewClient(nodeURL string) *Client {
+	client, err := NewClient(nodeURL)
+	if err != nil {
+		panic(err)
+	}
+	return &client
+}
+
 func (c *Client) SetRetry(retryCount int, retryInterval time.Duration) *Client {
 	c.ClientCore.SetRetry(retryCount, retryInterval)
 	return c

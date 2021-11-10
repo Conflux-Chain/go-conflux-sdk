@@ -4,7 +4,6 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/Conflux-Chain/go-conflux-sdk/accounts"
 	"github.com/Conflux-Chain/go-conflux-sdk/constants"
 	"github.com/Conflux-Chain/go-conflux-sdk/interfaces"
 
@@ -21,24 +20,6 @@ type SignableClient struct {
 
 func NewSignableClient(c *Client, wallet interfaces.Wallet) SignableClient {
 	return SignableClient{c, wallet}
-}
-
-//FixMe: Is there better name
-func NewSignalbeClientByPath(nodeURL string, keyStorePath string) (SignableClient, error) {
-
-	_client, err := NewClient(nodeURL)
-	if err != nil {
-		return SignableClient{}, err
-	}
-
-	networkId, err := _client.GetNetworkID()
-	if err != nil {
-		return SignableClient{}, err
-	}
-
-	wallet := accounts.NewKeystoreWallet(keyStorePath, uint32(networkId))
-
-	return NewSignableClient(&_client, wallet), nil
 }
 
 func (c *SignableClient) GetWallet() interfaces.Wallet {
