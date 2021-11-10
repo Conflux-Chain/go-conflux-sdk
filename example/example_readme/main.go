@@ -7,7 +7,9 @@ import (
 	"math/big"
 	"time"
 
-	sdk "github.com/Conflux-Chain/go-conflux-sdk"
+	client "github.com/Conflux-Chain/go-conflux-sdk/cfxclient"
+	"github.com/Conflux-Chain/go-conflux-sdk/contracts"
+
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -15,24 +17,22 @@ import (
 func main() {
 
 	//init client
-	client, err := sdk.NewClient("https://test.confluxrpc.com", sdk.ClientOption{
-		KeystorePath: "../context/keystore",
-	})
+	client, err := client.NewSignalbeClientByPath("https://test.confluxrpc.com", "../context/keystore")
 	utils.PanicIfErrf(err, "failed to new client")
 
 	// unlock default account
-	client.AccountManager.TimedUnlockDefault("hello", 300*time.Second)
+	client.GetWallet().TimedUnlockDefault("hello", 300*time.Second)
 
 	//deploy contract
 	abi := mustGetAbi("../context/contract/erc20.abi")
 	bytecode := mustGetBytecode("../context/contract/erc20.bytecode")
 
-	result := client.DeployContract(nil, abi, bytecode, big.NewInt(100000), "biu", uint8(10), "BIU")
+	result := contracts.DeployContract(&client, nil, abi, bytecode, big.NewInt(100000), "biu", uint8(10), "BIU")
 	<-result.DoneChannel
 	utils.PanicIfErrf(result.Error, "failed to deploy contract")
 
 	contract := result.DeployedContract
-	fmt.Printf("deploy contract by client.DeployContract done\ncontract address: %+v\ntxhash:%v\n\n", contract.Address, result.TransactionHash)
+	fmt.Printf("deploy contract by client.DeployContract done\ncontract address: %+v\ntxhash:%v\n\n", contract.Address(), result.TransactionHash)
 
 	// or get contract by deployed address
 	// deployedAt := client.MustNewAddress("cfxtest:acgkhpdz61g11parejzbftznnt8gds15mp4wg54j5c")

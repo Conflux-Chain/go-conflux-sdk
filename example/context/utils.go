@@ -10,7 +10,8 @@ import (
 	"path"
 	"time"
 
-	sdk "github.com/Conflux-Chain/go-conflux-sdk"
+	"github.com/Conflux-Chain/go-conflux-sdk/contracts"
+	"github.com/Conflux-Chain/go-conflux-sdk/interfaces"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
@@ -29,13 +30,13 @@ func JSONFmt(v interface{}) string {
 }
 
 // WaitPacked ...
-func WaitPacked(client *sdk.Client, txhash types.Hash) *types.TransactionReceipt {
+func WaitPacked(client interfaces.RpcCaller, txhash types.Hash) *types.TransactionReceipt {
 	fmt.Printf("wait for transaction %v be packed\n", txhash)
 	var tx *types.TransactionReceipt
 	for {
 		time.Sleep(time.Duration(1) * time.Second)
 		var err error
-		tx, err = client.GetTransactionReceipt(txhash)
+		tx, err = client.Cfx().GetTransactionReceipt(txhash)
 		PanicIfErrf(err, "failed to get transaction receipt of %v", txhash)
 		fmt.Print(".")
 		if tx != nil {
@@ -48,9 +49,11 @@ func WaitPacked(client *sdk.Client, txhash types.Hash) *types.TransactionReceipt
 
 // GetNextNonceAndIncrease ...
 func GetNextNonceAndIncrease() *hexutil.Big {
+	client := config.GetClient()
+
 	if nextNonce == nil {
 		var err error
-		if nextNonce, err = client.GetNextNonce(*defaultAccount, nil); err != nil {
+		if nextNonce, err = client.Cfx().GetNextNonce(*defaultAccount, nil); err != nil {
 			panic(err)
 		}
 	}
@@ -61,7 +64,8 @@ func GetNextNonceAndIncrease() *hexutil.Big {
 }
 
 // CreateSignedTx ...
-func CreateSignedTx(client *sdk.Client) []byte {
+func CreateSignedTx(client interfaces.SignableRpcCaller) []byte {
+
 	to := cfxaddress.MustNewFromHex("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302")
 	to.CompleteByClient(client)
 	unSignedTx := types.UnsignedTransaction{
@@ -72,21 +76,26 @@ func CreateSignedTx(client *sdk.Client) []byte {
 		},
 		To: &to,
 	}
-	err := client.ApplyUnsignedTransactionDefault(&unSignedTx)
+	err := client.PopulateTransaction(&unSignedTx)
 	if err != nil {
 		panic(err)
 	}
 
-	signedTx, err := client.AccountManager.SignAndEcodeTransactionWithPassphrase(unSignedTx, "hello")
+	signedTx, err := client.GetWallet().SignTransactionWithPassphrase(unSignedTx, "hello")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("signed tx %v result:\n0x%x\n\n", JSONFmt(unSignedTx), signedTx)
-	return signedTx
+	rawData, err := signedTx.Encode()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("signed tx %v result:\n0x%x\n\n", JSONFmt(unSignedTx), rawData)
+	return rawData
 }
 
 // DeployNewErc20 ...
-func DeployNewErc20() *sdk.Contract {
+func DeployNewErc20() interfaces.Contractor {
 	abiFilePath := path.Join(currentDir, "contract/erc20.abi")
 	bytecodeFilePath := path.Join(currentDir, "contract/erc20.bytecode")
 	contract, _ := DeployContractWithConstroctor(abiFilePath, bytecodeFilePath, big.NewInt(100000), "biu", uint8(10), "BIU")
@@ -94,13 +103,14 @@ func DeployNewErc20() *sdk.Contract {
 }
 
 // DeployIfNotExist ...
-func DeployIfNotExist(contractAddress types.Address, abiFilePath string, bytecodeFilePath string, force bool) (*sdk.Contract, *types.Hash) {
-	// isAddress := len(contractAddress) == 42 && (contractAddress)[0:2] == "0x"
+func DeployIfNotExist(contractAddress types.Address, abiFilePath string, bytecodeFilePath string, force bool) (interfaces.Contractor, *types.Hash) {
+	client := config.GetClient()
+
 	isContract := contractAddress.GetAddressType() == address.AddressTypeContract
 	isCodeExist := false
 
 	if isContract {
-		code, err := client.GetCode(contractAddress)
+		code, err := client.Cfx().GetCode(contractAddress)
 		// fmt.Printf("err: %v,code:%v\n", err, len(code))
 		if err == nil && len(code) > 0 {
 			isCodeExist = true
@@ -113,7 +123,7 @@ func DeployIfNotExist(contractAddress types.Address, abiFilePath string, bytecod
 		if err != nil {
 			panic(err)
 		}
-		contract, err := client.GetContract(abi, &contractAddress)
+		contract, err := contracts.NewContract(client, abi, &contractAddress)
 		if err != nil {
 			panic(err)
 		}
@@ -125,7 +135,8 @@ func DeployIfNotExist(contractAddress types.Address, abiFilePath string, bytecod
 }
 
 // DeployContractWithConstroctor ...
-func DeployContractWithConstroctor(abiFile string, bytecodeFile string, params ...interface{}) (*sdk.Contract, *types.Hash) {
+func DeployContractWithConstroctor(abiFile string, bytecodeFile string, params ...interface{}) (interfaces.Contractor, *types.Hash) {
+
 	fmt.Println("start deploy contract with construcotr")
 	abi, err := ioutil.ReadFile(abiFile)
 	if err != nil {
@@ -144,14 +155,14 @@ func DeployContractWithConstroctor(abiFile string, bytecodeFile string, params .
 
 	option := types.ContractDeployOption{}
 	option.Nonce = GetNextNonceAndIncrease()
-	result := client.DeployContract(&option, abi, bytecode, params...)
+	result := contracts.DeployContract(config.GetClient(), &option, abi, bytecode, params...)
 
 	_ = <-result.DoneChannel
 	if result.Error != nil {
 		panic(result.Error)
 	}
 	contract := result.DeployedContract
-	fmt.Printf("deploy contract with abi: %v, bytecode: %v done\ncontract address: %+v\ntxhash:%v\n\n", abiFile, bytecodeFile, contract.Address, result.TransactionHash)
+	fmt.Printf("deploy contract with abi: %v, bytecode: %v done\ncontract address: %+v\ntxhash:%v\n\n", abiFile, bytecodeFile, contract.Address(), result.TransactionHash)
 
 	return contract, result.TransactionHash
 }

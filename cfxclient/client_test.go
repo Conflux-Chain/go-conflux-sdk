@@ -1,4 +1,4 @@
-package sdk
+package client
 
 // GoConvey COMPOSER
 // Test NewClient
@@ -15,6 +15,7 @@ import (
 	. "bou.ke/monkey"
 	// "github.com/ethereum/go-ethereum/rpc"
 
+	"github.com/Conflux-Chain/go-conflux-sdk/interfaces"
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -32,7 +33,7 @@ func _TestNewClient(t *testing.T) {
 				})
 				defer guard.Unpatch()
 
-				client, err := newClientWithRetry("", ClientOption{})
+				client, err := NewClient("")
 				Convey("Return error", func() {
 					So(err, ShouldNotEqual, nil)
 					So(client, ShouldEqual, nil)
@@ -46,7 +47,7 @@ func _TestNewClient(t *testing.T) {
 				})
 				defer guard.Unpatch()
 
-				client, err := newClientWithRetry("", ClientOption{})
+				client, err := NewClient("")
 				// fmt.Printf("client:%+v,err:%+v", client, err)
 
 				Convey("Return client instance", func() {
@@ -60,4 +61,9 @@ func _TestNewClient(t *testing.T) {
 
 	})
 
+}
+
+func TestInterfaceImpl(test *testing.T) {
+	c, _ := NewClient("http://localhost:8080")
+	var _ interfaces.RpcCaller = &c
 }

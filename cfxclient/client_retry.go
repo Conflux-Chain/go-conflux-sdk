@@ -1,4 +1,4 @@
-package sdk
+package client
 
 import (
 	"context"
@@ -32,11 +32,12 @@ func (r *rpcClientWithRetry) CallContext(ctx context.Context, resultPtr interfac
 			return err
 		}
 
-		remain--
 		// fmt.Printf("remain retry count: %v\n", remain)
 		if remain == 0 {
 			return errors.Wrap(err, "rpc call timeout")
 		}
+
+		remain--
 
 		if r.interval > 0 {
 			time.Sleep(r.interval)

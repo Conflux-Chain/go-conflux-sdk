@@ -8,8 +8,10 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	sdk "github.com/Conflux-Chain/go-conflux-sdk"
+	accounts "github.com/Conflux-Chain/go-conflux-sdk/accounts"
+	client "github.com/Conflux-Chain/go-conflux-sdk/cfxclient"
 	exampletypes "github.com/Conflux-Chain/go-conflux-sdk/example/context/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/interfaces"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
@@ -17,8 +19,8 @@ import (
 )
 
 var (
-	config     exampletypes.Config
-	client     *sdk.Client
+	config exampletypes.Config
+	// client     sdk.SignableRpcCaller
 	currentDir string
 	configPath string
 	// am             *sdk.AccountManager
@@ -71,40 +73,45 @@ func initClient() {
 	// init client
 	var err error
 
-	keyStorePath := path.Join(currentDir, "keystore")
-	client, err = sdk.NewClient(config.NodeURL, sdk.ClientOption{
-		KeystorePath:   keyStorePath,
-		RequestTimeout: time.Second * 10,
-	})
+	_client, err := client.NewClient(config.NodeURL)
+	if err != nil {
+		utils.PanicIfErr(err)
+	}
+	_client.SetRequestTimeout(10 * time.Second)
+
+	networkId, err := _client.GetNetworkID()
 	if err != nil {
 		utils.PanicIfErr(err)
 	}
 
-	config.SetClient(client)
+	keyStorePath := path.Join(currentDir, "keystore")
+	wallet := accounts.NewKeystoreWallet(keyStorePath, networkId)
+	config.SetWallet(wallet)
+
+	_signableClient := client.NewSignableClient(&_client, wallet)
+	_signableClient.GetWallet().UnlockDefault("hello")
+	config.SetClient(&_signableClient)
 
 	// init retry client
-	option := sdk.ClientOption{
-		KeystorePath:  keyStorePath,
-		RetryCount:    10,
-		RetryInterval: time.Second,
-		// RequestTimeout: time.Second * 10,
-	}
-	retryclient, err := sdk.NewClient(config.NodeURL, option)
+	// option := sdk.ClientOption{
+	// 	KeystorePath:  keyStorePath,
+	// 	RetryCount:    10,
+	// 	RetryInterval: time.Second,
+	// 	// RequestTimeout: time.Second * 10,
+	// }
+
+	_clientCopy := _client
+	_retryclient := client.NewSignableClient(&_clientCopy, wallet)
+	_retryclient.SetRetry(10, time.Second).SetRequestTimeout(time.Second)
+	_retryclient.GetWallet().UnlockDefault("hello")
+	config.SetRetryClient(&_retryclient)
+
+	defaultAccount, err = wallet.GetDefault()
 	if err != nil {
 		panic(err)
 	}
-	config.SetRetryClient(retryclient)
 
-	defaultAccount, err = client.AccountManager.GetDefault()
-	if err != nil {
-		panic(err)
-	}
-	client.AccountManager.UnlockDefault("hello")
-	retryclient.AccountManager.UnlockDefault("hello")
-
-	config.SetAccountManager(client.AccountManager)
-
-	nextNonce, err = client.GetNextNonce(*defaultAccount, nil)
+	nextNonce, err = _signableClient.Cfx().GetNextNonce(*defaultAccount, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -114,15 +121,17 @@ func initClient() {
 
 func generateBlockHashAndTxHash() {
 
-	block, err1 := client.GetBlockByHash(config.BlockHash)
-	tx, err2 := client.GetTransactionByHash(config.TransactionHash)
+	client := config.GetClient()
+
+	block, err1 := client.Cfx().GetBlockByHash(config.BlockHash)
+	tx, err2 := client.Cfx().GetTransactionByHash(config.TransactionHash)
 	if block == nil || err1 != nil || tx == nil || err2 != nil {
-		utx, err := client.CreateUnsignedTransaction(*defaultAccount, cfxaddress.MustNewFromHex("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"), types.NewBigInt(1), nil)
+		utx, err := client.NewTransaction(*defaultAccount, cfxaddress.MustNewFromHex("0x10f4bcf113e0b896d9b34294fd3da86b4adf0302"), types.NewBigInt(1), nil)
 		if err != nil {
 			panic(err)
 		}
 		utx.Nonce = GetNextNonceAndIncrease()
-		txhash, err := client.SendTransaction(utx)
+		txhash, err := client.SignTransactionAndSend(utx)
 		if err != nil {
 			panic(err)
 		}
@@ -130,7 +139,7 @@ func generateBlockHashAndTxHash() {
 
 		WaitPacked(client, txhash)
 
-		tx, err := client.GetTransactionByHash(txhash)
+		tx, err := client.Cfx().GetTransactionByHash(txhash)
 		if err != nil {
 			panic(err)
 		}
@@ -140,11 +149,12 @@ func generateBlockHashAndTxHash() {
 	fmt.Println("- gen txhash done")
 }
 
-func deployContract(force bool) *sdk.Contract {
+func deployContract(force bool) interfaces.Contractor {
+	client := config.GetClient()
 	// check erc20 and erc777 address, if len !==42 or getcode error, deploy
 	erc20Contract, txhash := DeployIfNotExist(config.ERC20Address, path.Join(currentDir, "contract/erc20.abi"), path.Join(currentDir, "contract/erc20.bytecode"), force)
 	if erc20Contract != nil {
-		config.ERC20Address = *erc20Contract.Address
+		config.ERC20Address = *erc20Contract.Address()
 	}
 	if txhash != nil {
 		receipt := WaitPacked(client, *txhash)
