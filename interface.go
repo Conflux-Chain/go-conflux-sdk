@@ -46,6 +46,8 @@ type ClientOperator interface {
 	GetAccountManager() AccountManagerOperator
 
 	Pos() *RpcPosClient
+	TxPool() *RpcTxpoolClient
+	Debug() *RpcDebugClient
 
 	GetGasPrice() (*hexutil.Big, error)
 	GetNextNonce(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, error)
@@ -137,6 +139,22 @@ type RpcPos interface {
 	GetBlockByNumber() (*postypes.Block, error)
 	GetTransactionByNumber() (*postypes.Transaction, error)
 	GetRewardsByEpoch() (*postypes.EpochReward, error)
+}
+
+type RpcTxpool interface {
+	Status() (val types.TxPoolStatus, err error)
+	NextNonce(address types.Address) (val *hexutil.Big, err error)
+	TransactionByAddressAndNonce(address types.Address, nonce *hexutil.Big) (val *types.Transaction, err error)
+	PendingNonceRange(address types.Address) (val types.TxPoolPendingNonceRange, err error)
+	TxWithPoolInfo(hash types.Hash) (val types.TxWithPoolInfo, err error)
+	AccountPendingInfo(address types.Address) (val *types.AccountPendingInfo, err error)
+	AccountPendingTransactions(address types.Address, maybeStartNonce *hexutil.Big, maybeLimit *hexutil.Uint64) (val types.AccountPendingTransactions, err error)
+}
+
+type RpcDebug interface {
+	// TxpoolGetAccountTransactions(address types.Address) (val []types.Transaction, err error)
+	GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error)
+	GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error)
 }
 
 // AccountManagerOperator is interface of operate actions on account manager
