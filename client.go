@@ -36,7 +36,9 @@ type Client struct {
 	callRpcHandler      middleware.CallRpcHandler
 	batchCallRpcHandler middleware.BatchCallRpcHandler
 
-	rpcPosClient RpcPosClient
+	rpcPosClient    RpcPosClient
+	rpcTxpoolClient RpcTxpoolClient
+	rpcDebugClient  RpcDebugClient
 }
 
 // ClientOption for set keystore path and flags for retry
@@ -84,6 +86,8 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 	client.callRpcHandler = middleware.CallRpcHandlerFunc(client.callRpc)
 	client.batchCallRpcHandler = middleware.BatchCallRpcHandlerFunc(client.batchCallRPC)
 	client.rpcPosClient = RpcPosClient{&client}
+	client.rpcTxpoolClient = RpcTxpoolClient{&client}
+	client.rpcDebugClient = RpcDebugClient{&client}
 	client.option.setDefault()
 
 	rpcClient, err := rpc.Dial(nodeURL)
@@ -126,6 +130,14 @@ func (co *ClientOption) setDefault() {
 
 func (client *Client) Pos() *RpcPosClient {
 	return &client.rpcPosClient
+}
+
+func (client *Client) TxPool() *RpcTxpoolClient {
+	return &client.rpcTxpoolClient
+}
+
+func (client *Client) Debug() *RpcDebugClient {
+	return &client.rpcDebugClient
 }
 
 // GetNodeURL returns node url
@@ -840,6 +852,11 @@ func (client *Client) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipt
 	if ok, code := sdkErrors.DetectErrorCode(err); ok {
 		err = sdkErrors.BusinessError{Code: code, Inner: err}
 	}
+	return
+}
+
+func (client *Client) GetPoSEconomics(epoch ...*types.Epoch) (posEconomics types.PoSEconomics, err error) {
+	err = client.wrappedCallRPC(&posEconomics, "cfx_getPoSEconomics", get1stEpochIfy(epoch))
 	return
 }
 
