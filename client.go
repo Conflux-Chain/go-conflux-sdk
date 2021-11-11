@@ -6,7 +6,6 @@ package sdk
 
 import (
 	"context"
-	"fmt"
 
 	"math/big"
 	"reflect"
@@ -17,7 +16,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
-	sdkErrors "github.com/Conflux-Chain/go-conflux-sdk/types/errors"
+
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -837,27 +836,19 @@ func (client *Client) GetAccountPendingTransactions(address types.Address, start
 	return
 }
 
-// =====Debug RPC=====
-
-func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
-	err = client.wrappedCallRPC(&receipts, "cfx_getEpochReceipts", epoch)
-	if ok, code := sdkErrors.DetectErrorCode(err); ok {
-		err = sdkErrors.BusinessError{Code: code, Inner: err}
-	}
-	return
-}
-
-func (client *Client) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error) {
-	err = client.wrappedCallRPC(&receipts, "cfx_getEpochReceipts", fmt.Sprintf("hash:%v", hash))
-	if ok, code := sdkErrors.DetectErrorCode(err); ok {
-		err = sdkErrors.BusinessError{Code: code, Inner: err}
-	}
-	return
-}
-
 func (client *Client) GetPoSEconomics(epoch ...*types.Epoch) (posEconomics types.PoSEconomics, err error) {
 	err = client.wrappedCallRPC(&posEconomics, "cfx_getPoSEconomics", get1stEpochIfy(epoch))
 	return
+}
+
+// =====Debug RPC=====
+
+func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
+	return client.Debug().GetEpochReceipts(epoch)
+}
+
+func (client *Client) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error) {
+	return client.Debug().GetEpochReceiptsByPivotBlockHash(hash)
 }
 
 // =======Batch=======

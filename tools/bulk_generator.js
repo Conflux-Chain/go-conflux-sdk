@@ -136,5 +136,8 @@ function genInitResult(returnType) {
     root = "/Users/wangdayong/myspace/mywork/go-conflux-sdk"
     const BulkPosCaller = genBulkFile(`${root}/client_pos.go`, "RpcPosClient")
     fs.writeFileSync("../cfxclient/bulk/bulk_caller_pos.go", BulkPosCaller)
+
+    const BulkTxpoolCaller = genBulkFile(`${root}/client_txpool.go`, "RpcTxpoolClient")
+    fs.writeFileSync("../cfxclient/bulk/bulk_caller_txpool.go", BulkTxpoolCaller)
 })()
 
