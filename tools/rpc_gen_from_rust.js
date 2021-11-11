@@ -105,15 +105,11 @@ function run() {
     `
     console.log(convertTrait2Funcs(rust, "Debug"))
 
-    const rustStructs = `#[derive(Debug, Serialize, Clone, Deserialize)]
+    const rustStructs = `#[derive(Debug, Serialize, Clone)]
     #[serde(rename_all = "camelCase")]
-    pub struct PoSEconomics {
-        // This is the total number of CFX used for pos staking.
-        pub total_pos_staking_tokens: U256,
-        // This is the total distributable interest.
-        pub distributable_pos_interest: U256,
-        // This is the block number of last .
-        pub last_distribute_block: u64,
+    pub struct Decision {
+        pub block_hash: H256,
+        pub height: U64,
     }`
     console.log(convertStructs(rustStructs))
 }
