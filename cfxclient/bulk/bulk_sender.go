@@ -73,11 +73,14 @@ func (b *BulkSender) PopulateTransactions() error {
 		if utx.Nonce == nil {
 			from := utx.From.String()
 			if userNextNonceCache[from] == nil {
-				// TODO: get pending nonce
-				hexNonce, err := b.signalbeCaller.GetNextNonce(*utx.From)
+				hexNonce, err := b.signalbeCaller.TxPool().NextNonce(*utx.From)
 				if err != nil {
-					return errors.WithStack(err)
+					hexNonce, err = b.signalbeCaller.GetNextNonce(*utx.From)
+					if err != nil {
+						return errors.WithStack(err)
+					}
 				}
+
 				userNextNonceCache[from] = hexNonce.ToInt()
 			}
 

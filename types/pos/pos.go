@@ -14,8 +14,14 @@ type Address = common.Hash
 type Status struct {
 	LatestCommitted hexutil.Uint64  `json:"latestCommitted"`
 	Epoch           hexutil.Uint64  `json:"epoch"`
-	PivotDecision   hexutil.Uint64  `json:"pivotDecision"`
+	PivotDecision   Decision        `json:"pivotDecision"`
 	LatestVoted     *hexutil.Uint64 `json:"latestVoted"`
+	LatestTxNumber  hexutil.Uint64  `json:"latestTxNumber"`
+}
+
+type Decision struct {
+	BlockHash common.Hash    `json:"blockHash"`
+	Height    hexutil.Uint64 `json:"height"`
 }
 
 type Account struct {

@@ -6,7 +6,6 @@ package sdk
 
 import (
 	"context"
-	"fmt"
 
 	"math/big"
 	"reflect"
@@ -17,7 +16,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
-	sdkErrors "github.com/Conflux-Chain/go-conflux-sdk/types/errors"
+
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -36,7 +35,9 @@ type Client struct {
 	callRpcHandler      middleware.CallRpcHandler
 	batchCallRpcHandler middleware.BatchCallRpcHandler
 
-	rpcPosClient RpcPosClient
+	rpcPosClient    RpcPosClient
+	rpcTxpoolClient RpcTxpoolClient
+	rpcDebugClient  RpcDebugClient
 }
 
 // ClientOption for set keystore path and flags for retry
@@ -84,6 +85,8 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 	client.callRpcHandler = middleware.CallRpcHandlerFunc(client.callRpc)
 	client.batchCallRpcHandler = middleware.BatchCallRpcHandlerFunc(client.batchCallRPC)
 	client.rpcPosClient = RpcPosClient{&client}
+	client.rpcTxpoolClient = RpcTxpoolClient{&client}
+	client.rpcDebugClient = RpcDebugClient{&client}
 	client.option.setDefault()
 
 	rpcClient, err := rpc.Dial(nodeURL)
@@ -126,6 +129,14 @@ func (co *ClientOption) setDefault() {
 
 func (client *Client) Pos() *RpcPosClient {
 	return &client.rpcPosClient
+}
+
+func (client *Client) TxPool() *RpcTxpoolClient {
+	return &client.rpcTxpoolClient
+}
+
+func (client *Client) Debug() *RpcDebugClient {
+	return &client.rpcDebugClient
 }
 
 // GetNodeURL returns node url
@@ -825,22 +836,19 @@ func (client *Client) GetAccountPendingTransactions(address types.Address, start
 	return
 }
 
-// =====Debug RPC=====
-
-func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
-	err = client.wrappedCallRPC(&receipts, "cfx_getEpochReceipts", epoch)
-	if ok, code := sdkErrors.DetectErrorCode(err); ok {
-		err = sdkErrors.BusinessError{Code: code, Inner: err}
-	}
+func (client *Client) GetPoSEconomics(epoch ...*types.Epoch) (posEconomics types.PoSEconomics, err error) {
+	err = client.wrappedCallRPC(&posEconomics, "cfx_getPoSEconomics", get1stEpochIfy(epoch))
 	return
 }
 
+// =====Debug RPC=====
+
+func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
+	return client.Debug().GetEpochReceipts(epoch)
+}
+
 func (client *Client) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error) {
-	err = client.wrappedCallRPC(&receipts, "cfx_getEpochReceipts", fmt.Sprintf("hash:%v", hash))
-	if ok, code := sdkErrors.DetectErrorCode(err); ok {
-		err = sdkErrors.BusinessError{Code: code, Inner: err}
-	}
-	return
+	return client.Debug().GetEpochReceiptsByPivotBlockHash(hash)
 }
 
 // =======Batch=======
