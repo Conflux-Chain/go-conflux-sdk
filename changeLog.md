@@ -1,4 +1,7 @@
 # Go-conflux-sdk Change Log
+## v1.0.17
+- Use txpool pending nonce in `Client.ApplyUnsignedTransactionDefault` to ensure nonce correct when continuous sending transactions
+- Use bulk caller to populate transactions when bulk send transations
 ## v1.0.16
 - Support txpool and debug rpc methods
 ## v1.0.15
