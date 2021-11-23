@@ -659,7 +659,7 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 		tx.To.CompleteByNetworkID(client.networkID)
 
 		if tx.Nonce == nil {
-			nonce, err := client.GetNextNonce(*tx.From, nil)
+			nonce, err := client.GetNextUsableNonce(*tx.From)
 			if err != nil {
 				return errors.Wrap(err, "failed to get nonce")
 			}
