@@ -1139,6 +1139,19 @@ func (client *Client) WaitForTransationReceipt(txhash types.Hash, duration time.
 	return txReceipt, nil
 }
 
+func (client *Client) GetNextUsableNonce(user types.Address) (nonce *hexutil.Big, err error) {
+	hexNonce, err := client.TxPool().NextNonce(user)
+	if err != nil {
+		hexNonce, err = client.GetNextNonce(user)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+	}
+	return hexNonce, nil
+}
+
+// ======== private methods=============
+
 func (client *Client) wrappedCallRPC(result interface{}, method string, args ...interface{}) error {
 	fmtedArgs := client.genRPCParams(args...)
 	return client.CallRPC(result, method, fmtedArgs...)

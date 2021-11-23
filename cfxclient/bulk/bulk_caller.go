@@ -37,15 +37,16 @@ type BulkCaller struct {
 
 	outHandlers map[int]*OutputHandler
 	*BulkCfxCaller
-	debug    *BulkDebugCaller
-	trace    *BulkTraceCaller
-	pos      *BulkPosCaller
 	customer *BulkCustomCaller
+
+	debug  *BulkDebugCaller
+	trace  *BulkTraceCaller
+	pos    *BulkPosCaller
+	txpool *BulkTxpoolCaller
 }
 
 // NewBulkerCaller creates new bulk caller instance
 func NewBulkerCaller(rpcCaller sdk.ClientOperator) *BulkCaller {
-
 	core := NewBulkCallerCore(rpcCaller)
 	cfx := NewBulkCfxCaller(core)
 
@@ -57,6 +58,11 @@ func NewBulkerCaller(rpcCaller sdk.ClientOperator) *BulkCaller {
 		outHandlers:    outHandlers,
 		BulkCfxCaller:  cfx,
 		customer:       customer,
+
+		debug:  NewBulkDebugCaller(core),
+		trace:  NewBulkTraceCaller(core),
+		pos:    NewBulkPosCaller(core),
+		txpool: NewBulkTxpoolCaller(core),
 	}
 }
 
@@ -83,6 +89,11 @@ func (b *BulkCaller) Pos() *BulkPosCaller {
 // Customer returns BulkCustomCaller for genereating contract relating rpc request which mainly for decoding contract call result with type *hexutil.Big to ABI defined types
 func (b *BulkCaller) Customer() *BulkCustomCaller {
 	return b.customer
+}
+
+// TxPool returns BulkTxpoolCaller for genereating "txpool" namespace relating rpc request
+func (b *BulkCaller) Txpool() *BulkTxpoolCaller {
+	return b.txpool
 }
 
 // Execute sends all rpc requests in queue by rpc call "batch" on one request
