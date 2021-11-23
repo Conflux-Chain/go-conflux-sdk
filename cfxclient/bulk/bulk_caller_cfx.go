@@ -44,7 +44,14 @@ func (client *BulkCfxCaller) GetNextNonce(address types.Address, epoch ...*types
 }
 
 // GetStatus returns status of connecting conflux node
-//ignore
+func (client *BulkCfxCaller) GetStatus() (*types.Status, *error) {
+	result := new(types.Status)
+	err := new(error)
+
+	elem := newBatchElem(result, "cfx_getStatus")
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
+	return result, err
+}
 
 func (client *BulkCfxCaller) GetEpochNumber(epoch ...*types.Epoch) (*hexutil.Big, *error) {
 	result := new(hexutil.Big)

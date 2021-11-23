@@ -17,7 +17,7 @@ func TestBulkCall(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	bulkCaller := NewBulkerCaller(_client)
+	bulkCaller := NewBulkCaller(_client)
 
 	gasPrice, gasPriceError := bulkCaller.Cfx().GetGasPrice()
 	err = bulkCaller.Execute()

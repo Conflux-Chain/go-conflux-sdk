@@ -49,7 +49,11 @@ func (b *BulkSender) PopulateTransactions() error {
 
 	userUsedNoncesMap := b.gatherUsedNonces()
 	// fill nonce
-	userNextNonceCache := make(map[string]*big.Int, len(b.unsignedTxs))
+	userNextNonceCache, err := b.gatherInitNextNonces()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	for _, utx := range b.unsignedTxs {
 		utx.From.CompleteByNetworkID(networkId)
 		utx.To.CompleteByNetworkID(networkId)
@@ -72,18 +76,6 @@ func (b *BulkSender) PopulateTransactions() error {
 
 		if utx.Nonce == nil {
 			from := utx.From.String()
-			if userNextNonceCache[from] == nil {
-				hexNonce, err := b.signalbeCaller.TxPool().NextNonce(*utx.From)
-				if err != nil {
-					hexNonce, err = b.signalbeCaller.GetNextNonce(*utx.From)
-					if err != nil {
-						return errors.WithStack(err)
-					}
-				}
-
-				userNextNonceCache[from] = hexNonce.ToInt()
-			}
-
 			utx.Nonce = (*hexutil.Big)(userNextNonceCache[from])
 			// avoid to reuse user used nonce, increase it if transactions used the nonce in cache
 			for {
@@ -95,25 +87,42 @@ func (b *BulkSender) PopulateTransactions() error {
 
 		}
 	}
+	return b.populateGasAndStorage()
+}
+
+func (b *BulkSender) populateGasAndStorage() error {
+	estimatPtrs, errPtrs := make([]*types.Estimate, len(b.unsignedTxs)), make([]*error, len(b.unsignedTxs))
+	bulkCaller := NewBulkCaller(b.signalbeCaller)
+	for i, utx := range b.unsignedTxs {
+		if utx.StorageLimit != nil && utx.Gas != nil {
+			continue
+		}
+		callReq := new(types.CallRequest)
+		callReq.FillByUnsignedTx(utx)
+
+		estimatPtrs[i], errPtrs[i] = bulkCaller.EstimateGasAndCollateral(*callReq)
+	}
+
+	err := bulkCaller.Execute()
+	if err != nil {
+		return errors.WithStack(err)
+	}
 
 	for i, utx := range b.unsignedTxs {
-		// The gas and storage limit may be influnced by all fileds of transaction ,so set them at last step.
-		if utx.StorageLimit == nil || utx.Gas == nil {
-			callReq := new(types.CallRequest)
-			callReq.FillByUnsignedTx(utx)
+		if utx.StorageLimit != nil && utx.Gas != nil {
+			continue
+		}
 
-			estimat, err := b.signalbeCaller.EstimateGasAndCollateral(*callReq)
-			if err != nil {
-				return errors.Wrapf(err, "failed to estimate gas and collateral of %vth transaction, request = %+v", i, *callReq)
-			}
+		if *errPtrs[i] != nil {
+			return errors.WithMessagef(*errPtrs[i], "failed to estimate %vth transaction %+v", i, utx)
+		}
 
-			if utx.Gas == nil {
-				utx.Gas = estimat.GasLimit
-			}
+		if utx.Gas == nil {
+			utx.Gas = estimatPtrs[i].GasLimit
+		}
 
-			if utx.StorageLimit == nil {
-				utx.StorageLimit = types.NewUint64(estimat.StorageCollateralized.ToInt().Uint64())
-			}
+		if utx.StorageLimit == nil {
+			utx.StorageLimit = types.NewUint64(estimatPtrs[i].StorageCollateralized.ToInt().Uint64())
 		}
 	}
 	return nil
@@ -133,6 +142,48 @@ func (b *BulkSender) gatherUsedNonces() map[string]map[string]bool {
 	return result
 }
 
+func (b *BulkSender) gatherInitNextNonces() (map[string]*big.Int, error) {
+	result := make(map[string]*big.Int)
+
+	bulkCaller := NewBulkCaller(b.signalbeCaller)
+	isUserCached := make(map[string]bool)
+	poolNextNonces, poolNextNonceErrs := make(map[string]*hexutil.Big), make(map[string]*error)
+	nextNonces, nextNonceErrs := make(map[string]*hexutil.Big), make(map[string]*error)
+
+	for _, utx := range b.unsignedTxs {
+		if isUserCached[utx.From.String()] {
+			continue
+		}
+		poolNextNonces[utx.From.String()], poolNextNonceErrs[utx.From.String()] = bulkCaller.Txpool().NextNonce(*utx.From)
+		nextNonces[utx.From.String()], nextNonceErrs[utx.From.String()] = bulkCaller.GetNextNonce(*utx.From)
+	}
+
+	err := bulkCaller.Execute()
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	for _, utx := range b.unsignedTxs {
+		user := utx.From.String()
+		if utx.Nonce != nil || result[user] != nil {
+			continue
+		}
+
+		if *poolNextNonceErrs[user] == nil {
+			result[utx.From.String()] = poolNextNonces[user].ToInt()
+			continue
+		}
+
+		if *nextNonceErrs[user] == nil {
+			result[utx.From.String()] = nextNonces[user].ToInt()
+			continue
+		}
+
+		return nil, errors.WithStack(*nextNonceErrs[user])
+	}
+	return result, nil
+}
+
 func (b *BulkSender) checkIsNonceUsed(usedCaches map[string]map[string]bool, user *cfxaddress.Address, nonce *hexutil.Big) bool {
 	hasCache, ok := usedCaches[user.String()]
 	if ok {
@@ -150,39 +201,31 @@ func (b *BulkSender) getChainInfos() (
 	err error,
 ) {
 	_client := b.signalbeCaller
-	defaultAccount, err = _client.GetAccountManager().GetDefault()
+
+	_defaultAccount, err := _client.GetAccountManager().GetDefault()
 	if err != nil {
 		return nil, nil, 0, nil, nil, errors.Wrap(err, "failed to get default account")
 	}
 
-	status, err := _client.GetStatus()
-	if err != nil {
-		return nil, nil, 0, nil, nil, errors.WithStack(err)
-	}
-	chainID = &status.ChainID
+	bulkCaller := NewBulkCaller(_client)
+	_status, statusErr := bulkCaller.GetStatus()
+	_gasPrice, gasPriceErr := bulkCaller.GetGasPrice()
+	_epoch, epochErr := bulkCaller.GetEpochNumber(types.EpochLatestState)
+	err = bulkCaller.Execute()
 
-	networkId, err = _client.GetNetworkID()
-	if err != nil {
-		return nil, nil, 0, nil, nil, errors.WithStack(err)
+	if err != nil || *statusErr != nil || *gasPriceErr != nil || *epochErr != nil {
+		return nil, nil, 0, nil, nil, errors.Wrap(err, "failed to bulk fetch chain infos")
 	}
 
-	gasPrice, err = _client.GetGasPrice()
-	if err != nil {
-		return nil, nil, 0, nil, nil, errors.Wrap(err, "failed to get gas price")
-	}
+	_chainID, _networkId := &_status.ChainID, uint32(_status.NetworkID)
+	_epochHeight := types.NewUint64(_epoch.ToInt().Uint64())
 
 	// conflux responsed gasprice offen be 0, but the min gasprice is 1 when sending transaction, so do this
-	if gasPrice.ToInt().Cmp(big.NewInt(constants.MinGasprice)) < 1 {
-		gasPrice = types.NewBigInt(constants.MinGasprice)
+	if _gasPrice.ToInt().Cmp(big.NewInt(constants.MinGasprice)) < 1 {
+		_gasPrice = types.NewBigInt(constants.MinGasprice)
 	}
 
-	epoch, err := _client.GetEpochNumber(types.EpochLatestState)
-	if err != nil {
-		return nil, nil, 0, nil, nil, errors.Wrap(err, "failed to get the latest state epoch number")
-	}
-	epochHeight = types.NewUint64(epoch.ToInt().Uint64())
-
-	return defaultAccount, chainID, networkId, gasPrice, epochHeight, nil
+	return _defaultAccount, _chainID, _networkId, _gasPrice, _epochHeight, nil
 }
 
 // Clear clear batch elems and errors in queue for new bulk call action
@@ -206,7 +249,7 @@ func (b *BulkSender) SignAndSend() (txHashes []*types.Hash, txErrors []error, ba
 	}
 
 	// send
-	bulkCaller := NewBulkerCaller(b.signalbeCaller)
+	bulkCaller := NewBulkCaller(b.signalbeCaller)
 	hashes := make([]*types.Hash, len(rawTxs))
 	errs := make([]*error, len(rawTxs))
 	for i, rawTx := range rawTxs {

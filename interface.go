@@ -129,6 +129,7 @@ type ClientOperator interface {
 
 	WaitForTransationBePacked(txhash types.Hash, duration time.Duration) (*types.Transaction, error)
 	WaitForTransationReceipt(txhash types.Hash, duration time.Duration) (*types.TransactionReceipt, error)
+	GetNextUsableNonce(user types.Address) (nonce *hexutil.Big, err error)
 }
 
 type RpcPos interface {
