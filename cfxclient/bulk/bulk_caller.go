@@ -45,8 +45,8 @@ type BulkCaller struct {
 	txpool *BulkTxpoolCaller
 }
 
-// NewBulkerCaller creates new bulk caller instance
-func NewBulkerCaller(rpcCaller sdk.ClientOperator) *BulkCaller {
+// NewBulkCaller creates new bulk caller instance
+func NewBulkCaller(rpcCaller sdk.ClientOperator) *BulkCaller {
 	core := NewBulkCallerCore(rpcCaller)
 	cfx := NewBulkCfxCaller(core)
 

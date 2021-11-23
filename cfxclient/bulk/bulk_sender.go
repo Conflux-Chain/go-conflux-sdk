@@ -92,7 +92,7 @@ func (b *BulkSender) PopulateTransactions() error {
 
 func (b *BulkSender) populateGasAndStorage() error {
 	estimatPtrs, errPtrs := make([]*types.Estimate, len(b.unsignedTxs)), make([]*error, len(b.unsignedTxs))
-	bulkCaller := NewBulkerCaller(b.signalbeCaller)
+	bulkCaller := NewBulkCaller(b.signalbeCaller)
 	for i, utx := range b.unsignedTxs {
 		if utx.StorageLimit != nil && utx.Gas != nil {
 			continue
@@ -145,7 +145,7 @@ func (b *BulkSender) gatherUsedNonces() map[string]map[string]bool {
 func (b *BulkSender) gatherInitNextNonces() (map[string]*big.Int, error) {
 	result := make(map[string]*big.Int)
 
-	bulkCaller := NewBulkerCaller(b.signalbeCaller)
+	bulkCaller := NewBulkCaller(b.signalbeCaller)
 	isUserCached := make(map[string]bool)
 	poolNextNonces, poolNextNonceErrs := make(map[string]*hexutil.Big), make(map[string]*error)
 	nextNonces, nextNonceErrs := make(map[string]*hexutil.Big), make(map[string]*error)
@@ -207,7 +207,7 @@ func (b *BulkSender) getChainInfos() (
 		return nil, nil, 0, nil, nil, errors.Wrap(err, "failed to get default account")
 	}
 
-	bulkCaller := NewBulkerCaller(_client)
+	bulkCaller := NewBulkCaller(_client)
 	_status, statusErr := bulkCaller.GetStatus()
 	_gasPrice, gasPriceErr := bulkCaller.GetGasPrice()
 	_epoch, epochErr := bulkCaller.GetEpochNumber(types.EpochLatestState)
@@ -249,7 +249,7 @@ func (b *BulkSender) SignAndSend() (txHashes []*types.Hash, txErrors []error, ba
 	}
 
 	// send
-	bulkCaller := NewBulkerCaller(b.signalbeCaller)
+	bulkCaller := NewBulkCaller(b.signalbeCaller)
 	hashes := make([]*types.Hash, len(rawTxs))
 	errs := make([]*error, len(rawTxs))
 	for i, rawTx := range rawTxs {
