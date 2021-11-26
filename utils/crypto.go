@@ -16,7 +16,7 @@ import (
 // PublicKeyToCommonAddress generate address from public key
 //
 // Account address in conflux starts with '0x1'
-func PublicKeyToCommonAddress(publicKey string) common.Address {
+func PublicKeyToCommonAddress(publicKey string) (common.Address, error) {
 
 	if Has0xPrefix(publicKey) {
 		publicKey = publicKey[2:]
@@ -24,19 +24,19 @@ func PublicKeyToCommonAddress(publicKey string) common.Address {
 
 	pubKeyBytes, err := hex.DecodeString(publicKey)
 	if err != nil {
-		panic(err)
+		return common.Address{}, err
 	}
 
 	pubKeyBytes = append([]byte{0x04}, pubKeyBytes...)
 
 	pub, err := crypto.UnmarshalPubkey(pubKeyBytes)
 	if err != nil {
-		panic(err)
+		return common.Address{}, err
 	}
 
 	addr := crypto.PubkeyToAddress(*pub)
 	addr[0] = addr[0]&0x1f | 0x10
-	return addr
+	return addr, nil
 }
 
 // PrivateKeyToPublicKey calculates public key from private key
