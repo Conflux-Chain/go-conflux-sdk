@@ -134,12 +134,12 @@ type ClientOperator interface {
 
 type RpcPos interface {
 	GetStatus() (postypes.Status, error)
-	GetAccount(address postypes.Address, view ...hexutil.Uint64) (postypes.Account, error)
-	GetCommittee(view ...hexutil.Uint64) (postypes.CommitteeState, error)
+	GetAccount(address postypes.Address, blockNumber ...hexutil.Uint64) (postypes.Account, error)
+	GetCommittee(blockNumber ...hexutil.Uint64) (postypes.CommitteeState, error)
 	GetBlockByHash(types.Hash) (*postypes.Block, error)
-	GetBlockByNumber() (*postypes.Block, error)
-	GetTransactionByNumber() (*postypes.Transaction, error)
-	GetRewardsByEpoch() (*postypes.EpochReward, error)
+	GetBlockByNumber(blockNumber postypes.BlockNumber) (block *postypes.Block, err error)
+	GetTransactionByNumber(txNumber hexutil.Uint64) (transaction *postypes.Transaction, err error)
+	GetRewardsByEpoch(epochNumber hexutil.Uint64) (reward postypes.EpochReward, err error)
 }
 
 type RpcTxpool interface {
