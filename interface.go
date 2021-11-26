@@ -45,9 +45,9 @@ type ClientOperator interface {
 	SetAccountManager(accountManager AccountManagerOperator)
 	GetAccountManager() AccountManagerOperator
 
-	Pos() *RpcPosClient
-	TxPool() *RpcTxpoolClient
-	Debug() *RpcDebugClient
+	Pos() RpcPos
+	TxPool() RpcTxpool
+	Debug() RpcDebug
 
 	GetGasPrice() (*hexutil.Big, error)
 	GetNextNonce(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, error)

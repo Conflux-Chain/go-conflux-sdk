@@ -11,6 +11,16 @@ import (
 	"github.com/pkg/errors"
 )
 
+type TraceType string
+
+const (
+	CALL_TYPE                      TraceType = "call"
+	CALL_RESULT_TYPE               TraceType = "call_result"
+	CREATE_TYPE                    TraceType = "create"
+	CREATE_RESULT_TYPE             TraceType = "create_result"
+	INTERNAL_TRANSFER_ACTIION_TYPE TraceType = "internal_transfer_action"
+)
+
 type LocalizedBlockTrace struct {
 	TransactionTraces []LocalizedTransactionTrace `json:"transactionTraces"`
 	EpochHash         Hash                        `json:"epochHash"`
@@ -26,7 +36,7 @@ type LocalizedTransactionTrace struct {
 
 type LocalizedTrace struct {
 	Action              interface{}     `json:"action"`
-	Type                string          `json:"type"`
+	Type                TraceType       `json:"type"`
 	EpochHash           *Hash           `json:"epochHash,omitempty"`
 	EpochNumber         *hexutil.Big    `json:"epochNumber,omitempty"`
 	BlockHash           *Hash           `json:"blockHash,omitempty"`
@@ -99,7 +109,7 @@ func (l *LocalizedTrace) UnmarshalJSON(data []byte) error {
 
 	tmp := struct {
 		Action              map[string]interface{} `json:"action"`
-		Type                string                 `json:"type"`
+		Type                TraceType              `json:"type"`
 		EpochHash           *Hash                  `json:"epochHash"`
 		EpochNumber         *hexutil.Big           `json:"epochNumber"`
 		BlockHash           *Hash                  `json:"blockHash"`
@@ -169,4 +179,113 @@ func parseAction(actionInMap map[string]interface{}) (interface{}, error) {
 	}
 
 	return result, nil
+}
+
+// TODO: should move to go sdk=========================
+type LocalizedTraceNode struct {
+	Childs []*LocalizedTraceNode `json:"childs"`
+	Raw    *LocalizedTrace       `json:"raw"`
+
+	CallWithResult         *TraceCallWithResult    `json:"callWithResult,omitempty"`
+	CreateWithResult       *TraceCreateWithResult  `json:"createWithResult,omitempty"`
+	InternalTransferAction *InternalTransferAction `json:"internalTransferAction,omitempty"`
+}
+
+func TraceInTree(traces []LocalizedTrace) (node *LocalizedTraceNode, err error) {
+	cacheStack := new([]*LocalizedTraceNode)
+
+	for _, v := range traces {
+		if node == nil {
+			node, err = newLocalizedTraceNode(v, cacheStack)
+			if err != nil {
+				return nil, errors.WithStack(err)
+			}
+			continue
+		}
+
+		lastOpendingNode := (*cacheStack)[len(*cacheStack)-1]
+		if v.Type == INTERNAL_TRANSFER_ACTIION_TYPE {
+			item, err := newLocalizedTraceNode(v, nil)
+			if err != nil {
+				return nil, errors.WithStack(err)
+			}
+			lastOpendingNode.Childs = append(lastOpendingNode.Childs, item)
+			continue
+		}
+
+		if v.Type == CALL_TYPE || v.Type == CREATE_TYPE {
+			item, err := newLocalizedTraceNode(v, cacheStack)
+			if err != nil {
+				return nil, errors.WithStack(err)
+			}
+			lastOpendingNode.Childs = append(lastOpendingNode.Childs, item)
+			continue
+		}
+
+		// call result or create result
+		if lastOpendingNode.Raw.Type == CALL_TYPE {
+			if v.Type != CALL_RESULT_TYPE {
+				return nil, fmt.Errorf("expect trace type CallResult, got %v", v.Type)
+			}
+			cr := v.Action.(CallResult)
+			lastOpendingNode.CallWithResult.CallResult = &cr
+			*cacheStack = (*cacheStack)[:len(*cacheStack)-1]
+		}
+
+		if lastOpendingNode.Raw.Type == CREATE_TYPE {
+			if v.Type != CREATE_RESULT_TYPE {
+				return nil, fmt.Errorf("expect trace type CreateResult, got %v", v.Type)
+			}
+			cr := v.Action.(CreateResult)
+			lastOpendingNode.CreateWithResult.CreateResult = &cr
+			*cacheStack = (*cacheStack)[:len(*cacheStack)-1]
+		}
+	}
+	// push call trace, set to child when meet next call trace
+	// pop call trace when meet call result trace
+	return node, nil
+}
+
+func newLocalizedTraceNode(trace LocalizedTrace, cacheStack *[]*LocalizedTraceNode,
+) (*LocalizedTraceNode, error) {
+	switch trace.Type {
+	case CALL_TYPE:
+		action := trace.Action.(Call)
+		node := &LocalizedTraceNode{Raw: &trace, CallWithResult: &TraceCallWithResult{
+			&action, nil,
+		}}
+		*cacheStack = append(*cacheStack, node)
+		return node, nil
+	case CREATE_TYPE:
+		action := trace.Action.(Create)
+		node := &LocalizedTraceNode{Raw: &trace, CreateWithResult: &TraceCreateWithResult{
+			&action, nil,
+		}}
+		*cacheStack = append(*cacheStack, node)
+		return node, nil
+	case INTERNAL_TRANSFER_ACTIION_TYPE:
+		action := trace.Action.(InternalTransferAction)
+		return &LocalizedTraceNode{Raw: &trace, InternalTransferAction: &action}, nil
+	}
+	return nil, fmt.Errorf("could not create new localized trace node by type %v", trace.Type)
+}
+
+func (l LocalizedTraceNode) Flatten() (flattened []*LocalizedTraceNode) {
+	flattened = append(flattened, &l)
+	for _, v := range l.Childs {
+		flattened = append(flattened, v.Flatten()...)
+	}
+	// clear childs
+	l.Childs = nil
+	return
+}
+
+type TraceCallWithResult struct {
+	*Call
+	*CallResult
+}
+
+type TraceCreateWithResult struct {
+	*Create
+	*CreateResult
 }
