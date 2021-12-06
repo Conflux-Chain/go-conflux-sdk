@@ -270,6 +270,7 @@ func (client *Client) GetNetworkID() (uint32, error) {
 		return 0, errors.Wrap(err, "failed to get status")
 	}
 
+	client.networkID = new(uint32)
 	atomic.StoreUint32(client.networkID, uint32(status.NetworkID))
 	return *client.networkID, nil
 }
@@ -290,6 +291,7 @@ func (client *Client) GetChainID() (uint32, error) {
 		return 0, errors.Wrap(err, "failed to get status")
 	}
 
+	client.chainID = new(uint32)
 	atomic.StoreUint32(client.chainID, uint32(status.ChainID))
 	return *client.chainID, nil
 }
