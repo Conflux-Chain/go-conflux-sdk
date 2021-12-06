@@ -31,6 +31,7 @@ type Client struct {
 	nodeURL             string
 	rpcRequester        RpcRequester
 	networkID           uint32
+	chainID             uint32
 	option              ClientOption
 	callRpcHandler      middleware.CallRpcHandler
 	batchCallRpcHandler middleware.BatchCallRpcHandler
@@ -257,6 +258,21 @@ func (client *Client) GetNetworkID() (uint32, error) {
 
 	client.networkID = uint32(status.NetworkID)
 	return client.networkID, nil
+}
+
+// GetNetworkID returns networkID of connecting conflux node
+func (client *Client) GetChainID() (uint32, error) {
+	if client.chainID != 0 {
+		return client.chainID, nil
+	}
+
+	status, err := client.GetStatus()
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to get status")
+	}
+
+	client.chainID = uint32(status.ChainID)
+	return client.chainID, nil
 }
 
 // GetEpochNumber returns the highest or specified epoch number.
@@ -668,12 +684,8 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 		}
 
 		if tx.ChainID == nil {
-			status, err := client.GetStatus()
-			if err != nil {
-				tx.ChainID = types.NewUint(0)
-			} else {
-				tx.ChainID = &status.ChainID
-			}
+			chainID := hexutil.Uint(client.chainID)
+			tx.ChainID = &chainID
 		}
 
 		if tx.GasPrice == nil {
