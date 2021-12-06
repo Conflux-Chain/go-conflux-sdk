@@ -6,10 +6,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-func PubkeyToAddress(publicKey string) (cfxaddress.Address, error) {
+func PubkeyToAddress(publicKey string, networkId uint32) (cfxaddress.Address, error) {
 	commAddress, err := utils.PublicKeyToCommonAddress(publicKey)
 	if err != nil {
 		return cfxaddress.Address{}, errors.WithStack(err)
 	}
-	return cfxaddress.NewFromCommon(commAddress)
+	return cfxaddress.NewFromCommon(commAddress, networkId)
 }
