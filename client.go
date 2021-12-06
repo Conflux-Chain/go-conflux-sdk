@@ -6,6 +6,7 @@ package sdk
 
 import (
 	"context"
+	"fmt"
 
 	"math/big"
 	"reflect"
@@ -436,6 +437,15 @@ func (client *Client) signTransactionAndSend(tx *types.UnsignedTransaction, v by
 // and returns the contract execution result.
 func (client *Client) Call(request types.CallRequest, epoch *types.Epoch) (result hexutil.Bytes, err error) {
 	err = client.wrappedCallRPC(&result, "cfx_call", request, epoch)
+	if err == nil {
+		return
+	}
+
+	fmt.Printf("call error: %#v\n", err)
+	if rpcErr, err2 := utils.ToRpcError(err); err2 == nil {
+		return result, rpcErr
+	}
+
 	return
 }
 

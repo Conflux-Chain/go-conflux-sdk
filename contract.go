@@ -83,6 +83,7 @@ func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr
 	// fmt.Printf("data: %x,hexdata:%v,callRequest.Data:%v\n", data, hexData, *callRequest.Data)
 	resultHexStr, err := contract.Client.Call(*callRequest, epoch)
 	if err != nil {
+		
 		return errors.Wrapf(err, "failed to call %+v at epoch %v", *callRequest, epoch)
 	}
 
