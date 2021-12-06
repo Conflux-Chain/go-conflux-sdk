@@ -6,6 +6,7 @@ package sdk
 
 import (
 	"context"
+	"sync/atomic"
 
 	"math/big"
 	"reflect"
@@ -121,6 +122,11 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 	if client.option.KeystorePath != "" {
 		am := NewAccountManager(client.option.KeystorePath, *client.networkID)
 		client.SetAccountManager(am)
+	}
+
+	_, err = client.GetChainID()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get chainID")
 	}
 
 	return &client, nil
@@ -264,8 +270,7 @@ func (client *Client) GetNetworkID() (uint32, error) {
 		return 0, errors.Wrap(err, "failed to get status")
 	}
 
-	networkID := uint32(status.NetworkID)
-	client.networkID = &networkID
+	atomic.StoreUint32(client.networkID, uint32(status.NetworkID))
 	return *client.networkID, nil
 }
 
@@ -288,8 +293,7 @@ func (client *Client) GetChainID() (uint32, error) {
 		return 0, errors.Wrap(err, "failed to get status")
 	}
 
-	chainID := uint32(status.ChainID)
-	client.chainID = &chainID
+	atomic.StoreUint32(client.chainID, uint32(status.ChainID))
 	return *client.chainID, nil
 }
 
