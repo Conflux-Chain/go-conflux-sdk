@@ -274,12 +274,9 @@ func (client *Client) GetNetworkID() (uint32, error) {
 	return *client.networkID, nil
 }
 
-func (client *Client) MustGetNetworkID() uint32 {
-	networkID, err := client.GetNetworkID()
-	if err != nil {
-		panic(err)
-	}
-	return networkID
+// GetNetworkIDCached returns chached networkID created when new client
+func (client *Client) GetNetworkIDCached() uint32 {
+	return *client.networkID
 }
 
 // GetNetworkID returns networkID of connecting conflux node
@@ -297,12 +294,9 @@ func (client *Client) GetChainID() (uint32, error) {
 	return *client.chainID, nil
 }
 
-func (client *Client) MustGetChainID() uint32 {
-	chainID, err := client.GetChainID()
-	if err != nil {
-		panic(err)
-	}
-	return chainID
+// GetChainIDCached returns chached networkID created when new client
+func (client *Client) GetChainIDCached() uint32 {
+	return *client.chainID
 }
 
 // GetEpochNumber returns the highest or specified epoch number.
