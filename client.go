@@ -226,7 +226,17 @@ func (client *Client) batchCallRPC(b []rpc.BatchElem) error {
 		defer cancelFunc()
 	}
 
-	return client.rpcRequester.BatchCallContext(ctx, b)
+	err := client.rpcRequester.BatchCallContext(ctx, b)
+	if err != nil {
+		return err
+	}
+
+	for i := range b {
+		if rpcErr, err2 := utils.ToRpcError(b[i].Error); err2 == nil {
+			b[i].Error = rpcErr
+		}
+	}
+	return nil
 }
 
 // UseBatchCallRpcMiddleware set middleware to hook BatchCallRpc, for example use middleware.BatchCallRpcLogMiddleware for logging batch request info.

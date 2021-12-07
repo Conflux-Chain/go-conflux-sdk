@@ -26,7 +26,7 @@ func TestBulkCall(t *testing.T) {
 	}
 
 	if *gasPriceError != nil {
-		fmt.Printf("get price error %v", gasPriceError)
+		fmt.Printf("get price error %v", *gasPriceError)
 		panic(*gasPriceError)
 	}
 
