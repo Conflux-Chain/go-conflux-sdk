@@ -54,7 +54,7 @@ func DecodeErrData(data []byte) (string, error) {
 }
 
 func DecodeParameters(abi *abi.ABI, methodName string, data []byte) ([]interface{}, error) {
-	fmt.Printf("DecodeParameters data %v", data)
+	// fmt.Printf("DecodeParameters data %v", data)
 	if methodName == "" {
 		// constructor
 		arguments, err := abi.Constructor.Inputs.Unpack(data)
