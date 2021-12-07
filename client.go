@@ -6,7 +6,6 @@ package sdk
 
 import (
 	"context"
-	"fmt"
 	"sync/atomic"
 
 	"math/big"
@@ -483,7 +482,6 @@ func (client *Client) Call(request types.CallRequest, epoch *types.Epoch) (resul
 		return
 	}
 
-	fmt.Printf("call error: %#v\n", err)
 	if rpcErr, err2 := utils.ToRpcError(err); err2 == nil {
 		return result, rpcErr
 	}
