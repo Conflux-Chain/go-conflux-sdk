@@ -20,6 +20,11 @@ func (e *RpcError) Error() string {
 
 // ToRpcError converts a error to JsonError
 func ToRpcError(origin error) (*RpcError, error) {
+
+	if !IsRPCJSONError(origin) {
+		return nil, errors.New("not a rpc error")
+	}
+
 	j, err := json.Marshal(origin)
 	if err != nil {
 		return nil, errors.WithStack(err)

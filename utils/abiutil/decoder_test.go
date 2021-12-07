@@ -2,8 +2,9 @@ package abiutil
 
 import (
 	"encoding/hex"
-	"fmt"
 	"testing"
+
+	"gotest.tools/assert"
 )
 
 func TestDecodeErrData(t *testing.T) {
@@ -11,11 +12,9 @@ func TestDecodeErrData(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(data)
 	res, err := DecodeErrData(data)
 	if err != nil {
-		fmt.Printf("%+v\n", err)
 		t.Fatal(err)
 	}
-	fmt.Println(res)
+	assert.Equal(t, res, "ERC721: owner query for nonexistent token")
 }
