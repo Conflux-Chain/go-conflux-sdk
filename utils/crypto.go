@@ -24,14 +24,14 @@ func PublicKeyToCommonAddress(publicKey string) (common.Address, error) {
 
 	pubKeyBytes, err := hex.DecodeString(publicKey)
 	if err != nil {
-		return common.Address{}, err
+		return common.Address{}, errors.WithStack(err)
 	}
 
 	pubKeyBytes = append([]byte{0x04}, pubKeyBytes...)
 
 	pub, err := crypto.UnmarshalPubkey(pubKeyBytes)
 	if err != nil {
-		return common.Address{}, err
+		return common.Address{}, errors.WithStack(err)
 	}
 
 	addr := crypto.PubkeyToAddress(*pub)

@@ -1,9 +1,13 @@
 # Go-conflux-sdk Change Log
+## v1.0.19
+Decode rpc error in Client.BatchCall
+## v1.0.18
+Decode rpc error in Client.Call
 ## v1.0.17
-- Use txpool pending nonce in `Client.ApplyUnsignedTransactionDefault` to ensure nonce correct when continuous sending transactions
-- Use bulk caller to populate transactions when bulk send transations
+- Use tx pool pending nonce in `Client.ApplyUnsignedTransactionDefault` to ensure nonce is correct when continuous sending transactions
+- Use bulk caller to populate transactions when bulk send transactions
 ## v1.0.16
-- Support txpool and debug rpc methods
+- Support tx pool and debug RPC methods
 ## v1.0.15
 - Add bulk caller and bulk sender for sending batch RPC requests by one request, see the example from [example_bulk](https://github.com/conflux-fans/go-conflux-sdk-examples/tree/main/example_bulk)
 - Move example to independent repo [go-conflux-sdk-example](https://github.com/conflux-fans/go-conflux-sdk-examples)
@@ -26,7 +30,7 @@
 - Apply middleware for hooking call RPC and batch call RPC
 - Support set request RPC timeout in Client
 ## v1.0.0
-Note: v1.0.0 is not incompatible with v0.x, the changes are
+Note: v1.0.0 is not incompatible with v0.x, the changes are below
 - Change address format follow [CIP-37](https://github.com/Conflux-Chain/CIPs/blob/master/CIPs/cip-37.md)
 - Unmarshal logfilter according to full node struct
 - RPC functions follow the rule: input and output to be value or pointer according to whether it could be nil

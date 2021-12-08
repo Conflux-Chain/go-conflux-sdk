@@ -6,6 +6,7 @@ package sdk
 
 import (
 	"context"
+	"sync/atomic"
 
 	"math/big"
 	"reflect"
@@ -30,7 +31,8 @@ type Client struct {
 	AccountManager      AccountManagerOperator
 	nodeURL             string
 	rpcRequester        RpcRequester
-	networkID           uint32
+	networkID           *uint32
+	chainID             *uint32
 	option              ClientOption
 	callRpcHandler      middleware.CallRpcHandler
 	batchCallRpcHandler middleware.BatchCallRpcHandler
@@ -65,6 +67,14 @@ func NewClient(nodeURL string, option ...ClientOption) (*Client, error) {
 	}
 
 	return client, nil
+}
+
+func MustNewClient(nodeURL string, option ...ClientOption) *Client {
+	client, err := NewClient(nodeURL, option...)
+	if err != nil {
+		panic(err)
+	}
+	return client
 }
 
 // NewClientWithRPCRequester creates client with specified rpcRequester
@@ -110,8 +120,13 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 	}
 
 	if client.option.KeystorePath != "" {
-		am := NewAccountManager(client.option.KeystorePath, client.networkID)
+		am := NewAccountManager(client.option.KeystorePath, *client.networkID)
 		client.SetAccountManager(am)
+	}
+
+	_, err = client.GetChainID()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get chainID")
 	}
 
 	return &client, nil
@@ -211,7 +226,17 @@ func (client *Client) batchCallRPC(b []rpc.BatchElem) error {
 		defer cancelFunc()
 	}
 
-	return client.rpcRequester.BatchCallContext(ctx, b)
+	err := client.rpcRequester.BatchCallContext(ctx, b)
+	if err != nil {
+		return err
+	}
+
+	for i := range b {
+		if rpcErr, err2 := utils.ToRpcError(b[i].Error); err2 == nil {
+			b[i].Error = rpcErr
+		}
+	}
+	return nil
 }
 
 // UseBatchCallRpcMiddleware set middleware to hook BatchCallRpc, for example use middleware.BatchCallRpcLogMiddleware for logging batch request info.
@@ -246,8 +271,8 @@ func (client *Client) GetStatus() (status types.Status, err error) {
 
 // GetNetworkID returns networkID of connecting conflux node
 func (client *Client) GetNetworkID() (uint32, error) {
-	if client.networkID != 0 {
-		return client.networkID, nil
+	if client.networkID != nil {
+		return *client.networkID, nil
 	}
 
 	status, err := client.GetStatus()
@@ -255,8 +280,35 @@ func (client *Client) GetNetworkID() (uint32, error) {
 		return 0, errors.Wrap(err, "failed to get status")
 	}
 
-	client.networkID = uint32(status.NetworkID)
-	return client.networkID, nil
+	client.networkID = new(uint32)
+	atomic.StoreUint32(client.networkID, uint32(status.NetworkID))
+	return *client.networkID, nil
+}
+
+// GetNetworkIDCached returns chached networkID created when new client
+func (client *Client) GetNetworkIDCached() uint32 {
+	return *client.networkID
+}
+
+// GetNetworkID returns networkID of connecting conflux node
+func (client *Client) GetChainID() (uint32, error) {
+	if client.chainID != nil {
+		return *client.chainID, nil
+	}
+
+	status, err := client.GetStatus()
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to get status")
+	}
+
+	client.chainID = new(uint32)
+	atomic.StoreUint32(client.chainID, uint32(status.ChainID))
+	return *client.chainID, nil
+}
+
+// GetChainIDCached returns chached networkID created when new client
+func (client *Client) GetChainIDCached() uint32 {
+	return *client.chainID
 }
 
 // GetEpochNumber returns the highest or specified epoch number.
@@ -436,6 +488,14 @@ func (client *Client) signTransactionAndSend(tx *types.UnsignedTransaction, v by
 // and returns the contract execution result.
 func (client *Client) Call(request types.CallRequest, epoch *types.Epoch) (result hexutil.Bytes, err error) {
 	err = client.wrappedCallRPC(&result, "cfx_call", request, epoch)
+	if err == nil {
+		return
+	}
+
+	if rpcErr, err2 := utils.ToRpcError(err); err2 == nil {
+		return result, rpcErr
+	}
+
 	return
 }
 
@@ -641,6 +701,16 @@ func (client *Client) CreateUnsignedTransaction(from types.Address, to types.Add
 // ApplyUnsignedTransactionDefault set empty fields to value fetched from conflux node.
 func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) error {
 
+	networkID, err := client.GetNetworkID()
+	if err != nil {
+		return errors.Wrap(err, "failed to get networkID")
+	}
+
+	chainID, err := client.GetChainID()
+	if err != nil {
+		return errors.Wrap(err, "failed to get chainID")
+	}
+
 	if client != nil {
 		if tx.From == nil {
 			if client.AccountManager != nil {
@@ -655,8 +725,8 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 				tx.From = defaultAccount
 			}
 		}
-		tx.From.CompleteByNetworkID(client.networkID)
-		tx.To.CompleteByNetworkID(client.networkID)
+		tx.From.CompleteByNetworkID(networkID)
+		tx.To.CompleteByNetworkID(networkID)
 
 		if tx.Nonce == nil {
 			nonce, err := client.GetNextUsableNonce(*tx.From)
@@ -668,12 +738,8 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 		}
 
 		if tx.ChainID == nil {
-			status, err := client.GetStatus()
-			if err != nil {
-				tx.ChainID = types.NewUint(0)
-			} else {
-				tx.ChainID = &status.ChainID
-			}
+			chainID := hexutil.Uint(chainID)
+			tx.ChainID = &chainID
 		}
 
 		if tx.GasPrice == nil {
@@ -1153,11 +1219,14 @@ func (client *Client) GetNextUsableNonce(user types.Address) (nonce *hexutil.Big
 // ======== private methods=============
 
 func (client *Client) wrappedCallRPC(result interface{}, method string, args ...interface{}) error {
-	fmtedArgs := client.genRPCParams(args...)
+	fmtedArgs, err := client.genRPCParams(args...)
+	if err != nil {
+		return errors.WithStack(err)
+	}
 	return client.CallRPC(result, method, fmtedArgs...)
 }
 
-func (client *Client) genRPCParams(args ...interface{}) []interface{} {
+func (client *Client) genRPCParams(args ...interface{}) ([]interface{}, error) {
 	// fmt.Println("gen rpc params")
 	params := []interface{}{}
 	for i := range args {
@@ -1165,32 +1234,37 @@ func (client *Client) genRPCParams(args ...interface{}) []interface{} {
 		if !utils.IsNil(args[i]) {
 			// fmt.Printf("args %v:%v is not nil\n", i, args[i])
 
+			networkID, err := client.GetNetworkID()
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to get networkID")
+			}
+
 			if tmp, ok := args[i].(cfxaddress.Address); ok {
-				tmp.CompleteByNetworkID(client.networkID)
+				tmp.CompleteByNetworkID(networkID)
 				args[i] = tmp
 				// fmt.Printf("complete by networkID,%v; after %v\n", client.networkID, args[i])
 			}
 
 			if tmp, ok := args[i].(*cfxaddress.Address); ok {
-				tmp.CompleteByNetworkID(client.networkID)
+				tmp.CompleteByNetworkID(networkID)
 				// fmt.Printf("complete by networkID,%v; after %v\n", client.networkID, args[i])
 			}
 
 			if tmp, ok := args[i].(types.CallRequest); ok {
-				tmp.From.CompleteByNetworkID(client.networkID)
-				tmp.To.CompleteByNetworkID(client.networkID)
+				tmp.From.CompleteByNetworkID(networkID)
+				tmp.To.CompleteByNetworkID(networkID)
 				args[i] = tmp
 			}
 
 			if tmp, ok := args[i].(*types.CallRequest); ok {
-				tmp.From.CompleteByNetworkID(client.networkID)
-				tmp.To.CompleteByNetworkID(client.networkID)
+				tmp.From.CompleteByNetworkID(networkID)
+				tmp.To.CompleteByNetworkID(networkID)
 			}
 
 			params = append(params, args[i])
 		}
 	}
-	return params
+	return params, nil
 }
 
 func get1stEpochIfy(epoch []*types.Epoch) *types.Epoch {
@@ -1211,7 +1285,7 @@ func get1stBoolIfy(values []bool) bool {
 
 func get1stU64Ify(values []hexutil.Uint64) *hexutil.Uint64 {
 	if len(values) > 0 {
-		_value := hexutil.Uint64(values[0])
+		_value := values[0]
 		return &_value
 	}
 	return nil

@@ -130,6 +130,9 @@ type ClientOperator interface {
 	WaitForTransationBePacked(txhash types.Hash, duration time.Duration) (*types.Transaction, error)
 	WaitForTransationReceipt(txhash types.Hash, duration time.Duration) (*types.TransactionReceipt, error)
 	GetNextUsableNonce(user types.Address) (nonce *hexutil.Big, err error)
+
+	GetChainIDCached() uint32
+	GetNetworkIDCached() uint32
 }
 
 type RpcPos interface {
@@ -137,9 +140,9 @@ type RpcPos interface {
 	GetAccount(address postypes.Address, blockNumber ...hexutil.Uint64) (postypes.Account, error)
 	GetCommittee(blockNumber ...hexutil.Uint64) (postypes.CommitteeState, error)
 	GetBlockByHash(types.Hash) (*postypes.Block, error)
-	GetBlockByNumber(blockNumber postypes.BlockNumber) (block *postypes.Block, err error)
-	GetTransactionByNumber(txNumber hexutil.Uint64) (transaction *postypes.Transaction, err error)
-	GetRewardsByEpoch(epochNumber hexutil.Uint64) (reward postypes.EpochReward, err error)
+	GetBlockByNumber(blockNumber postypes.BlockNumber) (*postypes.Block, error)
+	GetTransactionByNumber(txNumber hexutil.Uint64) (*postypes.Transaction, error)
+	GetRewardsByEpoch(epochNumber hexutil.Uint64) (postypes.EpochReward, error)
 }
 
 type RpcTxpool interface {

@@ -15,6 +15,7 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/valyala/fasthttp v1.13.1
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce
+	gotest.tools v2.2.0+incompatible
 )
 
 // replace github.com/ethereum/go-ethereum => ../../ethereum/go-ethereum
