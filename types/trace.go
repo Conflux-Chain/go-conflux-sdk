@@ -183,12 +183,28 @@ func parseAction(actionInMap map[string]interface{}) (interface{}, error) {
 
 // TODO: should move to go sdk=========================
 type LocalizedTraceNode struct {
-	Childs []*LocalizedTraceNode `json:"childs"`
-	Raw    *LocalizedTrace       `json:"raw"`
+	Type                TraceType       `json:"type"`
+	EpochHash           *Hash           `json:"epochHash,omitempty"`
+	EpochNumber         *hexutil.Big    `json:"epochNumber,omitempty"`
+	BlockHash           *Hash           `json:"blockHash,omitempty"`
+	TransactionPosition *hexutil.Uint64 `json:"transactionPosition,omitempty"`
+	TransactionHash     *Hash           `json:"transactionHash,omitempty"`
 
 	CallWithResult         *TraceCallWithResult    `json:"callWithResult,omitempty"`
 	CreateWithResult       *TraceCreateWithResult  `json:"createWithResult,omitempty"`
 	InternalTransferAction *InternalTransferAction `json:"internalTransferAction,omitempty"`
+
+	Childs []*LocalizedTraceNode `json:"childs"`
+	// Raw    *LocalizedTrace       `json:"raw"`
+}
+
+func (l *LocalizedTraceNode) populate(raw LocalizedTrace) {
+	l.Type = raw.Type
+	l.EpochHash = raw.EpochHash
+	l.EpochNumber = raw.EpochNumber
+	l.BlockHash = raw.BlockHash
+	l.TransactionPosition = raw.TransactionPosition
+	l.TransactionHash = raw.TransactionHash
 }
 
 func TraceInTree(traces []LocalizedTrace) (node *LocalizedTraceNode, err error) {
@@ -223,7 +239,7 @@ func TraceInTree(traces []LocalizedTrace) (node *LocalizedTraceNode, err error) 
 		}
 
 		// call result or create result
-		if lastOpendingNode.Raw.Type == CALL_TYPE {
+		if lastOpendingNode.Type == CALL_TYPE {
 			if v.Type != CALL_RESULT_TYPE {
 				return nil, fmt.Errorf("expect trace type CallResult, got %v", v.Type)
 			}
@@ -232,7 +248,7 @@ func TraceInTree(traces []LocalizedTrace) (node *LocalizedTraceNode, err error) 
 			*cacheStack = (*cacheStack)[:len(*cacheStack)-1]
 		}
 
-		if lastOpendingNode.Raw.Type == CREATE_TYPE {
+		if lastOpendingNode.Type == CREATE_TYPE {
 			if v.Type != CREATE_RESULT_TYPE {
 				return nil, fmt.Errorf("expect trace type CreateResult, got %v", v.Type)
 			}
@@ -251,21 +267,25 @@ func newLocalizedTraceNode(trace LocalizedTrace, cacheStack *[]*LocalizedTraceNo
 	switch trace.Type {
 	case CALL_TYPE:
 		action := trace.Action.(Call)
-		node := &LocalizedTraceNode{Raw: &trace, CallWithResult: &TraceCallWithResult{
+		node := &LocalizedTraceNode{CallWithResult: &TraceCallWithResult{
 			&action, nil,
 		}}
+		node.populate(trace)
 		*cacheStack = append(*cacheStack, node)
 		return node, nil
 	case CREATE_TYPE:
 		action := trace.Action.(Create)
-		node := &LocalizedTraceNode{Raw: &trace, CreateWithResult: &TraceCreateWithResult{
+		node := &LocalizedTraceNode{CreateWithResult: &TraceCreateWithResult{
 			&action, nil,
 		}}
+		node.populate(trace)
 		*cacheStack = append(*cacheStack, node)
 		return node, nil
 	case INTERNAL_TRANSFER_ACTIION_TYPE:
 		action := trace.Action.(InternalTransferAction)
-		return &LocalizedTraceNode{Raw: &trace, InternalTransferAction: &action}, nil
+		node := &LocalizedTraceNode{InternalTransferAction: &action}
+		node.populate(trace)
+		return node, nil
 	}
 	return nil, fmt.Errorf("could not create new localized trace node by type %v", trace.Type)
 }
@@ -281,11 +301,11 @@ func (l LocalizedTraceNode) Flatten() (flattened []*LocalizedTraceNode) {
 }
 
 type TraceCallWithResult struct {
-	*Call
-	*CallResult
+	*Call       `json:"call"`
+	*CallResult `json:"callResult"`
 }
 
 type TraceCreateWithResult struct {
-	*Create
-	*CreateResult
+	*Create       `json:"create"`
+	*CreateResult `json:"createResult"`
 }
