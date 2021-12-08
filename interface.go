@@ -45,9 +45,9 @@ type ClientOperator interface {
 	SetAccountManager(accountManager AccountManagerOperator)
 	GetAccountManager() AccountManagerOperator
 
-	Pos() *RpcPosClient
-	TxPool() *RpcTxpoolClient
-	Debug() *RpcDebugClient
+	Pos() RpcPos
+	TxPool() RpcTxpool
+	Debug() RpcDebug
 
 	GetGasPrice() (*hexutil.Big, error)
 	GetNextNonce(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, error)
@@ -137,12 +137,12 @@ type ClientOperator interface {
 
 type RpcPos interface {
 	GetStatus() (postypes.Status, error)
-	GetAccount(address postypes.Address, view ...hexutil.Uint64) (postypes.Account, error)
-	GetCommittee(view ...hexutil.Uint64) (postypes.CommitteeState, error)
+	GetAccount(address postypes.Address, blockNumber ...hexutil.Uint64) (postypes.Account, error)
+	GetCommittee(blockNumber ...hexutil.Uint64) (postypes.CommitteeState, error)
 	GetBlockByHash(types.Hash) (*postypes.Block, error)
-	GetBlockByNumber() (*postypes.Block, error)
-	GetTransactionByNumber() (*postypes.Transaction, error)
-	GetRewardsByEpoch() (*postypes.EpochReward, error)
+	GetBlockByNumber(blockNumber postypes.BlockNumber) (*postypes.Block, error)
+	GetTransactionByNumber(txNumber hexutil.Uint64) (*postypes.Transaction, error)
+	GetRewardsByEpoch(epochNumber hexutil.Uint64) (postypes.EpochReward, error)
 }
 
 type RpcTxpool interface {

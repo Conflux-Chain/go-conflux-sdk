@@ -142,15 +142,15 @@ func (co *ClientOption) setDefault() {
 	}
 }
 
-func (client *Client) Pos() *RpcPosClient {
+func (client *Client) Pos() RpcPos {
 	return &client.rpcPosClient
 }
 
-func (client *Client) TxPool() *RpcTxpoolClient {
+func (client *Client) TxPool() RpcTxpool {
 	return &client.rpcTxpoolClient
 }
 
-func (client *Client) Debug() *RpcDebugClient {
+func (client *Client) Debug() RpcDebug {
 	return &client.rpcDebugClient
 }
 
@@ -1283,9 +1283,9 @@ func get1stBoolIfy(values []bool) bool {
 	return value
 }
 
-func get1stU64Ify(values []uint64) *hexutil.Uint64 {
+func get1stU64Ify(values []hexutil.Uint64) *hexutil.Uint64 {
 	if len(values) > 0 {
-		_value := hexutil.Uint64(values[0])
+		_value := values[0]
 		return &_value
 	}
 	return nil
