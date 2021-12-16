@@ -21,14 +21,14 @@ func (c *RpcPosClient) GetStatus() (status postypes.Status, err error) {
 }
 
 // GetAccount returns account info at block
-func (c *RpcPosClient) GetAccount(address postypes.Address, blockNumber ...uint64) (account postypes.Account, err error) {
+func (c *RpcPosClient) GetAccount(address postypes.Address, blockNumber ...hexutil.Uint64) (account postypes.Account, err error) {
 	_view := get1stU64Ify(blockNumber)
 	err = c.core.CallRPC(&account, "pos_getAccount", address, _view)
 	return
 }
 
 // GetCommittee returns committee info at block
-func (c *RpcPosClient) GetCommittee(blockNumber ...uint64) (committee postypes.CommitteeState, err error) {
+func (c *RpcPosClient) GetCommittee(blockNumber ...hexutil.Uint64) (committee postypes.CommitteeState, err error) {
 	_view := get1stU64Ify(blockNumber)
 	err = c.core.CallRPC(&committee, "pos_getCommittee", _view)
 	return
@@ -47,13 +47,13 @@ func (c *RpcPosClient) GetBlockByNumber(blockNumber postypes.BlockNumber) (block
 }
 
 // GetTransactionByNumber returns transaction info of transaction number
-func (c *RpcPosClient) GetTransactionByNumber(txNumber uint64) (transaction *postypes.Transaction, err error) {
-	err = c.core.CallRPC(&transaction, "pos_getTransactionByNumber", hexutil.Uint64(txNumber))
+func (c *RpcPosClient) GetTransactionByNumber(txNumber hexutil.Uint64) (transaction *postypes.Transaction, err error) {
+	err = c.core.CallRPC(&transaction, "pos_getTransactionByNumber", txNumber)
 	return
 }
 
 // GetRewardsByEpoch returns rewards of epoch
-func (c *RpcPosClient) GetRewardsByEpoch(epochNumber uint64) (reward postypes.EpochReward, err error) {
-	err = c.core.CallRPC(&reward, "pos_getRewardsByEpoch", hexutil.Uint64(epochNumber))
+func (c *RpcPosClient) GetRewardsByEpoch(epochNumber hexutil.Uint64) (reward postypes.EpochReward, err error) {
+	err = c.core.CallRPC(&reward, "pos_getRewardsByEpoch", epochNumber)
 	return
 }

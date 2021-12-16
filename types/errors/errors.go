@@ -1,12 +1,15 @@
 package errors
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 )
+
+var ErrTimeout error = errors.New("timeout")
 
 // AccountNotFoundError represents error of account not found.
 type AccountNotFoundError struct {

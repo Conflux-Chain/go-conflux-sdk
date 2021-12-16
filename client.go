@@ -17,6 +17,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	sdkerrors "github.com/Conflux-Chain/go-conflux-sdk/types/errors"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -142,15 +143,15 @@ func (co *ClientOption) setDefault() {
 	}
 }
 
-func (client *Client) Pos() *RpcPosClient {
+func (client *Client) Pos() RpcPos {
 	return &client.rpcPosClient
 }
 
-func (client *Client) TxPool() *RpcTxpoolClient {
+func (client *Client) TxPool() RpcTxpool {
 	return &client.rpcTxpoolClient
 }
 
-func (client *Client) Debug() *RpcDebugClient {
+func (client *Client) Debug() RpcDebug {
 	return &client.rpcDebugClient
 }
 
@@ -1185,6 +1186,9 @@ func (client *Client) WaitForTransationBePacked(txhash types.Hash, duration time
 // WaitForTransationReceipt waits for transaction receipt valid
 func (client *Client) WaitForTransationReceipt(txhash types.Hash, duration time.Duration) (*types.TransactionReceipt, error) {
 	// fmt.Printf("wait for transaction %v be packed\n", txhash)
+	timeout := time.Duration(24 * time.Hour)
+	pass := time.Duration(0)
+
 	if duration == 0 {
 		duration = time.Second
 	}
@@ -1200,6 +1204,11 @@ func (client *Client) WaitForTransationReceipt(txhash types.Hash, duration time.
 
 		if txReceipt != nil {
 			break
+		}
+
+		pass += duration
+		if pass > timeout {
+			return nil, sdkerrors.ErrTimeout
 		}
 	}
 	return txReceipt, nil
@@ -1283,9 +1292,9 @@ func get1stBoolIfy(values []bool) bool {
 	return value
 }
 
-func get1stU64Ify(values []uint64) *hexutil.Uint64 {
+func get1stU64Ify(values []hexutil.Uint64) *hexutil.Uint64 {
 	if len(values) > 0 {
-		_value := hexutil.Uint64(values[0])
+		_value := values[0]
 		return &_value
 	}
 	return nil

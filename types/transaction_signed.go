@@ -7,8 +7,11 @@ package types
 import (
 	"math/big"
 
+	"github.com/Conflux-Chain/go-conflux-sdk/utils/addressutil"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/pkg/errors"
 )
 
 // signedTransactionForRlp is a intermediate struct for encoding rlp data
@@ -49,6 +52,37 @@ func (tx *SignedTransaction) Encode() ([]byte, error) {
 	}
 
 	return encoded, nil
+}
+
+func (tx *SignedTransaction) Hash() ([]byte, error) {
+	encoded, err := tx.Encode()
+	if err != nil {
+		return nil, err
+	}
+
+	return crypto.Keccak256(encoded), nil
+}
+
+func (tx *SignedTransaction) Sender(networkId uint32) (Address, error) {
+	hash, err := tx.UnsignedTransaction.Hash()
+	if err != nil {
+		return Address{}, errors.WithStack(err)
+	}
+
+	pub, err := crypto.Ecrecover(hash, tx.Signature())
+	if err != nil {
+		return Address{}, errors.WithStack(err)
+	}
+
+	pubStr := (hexutil.Bytes(pub)).String()
+	return addressutil.PubkeyToAddress(pubStr, networkId)
+}
+
+func (tx *SignedTransaction) Signature() []byte {
+	sig := []byte{tx.V}
+	sig = append(sig, tx.R...)
+	sig = append(sig, tx.S...)
+	return sig
 }
 
 func (tx *SignedTransaction) toStructForRlp() *signedTransactionForRlp {

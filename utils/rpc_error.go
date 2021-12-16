@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils/abiutil"
 	"github.com/pkg/errors"
@@ -15,7 +16,10 @@ type RpcError struct {
 }
 
 func (e *RpcError) Error() string {
-	return e.Message
+	if e == nil {
+		return ""
+	}
+	return fmt.Sprintf("%v, data: %v", e.Message, e.Data)
 }
 
 // ToRpcError converts a error to JsonError
