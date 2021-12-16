@@ -219,13 +219,13 @@ func TraceInTree(traces []LocalizedTrace) (node *LocalizedTraceNode, err error) 
 			continue
 		}
 
-		lastOpendingNode := (*cacheStack)[len(*cacheStack)-1]
+		lastOpeningNode := (*cacheStack)[len(*cacheStack)-1]
 		if v.Type == INTERNAL_TRANSFER_ACTIION_TYPE {
 			item, err := newLocalizedTraceNode(v, nil)
 			if err != nil {
 				return nil, errors.WithStack(err)
 			}
-			lastOpendingNode.Childs = append(lastOpendingNode.Childs, item)
+			lastOpeningNode.Childs = append(lastOpeningNode.Childs, item)
 			continue
 		}
 
@@ -234,26 +234,26 @@ func TraceInTree(traces []LocalizedTrace) (node *LocalizedTraceNode, err error) 
 			if err != nil {
 				return nil, errors.WithStack(err)
 			}
-			lastOpendingNode.Childs = append(lastOpendingNode.Childs, item)
+			lastOpeningNode.Childs = append(lastOpeningNode.Childs, item)
 			continue
 		}
 
 		// call result or create result
-		if lastOpendingNode.Type == CALL_TYPE {
+		if lastOpeningNode.Type == CALL_TYPE {
 			if v.Type != CALL_RESULT_TYPE {
 				return nil, fmt.Errorf("expect trace type CallResult, got %v", v.Type)
 			}
 			cr := v.Action.(CallResult)
-			lastOpendingNode.CallWithResult.CallResult = &cr
+			lastOpeningNode.CallWithResult.CallResult = &cr
 			*cacheStack = (*cacheStack)[:len(*cacheStack)-1]
 		}
 
-		if lastOpendingNode.Type == CREATE_TYPE {
+		if lastOpeningNode.Type == CREATE_TYPE {
 			if v.Type != CREATE_RESULT_TYPE {
 				return nil, fmt.Errorf("expect trace type CreateResult, got %v", v.Type)
 			}
 			cr := v.Action.(CreateResult)
-			lastOpendingNode.CreateWithResult.CreateResult = &cr
+			lastOpeningNode.CreateWithResult.CreateResult = &cr
 			*cacheStack = (*cacheStack)[:len(*cacheStack)-1]
 		}
 	}
