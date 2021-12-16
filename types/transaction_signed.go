@@ -7,7 +7,7 @@ package types
 import (
 	"math/big"
 
-	"github.com/Conflux-Chain/go-conflux-sdk/utils/address"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils/addressutil"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -75,7 +75,7 @@ func (tx *SignedTransaction) Sender(networkId uint32) (Address, error) {
 	}
 
 	pubStr := (hexutil.Bytes(pub)).String()
-	return address.PubkeyToAddress(pubStr, networkId)
+	return addressutil.PubkeyToAddress(pubStr, networkId)
 }
 
 func (tx *SignedTransaction) Signature() []byte {
