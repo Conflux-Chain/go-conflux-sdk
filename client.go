@@ -17,6 +17,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	sdkerrors "github.com/Conflux-Chain/go-conflux-sdk/types/errors"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -1185,6 +1186,9 @@ func (client *Client) WaitForTransationBePacked(txhash types.Hash, duration time
 // WaitForTransationReceipt waits for transaction receipt valid
 func (client *Client) WaitForTransationReceipt(txhash types.Hash, duration time.Duration) (*types.TransactionReceipt, error) {
 	// fmt.Printf("wait for transaction %v be packed\n", txhash)
+	timeout := time.Duration(24 * time.Hour)
+	pass := time.Duration(0)
+
 	if duration == 0 {
 		duration = time.Second
 	}
@@ -1200,6 +1204,11 @@ func (client *Client) WaitForTransationReceipt(txhash types.Hash, duration time.
 
 		if txReceipt != nil {
 			break
+		}
+
+		pass += duration
+		if pass > timeout {
+			return nil, sdkerrors.ErrTimeout
 		}
 	}
 	return txReceipt, nil

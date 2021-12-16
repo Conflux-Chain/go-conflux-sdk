@@ -32,21 +32,21 @@ func (client *BulkTraceCaller) GetBlockTraces(blockHash types.Hash) (*types.Loca
 }
 
 // GetFilterTraces returns all traces matching the provided filter.
-func (client *BulkTraceCaller) FilterTraces(traceFilter types.TraceFilter) ([]types.LocalizedTrace, *error) {
-	result := make([]types.LocalizedTrace, 0)
+func (client *BulkTraceCaller) FilterTraces(traceFilter types.TraceFilter) (*[]types.LocalizedTrace, *error) {
+	result := new([]types.LocalizedTrace)
 	err := new(error)
 
-	elem := newBatchElem(result, "trace_filter", traceFilter)
+	elem := newBatchElem(&result, "trace_filter", traceFilter)
 	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
 
 // GetTransactionTraces returns all traces produced at the given transaction.
-func (client *BulkTraceCaller) GetTransactionTraces(txHash types.Hash) ([]types.LocalizedTrace, *error) {
-	result := make([]types.LocalizedTrace, 0)
+func (client *BulkTraceCaller) GetTransactionTraces(txHash types.Hash) (*[]types.LocalizedTrace, *error) {
+	result := new([]types.LocalizedTrace)
 	err := new(error)
 
-	elem := newBatchElem(result, "trace_transaction", txHash)
+	elem := newBatchElem(&result, "trace_transaction", txHash)
 	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }

@@ -56,7 +56,7 @@ func IsRPCJSONError(err error) bool {
 	}
 
 	t := reflect.TypeOf(errors.Cause(err)).String()
-	return t == "*rpc.jsonError" || t == "rpc.jsonError"
+	return t == "*rpc.jsonError" || t == "rpc.jsonError" || t == "utils.RpcError" || t == "*utils.RpcError"
 }
 
 // PanicIfErrf panic and reports error message with args

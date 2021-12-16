@@ -24,8 +24,8 @@ func (b *BulkDebugCaller) Execute() ([]error, error) {
 
 //ignore
 
-func (client *BulkDebugCaller) GetEpochReceipts(epoch types.Epoch) ([][]types.TransactionReceipt, *error) {
-	result := make([][]types.TransactionReceipt, 0)
+func (client *BulkDebugCaller) GetEpochReceipts(epoch types.Epoch) (*[][]types.TransactionReceipt, *error) {
+	result := new([][]types.TransactionReceipt)
 	err := new(error)
 
 	elem := newBatchElem(result, "cfx_getEpochReceipts", epoch)
@@ -34,8 +34,8 @@ func (client *BulkDebugCaller) GetEpochReceipts(epoch types.Epoch) ([][]types.Tr
 	return result, err
 }
 
-func (client *BulkDebugCaller) GetEpochReceiptsByPivotBlockHash(hash types.Hash) ([][]types.TransactionReceipt, *error) {
-	result := make([][]types.TransactionReceipt, 0)
+func (client *BulkDebugCaller) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (*[][]types.TransactionReceipt, *error) {
+	result := new([][]types.TransactionReceipt)
 	err := new(error)
 
 	elem := newBatchElem(result, "cfx_getEpochReceipts", fmt.Sprintf("hash:%v", hash))
