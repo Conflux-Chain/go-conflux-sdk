@@ -1,3 +1,4 @@
+// TODO: test: return *[]T instead of []T in rpc methods
 const fs = require("fs")
 
 function genBulkFile(filePath, clientName, missingFuncs) {
@@ -84,7 +85,7 @@ function genBulkFuncs(func) {
     console.log(funcSign)
 
     clientName = clientName.replace(/Rpc(.*)Client/, "Bulk$1Caller")
-    returnType = (returnType[0] == "*" || returnType[0] == "[") ? returnType : "*" + returnType
+    returnType = (returnType[0] == "*") ? returnType : "*" + returnType
 
     let initResult = genInitResult(returnType)
     let newOne = `func(client *${clientName}) ${funcSign} (${returnType},*error) {\n\t${initResult}${preCall}` +
@@ -108,7 +109,8 @@ function genInitResult(returnType) {
             initResult = `result:= new(${returnType.substr(1)})`
             break
         case "[":
-            initResult = `result:= make(${returnType}, 0)`
+            // initResult = `result:= make(${returnType}, 0)`
+            initResult = `result:= new(${returnType})`
             break
         default:
             break

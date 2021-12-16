@@ -1,5 +1,4 @@
 // TODO: create a web page tool
-
 const goTypeMap = {
     "u64": "hexutil.Uint64",
     "U64": "hexutil.Uint64",
