@@ -117,7 +117,7 @@ func NewFromBase32(base32Str string) (cfxAddress Address, err error) {
 
 	cfxAddress.addressType, err = CalcAddressType(hexAddress)
 	if err != nil {
-		return cfxAddress, errors.Wrapf(err, "failed to calc address type of %v", hexAddress)
+		return cfxAddress, errors.Wrapf(err, "failed to calc address type of %x", hexAddress)
 	}
 
 	if len(parts) == 3 && strings.ToLower(parts[1]) != cfxAddress.addressType.String() {

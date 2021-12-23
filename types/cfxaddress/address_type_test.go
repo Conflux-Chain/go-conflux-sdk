@@ -10,7 +10,7 @@ func TestCalcAddressType(t *testing.T) {
 	verifyAddressType(t, "106d49f8505410eb4e671d51f7d96d2c87807b09", AddressTypeUser)
 	verifyAddressType(t, "806d49f8505410eb4e671d51f7d96d2c87807b09", AddressTypeContract)
 	verifyAddressType(t, "0000000000000000000000000000000000000000", AddressTypeNull)
-	expectCalcError(t, []byte{0x20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
+	verifyAddressType(t, "2000000000000000000000000000000000000000", AddressTypeUnknown)
 	expectCalcError(t, []byte{1, 2})
 	expectCalcError(t, []byte{})
 	expectCalcError(t, nil)
