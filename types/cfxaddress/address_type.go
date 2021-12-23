@@ -23,6 +23,7 @@ const (
 	AddressTypeUser     AddressType = "user"
 	AddressTypeContract AddressType = "contract"
 	AddressTypeNull     AddressType = "null"
+	AddressTypeUnknown  AddressType = "unknown"
 )
 
 // CalcAddressType calculate address type of hexAddress
@@ -48,7 +49,8 @@ func CalcAddressType(hexAddress []byte) (AddressType, error) {
 	case 0x80:
 		addressType = AddressTypeContract
 	default:
-		return "", errors.Errorf("Invalid address %x", hexAddress)
+		addressType = AddressTypeUnknown
+		// return "", errors.Errorf("Invalid address %x", hexAddress)
 	}
 	// fmt.Printf("calc address type of %x : %v\n", hexAddress, addressType)
 	return addressType, nil
