@@ -78,7 +78,7 @@ type Block struct {
 	Height        hexutil.Uint64  `json:"height"`
 	Epoch         hexutil.Uint64  `json:"epoch"`
 	Round         hexutil.Uint64  `json:"round"`
-	NextTxNumber  hexutil.Uint64  `json:"nextTxNumber"`
+	LastTxNumber  hexutil.Uint64  `json:"lastTxNumber"`
 	Miner         *Address        `json:"miner"`
 	ParentHash    common.Hash     `json:"parentHash"`
 	Timestamp     hexutil.Uint64  `json:"timestamp"`
