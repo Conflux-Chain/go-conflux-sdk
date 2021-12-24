@@ -53,6 +53,7 @@ type ClientOperator interface {
 	GetNextNonce(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, error)
 	GetStatus() (types.Status, error)
 	GetNetworkID() (uint32, error)
+	GetChainID() (uint32, error)
 	GetEpochNumber(epoch ...*types.Epoch) (*hexutil.Big, error)
 	GetBalance(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, error)
 	GetCode(address types.Address, epoch ...*types.Epoch) (hexutil.Bytes, error)

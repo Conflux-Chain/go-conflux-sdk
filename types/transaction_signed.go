@@ -79,9 +79,9 @@ func (tx *SignedTransaction) Sender(networkId uint32) (Address, error) {
 }
 
 func (tx *SignedTransaction) Signature() []byte {
-	sig := []byte{tx.V}
-	sig = append(sig, tx.R...)
+	sig := []byte(tx.R)
 	sig = append(sig, tx.S...)
+	sig = append(sig, tx.V)
 	return sig
 }
 

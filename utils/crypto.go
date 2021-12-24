@@ -27,7 +27,9 @@ func PublicKeyToCommonAddress(publicKey string) (common.Address, error) {
 		return common.Address{}, errors.WithStack(err)
 	}
 
-	pubKeyBytes = append([]byte{0x04}, pubKeyBytes...)
+	if len(pubKeyBytes) == 64 {
+		pubKeyBytes = append([]byte{0x04}, pubKeyBytes...)
+	}
 
 	pub, err := crypto.UnmarshalPubkey(pubKeyBytes)
 	if err != nil {
