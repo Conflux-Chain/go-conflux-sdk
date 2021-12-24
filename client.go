@@ -444,7 +444,7 @@ func (client *Client) SendRawTransaction(rawData []byte) (hash types.Hash, err e
 		return "", errors.Wrap(e, "invalid raw transaction")
 	}
 	if tx.UnsignedTransaction.To.GetAddressType() == cfxaddress.AddressTypeUnknown {
-		return "", errors.New("to address type unknown is not allowed ")
+		return "", errors.New("to address with unknown type is not allowed ")
 	}
 
 	err = client.wrappedCallRPC(&hash, "cfx_sendRawTransaction", hexutil.Encode(rawData))
