@@ -439,6 +439,14 @@ func (client *Client) SendTransaction(tx types.UnsignedTransaction) (types.Hash,
 
 // SendRawTransaction sends signed transaction and returns its hash.
 func (client *Client) SendRawTransaction(rawData []byte) (hash types.Hash, err error) {
+	tx := types.SignedTransaction{}
+	if e := tx.Decode(rawData, client.GetChainIDCached()); e != nil {
+		return "", errors.Wrap(e, "invalid raw transaction")
+	}
+	if tx.UnsignedTransaction.To.GetAddressType() == cfxaddress.AddressTypeUnknown {
+		return "", errors.New("to address with unknown type is not allowed ")
+	}
+
 	err = client.wrappedCallRPC(&hash, "cfx_sendRawTransaction", hexutil.Encode(rawData))
 	return
 }
