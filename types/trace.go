@@ -12,6 +12,8 @@ import (
 )
 
 type TraceType string
+type PocketType string
+type CreateType string
 
 const (
 	CALL_TYPE                      TraceType = "call"
@@ -19,6 +21,22 @@ const (
 	CREATE_TYPE                    TraceType = "create"
 	CREATE_RESULT_TYPE             TraceType = "create_result"
 	INTERNAL_TRANSFER_ACTIION_TYPE TraceType = "internal_transfer_action"
+)
+
+const (
+	POCKET_BALANCE                     PocketType = "balance"
+	POCKET_STAKING_BALANCE             PocketType = "staking_balance"
+	POCKET_STORAGE_COLLATERAL          PocketType = "storage_collateral"
+	POCKET_SPONSOR_BALANCE_FOR_GAS     PocketType = "sponsor_balance_for_gas"
+	POCKET_SPONSOR_BALANCE_FOR_STORAGE PocketType = "sponsor_balance_for_collateral"
+	POCKET_MINT_BURN                   PocketType = "mint_or_burn"
+	POCKET_GAS_PAYMENT                 PocketType = "gas_payment"
+)
+
+const (
+	CREATE_NONE    CreateType = "none"
+	CREATE_CREATE  CreateType = "create"
+	CREATE_CREATE2 CreateType = "create2"
 )
 
 type LocalizedBlockTrace struct {
@@ -36,6 +54,7 @@ type LocalizedTransactionTrace struct {
 
 type LocalizedTrace struct {
 	Action              interface{}     `json:"action"`
+	Valid               bool            `json:"valid"`
 	Type                TraceType       `json:"type"`
 	EpochHash           *Hash           `json:"epochHash,omitempty"`
 	EpochNumber         *hexutil.Big    `json:"epochNumber,omitempty"`
@@ -55,10 +74,11 @@ type Call struct {
 }
 
 type Create struct {
-	From  Address       `json:"from"`
-	Value hexutil.Big   `json:"value"`
-	Gas   hexutil.Big   `json:"gas"`
-	Init  hexutil.Bytes `json:"init"`
+	From       Address       `json:"from"`
+	Value      hexutil.Big   `json:"value"`
+	Gas        hexutil.Big   `json:"gas"`
+	Init       hexutil.Bytes `json:"init"`
+	CreateType CreateType    `json:"createType"`
 }
 
 type CallResult struct {
@@ -75,9 +95,11 @@ type CreateResult struct {
 }
 
 type InternalTransferAction struct {
-	From  Address     `json:"from"`
-	To    Address     `json:"to"`
-	Value hexutil.Big `json:"value"`
+	From       Address     `json:"from"`
+	FromPocket PocketType  `json:"fromPocket"`
+	To         Address     `json:"to"`
+	ToPocket   PocketType  `json:"toPocket"`
+	Value      hexutil.Big `json:"value"`
 }
 
 type TraceFilter struct {
@@ -107,44 +129,39 @@ func init() {
 // UnmarshalJSON unmarshals Input and Init type from []byte to hexutil.Bytes
 func (l *LocalizedTrace) UnmarshalJSON(data []byte) error {
 
+	type alias LocalizedTrace
+
+	a := alias{}
+	err := json.Unmarshal(data, &a)
+	if err != nil {
+		return err
+	}
+	*l = LocalizedTrace(a)
+
 	tmp := struct {
-		Action              map[string]interface{} `json:"action"`
-		Type                TraceType              `json:"type"`
-		EpochHash           *Hash                  `json:"epochHash"`
-		EpochNumber         *hexutil.Big           `json:"epochNumber"`
-		BlockHash           *Hash                  `json:"blockHash"`
-		TransactionPosition *hexutil.Uint64        `json:"transactionPosition"`
-		TransactionHash     *Hash                  `json:"transactionHash"`
+		Action map[string]interface{} `json:"action"`
 	}{}
 
-	err := json.Unmarshal(data, &tmp)
+	err = json.Unmarshal(data, &tmp)
 	if err != nil {
 		return err
 	}
 
-	l.Type = tmp.Type
-	l.EpochHash = tmp.EpochHash
-	l.EpochNumber = tmp.EpochNumber
-	l.BlockHash = tmp.BlockHash
-	l.TransactionPosition = tmp.TransactionPosition
-	l.TransactionHash = tmp.TransactionHash
-
 	var action interface{}
-	if action, err = parseAction(tmp.Action); err != nil {
+	if action, err = parseAction(tmp.Action, l.Type); err != nil {
 		return err
 	}
 	l.Action = action
-
 	return nil
 }
 
-func parseAction(actionInMap map[string]interface{}) (interface{}, error) {
-	actionKeys := utils.GetMapSortedKeys(actionInMap)
+func parseAction(actionInMap map[string]interface{}, actionType TraceType) (interface{}, error) {
+	// actionKeys := utils.GetMapSortedKeys(actionInMap)
 
-	newActionType := actionKeysToTypeMap[strings.Join(actionKeys, "")]
-	if newActionType == "" {
-		return nil, fmt.Errorf("uncongonized action type with fields %v", actionKeys)
-	}
+	// newActionType := actionKeysToTypeMap[strings.Join(actionKeys, "")]
+	// if newActionType == "" {
+	// 	return nil, fmt.Errorf("uncongonized action type with fields %v", actionKeys)
+	// }
 
 	actionJson, err := json.Marshal(actionInMap)
 	if err != nil {
@@ -152,38 +169,42 @@ func parseAction(actionInMap map[string]interface{}) (interface{}, error) {
 	}
 
 	var result interface{}
-	switch newActionType {
-	case "Call":
+	switch actionType {
+	case CALL_TYPE:
 		action := Call{}
 		err = json.Unmarshal(actionJson, &action)
 		result = action
-	case "Create":
+	case CREATE_TYPE:
 		action := Create{}
 		err = json.Unmarshal(actionJson, &action)
 		result = action
-	case "CallResult":
+	case CALL_RESULT_TYPE:
 		action := CallResult{}
 		err = json.Unmarshal(actionJson, &action)
 		result = action
-	case "CreateResult":
+	case CREATE_RESULT_TYPE:
 		action := CreateResult{}
 		err = json.Unmarshal(actionJson, &action)
 		result = action
-	case "InternalTransferAction":
+	case INTERNAL_TRANSFER_ACTIION_TYPE:
 		action := InternalTransferAction{}
 		err = json.Unmarshal(actionJson, &action)
 		result = action
+	default:
+		return nil, fmt.Errorf("unknown action type %v", actionType)
 	}
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to unmarshal %v to %v ", string(actionJson), newActionType)
+		return nil, errors.Wrapf(err, "failed to unmarshal %v to %v ", string(actionJson), actionType)
 	}
 
 	return result, nil
 }
 
-// TODO: should move to go sdk=========================
+type LocalizedTraceTire []*LocalizedTraceNode
+
 type LocalizedTraceNode struct {
 	Type                TraceType       `json:"type"`
+	Valid               bool            `json:"valid"`
 	EpochHash           *Hash           `json:"epochHash,omitempty"`
 	EpochNumber         *hexutil.Big    `json:"epochNumber,omitempty"`
 	BlockHash           *Hash           `json:"blockHash,omitempty"`
@@ -200,6 +221,7 @@ type LocalizedTraceNode struct {
 
 func (l *LocalizedTraceNode) populate(raw LocalizedTrace) {
 	l.Type = raw.Type
+	l.Valid = raw.Valid
 	l.EpochHash = raw.EpochHash
 	l.EpochNumber = raw.EpochNumber
 	l.BlockHash = raw.BlockHash
@@ -207,15 +229,28 @@ func (l *LocalizedTraceNode) populate(raw LocalizedTrace) {
 	l.TransactionHash = raw.TransactionHash
 }
 
-func TraceInTree(traces []LocalizedTrace) (node *LocalizedTraceNode, err error) {
+// InternalTransfer
+// call
+// create
+// createResult
+// callResult
+// InternalTransfer
+// ============>
+// InternalTransfer
+// call + callResult
+// 	|- call + callResult
+// InternalTransfer
+func TraceInTire(traces []LocalizedTrace) (tier LocalizedTraceTire, err error) {
 	cacheStack := new([]*LocalizedTraceNode)
 
 	for _, v := range traces {
-		if node == nil {
-			node, err = newLocalizedTraceNode(v, cacheStack)
+
+		if len(*cacheStack) == 0 {
+			n, err := newLocalizedTraceNode(v, cacheStack)
 			if err != nil {
 				return nil, errors.WithStack(err)
 			}
+			tier = append(tier, n)
 			continue
 		}
 
@@ -259,7 +294,7 @@ func TraceInTree(traces []LocalizedTrace) (node *LocalizedTraceNode, err error) 
 	}
 	// push call trace, set to child when meet next call trace
 	// pop call trace when meet call result trace
-	return node, nil
+	return tier, nil
 }
 
 func newLocalizedTraceNode(trace LocalizedTrace, cacheStack *[]*LocalizedTraceNode,
@@ -288,6 +323,13 @@ func newLocalizedTraceNode(trace LocalizedTrace, cacheStack *[]*LocalizedTraceNo
 		return node, nil
 	}
 	return nil, fmt.Errorf("could not create new localized trace node by type %v", trace.Type)
+}
+
+func (t LocalizedTraceTire) Flatten() (flattened []*LocalizedTraceNode) {
+	for _, v := range t {
+		flattened = append(flattened, v.Flatten()...)
+	}
+	return flattened
 }
 
 func (l LocalizedTraceNode) Flatten() (flattened []*LocalizedTraceNode) {

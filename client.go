@@ -443,7 +443,7 @@ func (client *Client) SendRawTransaction(rawData []byte) (hash types.Hash, err e
 	if e := tx.Decode(rawData, client.GetChainIDCached()); e != nil {
 		return "", errors.Wrap(e, "invalid raw transaction")
 	}
-	if tx.UnsignedTransaction.To.GetAddressType() == cfxaddress.AddressTypeUnknown {
+	if tx.UnsignedTransaction.To != nil && tx.UnsignedTransaction.To.GetAddressType() == cfxaddress.AddressTypeUnknown {
 		return "", errors.New("to address with unknown type is not allowed ")
 	}
 
@@ -722,6 +722,7 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 
 	if client != nil {
 		if tx.From == nil {
+			//TODO: return error if client.AccountManager is nil?
 			if client.AccountManager != nil {
 				defaultAccount, err := client.AccountManager.GetDefault()
 				if err != nil {
