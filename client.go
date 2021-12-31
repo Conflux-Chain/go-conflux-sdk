@@ -691,8 +691,8 @@ func (client *Client) GetTransactionTraces(txHash types.Hash) (traces []types.Lo
 }
 
 // GetPosRewardByEpoch returns pos rewarded in this epoch
-func (c *RpcDebugClient) GetPosRewardByEpoch(epoch hexutil.Uint64) (val *types.EpochPosReward, err error) {
-	err = c.core.CallRPC(&val, "cfx_getPoSRewardByEpoch", epoch)
+func (client *Client) GetPosRewardByEpoch(epoch types.Epoch) (val *types.EpochPosReward, err error) {
+	err = client.CallRPC(&val, "cfx_getPoSRewardByEpoch", epoch)
 	return
 }
 

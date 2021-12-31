@@ -96,6 +96,9 @@ type ClientOperator interface {
 	GetInterestRate(epoch ...*types.Epoch) (intersetRate *hexutil.Big, err error)
 	GetAccumulateInterestRate(epoch ...*types.Epoch) (intersetRate *hexutil.Big, err error)
 	GetBlockRewardInfo(epoch types.Epoch) (rewardInfo []types.RewardInfo, err error)
+
+	GetPosRewardByEpoch(epoch types.Epoch) (val *types.EpochPosReward, err error)
+
 	GetClientVersion() (clientVersion string, err error)
 	GetDepositList(address types.Address, epoch ...*types.Epoch) ([]types.DepositInfo, error)
 	GetVoteList(address types.Address, epoch ...*types.Epoch) ([]types.VoteStakeInfo, error)
