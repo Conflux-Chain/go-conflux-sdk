@@ -690,6 +690,12 @@ func (client *Client) GetTransactionTraces(txHash types.Hash) (traces []types.Lo
 	return
 }
 
+// GetPosRewardByEpoch returns pos rewarded in this epoch
+func (c *RpcDebugClient) GetPosRewardByEpoch(epoch hexutil.Uint64) (val *types.EpochPosReward, err error) {
+	err = c.core.CallRPC(&val, "cfx_getPoSRewardByEpoch", epoch)
+	return
+}
+
 // CreateUnsignedTransaction creates an unsigned transaction by parameters,
 // and the other fields will be set to values fetched from conflux node.
 func (client *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (types.UnsignedTransaction, error) {

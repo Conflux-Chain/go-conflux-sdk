@@ -43,6 +43,16 @@ type RewardInfo struct {
 	// U256,
 }
 
+type EpochPosReward struct {
+	PowEpochHash   Hash        `json:"powEpochHash"`
+	AccountRewards []PosReward `json:"accountRewards"`
+}
+type PosReward struct {
+	PosAddress Hash         `json:"posAddress"`
+	PowAddress Address      `json:"powAddress"`
+	Reward     *hexutil.Big `json:"reward"`
+}
+
 type SponsorInfo struct {
 	SponsorForGas               Address      `json:"sponsorForGas"`
 	SponsorForCollateral        Address      `json:"sponsorForCollateral"`
