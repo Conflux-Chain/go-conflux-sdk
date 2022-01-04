@@ -12,6 +12,7 @@ import (
 )
 
 type TraceType string
+type CallType string
 type PocketType string
 type CreateType string
 
@@ -21,6 +22,14 @@ const (
 	CREATE_TYPE                    TraceType = "create"
 	CREATE_RESULT_TYPE             TraceType = "create_result"
 	INTERNAL_TRANSFER_ACTIION_TYPE TraceType = "internal_transfer_action"
+)
+
+const (
+	CALL_NONE         CallType = "none"
+	CALL_CALL         CallType = "call"
+	CALL_CALLCODE     CallType = "callcode"
+	CALL_DELEGATECALL CallType = "delegatecall"
+	CALL_STATICCALL   CallType = "staticcall"
 )
 
 const (
