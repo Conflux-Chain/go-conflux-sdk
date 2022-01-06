@@ -79,7 +79,7 @@ type Call struct {
 	Value    hexutil.Big   `json:"value"`
 	Gas      hexutil.Big   `json:"gas"`
 	Input    hexutil.Bytes `json:"input"`
-	CallType string        `json:"callType"`
+	CallType CallType      `json:"callType"`
 }
 
 type Create struct {
