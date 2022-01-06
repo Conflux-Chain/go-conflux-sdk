@@ -9,5 +9,5 @@ type VoteStakeInfo struct {
 	Amount *hexutil.Big `json:"amount"`
 	/// This is the timestamp when the vote right will be invalid, measured in
 	/// the number of past blocks.
-	UnlockBlockNumber hexutil.Uint64 `json:"unlockBlockNumber"`
+	UnlockBlockNumber uint64 `json:"unlockBlockNumber"`
 }
