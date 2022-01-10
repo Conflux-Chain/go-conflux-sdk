@@ -17,11 +17,11 @@ type PocketType string
 type CreateType string
 
 const (
-	CALL_TYPE                      TraceType = "call"
-	CALL_RESULT_TYPE               TraceType = "call_result"
-	CREATE_TYPE                    TraceType = "create"
-	CREATE_RESULT_TYPE             TraceType = "create_result"
-	INTERNAL_TRANSFER_ACTIION_TYPE TraceType = "internal_transfer_action"
+	TRACE_CALL                      TraceType = "call"
+	TRACE_CALL_RESULT               TraceType = "call_result"
+	TRACE_CREATE                    TraceType = "create"
+	TRACE_CREATE_RESULT             TraceType = "create_result"
+	TRACE_INTERNAL_TRANSFER_ACTIION TraceType = "internal_transfer_action"
 )
 
 const (
@@ -179,23 +179,23 @@ func parseAction(actionInMap map[string]interface{}, actionType TraceType) (inte
 
 	var result interface{}
 	switch actionType {
-	case CALL_TYPE:
+	case TRACE_CALL:
 		action := Call{}
 		err = json.Unmarshal(actionJson, &action)
 		result = action
-	case CREATE_TYPE:
+	case TRACE_CREATE:
 		action := Create{}
 		err = json.Unmarshal(actionJson, &action)
 		result = action
-	case CALL_RESULT_TYPE:
+	case TRACE_CALL_RESULT:
 		action := CallResult{}
 		err = json.Unmarshal(actionJson, &action)
 		result = action
-	case CREATE_RESULT_TYPE:
+	case TRACE_CREATE_RESULT:
 		action := CreateResult{}
 		err = json.Unmarshal(actionJson, &action)
 		result = action
-	case INTERNAL_TRANSFER_ACTIION_TYPE:
+	case TRACE_INTERNAL_TRANSFER_ACTIION:
 		action := InternalTransferAction{}
 		err = json.Unmarshal(actionJson, &action)
 		result = action
@@ -264,7 +264,7 @@ func TraceInTire(traces []LocalizedTrace) (tier LocalizedTraceTire, err error) {
 		}
 
 		lastOpeningNode := (*cacheStack)[len(*cacheStack)-1]
-		if v.Type == INTERNAL_TRANSFER_ACTIION_TYPE {
+		if v.Type == TRACE_INTERNAL_TRANSFER_ACTIION {
 			item, err := newLocalizedTraceNode(v, nil)
 			if err != nil {
 				return nil, errors.WithStack(err)
@@ -273,7 +273,7 @@ func TraceInTire(traces []LocalizedTrace) (tier LocalizedTraceTire, err error) {
 			continue
 		}
 
-		if v.Type == CALL_TYPE || v.Type == CREATE_TYPE {
+		if v.Type == TRACE_CALL || v.Type == TRACE_CREATE {
 			item, err := newLocalizedTraceNode(v, cacheStack)
 			if err != nil {
 				return nil, errors.WithStack(err)
@@ -283,8 +283,8 @@ func TraceInTire(traces []LocalizedTrace) (tier LocalizedTraceTire, err error) {
 		}
 
 		// call result or create result
-		if lastOpeningNode.Type == CALL_TYPE {
-			if v.Type != CALL_RESULT_TYPE {
+		if lastOpeningNode.Type == TRACE_CALL {
+			if v.Type != TRACE_CALL_RESULT {
 				return nil, fmt.Errorf("expect trace type CallResult, got %v", v.Type)
 			}
 			cr := v.Action.(CallResult)
@@ -292,8 +292,8 @@ func TraceInTire(traces []LocalizedTrace) (tier LocalizedTraceTire, err error) {
 			*cacheStack = (*cacheStack)[:len(*cacheStack)-1]
 		}
 
-		if lastOpeningNode.Type == CREATE_TYPE {
-			if v.Type != CREATE_RESULT_TYPE {
+		if lastOpeningNode.Type == TRACE_CREATE {
+			if v.Type != TRACE_CREATE_RESULT {
 				return nil, fmt.Errorf("expect trace type CreateResult, got %v", v.Type)
 			}
 			cr := v.Action.(CreateResult)
@@ -309,7 +309,7 @@ func TraceInTire(traces []LocalizedTrace) (tier LocalizedTraceTire, err error) {
 func newLocalizedTraceNode(trace LocalizedTrace, cacheStack *[]*LocalizedTraceNode,
 ) (*LocalizedTraceNode, error) {
 	switch trace.Type {
-	case CALL_TYPE:
+	case TRACE_CALL:
 		action := trace.Action.(Call)
 		node := &LocalizedTraceNode{CallWithResult: &TraceCallWithResult{
 			&action, nil,
@@ -317,7 +317,7 @@ func newLocalizedTraceNode(trace LocalizedTrace, cacheStack *[]*LocalizedTraceNo
 		node.populate(trace)
 		*cacheStack = append(*cacheStack, node)
 		return node, nil
-	case CREATE_TYPE:
+	case TRACE_CREATE:
 		action := trace.Action.(Create)
 		node := &LocalizedTraceNode{CreateWithResult: &TraceCreateWithResult{
 			&action, nil,
@@ -325,7 +325,7 @@ func newLocalizedTraceNode(trace LocalizedTrace, cacheStack *[]*LocalizedTraceNo
 		node.populate(trace)
 		*cacheStack = append(*cacheStack, node)
 		return node, nil
-	case INTERNAL_TRANSFER_ACTIION_TYPE:
+	case TRACE_INTERNAL_TRANSFER_ACTIION:
 		action := trace.Action.(InternalTransferAction)
 		node := &LocalizedTraceNode{InternalTransferAction: &action}
 		node.populate(trace)
