@@ -43,6 +43,16 @@ type RewardInfo struct {
 	// U256,
 }
 
+type EpochPosReward struct {
+	PowEpochHash   Hash        `json:"powEpochHash"`
+	AccountRewards []PosReward `json:"accountRewards"`
+}
+type PosReward struct {
+	PosAddress Hash         `json:"posAddress"`
+	PowAddress Address      `json:"powAddress"`
+	Reward     *hexutil.Big `json:"reward"`
+}
+
 type SponsorInfo struct {
 	SponsorForGas               Address      `json:"sponsorForGas"`
 	SponsorForCollateral        Address      `json:"sponsorForCollateral"`
@@ -54,8 +64,8 @@ type SponsorInfo struct {
 // Status represents current blockchain status
 type Status struct {
 	BestHash         Hash           `json:"bestHash"`
-	ChainID          hexutil.Uint   `json:"chainId"`
-	NetworkID        hexutil.Uint   `json:"networkId"`
+	ChainID          hexutil.Uint64 `json:"chainId"`
+	NetworkID        hexutil.Uint64 `json:"networkId"`
 	EpochNumber      hexutil.Uint64 `json:"epochNumber"`
 	BlockNumber      hexutil.Uint64 `json:"blockNumber"`
 	PendingTxNumber  hexutil.Uint64 `json:"pendingTxNumber"`
@@ -65,9 +75,9 @@ type Status struct {
 }
 
 type StorageRoot struct {
-	Delta        Hash `json:"delta"`        //delta: H256,
-	Intermediate Hash `json:"intermediate"` //intermediate: H256,
-	Snapshot     Hash `json:"snapshot"`     //snapshot: H256,
+	Delta        *Hash `json:"delta"`        //delta: H256,
+	Intermediate *Hash `json:"intermediate"` //intermediate: H256,
+	Snapshot     *Hash `json:"snapshot"`     //snapshot: H256,
 }
 
 type CheckBalanceAgainstTransactionResponse struct {

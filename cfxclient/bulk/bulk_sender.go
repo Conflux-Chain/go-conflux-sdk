@@ -225,7 +225,8 @@ func (b *BulkSender) getChainInfos() (
 		_gasPrice = types.NewBigInt(constants.MinGasprice)
 	}
 
-	return _defaultAccount, _chainID, _networkId, _gasPrice, _epochHeight, nil
+	chainIDInUint := (hexutil.Uint)(*_chainID)
+	return _defaultAccount, &chainIDInUint, _networkId, _gasPrice, _epochHeight, nil
 }
 
 // Clear clear batch elems and errors in queue for new bulk call action

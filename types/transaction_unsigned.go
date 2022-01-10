@@ -36,14 +36,14 @@ type UnsignedTransaction struct {
 
 // unsignedTransactionForRlp is a intermediate struct for encoding rlp data
 type unsignedTransactionForRlp struct {
-	Nonce        *big.Int
-	GasPrice     *big.Int
-	Gas          *big.Int
-	To           *common.Address
-	Value        *big.Int
-	StorageLimit *hexutil.Uint64
-	EpochHeight  *hexutil.Uint64
-	ChainID      *hexutil.Uint
+	Nonce        *big.Int        `rlp:"nil"`
+	GasPrice     *big.Int        `rlp:"nil"`
+	Gas          *big.Int        `rlp:"nil"`
+	To           *common.Address `rlp:"nil"`
+	Value        *big.Int        `rlp:"nil"`
+	StorageLimit *hexutil.Uint64 `rlp:"nil"`
+	EpochHeight  *hexutil.Uint64 `rlp:"nil"`
+	ChainID      *hexutil.Uint   `rlp:"nil"`
 	Data         []byte
 }
 
@@ -132,7 +132,12 @@ func (tx *UnsignedTransaction) toStructForRlp() *unsignedTransactionForRlp {
 }
 
 func (tx *unsignedTransactionForRlp) toUnsignedTransaction(networkID uint32) *UnsignedTransaction {
-	to := cfxaddress.MustNewFromCommon(*tx.To, networkID)
+	var to *cfxaddress.Address
+	if tx.To != nil {
+		_to := cfxaddress.MustNewFromCommon(*tx.To, networkID)
+		to = &_to
+	}
+
 	gasPrice := hexutil.Big(*tx.GasPrice)
 	value := hexutil.Big(*tx.Value)
 	storageLimit := tx.StorageLimit
@@ -152,7 +157,7 @@ func (tx *unsignedTransactionForRlp) toUnsignedTransaction(networkID uint32) *Un
 			EpochHeight:  epochHeight,
 			ChainID:      chainid,
 		},
-		To:   &to,
+		To:   to,
 		Data: tx.Data,
 	}
 }

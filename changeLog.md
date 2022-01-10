@@ -1,4 +1,10 @@
 # Go-conflux-sdk Change Log
+## v1.0.24
+Support convert trace to tire
+Forbid send transaction with to address in unkonwn type
+Fix rlp decode transaction
+Support rpc GetPosRewardByEpoch and GetPoSEconomics
+Return unknown type for address start without '0x0,0x8,0x1'
 ## v1.0.19
 Decode rpc error in Client.BatchCall
 ## v1.0.18
