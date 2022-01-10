@@ -238,6 +238,8 @@ func (l *LocalizedTraceNode) populate(raw LocalizedTrace) {
 	l.TransactionHash = raw.TransactionHash
 }
 
+// TraceInTire convert flattened trace to trie, the convered tiers are stored in the order of the flattened trace like follow.
+//
 // InternalTransfer
 // call
 // create
