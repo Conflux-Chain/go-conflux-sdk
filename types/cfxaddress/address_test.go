@@ -73,6 +73,10 @@ func TestMarshalJSON(t *testing.T) {
 			input:  Address{},
 			expect: "\"net0:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaay73ttx1z\"",
 		},
+		{
+			input:  MustNewFromHex("2cdf3969a428a750b89b33cf93c96560e2bd17d1", 1029),
+			expect: "\"cfx:aa0r8snkyuymsyf2xp369e8kpzusftj14ec6tjtbhn\"",
+		},
 	}
 
 	for _, v := range cases {
@@ -101,6 +105,10 @@ func TestUnmarshalJSON(t *testing.T) {
 		{
 			input:  "\"CFX:TYPE.USER:AASR8SNKYUYMSYF2XP369E8KPZUSFTJ14EC1N0VXJ1\"",
 			expect: GetAddressPtr(MustNewFromHex("1cdf3969a428a750b89b33cf93c96560e2bd17d1", 1029)),
+		},
+		{
+			input:  "\"CFX:TYPE.UNKNOWN:AA0R8SNKYUYMSYF2XP369E8KPZUSFTJ14EC6TJTBHN\"",
+			expect: GetAddressPtr(MustNewFromHex("2cdf3969a428a750b89b33cf93c96560e2bd17d1", 1029)),
 		},
 	}
 
