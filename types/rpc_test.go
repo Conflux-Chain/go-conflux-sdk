@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 )
 
@@ -13,5 +12,5 @@ func TestJsonStatus(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	fmt.Printf("%+v\n", s)
+	// fmt.Printf("%+v\n", s)
 }

@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -106,7 +105,7 @@ func TestJsonMarhsalBlock(t *testing.T) {
 		if e != nil {
 			t.Fatal(e)
 		}
-		fmt.Printf("%+v\n", b)
+		// fmt.Printf("%+v\n", b)
 		d, e := json.Marshal(b)
 		if e != nil {
 			t.Fatal(e)
