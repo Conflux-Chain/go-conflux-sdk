@@ -74,6 +74,7 @@ type LocalizedTrace struct {
 
 // independent action structs
 type Call struct {
+	Space    string        `json:"space"`
 	From     Address       `json:"from"`
 	To       Address       `json:"to"`
 	Value    hexutil.Big   `json:"value"`
@@ -83,6 +84,7 @@ type Call struct {
 }
 
 type Create struct {
+	Space      string        `json:"space"`
 	From       Address       `json:"from"`
 	Value      hexutil.Big   `json:"value"`
 	Gas        hexutil.Big   `json:"gas"`
@@ -106,8 +108,10 @@ type CreateResult struct {
 type InternalTransferAction struct {
 	From       Address     `json:"from"`
 	FromPocket PocketType  `json:"fromPocket"`
+	FromSpace  string      `json:"fromSpace"`
 	To         Address     `json:"to"`
 	ToPocket   PocketType  `json:"toPocket"`
+	ToSpace    string      `json:"toSpace"`
 	Value      hexutil.Big `json:"value"`
 }
 

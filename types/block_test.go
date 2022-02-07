@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -90,6 +91,28 @@ func TestRLPMarshalBlockSummary(t *testing.T) {
 
 		if bsJsonStr != bsJsonStr2 {
 			t.Fatalf("expect %v, actual %v", bsJsonStr, bsJsonStr2)
+		}
+	}
+}
+
+func TestJsonMarhsalBlock(t *testing.T) {
+	jsons := []string{
+		`{"hash":"0x6720dc2e79931b4727289612cb3a8ead65f65a3cd1d079348601c52116713b73","parentHash":"0x9154c74219f6e556372e252cf2dd9e675ebcf1a7c257e31cf5a8c3cd79c336f5","height":"0x22","miner":"net8888:aajaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaph895n0mm","deferredStateRoot":"0x223ca6a2e599d487f739a0586bf26c88b8032f10f7607cb4e623d100675ef3b0","deferredReceiptsRoot":"0x09f8709ea9f344a810811a373b30861568f5686e649d6177fd92ea2db7477508","deferredLogsBloomHash":"0xd397b3b043d87fcd6fad1291ff0bfd16401c274896d8c63a923727f077b8e0b5","blame":"0x0","transactionsRoot":"0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470","epochNumber":"0x22","blockNumber":"0x22","gasLimit":"0x1c9c380","gasUsed":"0x0","timestamp":"0x619daead","difficulty":"0x1f4","powQuality":"0x1f6","refereeHashes":[],"adaptive":false,"nonce":"0x865a421661e90c0e","size":"0x0","custom":[],"transactions":[]}`,
+		`{"hash":"0x6720dc2e79931b4727289612cb3a8ead65f65a3cd1d079348601c52116713b73","parentHash":"0x9154c74219f6e556372e252cf2dd9e675ebcf1a7c257e31cf5a8c3cd79c336f5","height":"0x22","miner":"net8888:aajaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaph895n0mm","deferredStateRoot":"0x223ca6a2e599d487f739a0586bf26c88b8032f10f7607cb4e623d100675ef3b0","deferredReceiptsRoot":"0x09f8709ea9f344a810811a373b30861568f5686e649d6177fd92ea2db7477508","deferredLogsBloomHash":"0xd397b3b043d87fcd6fad1291ff0bfd16401c274896d8c63a923727f077b8e0b5","blame":"0x0","transactionsRoot":"0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470","epochNumber":"0x22","blockNumber":"0x22","gasLimit":"0x1c9c380","gasUsed":"0x0","timestamp":"0x619daead","difficulty":"0x1f4","powQuality":"0x1f6","refereeHashes":[],"adaptive":false,"nonce":"0x865a421661e90c0e","size":"0x0","custom":[[1,2]],"transactions":[]}`,
+	}
+	for _, j := range jsons {
+		var b Block
+		e := json.Unmarshal([]byte(j), &b)
+		if e != nil {
+			t.Fatal(e)
+		}
+		fmt.Printf("%+v\n", b)
+		d, e := json.Marshal(b)
+		if e != nil {
+			t.Fatal(e)
+		}
+		if string(d) != j {
+			t.Fatalf("expect %v, actual %v", j, string(d))
 		}
 	}
 }
