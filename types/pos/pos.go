@@ -74,15 +74,15 @@ type RpcTermData struct {
 }
 
 type Block struct {
-	Hash          common.Hash     `json:"hash"`
-	Height        hexutil.Uint64  `json:"height"`
-	Epoch         hexutil.Uint64  `json:"epoch"`
-	Round         hexutil.Uint64  `json:"round"`
-	LastTxNumber  hexutil.Uint64  `json:"lastTxNumber"`
-	Miner         *Address        `json:"miner"`
-	ParentHash    common.Hash     `json:"parentHash"`
-	Timestamp     hexutil.Uint64  `json:"timestamp"`
-	PivotDecision *hexutil.Uint64 `json:"pivotDecision"`
+	Hash          common.Hash    `json:"hash"`
+	Height        hexutil.Uint64 `json:"height"`
+	Epoch         hexutil.Uint64 `json:"epoch"`
+	Round         hexutil.Uint64 `json:"round"`
+	LastTxNumber  hexutil.Uint64 `json:"lastTxNumber"`
+	Miner         *Address       `json:"miner"`
+	ParentHash    common.Hash    `json:"parentHash"`
+	Timestamp     hexutil.Uint64 `json:"timestamp"`
+	PivotDecision *Decision      `json:"pivotDecision"`
 	// Transactions  BlockTransactions `json:"transactions"`
 	Signatures []Signature `json:"signatures"`
 }
