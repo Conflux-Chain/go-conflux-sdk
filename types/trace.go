@@ -15,6 +15,7 @@ type TraceType string
 type CallType string
 type PocketType string
 type CreateType string
+type SpaceType string
 
 const (
 	TRACE_CALL                      TraceType = "call"
@@ -48,6 +49,12 @@ const (
 	CREATE_CREATE2 CreateType = "create2"
 )
 
+const (
+	SPACE_EVM    SpaceType = "evm"
+	SPACE_NATIVE SpaceType = "native"
+	SPACE_NONE   SpaceType = "none"
+)
+
 type LocalizedBlockTrace struct {
 	TransactionTraces []LocalizedTransactionTrace `json:"transactionTraces"`
 	EpochHash         Hash                        `json:"epochHash"`
@@ -74,7 +81,7 @@ type LocalizedTrace struct {
 
 // independent action structs
 type Call struct {
-	Space    string        `json:"space"`
+	Space    SpaceType     `json:"space"`
 	From     Address       `json:"from"`
 	To       Address       `json:"to"`
 	Value    hexutil.Big   `json:"value"`
@@ -84,7 +91,7 @@ type Call struct {
 }
 
 type Create struct {
-	Space      string        `json:"space"`
+	Space      SpaceType     `json:"space"`
 	From       Address       `json:"from"`
 	Value      hexutil.Big   `json:"value"`
 	Gas        hexutil.Big   `json:"gas"`
@@ -108,10 +115,10 @@ type CreateResult struct {
 type InternalTransferAction struct {
 	From       Address     `json:"from"`
 	FromPocket PocketType  `json:"fromPocket"`
-	FromSpace  string      `json:"fromSpace"`
+	FromSpace  SpaceType   `json:"fromSpace"`
 	To         Address     `json:"to"`
 	ToPocket   PocketType  `json:"toPocket"`
-	ToSpace    string      `json:"toSpace"`
+	ToSpace    SpaceType   `json:"toSpace"`
 	Value      hexutil.Big `json:"value"`
 }
 
