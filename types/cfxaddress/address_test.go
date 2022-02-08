@@ -229,3 +229,11 @@ func TestCfxMappedEVMSpaceAddress(t *testing.T) {
 	evmAddr := cfxAddr.GetMappedEVMSpaceAddress()
 	assert.Equal(t, "0x12Bf6283CcF8Ad6ffA63f7Da63EDc217228d839A", evmAddr.String())
 }
+func TestShorten(t *testing.T) {
+	addr, _ := New("0x835cB03Aeb287992D50FD1Cb057e2B986615aF91", 333)
+	shorten := addr.GetShortenAddress()
+	assert.Equal(t, "net333:acb...5m81sa4w", shorten)
+
+	shorten = addr.GetShortenAddress(true)
+	assert.Equal(t, "net333:acb...sa4w", shorten)
+}
