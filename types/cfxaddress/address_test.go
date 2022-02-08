@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCfxAddress(t *testing.T) {
@@ -221,4 +222,14 @@ func fatalIfErr(t *testing.T, err error) {
 
 func GetAddressPtr(addr Address) *Address {
 	return &addr
+}
+
+func TestShorten(t *testing.T) {
+	addr, _ := New("0x835cB03Aeb287992D50FD1Cb057e2B986615aF91", 333)
+	shorten := addr.GetShortenAddress()
+	assert.Equal(t, "net333:acb...5m81sa4w", shorten)
+
+	shorten = addr.GetShortenAddress(true)
+	assert.Equal(t, "net333:acb...sa4w", shorten)
+
 }
