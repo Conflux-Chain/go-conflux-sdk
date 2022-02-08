@@ -1,4 +1,8 @@
 # Go-conflux-sdk Change Log
+## v1.0.27
+Set Block.Custom type to cmptutil.bytes which could json unmarshal both hex string or number array
+Update PoS rpc type `Block`
+Update PoW rpc type `Trace`
 ## v1.0.24
 Support convert trace to tire
 Forbid send transaction with to address in unkonwn type
