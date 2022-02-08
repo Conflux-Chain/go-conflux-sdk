@@ -256,6 +256,19 @@ func (a *Address) MustGetVerboseBase32Address() string {
 	return strings.ToUpper(fmt.Sprintf("%v:%v:%v%v", validAddr.networkType, validAddr.addressType, validAddr.body, a.checksum))
 }
 
+// GetShortenAddress returns shorten string for display in dapp.
+// When isTail4Char is 'true', the result will be like 'cfx:aat…sa4w', otherwise 'cfx:aat…5m81sa4w'
+func (a *Address) GetShortenAddress(isTail4Char ...bool) string {
+	validAddr := a.getDefaultIfEmpty()
+	body := validAddr.body.String()[0:3]
+
+	if len(isTail4Char) > 0 && isTail4Char[0] {
+		checksum := validAddr.checksum.String()[4:]
+		return strings.ToLower(fmt.Sprintf("%v:%v...%v", validAddr.networkType, body, checksum))
+	}
+	return strings.ToLower(fmt.Sprintf("%v:%v...%v", validAddr.networkType, body, validAddr.checksum))
+}
+
 // GetHexAddress returns hex format address and panic if error
 func (a *Address) GetHexAddress() string {
 	addr, _ := a.getDefaultIfEmpty().ToHex()
