@@ -278,11 +278,11 @@ func (a *Address) MustGetCommonAddress() common.Address {
 }
 
 // GetMappedEVMSpaceAddress calculate CFX space address's mapped EVM address, which is the last 20 bytes of cfx address's keccak256 hash
-func (a *Address) GetMappedEVMSpaceAddress() (common.Address, error) {
+func (a *Address) GetMappedEVMSpaceAddress() common.Address {
 	h := crypto.Keccak256Hash(a.MustGetCommonAddress().Bytes())
 	var ethAddr common.Address
 	copy(ethAddr[:], h[12:])
-	return ethAddr, nil
+	return ethAddr
 }
 
 // GetNetworkType returns network type
