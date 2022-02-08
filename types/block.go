@@ -14,28 +14,27 @@ import (
 
 // BlockHeader represents a block header in Conflux.
 type BlockHeader struct {
-	Hash                  Hash           `json:"hash"`
-	ParentHash            Hash           `json:"parentHash"`
-	Height                *hexutil.Big   `json:"height"`
-	Miner                 Address        `json:"miner"`
-	DeferredStateRoot     Hash           `json:"deferredStateRoot"`
-	DeferredReceiptsRoot  Hash           `json:"deferredReceiptsRoot"`
-	DeferredLogsBloomHash Hash           `json:"deferredLogsBloomHash"`
-	Blame                 hexutil.Uint64 `json:"blame"`
-	TransactionsRoot      Hash           `json:"transactionsRoot"`
-	EpochNumber           *hexutil.Big   `json:"epochNumber"`
-	BlockNumber           *hexutil.Big   `json:"blockNumber"`
-	GasLimit              *hexutil.Big   `json:"gasLimit"`
-	GasUsed               *hexutil.Big   `json:"gasUsed"`
-	Timestamp             *hexutil.Big   `json:"timestamp"`
-	Difficulty            *hexutil.Big   `json:"difficulty"`
-	PowQuality            *hexutil.Big   `json:"powQuality"`
-	RefereeHashes         []Hash         `json:"refereeHashes"`
-	Adaptive              bool           `json:"adaptive"`
-	Nonce                 *hexutil.Big   `json:"nonce"`
-	Size                  *hexutil.Big   `json:"size"`
-	// Note: use [][]uint to replace [][]byte because golang will json encoder automated encode []byte to base64 string
-	Custom [][]uint `json:"custom"`
+	Hash                  Hash            `json:"hash"`
+	ParentHash            Hash            `json:"parentHash"`
+	Height                *hexutil.Big    `json:"height"`
+	Miner                 Address         `json:"miner"`
+	DeferredStateRoot     Hash            `json:"deferredStateRoot"`
+	DeferredReceiptsRoot  Hash            `json:"deferredReceiptsRoot"`
+	DeferredLogsBloomHash Hash            `json:"deferredLogsBloomHash"`
+	Blame                 hexutil.Uint64  `json:"blame"`
+	TransactionsRoot      Hash            `json:"transactionsRoot"`
+	EpochNumber           *hexutil.Big    `json:"epochNumber"`
+	BlockNumber           *hexutil.Big    `json:"blockNumber"`
+	GasLimit              *hexutil.Big    `json:"gasLimit"`
+	GasUsed               *hexutil.Big    `json:"gasUsed"`
+	Timestamp             *hexutil.Big    `json:"timestamp"`
+	Difficulty            *hexutil.Big    `json:"difficulty"`
+	PowQuality            *hexutil.Big    `json:"powQuality"`
+	RefereeHashes         []Hash          `json:"refereeHashes"`
+	Adaptive              bool            `json:"adaptive"`
+	Nonce                 *hexutil.Big    `json:"nonce"`
+	Size                  *hexutil.Big    `json:"size"`
+	Custom                []hexutil.Bytes `json:"custom"`
 }
 
 // rlpEncodableBlockHeader block header struct used for rlp encoding
@@ -60,7 +59,7 @@ type rlpEncodableBlockHeader struct {
 	Adaptive              bool
 	Nonce                 *big.Int
 	Size                  *big.Int
-	Custom                [][]uint
+	Custom                []hexutil.Bytes
 }
 
 // EncodeRLP implements the rlp.Encoder interface.
