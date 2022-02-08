@@ -3,7 +3,6 @@ package cmptutil
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"gotest.tools/assert"
@@ -29,7 +28,7 @@ func TestMarshalBytes(t *testing.T) {
 		if e != nil {
 			t.Fatal(e)
 		}
-		fmt.Printf("%v %s\n", j, j)
+		// fmt.Printf("%v %s\n", j, j)
 		assert.Equal(t, v.out, string(j))
 	}
 }
@@ -63,7 +62,7 @@ func TestUnmarshalBytes(t *testing.T) {
 		if e != nil {
 			t.Fatal(e)
 		}
-		fmt.Printf("%v %v\n", v.out, b)
+		// fmt.Printf("%v %v\n", v.out, b)
 		isequal := bytes.Compare(v.out.ToBytes(), b.ToBytes())
 		assert.Equal(t, isequal, 0)
 	}
