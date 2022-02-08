@@ -11,6 +11,7 @@ import (
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/pkg/errors"
 )
@@ -287,6 +288,14 @@ func (a *Address) MustGetCommonAddress() common.Address {
 	addr, _, err := a.ToCommon()
 	utils.PanicIfErrf(err, "failed to get common address of %v", a)
 	return addr
+}
+
+// GetMappedEVMSpaceAddress calculate CFX space address's mapped EVM address, which is the last 20 bytes of cfx address's keccak256 hash
+func (a *Address) GetMappedEVMSpaceAddress() common.Address {
+	h := crypto.Keccak256Hash(a.MustGetCommonAddress().Bytes())
+	var ethAddr common.Address
+	copy(ethAddr[:], h[12:])
+	return ethAddr
 }
 
 // GetNetworkType returns network type

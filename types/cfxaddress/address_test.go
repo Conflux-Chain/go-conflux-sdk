@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/stretchr/testify/assert"
+	"gotest.tools/assert"
 )
 
 func TestCfxAddress(t *testing.T) {
@@ -224,6 +224,11 @@ func GetAddressPtr(addr Address) *Address {
 	return &addr
 }
 
+func TestCfxMappedEVMSpaceAddress(t *testing.T) {
+	cfxAddr := MustNewFromBase32("cfx:aak2rra2njvd77ezwjvx04kkds9fzagfe6ku8scz91")
+	evmAddr := cfxAddr.GetMappedEVMSpaceAddress()
+	assert.Equal(t, "0x12Bf6283CcF8Ad6ffA63f7Da63EDc217228d839A", evmAddr.String())
+}
 func TestShorten(t *testing.T) {
 	addr, _ := New("0x835cB03Aeb287992D50FD1Cb057e2B986615aF91", 333)
 	shorten := addr.GetShortenAddress()
@@ -231,5 +236,4 @@ func TestShorten(t *testing.T) {
 
 	shorten = addr.GetShortenAddress(true)
 	assert.Equal(t, "net333:acb...sa4w", shorten)
-
 }
