@@ -35,7 +35,7 @@ type BlockHeader struct {
 	Nonce                 *hexutil.Big   `json:"nonce"`
 	Size                  *hexutil.Big   `json:"size"`
 	// Note: use [][]uint to replace [][]byte because golang will json encoder automated encode []byte to base64 string
-	Custom [][]uint `json:"custom"`
+	Custom []hexutil.Bytes `json:"custom"`
 }
 
 // rlpEncodableBlockHeader block header struct used for rlp encoding
@@ -60,7 +60,7 @@ type rlpEncodableBlockHeader struct {
 	Adaptive              bool
 	Nonce                 *big.Int
 	Size                  *big.Int
-	Custom                [][]uint
+	Custom                []hexutil.Bytes
 }
 
 // EncodeRLP implements the rlp.Encoder interface.
