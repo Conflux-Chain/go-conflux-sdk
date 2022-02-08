@@ -4,6 +4,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/pkg/errors"
 )
 
@@ -23,4 +24,12 @@ func PubkeyToAddress(publicKey string, networkId uint32) (cfxaddress.Address, er
 		return cfxaddress.Address{}, errors.WithStack(err)
 	}
 	return cfxaddress.NewFromCommon(commAddress, networkId)
+}
+
+// CfxMappedEVMSpaceAddress calculate CFX space address's mapped EVM address
+func CfxMappedEVMSpaceAddress(address cfxaddress.Address) (common.Address, error) {
+	h := crypto.Keccak256Hash(address.MustGetCommonAddress().Bytes())
+	var ethAddr common.Address
+	copy(ethAddr[:], h[12:])
+	return ethAddr, nil
 }
