@@ -12,8 +12,8 @@ type UnitType int32
 
 const (
 	UNIT_CFX   UnitType = 18
-	UNIT_PDrip UnitType = 15
-	UNIT_TDrip UnitType = 12
+	UNIT_mCFX  UnitType = 15
+	UNIT_uCFX  UnitType = 12
 	UNIT_GDrip UnitType = 9
 	UNIT_MDrip UnitType = 6
 	UNIT_KDrip UnitType = 3
@@ -23,8 +23,8 @@ const (
 func unitTypeVal2NameMap() map[UnitType]string {
 	return map[UnitType]string{
 		UNIT_CFX:   "CFX",
-		UNIT_PDrip: "PDrip",
-		UNIT_TDrip: "TDrip",
+		UNIT_mCFX:  "mCFX",
+		UNIT_uCFX:  "uCFX",
 		UNIT_GDrip: "GDrip",
 		UNIT_MDrip: "MDrip",
 		UNIT_KDrip: "KDrip",
@@ -35,8 +35,8 @@ func unitTypeVal2NameMap() map[UnitType]string {
 func unitTypeName2ValMap() map[string]UnitType {
 	return map[string]UnitType{
 		"CFX":   UNIT_CFX,
-		"PDrip": UNIT_PDrip,
-		"TDrip": UNIT_TDrip,
+		"mCFX":  UNIT_mCFX,
+		"uCFX":  UNIT_uCFX,
 		"GDrip": UNIT_GDrip,
 		"MDrip": UNIT_MDrip,
 		"KDrip": UNIT_KDrip,
@@ -80,7 +80,7 @@ func parseUnits(value decimal.Decimal, unit UnitType) (*big.Int, error) {
 // displayValueWithUnit returns the display format for given drip value.
 func displayValueWithUnit(drip *big.Int) string {
 
-	units := []UnitType{UNIT_CFX, UNIT_PDrip, UNIT_TDrip, UNIT_GDrip, UNIT_MDrip, UNIT_KDrip, UNIT_Drip}
+	units := []UnitType{UNIT_CFX, UNIT_mCFX, UNIT_uCFX, UNIT_GDrip, UNIT_MDrip, UNIT_KDrip, UNIT_Drip}
 
 	var mappedUnit UnitType
 	for _, unit := range units {

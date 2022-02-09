@@ -12,8 +12,8 @@ type Drip struct {
 	value *big.Int
 }
 
-func NewDrip(value *big.Int) Drip {
-	return Drip{value}
+func NewDrip(value *big.Int) *Drip {
+	return &Drip{value}
 }
 
 func NewDripFromString(prettyValue string) (*Drip, error) {
@@ -71,6 +71,10 @@ func (d *Drip) FormatCFX() decimal.Decimal {
 
 func (d *Drip) BigInt() *big.Int {
 	return d.value
+}
+
+func (d *Drip) Cmp(y *Drip) int {
+	return d.value.Cmp(y.value)
 }
 
 func (d Drip) String() string {

@@ -115,11 +115,11 @@ func TestDisplay(t *testing.T) {
 		},
 		{
 			in:  big.NewInt(1000000000000),
-			out: "1 TDrip",
+			out: "1 uCFX",
 		},
 		{
 			in:  big.NewInt(1000000000000000),
-			out: "1 PDrip",
+			out: "1 mCFX",
 		},
 		{
 			in:  big.NewInt(1000000000000000000),
