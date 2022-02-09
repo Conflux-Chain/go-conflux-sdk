@@ -1,7 +1,6 @@
 package unit
 
 import (
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -39,7 +38,7 @@ func TestFormatUnits(t *testing.T) {
 
 	for _, v := range source {
 		r := formatUnits(v.in, v.unit)
-		fmt.Printf("%v %v %v\n", v.in, r, v.out)
+		// fmt.Printf("%v %v %v\n", v.in, r, v.out)
 		isEqual := r.Cmp(v.out)
 		assert.Equal(t, 0, isEqual)
 	}
@@ -81,7 +80,7 @@ func TestParseUnits(t *testing.T) {
 
 	for _, v := range source {
 		r, err := parseUnits(v.in, v.unit)
-		fmt.Printf("%v %v %v %v\n", v.in, r, v.out, err)
+		// fmt.Printf("%v %v %v %v\n", v.in, r, v.out, err)
 		if !v.isOutError {
 
 			isEqual := r.Cmp(v.out)
@@ -133,7 +132,7 @@ func TestDisplay(t *testing.T) {
 
 	for _, v := range source {
 		r := displayValueWithUnit(v.in)
-		fmt.Printf("%v %v %v\n", v.in, r, v.out)
+		// fmt.Printf("%v %v %v\n", v.in, r, v.out)
 		isEqual := r == v.out
 		assert.Equal(t, true, isEqual)
 	}
