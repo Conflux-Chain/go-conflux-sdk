@@ -92,6 +92,53 @@ func TestParseUnits(t *testing.T) {
 	}
 }
 
+func TestDisplay(t *testing.T) {
+	source := []struct {
+		in  *big.Int
+		out string
+	}{
+		{
+			in:  big.NewInt(1),
+			out: "1 Drip",
+		},
+		{
+			in:  big.NewInt(1000),
+			out: "1 KDrip",
+		},
+		{
+			in:  big.NewInt(1000000),
+			out: "1 MDrip",
+		},
+		{
+			in:  big.NewInt(1000000000),
+			out: "1 GDrip",
+		},
+		{
+			in:  big.NewInt(1000000000000),
+			out: "1 TDrip",
+		},
+		{
+			in:  big.NewInt(1000000000000000),
+			out: "1 PDrip",
+		},
+		{
+			in:  big.NewInt(1000000000000000000),
+			out: "1 CFX",
+		},
+		{
+			in:  new(big.Int).Mul(big.NewInt(1000000000000000000), big.NewInt(1000)),
+			out: "1000 CFX",
+		},
+	}
+
+	for _, v := range source {
+		r := DisplayValueWithUnit(v.in)
+		fmt.Printf("%v %v %v\n", v.in, r, v.out)
+		isEqual := r == v.out
+		assert.Equal(t, true, isEqual)
+	}
+}
+
 func MustNewDecimalFromString(value string) decimal.Decimal {
 	v, err := decimal.NewFromString(value)
 	if err != nil {
