@@ -16,6 +16,7 @@ type CallType string
 type PocketType string
 type CreateType string
 type SpaceType string
+type ActionType string
 
 const (
 	TRACE_CALL                      TraceType = "call"
@@ -123,11 +124,13 @@ type InternalTransferAction struct {
 }
 
 type TraceFilter struct {
-	FromEpoch   *Epoch `json:"fromEpoch"`
-	ToEpoch     *Epoch `json:"toEpoch"`
-	BlockHashes []Hash `json:"blockHashes"`
+	FromEpoch   *Epoch    `json:"fromEpoch"`
+	ToEpoch     *Epoch    `json:"toEpoch"`
+	FromAddress []Address `json:"fromAddress"`
+	ToAddress   []Address `json:"toAddress"`
+	BlockHashes []Hash    `json:"blockHashes"`
 	// action types could be "call","create","callResult","createResult","internalTransferAction"
-	ActionTypes []string        `json:"actionTypes"`
+	ActionTypes []TraceType     `json:"actionTypes"`
 	After       *hexutil.Uint64 `json:"after"`
 	Count       *hexutil.Uint64 `json:"count"`
 }
