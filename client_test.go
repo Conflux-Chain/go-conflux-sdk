@@ -61,3 +61,7 @@ func _TestNewClient(t *testing.T) {
 	})
 
 }
+
+func TestInterfaceImplementation(t *testing.T) {
+	var _ ClientOperator = &Client{}
+}
