@@ -62,7 +62,7 @@ type rlpEncodableBlockHeader struct {
 	Nonce                 *big.Int
 	Size                  *big.Int
 	Custom                []cmptutil.Bytes
-	PosReference          *Hash
+	PosReference          *Hash `rlp:"nil"`
 }
 
 // EncodeRLP implements the rlp.Encoder interface.
