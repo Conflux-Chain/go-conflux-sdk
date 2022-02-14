@@ -36,6 +36,7 @@ type BlockHeader struct {
 	Nonce                 *hexutil.Big     `json:"nonce"`
 	Size                  *hexutil.Big     `json:"size"`
 	Custom                []cmptutil.Bytes `json:"custom"`
+	PosReference          *Hash            `json:"posReference"`
 }
 
 // rlpEncodableBlockHeader block header struct used for rlp encoding
@@ -61,6 +62,7 @@ type rlpEncodableBlockHeader struct {
 	Nonce                 *big.Int
 	Size                  *big.Int
 	Custom                []cmptutil.Bytes
+	PosReference          *Hash
 }
 
 // EncodeRLP implements the rlp.Encoder interface.
@@ -85,6 +87,7 @@ func (bh BlockHeader) EncodeRLP(w io.Writer) error {
 		Nonce:                 bh.Nonce.ToInt(),
 		Size:                  bh.Size.ToInt(),
 		Custom:                bh.Custom,
+		PosReference:          bh.PosReference,
 	}
 
 	if bh.BlockNumber != nil {
@@ -115,6 +118,7 @@ func (bh *BlockHeader) DecodeRLP(r *rlp.Stream) error {
 	bh.Difficulty, bh.PowQuality = (*hexutil.Big)(rbh.Difficulty), (*hexutil.Big)(rbh.PowQuality)
 	bh.RefereeHashes, bh.Adaptive = rbh.RefereeHashes, rbh.Adaptive
 	bh.Nonce, bh.Size, bh.Custom = (*hexutil.Big)(rbh.Nonce), (*hexutil.Big)(rbh.Size), rbh.Custom
+	bh.PosReference = rbh.PosReference
 
 	if rbh.BlockNumber != nil {
 		bh.BlockNumber = (*hexutil.Big)(rbh.BlockNumber.Val)
