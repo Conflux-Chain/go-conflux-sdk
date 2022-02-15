@@ -18,6 +18,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	sdkerrors "github.com/Conflux-Chain/go-conflux-sdk/types/errors"
+	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -573,7 +574,7 @@ func (client *Client) GetCollateralForStorage(account types.Address, epoch ...*t
 }
 
 // GetStorageAt returns storage entries from a given contract.
-func (client *Client) GetStorageAt(address types.Address, position types.Hash, epoch ...*types.Epoch) (storageEntries hexutil.Bytes, err error) {
+func (client *Client) GetStorageAt(address types.Address, position *hexutil.Big, epoch ...*types.Epoch) (storageEntries hexutil.Bytes, err error) {
 	realEpoch := get1stEpochIfy(epoch)
 	err = client.wrappedCallRPC(&storageEntries, "cfx_getStorageAt", address, position, realEpoch)
 	return
@@ -921,6 +922,17 @@ func (client *Client) GetAccountPendingTransactions(address types.Address, start
 func (client *Client) GetPoSEconomics(epoch ...*types.Epoch) (posEconomics types.PoSEconomics, err error) {
 	err = client.wrappedCallRPC(&posEconomics, "cfx_getPoSEconomics", get1stEpochIfy(epoch))
 	return
+}
+
+func (client *Client) GetOpenedMethodGroups() (openedGroups []string, err error) {
+	err = client.wrappedCallRPC(&openedGroups, "cfx_openedMethodGroups")
+	return
+}
+
+func (client *Client) GetPoSRewardByEpoch(epoch types.Epoch) (reward *postypes.EpochReward, err error) {
+	err = client.wrappedCallRPC(&reward, "cfx_getPoSRewardByEpoch")
+	return
+
 }
 
 // =====Debug RPC=====

@@ -82,7 +82,7 @@ type ClientOperator interface {
 	GetSponsorInfo(contractAddress types.Address, epoch ...*types.Epoch) (sponsor types.SponsorInfo, err error)
 	GetStakingBalance(account types.Address, epoch ...*types.Epoch) (balance *hexutil.Big, err error)
 	GetCollateralForStorage(account types.Address, epoch ...*types.Epoch) (storage *hexutil.Big, err error)
-	GetStorageAt(address types.Address, position types.Hash, epoch ...*types.Epoch) (storageEntries hexutil.Bytes, err error)
+	GetStorageAt(address types.Address, position *hexutil.Big, epoch ...*types.Epoch) (storageEntries hexutil.Bytes, err error)
 	GetStorageRoot(address types.Address, epoch ...*types.Epoch) (storageRoot *types.StorageRoot, err error)
 	GetBlockByHashWithPivotAssumption(blockHash types.Hash, pivotHash types.Hash, epoch hexutil.Uint64) (block types.Block, err error)
 	CheckBalanceAgainstTransaction(accountAddress types.Address,
@@ -117,6 +117,8 @@ type ClientOperator interface {
 	GetAccountPendingInfo(address types.Address) (pendignInfo *types.AccountPendingInfo, err error)
 	GetAccountPendingTransactions(address types.Address, startNonce *hexutil.Big, limit *hexutil.Uint64) (pendingTxs types.AccountPendingTransactions, err error)
 	GetPoSEconomics(epoch ...*types.Epoch) (posEconomics types.PoSEconomics, err error)
+	GetOpenedMethodGroups() (openedGroups []string, err error)
+	GetPoSRewardByEpoch(epoch types.Epoch) (reward *postypes.EpochReward, err error)
 
 	GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error)
 	GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error)

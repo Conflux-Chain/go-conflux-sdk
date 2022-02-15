@@ -63,15 +63,17 @@ type SponsorInfo struct {
 
 // Status represents current blockchain status
 type Status struct {
-	BestHash         Hash           `json:"bestHash"`
-	ChainID          hexutil.Uint64 `json:"chainId"`
-	NetworkID        hexutil.Uint64 `json:"networkId"`
-	EpochNumber      hexutil.Uint64 `json:"epochNumber"`
-	BlockNumber      hexutil.Uint64 `json:"blockNumber"`
-	PendingTxNumber  hexutil.Uint64 `json:"pendingTxNumber"`
-	LatestCheckpoint hexutil.Uint64 `json:"latestCheckpoint"`
-	LatestConfirmed  hexutil.Uint64 `json:"latestConfirmed"`
-	LatestState      hexutil.Uint64 `json:"latestState"`
+	BestHash             Hash           `json:"bestHash"`
+	ChainID              hexutil.Uint64 `json:"chainId"`
+	EthereumSpaceChainId hexutil.Uint64 `json:"ethereumSpaceChainId"`
+	NetworkID            hexutil.Uint64 `json:"networkId"`
+	EpochNumber          hexutil.Uint64 `json:"epochNumber"`
+	BlockNumber          hexutil.Uint64 `json:"blockNumber"`
+	PendingTxNumber      hexutil.Uint64 `json:"pendingTxNumber"`
+	LatestCheckpoint     hexutil.Uint64 `json:"latestCheckpoint"`
+	LatestConfirmed      hexutil.Uint64 `json:"latestConfirmed"`
+	LatestState          hexutil.Uint64 `json:"latestState"`
+	LatestFinalized      hexutil.Uint64 `json:"latestFinalized"`
 }
 
 type StorageRoot struct {
