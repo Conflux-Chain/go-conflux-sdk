@@ -19,6 +19,7 @@ var (
 	EpochLatestConfirmed  *Epoch = &Epoch{"latest_confirmed", nil}
 	EpochLatestState      *Epoch = &Epoch{"latest_state", nil}
 	EpochLatestMined      *Epoch = &Epoch{"latest_mined", nil}
+	EpochLatestFinalized  *Epoch = &Epoch{"latest_finalized", nil}
 )
 
 // Epoch represents an epoch in Conflux.
