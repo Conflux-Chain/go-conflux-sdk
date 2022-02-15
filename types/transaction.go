@@ -17,6 +17,7 @@ import (
 // Transaction represents a transaction with signature in Conflux.
 // it is the response from conflux node when sending rpc request, such as cfx_getTransactionByHash
 type Transaction struct {
+	// Space            *string          `json:"space,omitempty"` //currently it is always "nil", so comment it now and uncomment it if need later
 	Hash             Hash            `json:"hash"`
 	Nonce            *hexutil.Big    `json:"nonce"`
 	BlockHash        *Hash           `json:"blockHash"`
