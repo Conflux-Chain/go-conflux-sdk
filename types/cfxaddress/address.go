@@ -242,6 +242,7 @@ func (a *Address) ToCommon() (address common.Address, networkID uint32, err erro
 		return
 	}
 	address = common.BytesToAddress(validAddr.hex)
+	networkID = validAddr.networkID
 	return
 }
 

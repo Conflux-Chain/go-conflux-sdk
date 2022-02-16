@@ -237,3 +237,19 @@ func TestShorten(t *testing.T) {
 	shorten = addr.GetShortenAddress(true)
 	assert.Equal(t, "net333:acb...sa4w", shorten)
 }
+
+func TestToCommon(t *testing.T) {
+	cfxaddrStr := "net8889:aakn82yd3x6m4594pt57y29r2jnwfdpdxj4btr9fvw"
+	cfxaddr, err := NewFromBase32(cfxaddrStr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	commonAddr, chainId, err := cfxaddr.ToCommon()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, cfxaddr.String(), cfxaddrStr)
+	assert.Equal(t, commonAddr.String(), "0x12Bf6283CcF8Ad6ffA63f7Da63EDc217228d839A")
+	assert.Equal(t, chainId, uint32(8889))
+}
