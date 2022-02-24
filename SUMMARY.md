@@ -20,7 +20,7 @@
     - [Transfer CFX](docs/transactions/transfer_eth.md)
     - [Transaction Nonce](docs/transactions/transaction_nonce.md)
     - [Batch Call snd Send Transactions](docs/transactions/batch_call_and_send.md)
-- [Other]
+- Other
     - [Call/BatchCall RPC Hook](docs/other/middlewire.md)
 - [Conflux-ABIGEN](https://github.com/Conflux-Chain/conflux-abigen#deploy-contract)
 - [ChangeLog](changeLog.md)
