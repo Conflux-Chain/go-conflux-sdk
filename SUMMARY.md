@@ -13,7 +13,6 @@
     - [Construction and Deployment](smart_contracts/construction_and_deployment.md)
     - [Interacting with Smart Contracts](smart_contracts/interacting_with_smart_contract.md)
     - [Contract Validity](smart_contracts/contract_validity.md)
-    - [Testing Smart Contracts](](smart_contracts/testing_smart_contracts.md)
     - [Application Binary Interface](smart_contracts/application_binary_interface.md)
     - [Contracts Supported by Web3j](smart_contracts/contracts_supported_by_web3j.md)
 - Transactions
