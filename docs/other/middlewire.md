@@ -1,4 +1,4 @@
-## RPC Call/BatchCall Hook MiddleWire
+## RPC Call/BatchCall Hook Middlewire
 
 Client applies the method `UseCallRpcMiddleware` to set middleware for hooking `callRpc` method which is the core of all single RPC-related methods. And `UseBatchCallRpcMiddleware` to set middleware for hooking `batchCallRPC`.
 

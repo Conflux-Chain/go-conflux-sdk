@@ -22,8 +22,3 @@ The `--bin` and `--abi` compiler arguments are both required to take full advant
 There is also a `--gas` argument for providing estimates of the [Gas](../transactions/gas.md) required to create a contract and transact with its methods.
 
 Alternatively, you can write and compile Solidity code in your browser via the [browser-solidity](https://remix.ethereum.org/#optimize=false&evmVersion=null&version=soljson-v0.5.1+commit.c8a2cb62.js) project. browser-solidity is great for smaller smart contracts, but you may run into issues working with larger contracts.
-
-You can also compile Solidity code via Ethereum clients such as Geth and OpenEthereum, using the JSON-RPC method [eth_compileSolidity](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_compileSolidity) which is also supported in web3j. However, the Solidity compiler must be
-installed on the client for this to work.
-
-There are further options available, please refer to the [relevant section](https://ethereum-homestead.readthedocs.io/en/latest/contracts-and-transactions/contracts.html#compiling-a-contract) in the Homestead documentation.

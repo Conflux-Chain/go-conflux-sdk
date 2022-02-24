@@ -1,6 +1,4 @@
 # Table of contents
-
-
 - [Quickstart](docs/quickstart.md)
 - Getting Started
     - [Run a Node locally](docs/getting_started/run_node_locally.md)
@@ -21,7 +19,6 @@
     - [Account Manager](docs/transactions/account_manager.md)
     - [Transfer CFX](docs/transactions/transfer_eth.md)
     - [Transaction Nonce](docs/transactions/transaction_nonce.md)
-    - [Transactions and Smart Contracts](docs/transactions/transactions_and_smart_contracts.md)
     - [Batch Call snd Send Transactions](docs/transactions/batch_call_and_send.md)
 - [Other](docs/other.md)
 - [Conflux-ABIGEN](docs/command_line_tools.md)
