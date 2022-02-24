@@ -22,6 +22,6 @@
     - [Batch Call snd Send Transactions](docs/transactions/batch_call_and_send.md)
 - [Other]
     - [Call/BatchCall RPC Hook](docs/other/middlewire.md)
-- [Conflux-ABIGEN](docs/command_line_tools.md)
+- [Conflux-ABIGEN](https://github.com/Conflux-Chain/conflux-abigen#deploy-contract)
 - [ChangeLog](changeLog.md)
 - [References](docs/references.md)
