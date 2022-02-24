@@ -1,38 +1,38 @@
 # Table of contents
 
-- [Quickstart](quickstart.md)
+- [Quickstart](docs/quickstart.md)
 - Getting Started
-    - [Run a Node locally](getting_started/run_node_locally.md)
-    - [Interacting with a Node](getting_started/interacting_with_node.md)
-    - [Deploy and Interact with Smart Contracts](getting_started/deploy_interact_smart_contracts.md)
-    - [Subscription](getting_started/pub_sub.md)
+    - [Run a Node locally](docs/getting_started/run_node_locally.md)
+    - [Interacting with a Node](docs/getting_started/interacting_with_node.md)
+    - [Deploy and Interact with Smart Contracts](docs/getting_started/deploy_interact_smart_contracts.md)
+    - [Subscription](docs/getting_started/pub_sub.md)
 - Smart Contracts
-    - [Smart Contract Overview](smart_contracts/smart_contracts_overview.md)
-    - [Getting Started with Solidity](smart_contracts/getting_started_solidity.md)
-    - [Compiling Solidity source code](smart_contracts/compiling_solidity.md)
-    - [Construction and Deployment](smart_contracts/construction_and_deployment.md)
-    - [Interacting with Smart Contracts](smart_contracts/interacting_with_smart_contract.md)
-    - [Contract Validity](smart_contracts/contract_validity.md)
-    - [Application Binary Interface](smart_contracts/application_binary_interface.md)
-    - [Contracts Supported by Web3j](smart_contracts/contracts_supported_by_web3j.md)
+    - [Smart Contract Overview](docs/smart_contracts/smart_contracts_overview.md)
+    - [Getting Started with Solidity](docs/smart_contracts/getting_started_solidity.md)
+    - [Compiling Solidity source code](docs/smart_contracts/compiling_solidity.md)
+    - [Construction and Deployment](docs/smart_contracts/construction_and_deployment.md)
+    - [Interacting with Smart Contracts](docs/smart_contracts/interacting_with_smart_contract.md)
+    - [Contract Validity](docs/smart_contracts/contract_validity.md)
+    - [Application Binary Interface](docs/smart_contracts/application_binary_interface.md)
+    - [Contracts Supported by Web3j](docs/smart_contracts/contracts_supported_by_web3j.md)
 - Transactions
-    - [Ethereum Transactions](transactions/transactions.md)
-    - [Obtaining Ether](transactions/obtaining_ether.md)
-    - [Ethereum Test Networks](transactions/ethereum_testnets.md)
-    - [Gas](transactions/gas.md)
-    - [Credentials](transactions/credentials.md)
-    - [Transfer Eth](transactions/transfer_eth.md)
-    - [Transaction Mechanisms](transactions/transaction_mechanisms.md)
-    - [Transaction Nonce](transactions/transaction_nonce.md)
-    - [Transaction Types](transactions/transaction_types.md)
-    - [Transactions and Smart Contracts](transactions/transactions_and_smart_contracts.md)
-    - [Wallet Files](transactions/wallet_files.md)
-- [Web3j Unit](web3j_unit.md)
-- [Command Line Tools](command_line_tools.md)
+    - [Ethereum Transactions](docs/transactions/transactions.md)
+    - [Obtaining Ether](docs/transactions/obtaining_ether.md)
+    - [Ethereum Test Networks](docs/transactions/ethereum_testnets.md)
+    - [Gas](docs/transactions/gas.md)
+    - [Credentials](docs/transactions/credentials.md)
+    - [Transfer Eth](docs/transactions/transfer_eth.md)
+    - [Transaction Mechanisms](docs/transactions/transaction_mechanisms.md)
+    - [Transaction Nonce](docs/transactions/transaction_nonce.md)
+    - [Transaction Types](docs/transactions/transaction_types.md)
+    - [Transactions and Smart Contracts](docs/transactions/transactions_and_smart_contracts.md)
+    - [Wallet Files](docs/transactions/wallet_files.md)
+- [Web3j Unit](docs/web3j_unit.md)
+- [Command Line Tools](docs/command_line_tools.md)
 <!-- - References
-    - Troubleshooting]( references/troubleshooting.md
-    - Projects using Web3j]( references/projects_using_web3j.md
-    - Companies using Web3j]( references/companies_using_web3j.md
-    - Developer Guide]( references/developer_guide.md
-    - Links and Useful Resources]( references/links_and_useful_resources.md
-    - Thanks and Credits]( references/thanks_and_credits.md -->
+    - Troubleshooting](docs/ references/troubleshooting.md
+    - Projects using Web3j](docs/ references/projects_using_web3j.md
+    - Companies using Web3j](docs/ references/companies_using_web3j.md
+    - Developer Guide](docs/ references/developer_guide.md
+    - Links and Useful Resources](docs/ references/links_and_useful_resources.md
+    - Thanks and Credits](docs/ references/thanks_and_credits.md -->
