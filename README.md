@@ -241,7 +241,7 @@ This is a mapping table for map solidity types to go types when using contract m
 | fixed type T array (T[length])               | [length]TG (TG is go type matched with solidty type T)                          |
 | bytes                                        | []byte                                                                          |
 | dynamic type T array T[]                     | []TG ((TG is go type matched with solidty type T))                              |
-| function                                     | [24]byte                                                                        |
+| function                                     | [4]byte                                                                        |
 | string                                       | string                                                                          |
 | bool                                         | bool                                                                            |
 | tuple                                        | struct  eg:[{"name": "balance","type": "uint256"}] => struct {Balance *big.Int} |

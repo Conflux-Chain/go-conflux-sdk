@@ -1,5 +1,6 @@
 # Table of contents
 
+
 - [Quickstart](docs/quickstart.md)
 - Getting Started
     - [Run a Node locally](docs/getting_started/run_node_locally.md)
@@ -10,29 +11,19 @@
     - [Smart Contract Overview](docs/smart_contracts/smart_contracts_overview.md)
     - [Getting Started with Solidity](docs/smart_contracts/getting_started_solidity.md)
     - [Compiling Solidity source code](docs/smart_contracts/compiling_solidity.md)
-    - [Construction and Deployment](docs/smart_contracts/construction_and_deployment.md)
     - [Interacting with Smart Contracts](docs/smart_contracts/interacting_with_smart_contract.md)
-    - [Contract Validity](docs/smart_contracts/contract_validity.md)
     - [Application Binary Interface](docs/smart_contracts/application_binary_interface.md)
-    - [Contracts Supported by Web3j](docs/smart_contracts/contracts_supported_by_web3j.md)
+    - [Contracts Supported](docs/smart_contracts/contracts_supported.md)
 - Transactions
-    - [Ethereum Transactions](docs/transactions/transactions.md)
-    - [Obtaining Ether](docs/transactions/obtaining_ether.md)
-    - [Ethereum Test Networks](docs/transactions/ethereum_testnets.md)
-    - [Gas](docs/transactions/gas.md)
-    - [Credentials](docs/transactions/credentials.md)
-    - [Transfer Eth](docs/transactions/transfer_eth.md)
-    - [Transaction Mechanisms](docs/transactions/transaction_mechanisms.md)
+    - [Conflux Transactions](docs/transactions/transactions.md)
+    - [Obtaining CFX](docs/transactions/obtaining_ether.md)
+    - [Gas & Storage Collateral](docs/transactions/gas_and_storage.md)
+    - [Account Manager](docs/transactions/account_manager.md)
+    - [Transfer CFX](docs/transactions/transfer_eth.md)
     - [Transaction Nonce](docs/transactions/transaction_nonce.md)
-    - [Transaction Types](docs/transactions/transaction_types.md)
     - [Transactions and Smart Contracts](docs/transactions/transactions_and_smart_contracts.md)
-    - [Wallet Files](docs/transactions/wallet_files.md)
-- [Web3j Unit](docs/web3j_unit.md)
-- [Command Line Tools](docs/command_line_tools.md)
-<!-- - References
-    - Troubleshooting](docs/ references/troubleshooting.md
-    - Projects using Web3j](docs/ references/projects_using_web3j.md
-    - Companies using Web3j](docs/ references/companies_using_web3j.md
-    - Developer Guide](docs/ references/developer_guide.md
-    - Links and Useful Resources](docs/ references/links_and_useful_resources.md
-    - Thanks and Credits](docs/ references/thanks_and_credits.md -->
+    - [Batch Call snd Send Transactions](docs/transactions/batch_call_and_send.md)
+- [Other](docs/other.md)
+- [Conflux-ABIGEN](docs/command_line_tools.md)
+- [ChangeLog](changeLog.md)
+- [References](docs/references.md)
