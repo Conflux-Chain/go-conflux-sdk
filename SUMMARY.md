@@ -14,7 +14,7 @@
     - [Contracts Supported](docs/smart_contracts/contracts_supported.md)
 - Transactions
     - [Conflux Transactions](docs/transactions/transactions.md)
-    - [Obtaining CFX](docs/transactions/obtaining_ether.md)
+    - [Obtaining CFX](docs/transactions/obtaining_cfx.md)
     - [Gas & Storage Collateral](docs/transactions/gas_and_storage.md)
     - [Account Manager](docs/transactions/account_manager.md)
     - [Transfer CFX](docs/transactions/transfer_cfx.md)
