@@ -12,8 +12,8 @@ govendor fetch github.com/Conflux-Chain/go-conflux-sdk
 usd `sdk.NewClient` to creat a client for interact with conflux-rust node, the `sdk.ClientOption` is for setting `Account Manager` keystore folder path and retry options.
 ```golang
 client, err := sdk.NewClient("https://test.confluxrpc.com", sdk.ClientOption{
-        KeystorePath: "../context/keystore",
-    })
+    KeystorePath: "../context/keystore",
+})
 ```
 ### Query RPC
 ```golang
@@ -39,4 +39,4 @@ if err!=nil {
 txhash, err := client.SendTransaction(utx)
 ```
 ### Interact With Smart Contract
-The most simple way to interact with contract is generator contract binding by `conflux-abigen`, see details from [`conflux-abigen`]()
+The most simple way to interact with contract is generator contract binding by `conflux-abigen`, see details from [here](https://github.com/Conflux-Chain/conflux-abigen)
