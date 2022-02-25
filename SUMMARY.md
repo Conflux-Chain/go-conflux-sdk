@@ -17,7 +17,7 @@
     - [Obtaining CFX](docs/transactions/obtaining_ether.md)
     - [Gas & Storage Collateral](docs/transactions/gas_and_storage.md)
     - [Account Manager](docs/transactions/account_manager.md)
-    - [Transfer CFX](docs/transactions/transfer_eth.md)
+    - [Transfer CFX](docs/transactions/transfer_cfx.md)
     - [Transaction Nonce](docs/transactions/transaction_nonce.md)
     - [Batch Call snd Send Transactions](docs/transactions/batch_call_and_send.md)
 - Other
