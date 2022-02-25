@@ -6,12 +6,6 @@ v1.0.29
 -   Upgrade go-ethereum dependency version to v1.10.15
 -   Update RPC methods and structs
 
-v1.0.28
-------------
--   Support unit convert utils
--   Upgrade go-ethereum dependency version to v1.10.15
--   Update RPC methods and structs
-
 v1.0.27
 ------------
 -   Set Block.Custom type to cmptutil.bytes which could json unmarshal both hex string or number array
