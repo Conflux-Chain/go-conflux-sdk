@@ -12,6 +12,11 @@ If you want send transaction continuously, the better way is to obtain the next 
 nonce,err := client.TxPool().NextNonce(<address>)
 ```
 
+However, go-conflux-sdk apply function `Client.GetNextUsableNonce` for convinent, it will get nonce by `txpool_nextNonce` first and if failed then get nonce by `cfx_getNextNonce`
+```golang
+nonce,err := client.GetNextUsableNonce(<address>)
+```
+
 The nonce can then be used to create your transaction object
 ```golang
 var utx types.UnsignedTransaction
