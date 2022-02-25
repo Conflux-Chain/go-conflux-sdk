@@ -7,10 +7,12 @@ import (
 	sdkErrors "github.com/Conflux-Chain/go-conflux-sdk/types/errors"
 )
 
+// RpcDebugClient used to access debug namespace RPC of Conflux blockchain.
 type RpcDebugClient struct {
 	core *Client
 }
 
+// NewRpcDebugClient creates a new RpcDebugClient instance.
 func NewRpcDebugClient(core *Client) RpcDebugClient {
 	return RpcDebugClient{core}
 }

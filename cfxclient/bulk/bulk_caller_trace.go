@@ -18,10 +18,6 @@ func (b *BulkTraceCaller) Execute() ([]error, error) {
 	return batchCall(b.caller, b.batchElems, nil)
 }
 
-//ignore
-
-//ignore
-
 func (client *BulkTraceCaller) GetBlockTraces(blockHash types.Hash) (*types.LocalizedBlockTrace, *error) {
 	result := new(types.LocalizedBlockTrace)
 	err := new(error)

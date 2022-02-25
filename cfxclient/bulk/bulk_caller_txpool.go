@@ -19,10 +19,6 @@ func (b *BulkTxpoolCaller) Execute() ([]error, error) {
 	return batchCall(b.caller, b.batchElems, nil)
 }
 
-//ignore
-
-//ignore
-
 func (client *BulkTxpoolCaller) Status() (*types.TxPoolStatus, *error) {
 	result := new(types.TxPoolStatus)
 	err := new(error)

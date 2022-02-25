@@ -16,6 +16,8 @@ type CallRpcHandler interface {
 
 type CallRpcHandlerFunc func(result interface{}, method string, args ...interface{}) error
 
+// CallRpcMiddleware represents the middleware for call rpc
+// 		use
 type CallRpcMiddleware func(CallRpcHandler) CallRpcHandler
 
 func (c CallRpcHandlerFunc) Handle(result interface{}, method string, args ...interface{}) error {

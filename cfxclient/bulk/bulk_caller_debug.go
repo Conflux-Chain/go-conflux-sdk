@@ -20,10 +20,6 @@ func (b *BulkDebugCaller) Execute() ([]error, error) {
 	return batchCall(b.caller, b.batchElems, nil)
 }
 
-//ignore
-
-//ignore
-
 func (client *BulkDebugCaller) GetEpochReceipts(epoch types.Epoch) (*[][]types.TransactionReceipt, *error) {
 	result := new([][]types.TransactionReceipt)
 	err := new(error)

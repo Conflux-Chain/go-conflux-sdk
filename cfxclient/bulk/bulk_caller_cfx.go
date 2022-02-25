@@ -19,10 +19,6 @@ func (b *BulkCfxCaller) Execute() ([]error, error) {
 	return batchCall(b.caller, b.batchElems, nil)
 }
 
-//ignore
-
-//ignore
-
 func (client *BulkCfxCaller) GetGasPrice() (*hexutil.Big, *error) {
 	result := new(hexutil.Big)
 	err := new(error)
