@@ -5,7 +5,7 @@ When a transaction takes place in Conflux, a transaction cost must be paid to th
 This cost is measured in gas, where gas is the number of instructions used to execute a transaction in the Conflux Virtual Machine. Please refer to the [Homestead
 documentation](http://ethdocs.org/en/latest/contracts-and-transactions/account-types-gas-and-transactions.html?highlight=gas#what-is-gas) for detail.
 
-What this means for you when working with Conflux clients is that there are two parameters that are used to dictate how much Ether you wish to spend in order for a transaction to complete:
+What this means for you when working with Conflux clients is that there are two parameters that are used to dictate how much CFX you wish to spend in order for a transaction to complete:
 
 _Gas price_
 
@@ -18,7 +18,7 @@ _Gas limit_
 > transaction can be in an Conflux block which restricts this value
 > typically to less then 30,000,000.
 
-These parameters taken together dictate the maximum amount of Ether you are willing to spend on transaction costs. i.e. you can spend no more then gas price \* gas limit. The gas price can also affect how quickly a transaction takes place depending on what other transactions are available with a more profitable gas price for miners.
+These parameters taken together dictate the maximum amount of CFX you are willing to spend on transaction costs. i.e. you can spend no more then gas price \* gas limit. The gas price can also affect how quickly a transaction takes place depending on what other transactions are available with a more profitable gas price for miners.
 
 You may need to adjust these parameters to ensure that transactions take place in a timely manner.
 

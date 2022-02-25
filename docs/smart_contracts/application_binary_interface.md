@@ -1,7 +1,7 @@
 Application Binary Interface
 ============================
 
-The Application Binary Interface (ABI) is a data encoding scheme used in Ethereum for working with smart contracts. The types defined in the ABI are the same as those you encounter when writing [Smart Contracts](smart_contracts_overview.md) with Solidity - i.e. *uint8, ..., uint256, int8, ..., int256, bool, string,* etc.
+The Application Binary Interface (ABI) is a data encoding scheme used in Conflux for working with smart contracts. The types defined in the ABI are the same as those you encounter when writing [Smart Contracts](smart_contracts_overview.md) with Solidity - i.e. *uint8, ..., uint256, int8, ..., int256, bool, string,* etc.
 
 Type mappings
 -------------

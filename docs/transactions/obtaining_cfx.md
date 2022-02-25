@@ -11,4 +11,4 @@ To obtain CFX you have two options:
     
     - [Testnet Faucet](https://faucet.rinkeby.io/)
     
-    To purchase Ether you will need to go via an exchange. As different regions have different exchanges, you will need to research the best location for this yourself. The [123cfx](123cfx) contains a number of exchanges which is a good place to start.
+    To purchase CFX you will need to go via an exchange. As different regions have different exchanges, you will need to research the best location for this yourself. The [123cfx](https://123cfx.com/) lists a number of exchanges which is a good place to start.
