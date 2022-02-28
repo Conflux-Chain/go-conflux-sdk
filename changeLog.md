@@ -1,5 +1,9 @@
 Go-conflux-sdk Change Log
 ============
+V1.1.0
+------------
+-   Complete docs
+
 v1.0.29
 ------------
 -   Support unit convert utils
