@@ -9,18 +9,21 @@ import (
 	"github.com/fatih/color"
 )
 
+// BatchCallRpcHandler represents interface of batch call rpc handler
 type BatchCallRpcHandler interface {
 	Handle(b []rpc.BatchElem) error
 }
 
 type BatchCallRpcHandlerFunc func(b []rpc.BatchElem) error
 
+// BatchCallRpcMiddleware represents the middleware for batch call rpc
 type BatchCallRpcMiddleware func(BatchCallRpcHandler) BatchCallRpcHandler
 
 func (brh BatchCallRpcHandlerFunc) Handle(b []rpc.BatchElem) error {
 	return brh(b)
 }
 
+// BatchCallRpcConsoleMiddleware is the middleware for console request and response when batch call rpc
 func BatchCallRpcConsoleMiddleware(handler BatchCallRpcHandler) BatchCallRpcHandler {
 	logFn := func(b []rpc.BatchElem) error {
 		start := time.Now()

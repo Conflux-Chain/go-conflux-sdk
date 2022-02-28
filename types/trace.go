@@ -261,17 +261,17 @@ func (l *LocalizedTraceNode) populate(raw LocalizedTrace) {
 
 // TraceInTire convert flattened trace to trie, the convered tiers are stored in the order of the flattened trace like follow.
 //
-// InternalTransfer
-// call
-// create
-// createResult
-// callResult
-// InternalTransfer
-// ============>
-// InternalTransfer
-// call + callResult
-// 	|- call + callResult
-// InternalTransfer
+// 		InternalTransfer
+// 		call
+// 		create
+// 		createResult
+// 		callResult
+// 		InternalTransfer
+// 		============>
+// 		InternalTransfer
+// 		call + callResult
+// 			|- create + createResult
+// 		InternalTransfer
 func TraceInTire(traces []LocalizedTrace) (tier LocalizedTraceTire, err error) {
 	cacheStack := new([]*LocalizedTraceNode)
 

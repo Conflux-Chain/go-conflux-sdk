@@ -200,6 +200,13 @@ type Client struct {
 
 Client represents a client to interact with Conflux blockchain.
 
+#### func  MustNewClient
+
+```go
+func MustNewClient(nodeURL string, option ...ClientOption) *Client
+```
+MustNewClient same to NewClient but panic if failed
+
 #### func  NewClient
 
 ```go
@@ -207,6 +214,30 @@ func NewClient(nodeURL string, option ...ClientOption) (*Client, error)
 ```
 NewClient creates an instance of Client with specified conflux node url, it will
 creat account manager if option.KeystorePath not empty.
+
+    client, err := sdk.NewClient("https://test.confluxrpc.com", sdk.ClientOption{
+        KeystorePath: "../context/keystore",
+    	RetryCount	: 3,
+    })
+    // query rpc
+    epoch, err := client.GetEpochNumber()
+    if err != nil {
+    	panic(err)
+    }
+    // send transaction
+    chainID, err := client.GetNetworkID()
+    if err!=nil {
+        panic(err)
+    }
+    from, err :=client.AccountManger().GetDefault()
+    if err!=nil {
+        panic(err)
+    }
+    utx, err := client.CreateUnsignedTransaction(*from, cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d", chainID), types.NewBigInt(1), nil)
+    if err!=nil {
+        panic(err)
+    }
+    txhash, err := client.SendTransaction(utx)
 
 #### func  NewClientWithRPCRequester
 
@@ -327,6 +358,13 @@ func (client *Client) CreateUnsignedTransaction(from types.Address, to types.Add
 CreateUnsignedTransaction creates an unsigned transaction by parameters, and the
 other fields will be set to values fetched from conflux node.
 
+#### func (*Client) Debug
+
+```go
+func (client *Client) Debug() RpcDebug
+```
+Debug returns RpcDebugClient for invoke rpc with debug namespace
+
 #### func (*Client) DeployContract
 
 ```go
@@ -364,6 +402,7 @@ GetAccountInfo returns account related states of the given account
 ```go
 func (client *Client) GetAccountManager() AccountManagerOperator
 ```
+GetAccountManager returns account manager of client
 
 #### func (*Client) GetAccountPendingInfo
 
@@ -377,6 +416,7 @@ GetAccountPendingInfo gets transaction pending info by account address
 ```go
 func (client *Client) GetAccountPendingTransactions(address types.Address, startNonce *hexutil.Big, limit *hexutil.Uint64) (pendingTxs types.AccountPendingTransactions, err error)
 ```
+GetAccountPendingTransactions get transaction pending info by account address
 
 #### func (*Client) GetAccumulateInterestRate
 
@@ -412,6 +452,7 @@ GetBestBlockHash returns the current best block hash.
 ```go
 func (client *Client) GetBlockByBlockNumber(blockNumer hexutil.Uint64) (block *types.Block, err error)
 ```
+GetBlockByHash returns the block of specified block number
 
 #### func (*Client) GetBlockByEpoch
 
@@ -459,6 +500,8 @@ GetBlockRewardInfo returns block reward information in an epoch
 ```go
 func (client *Client) GetBlockSummaryByBlockNumber(blockNumer hexutil.Uint64) (block *types.BlockSummary, err error)
 ```
+GetBlockSummaryByBlockNumber returns the block summary of specified block
+number.
 
 #### func (*Client) GetBlockSummaryByEpoch
 
@@ -489,6 +532,20 @@ GetBlockTrace returns all traces produced at given block.
 func (client *Client) GetBlocksByEpoch(epoch *types.Epoch) (blockHashes []types.Hash, err error)
 ```
 GetBlocksByEpoch returns the blocks hash in the specified epoch.
+
+#### func (*Client) GetChainID
+
+```go
+func (client *Client) GetChainID() (uint32, error)
+```
+GetNetworkID returns networkID of connecting conflux node
+
+#### func (*Client) GetChainIDCached
+
+```go
+func (client *Client) GetChainIDCached() uint32
+```
+GetChainIDCached returns chached networkID created when new client
 
 #### func (*Client) GetClientVersion
 
@@ -573,6 +630,13 @@ func (client *Client) GetNetworkID() (uint32, error)
 ```
 GetNetworkID returns networkID of connecting conflux node
 
+#### func (*Client) GetNetworkIDCached
+
+```go
+func (client *Client) GetNetworkIDCached() uint32
+```
+GetNetworkIDCached returns chached networkID created when new client
+
 #### func (*Client) GetNextNonce
 
 ```go
@@ -580,12 +644,46 @@ func (client *Client) GetNextNonce(address types.Address, epoch ...*types.Epoch)
 ```
 GetNextNonce returns the next transaction nonce of address
 
+#### func (*Client) GetNextUsableNonce
+
+```go
+func (client *Client) GetNextUsableNonce(user types.Address) (nonce *hexutil.Big, err error)
+```
+
 #### func (*Client) GetNodeURL
 
 ```go
 func (client *Client) GetNodeURL() string
 ```
 GetNodeURL returns node url
+
+#### func (*Client) GetOpenedMethodGroups
+
+```go
+func (client *Client) GetOpenedMethodGroups() (openedGroups []string, err error)
+```
+GetOpenedMethodGroups returns openning method groups
+
+#### func (*Client) GetPoSEconomics
+
+```go
+func (client *Client) GetPoSEconomics(epoch ...*types.Epoch) (posEconomics types.PoSEconomics, err error)
+```
+GetPoSEconomics returns accumulate interest rate of the given epoch
+
+#### func (*Client) GetPoSRewardByEpoch
+
+```go
+func (client *Client) GetPoSRewardByEpoch(epoch types.Epoch) (reward *postypes.EpochReward, err error)
+```
+GetPoSRewardByEpoch returns PoS reward in the epoch
+
+#### func (*Client) GetPosRewardByEpoch
+
+```go
+func (client *Client) GetPosRewardByEpoch(epoch types.Epoch) (val *types.EpochPosReward, err error)
+```
+GetPosRewardByEpoch returns pos rewarded in this epoch
 
 #### func (*Client) GetRawBlockConfirmationRisk
 
@@ -627,7 +725,7 @@ GetStatus returns status of connecting conflux node
 #### func (*Client) GetStorageAt
 
 ```go
-func (client *Client) GetStorageAt(address types.Address, position types.Hash, epoch ...*types.Epoch) (storageEntries hexutil.Bytes, err error)
+func (client *Client) GetStorageAt(address types.Address, position *hexutil.Big, epoch ...*types.Epoch) (storageEntries hexutil.Bytes, err error)
 ```
 GetStorageAt returns storage entries from a given contract.
 
@@ -696,8 +794,9 @@ networkID of current client.
 #### func (*Client) Pos
 
 ```go
-func (client *Client) Pos() *RpcPosClient
+func (client *Client) Pos() RpcPos
 ```
+Pos returns RpcPosClient for invoke rpc with pos namespace
 
 #### func (*Client) SendRawTransaction
 
@@ -753,6 +852,13 @@ func (client *Client) SubscribeNewHeads(channel chan types.BlockHeader) (*rpc.Cl
 SubscribeNewHeads subscribes all new block headers participating in the
 consensus.
 
+#### func (*Client) TxPool
+
+```go
+func (client *Client) TxPool() RpcTxpool
+```
+TxPool returns RpcTxPoolClient for invoke rpc with txpool namespace
+
 #### func (*Client) UseBatchCallRpcMiddleware
 
 ```go
@@ -798,7 +904,7 @@ type ClientOption struct {
 }
 ```
 
-ClientOption for set keystore path and flags for retry
+ClientOption for set keystore path and flags for retry and timeout
 
 The simplest way to set logger is to use the types.DefaultCallRpcLog and
 types.DefaultBatchCallRPCLog
@@ -889,6 +995,43 @@ type ContractDeployResult struct {
 
 ContractDeployResult for state change notification when deploying contract
 
+### type RpcDebugClient
+
+```go
+type RpcDebugClient struct {
+}
+```
+
+RpcDebugClient used to access debug namespace RPC of Conflux blockchain.
+
+#### func  NewRpcDebugClient
+
+```go
+func NewRpcDebugClient(core *Client) RpcDebugClient
+```
+NewRpcDebugClient creates a new RpcDebugClient instance.
+
+#### func (*RpcDebugClient) GetEpochReceipts
+
+```go
+func (c *RpcDebugClient) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error)
+```
+GetEpochReceiptsByEpochNumber returns epoch receipts by epoch number
+
+#### func (*RpcDebugClient) GetEpochReceiptsByPivotBlockHash
+
+```go
+func (c *RpcDebugClient) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error)
+```
+GetEpochReceiptsByPivotBlockHash returns epoch receipts by pivot block hash
+
+#### func (*RpcDebugClient) TxpoolGetAccountTransactions
+
+```go
+func (c *RpcDebugClient) TxpoolGetAccountTransactions(address types.Address) (val []types.Transaction, err error)
+```
+TxpoolGetAccountTransactions returns account ready + deferred transactions
+
 ### type RpcPosClient
 
 ```go
@@ -896,17 +1039,19 @@ type RpcPosClient struct {
 }
 ```
 
+RpcPosClient used to access pos namespace RPC of Conflux blockchain.
 
 #### func  NewRpcPosClient
 
 ```go
 func NewRpcPosClient(core *Client) RpcPosClient
 ```
+NewRpcPosClient creates a new RpcPosClient instance.
 
 #### func (*RpcPosClient) GetAccount
 
 ```go
-func (c *RpcPosClient) GetAccount(address postypes.Address, blockNumber ...uint64) (account postypes.Account, err error)
+func (c *RpcPosClient) GetAccount(address postypes.Address, blockNumber ...hexutil.Uint64) (account postypes.Account, err error)
 ```
 GetAccount returns account info at block
 
@@ -927,14 +1072,14 @@ GetBlockByHash returns block at block number
 #### func (*RpcPosClient) GetCommittee
 
 ```go
-func (c *RpcPosClient) GetCommittee(blockNumber ...uint64) (committee postypes.CommitteeState, err error)
+func (c *RpcPosClient) GetCommittee(blockNumber ...hexutil.Uint64) (committee postypes.CommitteeState, err error)
 ```
 GetCommittee returns committee info at block
 
 #### func (*RpcPosClient) GetRewardsByEpoch
 
 ```go
-func (c *RpcPosClient) GetRewardsByEpoch(epochNumber uint64) (reward postypes.EpochReward, err error)
+func (c *RpcPosClient) GetRewardsByEpoch(epochNumber hexutil.Uint64) (reward postypes.EpochReward, err error)
 ```
 GetRewardsByEpoch returns rewards of epoch
 
@@ -948,9 +1093,75 @@ GetStatus returns pos chain status
 #### func (*RpcPosClient) GetTransactionByNumber
 
 ```go
-func (c *RpcPosClient) GetTransactionByNumber(txNumber uint64) (transaction *postypes.Transaction, err error)
+func (c *RpcPosClient) GetTransactionByNumber(txNumber hexutil.Uint64) (transaction *postypes.Transaction, err error)
 ```
 GetTransactionByNumber returns transaction info of transaction number
+
+### type RpcTxpoolClient
+
+```go
+type RpcTxpoolClient struct {
+}
+```
+
+RpcTxpoolClient used to access txpool namespace RPC of Conflux blockchain.
+
+#### func  NewRpcTxpoolClient
+
+```go
+func NewRpcTxpoolClient(core *Client) RpcTxpoolClient
+```
+NewRpcTxpoolClient creates a new RpcTxpoolClient instance.
+
+#### func (*RpcTxpoolClient) AccountPendingInfo
+
+```go
+func (c *RpcTxpoolClient) AccountPendingInfo(address types.Address) (val *types.AccountPendingInfo, err error)
+```
+/ Get transaction pending info by account address
+
+#### func (*RpcTxpoolClient) AccountPendingTransactions
+
+```go
+func (c *RpcTxpoolClient) AccountPendingTransactions(address types.Address, maybeStartNonce *hexutil.Big, maybeLimit *hexutil.Uint64) (val types.AccountPendingTransactions, err error)
+```
+/ Get transaction pending info by account address
+
+#### func (*RpcTxpoolClient) NextNonce
+
+```go
+func (c *RpcTxpoolClient) NextNonce(address types.Address) (val *hexutil.Big, err error)
+```
+NextNonce returns next nonce of account, including pending transactions
+
+#### func (*RpcTxpoolClient) PendingNonceRange
+
+```go
+func (c *RpcTxpoolClient) PendingNonceRange(address types.Address) (val types.TxPoolPendingNonceRange, err error)
+```
+PendingNonceRange returns pending nonce range in txpool of account
+
+#### func (*RpcTxpoolClient) Status
+
+```go
+func (c *RpcTxpoolClient) Status() (val types.TxPoolStatus, err error)
+```
+Status returns txpool status
+
+#### func (*RpcTxpoolClient) TransactionByAddressAndNonce
+
+```go
+func (c *RpcTxpoolClient) TransactionByAddressAndNonce(address types.Address, nonce *hexutil.Big) (val *types.Transaction, err error)
+```
+TransactionByAddressAndNonce returns transaction info in txpool by account
+address and nonce
+
+#### func (*RpcTxpoolClient) TxWithPoolInfo
+
+```go
+func (c *RpcTxpoolClient) TxWithPoolInfo(hash types.Hash) (val types.TxWithPoolInfo, err error)
+```
+TxWithPoolInfo returns transaction with txpool info by transaction hash
 ## package utils
 ```
 import "."
@@ -1001,7 +1212,7 @@ HexStringToBytes converts hex string to bytes
 ```go
 func IsNil(i interface{}) bool
 ```
-IsNil sepecialy checks if interface object is nil
+IsNil checks if interface object is nil
 
 #### func  IsRPCJSONError
 
@@ -1048,11 +1259,35 @@ PrivateKeyToPublicKey calculates public key from private key
 #### func  PublicKeyToCommonAddress
 
 ```go
-func PublicKeyToCommonAddress(publicKey string) common.Address
+func PublicKeyToCommonAddress(publicKey string) (common.Address, error)
 ```
 PublicKeyToCommonAddress generate address from public key
 
 Account address in conflux starts with '0x1'
+
+### type RpcError
+
+```go
+type RpcError struct {
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+}
+```
+
+
+#### func  ToRpcError
+
+```go
+func ToRpcError(origin error) (*RpcError, error)
+```
+ToRpcError converts a error to JsonError
+
+#### func (*RpcError) Error
+
+```go
+func (e *RpcError) Error() string
+```
 ## package internalcontract
 ```
 import "."
@@ -1255,8 +1490,9 @@ func (s *Staking) Withdraw(option *types.ContractMethodSendOption, amount *big.I
 ```
 Withdraw `amount` cfx from this contract
 # bulk
+--
+    import "."
 
-This file is auto-generated by bulk_generator, please don't edit
 
 
 
@@ -1272,12 +1508,12 @@ type BulkCaller struct {
 
 BulkCaller used for bulk call rpc in one request to improve efficiency
 
-#### func  NewBulkerCaller
+#### func  NewBulkCaller
 
 ```go
-func NewBulkerCaller(rpcCaller sdk.ClientOperator) *BulkCaller
+func NewBulkCaller(rpcCaller sdk.ClientOperator) *BulkCaller
 ```
-NewBulkerCaller creates new bulk caller instance
+NewBulkCaller creates new bulk caller instance
 
 #### func (*BulkCaller) Cfx
 
@@ -1330,6 +1566,14 @@ Pos returns BulkTraceCaller for genereating "pos" namespace relating rpc request
 func (b *BulkCaller) Trace() *BulkTraceCaller
 ```
 Trace returns BulkTraceCaller for genereating "trace" namespace relating rpc
+request
+
+#### func (*BulkCaller) Txpool
+
+```go
+func (b *BulkCaller) Txpool() *BulkTxpoolCaller
+```
+TxPool returns BulkTxpoolCaller for genereating "txpool" namespace relating rpc
 request
 
 ### type BulkCallerCore
@@ -1417,6 +1661,7 @@ GetAccountPendingInfo gets transaction pending info by account address
 ```go
 func (client *BulkCfxCaller) GetAccountPendingTransactions(address types.Address, startNonce *hexutil.Big, limit *hexutil.Uint64) (*types.AccountPendingTransactions, *error)
 ```
+GetAccountPendingTransactions get transaction pending info by account address
 
 #### func (*BulkCfxCaller) GetAccumulateInterestRate
 
@@ -1452,6 +1697,7 @@ GetBestBlockHash returns the current best block hash.
 ```go
 func (client *BulkCfxCaller) GetBlockByBlockNumber(blockNumer hexutil.Uint64) (*types.Block, *error)
 ```
+GetBlockByHash returns the block of specified block number
 
 #### func (*BulkCfxCaller) GetBlockByEpoch
 
@@ -1489,6 +1735,8 @@ GetBlockRewardInfo returns block reward information in an epoch
 ```go
 func (client *BulkCfxCaller) GetBlockSummaryByBlockNumber(blockNumer hexutil.Uint64) (*types.BlockSummary, *error)
 ```
+GetBlockSummaryByBlockNumber returns the block summary of specified block
+number.
 
 #### func (*BulkCfxCaller) GetBlockSummaryByEpoch
 
@@ -1546,12 +1794,14 @@ GetDepositList returns deposit list of the given account.
 ```go
 func (client *BulkCfxCaller) GetEpochNumber(epoch ...*types.Epoch) (*hexutil.Big, *error)
 ```
+GetEpochNumber returns the highest or specified epoch number.
 
 #### func (*BulkCfxCaller) GetGasPrice
 
 ```go
 func (client *BulkCfxCaller) GetGasPrice() (*hexutil.Big, *error)
 ```
+GetGasPrice returns the recent mean gas price.
 
 #### func (*BulkCfxCaller) GetInterestRate
 
@@ -1573,6 +1823,27 @@ GetLogs returns logs that matching the specified filter.
 func (client *BulkCfxCaller) GetNextNonce(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, *error)
 ```
 GetNextNonce returns the next transaction nonce of address
+
+#### func (*BulkCfxCaller) GetOpenedMethodGroups
+
+```go
+func (client *BulkCfxCaller) GetOpenedMethodGroups() (*[]string, *error)
+```
+GetOpenedMethodGroups returns openning method groups
+
+#### func (*BulkCfxCaller) GetPoSEconomics
+
+```go
+func (client *BulkCfxCaller) GetPoSEconomics(epoch ...*types.Epoch) (*types.PoSEconomics, *error)
+```
+GetPoSEconomics returns accumulate interest rate of the given epoch
+
+#### func (*BulkCfxCaller) GetPoSRewardByEpoch
+
+```go
+func (client *BulkCfxCaller) GetPoSRewardByEpoch(epoch types.Epoch) (*postypes.EpochReward, *error)
+```
+GetPoSRewardByEpoch returns PoS reward in the epoch
 
 #### func (*BulkCfxCaller) GetRawBlockConfirmationRisk
 
@@ -1603,6 +1874,13 @@ GetSponsorInfo returns sponsor information of the given contract
 func (client *BulkCfxCaller) GetStakingBalance(account types.Address, epoch ...*types.Epoch) (*hexutil.Big, *error)
 ```
 GetStakingBalance returns balance of the given account.
+
+#### func (*BulkCfxCaller) GetStatus
+
+```go
+func (client *BulkCfxCaller) GetStatus() (*types.Status, *error)
+```
+GetStatus returns status of connecting conflux node
 
 #### func (*BulkCfxCaller) GetStorageAt
 
@@ -1706,14 +1984,16 @@ Execute sends all rpc requests in queue by rpc call "batch" on one request
 #### func (*BulkDebugCaller) GetEpochReceipts
 
 ```go
-func (client *BulkDebugCaller) GetEpochReceipts(epoch types.Epoch) ([][]types.TransactionReceipt, *error)
+func (client *BulkDebugCaller) GetEpochReceipts(epoch types.Epoch) (*[][]types.TransactionReceipt, *error)
 ```
+GetEpochReceiptsByEpochNumber returns epoch receipts by epoch number
 
 #### func (*BulkDebugCaller) GetEpochReceiptsByPivotBlockHash
 
 ```go
-func (client *BulkDebugCaller) GetEpochReceiptsByPivotBlockHash(hash types.Hash) ([][]types.TransactionReceipt, *error)
+func (client *BulkDebugCaller) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (*[][]types.TransactionReceipt, *error)
 ```
+GetEpochReceiptsByPivotBlockHash returns epoch receipts by pivot block hash
 
 ### type BulkPosCaller
 
@@ -1777,6 +2057,7 @@ GetRewardsByEpoch returns rewards of epoch
 ```go
 func (client *BulkPosCaller) GetStatus() (*postypes.Status, *error)
 ```
+GetStatus returns pos chain status
 
 #### func (*BulkPosCaller) GetTransactionByNumber
 
@@ -1861,7 +2142,7 @@ Execute sends all rpc requests in queue by rpc call "batch" on one request
 #### func (*BulkTraceCaller) FilterTraces
 
 ```go
-func (client *BulkTraceCaller) FilterTraces(traceFilter types.TraceFilter) ([]types.LocalizedTrace, *error)
+func (client *BulkTraceCaller) FilterTraces(traceFilter types.TraceFilter) (*[]types.LocalizedTrace, *error)
 ```
 GetFilterTraces returns all traces matching the provided filter.
 
@@ -1874,12 +2155,648 @@ func (client *BulkTraceCaller) GetBlockTraces(blockHash types.Hash) (*types.Loca
 #### func (*BulkTraceCaller) GetTransactionTraces
 
 ```go
-func (client *BulkTraceCaller) GetTransactionTraces(txHash types.Hash) ([]types.LocalizedTrace, *error)
+func (client *BulkTraceCaller) GetTransactionTraces(txHash types.Hash) (*[]types.LocalizedTrace, *error)
 ```
 GetTransactionTraces returns all traces produced at the given transaction.
+
+### type BulkTxpoolCaller
+
+```go
+type BulkTxpoolCaller BulkCallerCore
+```
+
+BulkTxpoolCaller used for bulk call rpc in one request to improve efficiency
+
+#### func  NewBulkTxpoolCaller
+
+```go
+func NewBulkTxpoolCaller(core BulkCallerCore) *BulkTxpoolCaller
+```
+NewBulkTxpoolCaller creates new BulkTxpoolCaller instance
+
+#### func (*BulkTxpoolCaller) AccountPendingInfo
+
+```go
+func (client *BulkTxpoolCaller) AccountPendingInfo(address types.Address) (*types.AccountPendingInfo, *error)
+```
+/ Get transaction pending info by account address
+
+#### func (*BulkTxpoolCaller) AccountPendingTransactions
+
+```go
+func (client *BulkTxpoolCaller) AccountPendingTransactions(address types.Address, maybeStartNonce *hexutil.Big, maybeLimit *hexutil.Uint64) (*types.AccountPendingTransactions, *error)
+```
+/ Get transaction pending info by account address
+
+#### func (*BulkTxpoolCaller) Execute
+
+```go
+func (b *BulkTxpoolCaller) Execute() ([]error, error)
+```
+Execute sends all rpc requests in queue by rpc call "batch" on one request
+
+#### func (*BulkTxpoolCaller) NextNonce
+
+```go
+func (client *BulkTxpoolCaller) NextNonce(address types.Address) (*hexutil.Big, *error)
+```
+
+#### func (*BulkTxpoolCaller) PendingNonceRange
+
+```go
+func (client *BulkTxpoolCaller) PendingNonceRange(address types.Address) (*types.TxPoolPendingNonceRange, *error)
+```
+
+#### func (*BulkTxpoolCaller) Status
+
+```go
+func (client *BulkTxpoolCaller) Status() (*types.TxPoolStatus, *error)
+```
+
+#### func (*BulkTxpoolCaller) TransactionByAddressAndNonce
+
+```go
+func (client *BulkTxpoolCaller) TransactionByAddressAndNonce(address types.Address, nonce *hexutil.Big) (*types.Transaction, *error)
+```
+
+#### func (*BulkTxpoolCaller) TxWithPoolInfo
+
+```go
+func (client *BulkTxpoolCaller) TxWithPoolInfo(hash types.Hash) (*types.TxWithPoolInfo, *error)
+```
 
 ### type OutputHandler
 
 ```go
 type OutputHandler func(out []byte) error
+```
+# cfxaddress
+--
+    import "."
+
+
+
+
+```go
+const (
+	NetworkTypeMainnetPrefix NetworkType = "cfx"
+	NetworkTypeTestNetPrefix NetworkType = "cfxtest"
+
+	NetowrkTypeMainnetID uint32 = 1029
+	NetworkTypeTestnetID uint32 = 1
+)
+```
+
+```go
+var (
+	ErrorBodyLen = errors.New("Body length must be 34")
+)
+```
+
+#### func  FormatAddressStrToHex
+
+```go
+func FormatAddressStrToHex(address string) string
+```
+FormatAddressStrToHex format hex or base32 address to hex string
+
+### type Address
+
+```go
+type Address struct {
+}
+```
+
+Address represents base32 address accroding to CIP37 Use NewXXX or MustNewXXX to
+create an Address object and don't use Address{} which is an invalid address.
+
+#### func  MustNew
+
+```go
+func MustNew(base32OrHex string, networkID ...uint32) Address
+```
+MustNew create conflux address by base32 string or hex40 string, if base32OrHex
+is base32 and networkID is setted it will check if networkID match, it will
+painc if error occured.
+
+#### func  MustNewFromBase32
+
+```go
+func MustNewFromBase32(base32Str string) (address Address)
+```
+MustNewFromBase32 creates address by base32 string and panic if error
+
+#### func  MustNewFromBytes
+
+```go
+func MustNewFromBytes(hexAddress []byte, networkID ...uint32) (address Address)
+```
+MustNewFromBytes creates an address from hexAddress byte slice with networkID
+and panic if error
+
+#### func  MustNewFromCommon
+
+```go
+func MustNewFromCommon(commonAddress common.Address, networkID ...uint32) (address Address)
+```
+MustNewFromCommon creates an address from common.Address with networkID and
+panic if error
+
+#### func  MustNewFromHex
+
+```go
+func MustNewFromHex(hexAddressStr string, networkID ...uint32) (val Address)
+```
+MustNewFromHex creates address by hex address string with networkID and panic if
+error
+
+#### func  New
+
+```go
+func New(base32OrHex string, networkID ...uint32) (Address, error)
+```
+New create conflux address by base32 string or hex40 string, if base32OrHex is
+base32 and networkID is passed it will create cfx Address use networkID.
+
+#### func  NewFromBase32
+
+```go
+func NewFromBase32(base32Str string) (cfxAddress Address, err error)
+```
+NewFromBase32 creates address by base32 string
+
+#### func  NewFromBytes
+
+```go
+func NewFromBytes(hexAddress []byte, networkID ...uint32) (val Address, err error)
+```
+NewFromBytes creates an address from hexAddress byte slice with networkID
+
+#### func  NewFromCommon
+
+```go
+func NewFromCommon(commonAddress common.Address, networkID ...uint32) (val Address, err error)
+```
+NewFromCommon creates an address from common.Address with networkID
+
+#### func  NewFromHex
+
+```go
+func NewFromHex(hexAddressStr string, networkID ...uint32) (val Address, err error)
+```
+NewFromHex creates address by hex address string with networkID If not pass
+networkID, it will be auto completed when it could be obtained form context.
+
+#### func (*Address) CompleteByClient
+
+```go
+func (a *Address) CompleteByClient(client networkIDGetter) error
+```
+CompleteByClient will set networkID by client.GetNetworkID() if a.networkID not
+be 0
+
+#### func (*Address) CompleteByNetworkID
+
+```go
+func (a *Address) CompleteByNetworkID(networkID uint32) error
+```
+CompleteByNetworkID will set networkID if current networkID isn't 0
+
+#### func (*Address) DecodeRLP
+
+```go
+func (a *Address) DecodeRLP(r *rlp.Stream) error
+```
+DecodeRLP implements the rlp.Decoder interface.
+
+#### func (Address) EncodeRLP
+
+```go
+func (a Address) EncodeRLP(w io.Writer) error
+```
+EncodeRLP implements the rlp.Encoder interface.
+
+#### func (*Address) Equals
+
+```go
+func (a *Address) Equals(target *Address) bool
+```
+Equals reports whether a and target are equal
+
+#### func (*Address) GetAddressType
+
+```go
+func (a *Address) GetAddressType() AddressType
+```
+GetAddressType returuns address type
+
+#### func (*Address) GetBody
+
+```go
+func (a *Address) GetBody() Body
+```
+GetBody returns body
+
+#### func (*Address) GetChecksum
+
+```go
+func (a *Address) GetChecksum() Checksum
+```
+GetChecksum returns checksum
+
+#### func (*Address) GetHexAddress
+
+```go
+func (a *Address) GetHexAddress() string
+```
+GetHexAddress returns hex format address and panic if error
+
+#### func (*Address) GetMappedEVMSpaceAddress
+
+```go
+func (a *Address) GetMappedEVMSpaceAddress() common.Address
+```
+GetMappedEVMSpaceAddress calculate CFX space address's mapped EVM address, which
+is the last 20 bytes of cfx address's keccak256 hash
+
+#### func (*Address) GetNetworkID
+
+```go
+func (a *Address) GetNetworkID() uint32
+```
+GetNetworkID returns networkID and panic if error
+
+#### func (*Address) GetNetworkType
+
+```go
+func (a *Address) GetNetworkType() NetworkType
+```
+GetNetworkType returns network type
+
+#### func (*Address) GetShortenAddress
+
+```go
+func (a *Address) GetShortenAddress(isTail4Char ...bool) string
+```
+GetShortenAddress returns shorten string for display in dapp. When isTail4Char
+is 'true', the result will be like 'cfx:aat…sa4w', otherwise 'cfx:aat…5m81sa4w'
+
+#### func (*Address) IsValid
+
+```go
+func (a *Address) IsValid() bool
+```
+IsValid return true if address is valid
+
+#### func (Address) MarshalText
+
+```go
+func (a Address) MarshalText() ([]byte, error)
+```
+MarshalText implements the encoding.TextMarshaler interface.
+
+#### func (*Address) MustGetBase32Address
+
+```go
+func (a *Address) MustGetBase32Address() string
+```
+MustGetBase32Address returns base32 string of address which doesn't include
+address type
+
+#### func (*Address) MustGetCommonAddress
+
+```go
+func (a *Address) MustGetCommonAddress() common.Address
+```
+MustGetCommonAddress returns common address and panic if error
+
+#### func (*Address) MustGetVerboseBase32Address
+
+```go
+func (a *Address) MustGetVerboseBase32Address() string
+```
+MustGetVerboseBase32Address returns base32 string of address with address type
+
+#### func (Address) String
+
+```go
+func (a Address) String() string
+```
+String returns verbose base32 string of address
+
+#### func (*Address) ToCommon
+
+```go
+func (a *Address) ToCommon() (address common.Address, networkID uint32, err error)
+```
+ToCommon returns common.Address and networkID
+
+#### func (*Address) ToHex
+
+```go
+func (a *Address) ToHex() (hexAddressStr string, networkID uint32)
+```
+ToHex returns hex address and networkID
+
+#### func (*Address) UnmarshalJSON
+
+```go
+func (a *Address) UnmarshalJSON(data []byte) error
+```
+UnmarshalJSON implements the json.Unmarshaler interface.
+
+#### func (*Address) UnmarshalText
+
+```go
+func (a *Address) UnmarshalText(data []byte) error
+```
+
+### type AddressType
+
+```go
+type AddressType string
+```
+
+
+```go
+const (
+	AddressTypeBuiltin  AddressType = "builtin"
+	AddressTypeUser     AddressType = "user"
+	AddressTypeContract AddressType = "contract"
+	AddressTypeNull     AddressType = "null"
+	AddressTypeUnknown  AddressType = "unknown"
+)
+```
+
+#### func  CalcAddressType
+
+```go
+func CalcAddressType(hexAddress []byte) (AddressType, error)
+```
+CalcAddressType calculate address type of hexAddress
+
+#### func (AddressType) String
+
+```go
+func (a AddressType) String() string
+```
+
+#### func (AddressType) ToByte
+
+```go
+func (a AddressType) ToByte() (byte, error)
+```
+ToByte returns byte represents of address type according to CIP-37
+
+### type Body
+
+```go
+type Body [34]byte
+```
+
+Body reperents 5bits byte array of concating version byte with hex address
+
+#### func  NewBodyByHexAddress
+
+```go
+func NewBodyByHexAddress(vrsByte VersionByte, hexAddress []byte) (b Body, err error)
+```
+NewBodyByHexAddress convert concat of version type and hex address to 5 bits
+slice
+
+#### func  NewBodyByString
+
+```go
+func NewBodyByString(base32Str string) (body Body, err error)
+```
+NewBodyByString creates body by base32 string which contains version byte and
+hex address
+
+#### func (Body) String
+
+```go
+func (b Body) String() string
+```
+String return base32 string
+
+#### func (Body) ToHexAddress
+
+```go
+func (b Body) ToHexAddress() (vrsType VersionByte, hexAddress []byte, err error)
+```
+ToHexAddress decode bits5 array to version byte and hex address
+
+### type Checksum
+
+```go
+type Checksum [8]byte
+```
+
+Checksum represents by 5bits byte array
+
+#### func  CalcChecksum
+
+```go
+func CalcChecksum(nt NetworkType, body Body) (c Checksum, err error)
+```
+CalcChecksum calculates checksum by network type and body
+
+#### func (Checksum) String
+
+```go
+func (c Checksum) String() string
+```
+String returns base32 string of checksum according to CIP-37
+
+### type NetworkType
+
+```go
+type NetworkType string
+```
+
+NetworkType reprents network type mapped with network-id
+
+#### func  NewNetowrkType
+
+```go
+func NewNetowrkType(netType string) (NetworkType, error)
+```
+NewNetowrkType creates network type by string
+
+#### func  NewNetworkTypeByID
+
+```go
+func NewNetworkTypeByID(networkID uint32) NetworkType
+```
+NewNetworkTypeByID creates network type by network ID
+
+#### func (NetworkType) String
+
+```go
+func (n NetworkType) String() string
+```
+
+#### func (NetworkType) ToNetworkID
+
+```go
+func (n NetworkType) ToNetworkID() (uint32, error)
+```
+ToNetworkID returns network ID
+
+### type VersionByte
+
+```go
+type VersionByte struct {
+	TypeBits uint8
+	// current is constant 0, it's different with AddressType defined in address_type.go
+	AddressType uint8
+	SizeBits    uint8
+}
+```
+
+VersionByte conmposites by type bits, address type and size bits according above
+description from CIP-37
+
+#### func  CalcVersionByte
+
+```go
+func CalcVersionByte(hexAddress []byte) (versionByte VersionByte, err error)
+```
+CalcVersionByte calculates version byte of hex address
+
+#### func  NewVersionByte
+
+```go
+func NewVersionByte(b byte) (vt VersionByte)
+```
+NewVersionByte creates version byte by byte
+
+#### func (VersionByte) ToByte
+
+```go
+func (v VersionByte) ToByte() (byte, error)
+```
+ToByte returns byte
+# unit
+--
+    import "."
+
+
+
+
+### type Drip
+
+```go
+type Drip struct {
+}
+```
+
+Drip is minimal unit of conflux network coin, 1CFX = 10^18 DRIP
+
+#### func  NewDrip
+
+```go
+func NewDrip(value *big.Int) *Drip
+```
+
+#### func  NewDripFromString
+
+```go
+func NewDripFromString(prettyValue string) (*Drip, error)
+```
+NewDripFromString create Drip from string, prettyValue could be one part or two
+parts, if one part like "12345" that equals to "12345 Drip", if two parts like
+"1.2 CFX", the second part is unit
+
+    NewDripFromString("12345") => 12345 Drip
+    NewDripFromString("1.2 CFX") => 1.2 CFX
+
+#### func (*Drip) BigInt
+
+```go
+func (d *Drip) BigInt() *big.Int
+```
+BigInt return drip value as big.Int
+
+#### func (*Drip) Cmp
+
+```go
+func (d *Drip) Cmp(y *Drip) int
+```
+Cmp compare drip value with another drip value
+
+#### func (*Drip) Format
+
+```go
+func (d *Drip) Format(unit UnitType) decimal.Decimal
+```
+Format format drip to value with unit
+
+    d := NewDrip(big.NewInt(1000000000))
+    d.Format(UNIT_CFX) => 0.0000000001
+
+#### func (*Drip) FormatCFX
+
+```go
+func (d *Drip) FormatCFX() decimal.Decimal
+```
+FormatCFX format drip to value with unit CFX
+
+    d := NewDrip(big.NewInt(1000000000))
+    d.Format() => 0.0000000001
+
+#### func (*Drip) ParseFrom
+
+```go
+func (d *Drip) ParseFrom(value decimal.Decimal, unit UnitType) error
+```
+ParseFrom parse drip from value with uint
+
+    ParseFrom(10, UNIT_GCFX) => 10_000_000_000 Drip
+
+#### func (*Drip) ParseFromCFX
+
+```go
+func (d *Drip) ParseFromCFX(value decimal.Decimal) error
+```
+ParseFrom same to ParseFrom and unit is CFX
+
+    ParseFrom(10) => 10_000_000_000 Drip
+
+#### func (Drip) String
+
+```go
+func (d Drip) String() string
+```
+String implements Stringer interface
+
+### type UnitType
+
+```go
+type UnitType int32
+```
+
+
+```go
+const (
+	UNIT_CFX   UnitType = 18
+	UNIT_mCFX  UnitType = 15
+	UNIT_uCFX  UnitType = 12
+	UNIT_GDrip UnitType = 9
+	UNIT_MDrip UnitType = 6
+	UNIT_KDrip UnitType = 3
+	UNIT_Drip  UnitType = 0
+)
+```
+
+#### func  ParseUnitType
+
+```go
+func ParseUnitType(unitName string) (*UnitType, error)
+```
+
+#### func (UnitType) String
+
+```go
+func (u UnitType) String() string
 ```

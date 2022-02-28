@@ -44,7 +44,7 @@ type Client struct {
 	rpcDebugClient  RpcDebugClient
 }
 
-// ClientOption for set keystore path and flags for retry
+// ClientOption for set keystore path and flags for retry and timeout
 //
 // The simplest way to set logger is to use the types.DefaultCallRpcLog and types.DefaultBatchCallRPCLog
 type ClientOption struct {
@@ -57,6 +57,29 @@ type ClientOption struct {
 }
 
 // NewClient creates an instance of Client with specified conflux node url, it will creat account manager if option.KeystorePath not empty.
+// 	client, err := sdk.NewClient("https://test.confluxrpc.com", sdk.ClientOption{
+// 	    KeystorePath: "your keystore folder path",
+// 		RetryCount	: 3,
+// 	})
+//	// query rpc
+// 	epoch, err := client.GetEpochNumber()
+// 	if err != nil {
+// 		panic(err)
+// 	}
+//	// send transaction
+// 	chainID, err := client.GetNetworkID()
+// 	if err!=nil {
+// 	    panic(err)
+// 	}
+// 	from, err :=client.AccountManger().GetDefault()
+// 	if err!=nil {
+// 	    panic(err)
+// 	}
+// 	utx, err := client.CreateUnsignedTransaction(*from, cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d", chainID), types.NewBigInt(1), nil)
+// 	if err!=nil {
+// 	    panic(err)
+// 	}
+// 	txhash, err := client.SendTransaction(utx)
 func NewClient(nodeURL string, option ...ClientOption) (*Client, error) {
 	realOption := ClientOption{}
 	if len(option) > 0 {
@@ -71,6 +94,7 @@ func NewClient(nodeURL string, option ...ClientOption) (*Client, error) {
 	return client, nil
 }
 
+// MustNewClient same to NewClient but panic if failed
 func MustNewClient(nodeURL string, option ...ClientOption) *Client {
 	client, err := NewClient(nodeURL, option...)
 	if err != nil {
@@ -144,14 +168,17 @@ func (co *ClientOption) setDefault() {
 	}
 }
 
+// Pos returns RpcPosClient for invoke rpc with pos namespace
 func (client *Client) Pos() RpcPos {
 	return &client.rpcPosClient
 }
 
+// TxPool returns RpcTxPoolClient for invoke rpc with txpool namespace
 func (client *Client) TxPool() RpcTxpool {
 	return &client.rpcTxpoolClient
 }
 
+// Debug returns RpcDebugClient for invoke rpc with debug namespace
 func (client *Client) Debug() RpcDebug {
 	return &client.rpcDebugClient
 }
@@ -161,6 +188,7 @@ func (client *Client) GetNodeURL() string {
 	return client.nodeURL
 }
 
+// GetAccountManager returns account manager of client
 func (client *Client) GetAccountManager() AccountManagerOperator {
 	return client.AccountManager
 }
@@ -361,11 +389,13 @@ func (client *Client) GetBlockSummaryByEpoch(epoch *types.Epoch) (blockSummary *
 	return
 }
 
+// GetBlockByHash returns the block of specified block number
 func (client *Client) GetBlockByBlockNumber(blockNumer hexutil.Uint64) (block *types.Block, err error) {
 	err = client.wrappedCallRPC(&block, "cfx_getBlockByBlockNumber", blockNumer, true)
 	return
 }
 
+// GetBlockSummaryByBlockNumber returns the block summary of specified block number.
 func (client *Client) GetBlockSummaryByBlockNumber(blockNumer hexutil.Uint64) (block *types.BlockSummary, err error) {
 	err = client.wrappedCallRPC(&block, "cfx_getBlockByBlockNumber", blockNumer, false)
 	return
@@ -914,21 +944,25 @@ func (client *Client) GetAccountPendingInfo(address types.Address) (pendignInfo 
 	return
 }
 
+// GetAccountPendingTransactions get transaction pending info by account address
 func (client *Client) GetAccountPendingTransactions(address types.Address, startNonce *hexutil.Big, limit *hexutil.Uint64) (pendingTxs types.AccountPendingTransactions, err error) {
 	err = client.wrappedCallRPC(&pendingTxs, "cfx_getAccountPendingTransactions", address, startNonce, limit)
 	return
 }
 
+// GetPoSEconomics returns accumulate interest rate of the given epoch
 func (client *Client) GetPoSEconomics(epoch ...*types.Epoch) (posEconomics types.PoSEconomics, err error) {
 	err = client.wrappedCallRPC(&posEconomics, "cfx_getPoSEconomics", get1stEpochIfy(epoch))
 	return
 }
 
+// GetOpenedMethodGroups returns openning method groups
 func (client *Client) GetOpenedMethodGroups() (openedGroups []string, err error) {
 	err = client.wrappedCallRPC(&openedGroups, "cfx_openedMethodGroups")
 	return
 }
 
+// GetPoSRewardByEpoch returns PoS reward in the epoch
 func (client *Client) GetPoSRewardByEpoch(epoch types.Epoch) (reward *postypes.EpochReward, err error) {
 	err = client.wrappedCallRPC(&reward, "cfx_getPoSRewardByEpoch")
 	return

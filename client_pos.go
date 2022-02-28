@@ -6,10 +6,12 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
+// RpcPosClient used to access pos namespace RPC of Conflux blockchain.
 type RpcPosClient struct {
 	core *Client
 }
 
+// NewRpcPosClient creates a new RpcPosClient instance.
 func NewRpcPosClient(core *Client) RpcPosClient {
 	return RpcPosClient{core}
 }

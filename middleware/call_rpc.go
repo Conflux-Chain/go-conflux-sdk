@@ -10,18 +10,21 @@ import (
 	"github.com/fatih/color"
 )
 
+// CallRpcHandler represents interface of call rpc handler
 type CallRpcHandler interface {
 	Handle(result interface{}, method string, args ...interface{}) error
 }
 
 type CallRpcHandlerFunc func(result interface{}, method string, args ...interface{}) error
 
+// CallRpcMiddleware represents the middleware for call rpc
 type CallRpcMiddleware func(CallRpcHandler) CallRpcHandler
 
 func (c CallRpcHandlerFunc) Handle(result interface{}, method string, args ...interface{}) error {
 	return c(result, method, args...)
 }
 
+// CallRpcConsoleMiddleware is the middleware for console request and response when call rpc
 func CallRpcConsoleMiddleware(handler CallRpcHandler) CallRpcHandler {
 	logFn := func(result interface{}, method string, args ...interface{}) error {
 

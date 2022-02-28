@@ -54,6 +54,7 @@ func (tx *SignedTransaction) Encode() ([]byte, error) {
 	return encoded, nil
 }
 
+// Hash calculates the hash of the transaction rlp encode result
 func (tx *SignedTransaction) Hash() ([]byte, error) {
 	encoded, err := tx.Encode()
 	if err != nil {
@@ -63,6 +64,7 @@ func (tx *SignedTransaction) Hash() ([]byte, error) {
 	return crypto.Keccak256(encoded), nil
 }
 
+// Sender recovers the sender from a signed transaction
 func (tx *SignedTransaction) Sender(networkId uint32) (Address, error) {
 	hash, err := tx.UnsignedTransaction.Hash()
 	if err != nil {
@@ -78,6 +80,7 @@ func (tx *SignedTransaction) Sender(networkId uint32) (Address, error) {
 	return addressutil.PubkeyToAddress(pubStr, networkId)
 }
 
+// Signature returns the signature of the transaction
 func (tx *SignedTransaction) Signature() []byte {
 	sig := []byte(tx.R)
 	sig = append(sig, tx.S...)
