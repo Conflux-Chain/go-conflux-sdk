@@ -361,11 +361,13 @@ func (client *Client) GetBlockSummaryByEpoch(epoch *types.Epoch) (blockSummary *
 	return
 }
 
+// GetBlockByHash returns the block of specified block number
 func (client *Client) GetBlockByBlockNumber(blockNumer hexutil.Uint64) (block *types.Block, err error) {
 	err = client.wrappedCallRPC(&block, "cfx_getBlockByBlockNumber", blockNumer, true)
 	return
 }
 
+// GetBlockSummaryByBlockNumber returns the block summary of specified block number.
 func (client *Client) GetBlockSummaryByBlockNumber(blockNumer hexutil.Uint64) (block *types.BlockSummary, err error) {
 	err = client.wrappedCallRPC(&block, "cfx_getBlockByBlockNumber", blockNumer, false)
 	return
@@ -914,11 +916,13 @@ func (client *Client) GetAccountPendingInfo(address types.Address) (pendignInfo 
 	return
 }
 
+// GetAccountPendingTransactions get transaction pending info by account address
 func (client *Client) GetAccountPendingTransactions(address types.Address, startNonce *hexutil.Big, limit *hexutil.Uint64) (pendingTxs types.AccountPendingTransactions, err error) {
 	err = client.wrappedCallRPC(&pendingTxs, "cfx_getAccountPendingTransactions", address, startNonce, limit)
 	return
 }
 
+/// Returns accumulate interest rate of the given epoch
 func (client *Client) GetPoSEconomics(epoch ...*types.Epoch) (posEconomics types.PoSEconomics, err error) {
 	err = client.wrappedCallRPC(&posEconomics, "cfx_getPoSEconomics", get1stEpochIfy(epoch))
 	return

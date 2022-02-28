@@ -1162,7 +1162,7 @@ HexStringToBytes converts hex string to bytes
 ```go
 func IsNil(i interface{}) bool
 ```
-IsNil sepecialy checks if interface object is nil
+IsNil checks if interface object is nil
 
 #### func  IsRPCJSONError
 
