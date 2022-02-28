@@ -22,7 +22,7 @@ func CalcBlockConfirmationRisk(rawConfirmationRisk *big.Int) *big.Float {
 	return riskRate
 }
 
-// IsNil sepecialy checks if interface object is nil
+// IsNil checks if interface object is nil
 func IsNil(i interface{}) bool {
 
 	if i == nil {

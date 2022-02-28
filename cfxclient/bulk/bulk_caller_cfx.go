@@ -2,6 +2,7 @@ package bulk
 
 import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -455,6 +456,36 @@ func (client *BulkCfxCaller) GetAccountPendingTransactions(address types.Address
 	err := new(error)
 
 	elem := newBatchElem(result, "cfx_getAccountPendingTransactions", address, startNonce, limit)
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
+	return result, err
+}
+
+// GetPoSEconomics returns accumulate interest rate of the given epoch
+func (client *BulkCfxCaller) GetPoSEconomics(epoch ...*types.Epoch) (*types.PoSEconomics, *error) {
+	result := new(types.PoSEconomics)
+	err := new(error)
+
+	elem := newBatchElem(result, "cfx_getPoSEconomics", get1stEpochIfy(epoch))
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
+	return result, err
+}
+
+// GetOpenedMethodGroups returns openning method groups
+func (client *BulkCfxCaller) GetOpenedMethodGroups() (*[]string, *error) {
+	result := new([]string)
+	err := new(error)
+
+	elem := newBatchElem(result, "cfx_openedMethodGroups")
+	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
+	return result, err
+}
+
+// GetPoSRewardByEpoch returns PoS reward in the epoch
+func (client *BulkCfxCaller) GetPoSRewardByEpoch(epoch types.Epoch) (*postypes.EpochReward, *error) {
+	result := new(postypes.EpochReward)
+	err := new(error)
+
+	elem := newBatchElem(result, "cfx_getPoSRewardByEpoch")
 	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }

@@ -19,6 +19,7 @@ func (b *BulkDebugCaller) Execute() ([]error, error) {
 	return batchCall(b.caller, b.batchElems, nil)
 }
 
+// GetEpochReceiptsByEpochNumber returns epoch receipts by epoch number
 func (client *BulkDebugCaller) GetEpochReceipts(epoch types.Epoch) (*[][]types.TransactionReceipt, *error) {
 	result := new([][]types.TransactionReceipt)
 	err := new(error)
@@ -29,6 +30,7 @@ func (client *BulkDebugCaller) GetEpochReceipts(epoch types.Epoch) (*[][]types.T
 	return result, err
 }
 
+// GetEpochReceiptsByPivotBlockHash returns epoch receipts by pivot block hash
 func (client *BulkDebugCaller) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (*[][]types.TransactionReceipt, *error) {
 	result := new([][]types.TransactionReceipt)
 	err := new(error)

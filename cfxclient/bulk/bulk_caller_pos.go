@@ -19,10 +19,7 @@ func (b *BulkPosCaller) Execute() ([]error, error) {
 	return batchCall(b.caller, b.batchElems, nil)
 }
 
-//ignore
-
-//ignore
-
+// GetStatus returns pos chain status
 func (client *BulkPosCaller) GetStatus() (*postypes.Status, *error) {
 	result := new(postypes.Status)
 	err := new(error)

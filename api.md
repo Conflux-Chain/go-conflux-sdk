@@ -205,6 +205,7 @@ Client represents a client to interact with Conflux blockchain.
 ```go
 func MustNewClient(nodeURL string, option ...ClientOption) *Client
 ```
+MustNewClient same to NewClient but panic if failed
 
 #### func  NewClient
 
@@ -213,6 +214,30 @@ func NewClient(nodeURL string, option ...ClientOption) (*Client, error)
 ```
 NewClient creates an instance of Client with specified conflux node url, it will
 creat account manager if option.KeystorePath not empty.
+
+    client, err := sdk.NewClient("https://test.confluxrpc.com", sdk.ClientOption{
+        KeystorePath: "../context/keystore",
+    	RetryCount	: 3,
+    })
+    // query rpc
+    epoch, err := client.GetEpochNumber()
+    if err != nil {
+    	panic(err)
+    }
+    // send transaction
+    chainID, err := client.GetNetworkID()
+    if err!=nil {
+        panic(err)
+    }
+    from, err :=client.AccountManger().GetDefault()
+    if err!=nil {
+        panic(err)
+    }
+    utx, err := client.CreateUnsignedTransaction(*from, cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d", chainID), types.NewBigInt(1), nil)
+    if err!=nil {
+        panic(err)
+    }
+    txhash, err := client.SendTransaction(utx)
 
 #### func  NewClientWithRPCRequester
 
@@ -338,6 +363,7 @@ other fields will be set to values fetched from conflux node.
 ```go
 func (client *Client) Debug() RpcDebug
 ```
+Debug returns RpcDebugClient for invoke rpc with debug namespace
 
 #### func (*Client) DeployContract
 
@@ -376,6 +402,7 @@ GetAccountInfo returns account related states of the given account
 ```go
 func (client *Client) GetAccountManager() AccountManagerOperator
 ```
+GetAccountManager returns account manager of client
 
 #### func (*Client) GetAccountPendingInfo
 
@@ -389,6 +416,7 @@ GetAccountPendingInfo gets transaction pending info by account address
 ```go
 func (client *Client) GetAccountPendingTransactions(address types.Address, startNonce *hexutil.Big, limit *hexutil.Uint64) (pendingTxs types.AccountPendingTransactions, err error)
 ```
+GetAccountPendingTransactions get transaction pending info by account address
 
 #### func (*Client) GetAccumulateInterestRate
 
@@ -424,6 +452,7 @@ GetBestBlockHash returns the current best block hash.
 ```go
 func (client *Client) GetBlockByBlockNumber(blockNumer hexutil.Uint64) (block *types.Block, err error)
 ```
+GetBlockByHash returns the block of specified block number
 
 #### func (*Client) GetBlockByEpoch
 
@@ -471,6 +500,8 @@ GetBlockRewardInfo returns block reward information in an epoch
 ```go
 func (client *Client) GetBlockSummaryByBlockNumber(blockNumer hexutil.Uint64) (block *types.BlockSummary, err error)
 ```
+GetBlockSummaryByBlockNumber returns the block summary of specified block
+number.
 
 #### func (*Client) GetBlockSummaryByEpoch
 
@@ -631,18 +662,21 @@ GetNodeURL returns node url
 ```go
 func (client *Client) GetOpenedMethodGroups() (openedGroups []string, err error)
 ```
+GetOpenedMethodGroups returns openning method groups
 
 #### func (*Client) GetPoSEconomics
 
 ```go
 func (client *Client) GetPoSEconomics(epoch ...*types.Epoch) (posEconomics types.PoSEconomics, err error)
 ```
+GetPoSEconomics returns accumulate interest rate of the given epoch
 
 #### func (*Client) GetPoSRewardByEpoch
 
 ```go
 func (client *Client) GetPoSRewardByEpoch(epoch types.Epoch) (reward *postypes.EpochReward, err error)
 ```
+GetPoSRewardByEpoch returns PoS reward in the epoch
 
 #### func (*Client) GetPosRewardByEpoch
 
@@ -762,6 +796,7 @@ networkID of current client.
 ```go
 func (client *Client) Pos() RpcPos
 ```
+Pos returns RpcPosClient for invoke rpc with pos namespace
 
 #### func (*Client) SendRawTransaction
 
@@ -822,6 +857,7 @@ consensus.
 ```go
 func (client *Client) TxPool() RpcTxpool
 ```
+TxPool returns RpcTxPoolClient for invoke rpc with txpool namespace
 
 #### func (*Client) UseBatchCallRpcMiddleware
 
@@ -868,7 +904,7 @@ type ClientOption struct {
 }
 ```
 
-ClientOption for set keystore path and flags for retry
+ClientOption for set keystore path and flags for retry and timeout
 
 The simplest way to set logger is to use the types.DefaultCallRpcLog and
 types.DefaultBatchCallRPCLog
@@ -966,31 +1002,35 @@ type RpcDebugClient struct {
 }
 ```
 
+RpcDebugClient used to access debug namespace RPC of Conflux blockchain.
 
 #### func  NewRpcDebugClient
 
 ```go
 func NewRpcDebugClient(core *Client) RpcDebugClient
 ```
+NewRpcDebugClient creates a new RpcDebugClient instance.
 
 #### func (*RpcDebugClient) GetEpochReceipts
 
 ```go
 func (c *RpcDebugClient) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error)
 ```
+GetEpochReceiptsByEpochNumber returns epoch receipts by epoch number
 
 #### func (*RpcDebugClient) GetEpochReceiptsByPivotBlockHash
 
 ```go
 func (c *RpcDebugClient) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error)
 ```
+GetEpochReceiptsByPivotBlockHash returns epoch receipts by pivot block hash
 
 #### func (*RpcDebugClient) TxpoolGetAccountTransactions
 
 ```go
 func (c *RpcDebugClient) TxpoolGetAccountTransactions(address types.Address) (val []types.Transaction, err error)
 ```
-return account ready + deferred transactions
+TxpoolGetAccountTransactions returns account ready + deferred transactions
 
 ### type RpcPosClient
 
@@ -999,12 +1039,14 @@ type RpcPosClient struct {
 }
 ```
 
+RpcPosClient used to access pos namespace RPC of Conflux blockchain.
 
 #### func  NewRpcPosClient
 
 ```go
 func NewRpcPosClient(core *Client) RpcPosClient
 ```
+NewRpcPosClient creates a new RpcPosClient instance.
 
 #### func (*RpcPosClient) GetAccount
 
@@ -1062,12 +1104,14 @@ type RpcTxpoolClient struct {
 }
 ```
 
+RpcTxpoolClient used to access txpool namespace RPC of Conflux blockchain.
 
 #### func  NewRpcTxpoolClient
 
 ```go
 func NewRpcTxpoolClient(core *Client) RpcTxpoolClient
 ```
+NewRpcTxpoolClient creates a new RpcTxpoolClient instance.
 
 #### func (*RpcTxpoolClient) AccountPendingInfo
 
@@ -1088,30 +1132,36 @@ func (c *RpcTxpoolClient) AccountPendingTransactions(address types.Address, mayb
 ```go
 func (c *RpcTxpoolClient) NextNonce(address types.Address) (val *hexutil.Big, err error)
 ```
+NextNonce returns next nonce of account, including pending transactions
 
 #### func (*RpcTxpoolClient) PendingNonceRange
 
 ```go
 func (c *RpcTxpoolClient) PendingNonceRange(address types.Address) (val types.TxPoolPendingNonceRange, err error)
 ```
+PendingNonceRange returns pending nonce range in txpool of account
 
 #### func (*RpcTxpoolClient) Status
 
 ```go
 func (c *RpcTxpoolClient) Status() (val types.TxPoolStatus, err error)
 ```
+Status returns txpool status
 
 #### func (*RpcTxpoolClient) TransactionByAddressAndNonce
 
 ```go
 func (c *RpcTxpoolClient) TransactionByAddressAndNonce(address types.Address, nonce *hexutil.Big) (val *types.Transaction, err error)
 ```
+TransactionByAddressAndNonce returns transaction info in txpool by account
+address and nonce
 
 #### func (*RpcTxpoolClient) TxWithPoolInfo
 
 ```go
 func (c *RpcTxpoolClient) TxWithPoolInfo(hash types.Hash) (val types.TxWithPoolInfo, err error)
 ```
+TxWithPoolInfo returns transaction with txpool info by transaction hash
 ## package utils
 ```
 import "."
@@ -1443,15 +1493,6 @@ Withdraw `amount` cfx from this contract
 --
     import "."
 
-This file is auto-generated by bulk_generator, please don't edit
-
-This file is auto-generated by bulk_generator, please don't edit
-
-This file is auto-generated by bulk_generator, please don't edit
-
-This file is auto-generated by bulk_generator, please don't edit
-
-This file is auto-generated by bulk_generator, please don't edit
 
 
 
@@ -1620,6 +1661,7 @@ GetAccountPendingInfo gets transaction pending info by account address
 ```go
 func (client *BulkCfxCaller) GetAccountPendingTransactions(address types.Address, startNonce *hexutil.Big, limit *hexutil.Uint64) (*types.AccountPendingTransactions, *error)
 ```
+GetAccountPendingTransactions get transaction pending info by account address
 
 #### func (*BulkCfxCaller) GetAccumulateInterestRate
 
@@ -1655,6 +1697,7 @@ GetBestBlockHash returns the current best block hash.
 ```go
 func (client *BulkCfxCaller) GetBlockByBlockNumber(blockNumer hexutil.Uint64) (*types.Block, *error)
 ```
+GetBlockByHash returns the block of specified block number
 
 #### func (*BulkCfxCaller) GetBlockByEpoch
 
@@ -1692,6 +1735,8 @@ GetBlockRewardInfo returns block reward information in an epoch
 ```go
 func (client *BulkCfxCaller) GetBlockSummaryByBlockNumber(blockNumer hexutil.Uint64) (*types.BlockSummary, *error)
 ```
+GetBlockSummaryByBlockNumber returns the block summary of specified block
+number.
 
 #### func (*BulkCfxCaller) GetBlockSummaryByEpoch
 
@@ -1749,12 +1794,14 @@ GetDepositList returns deposit list of the given account.
 ```go
 func (client *BulkCfxCaller) GetEpochNumber(epoch ...*types.Epoch) (*hexutil.Big, *error)
 ```
+GetEpochNumber returns the highest or specified epoch number.
 
 #### func (*BulkCfxCaller) GetGasPrice
 
 ```go
 func (client *BulkCfxCaller) GetGasPrice() (*hexutil.Big, *error)
 ```
+GetGasPrice returns the recent mean gas price.
 
 #### func (*BulkCfxCaller) GetInterestRate
 
@@ -1776,6 +1823,27 @@ GetLogs returns logs that matching the specified filter.
 func (client *BulkCfxCaller) GetNextNonce(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, *error)
 ```
 GetNextNonce returns the next transaction nonce of address
+
+#### func (*BulkCfxCaller) GetOpenedMethodGroups
+
+```go
+func (client *BulkCfxCaller) GetOpenedMethodGroups() (*[]string, *error)
+```
+GetOpenedMethodGroups returns openning method groups
+
+#### func (*BulkCfxCaller) GetPoSEconomics
+
+```go
+func (client *BulkCfxCaller) GetPoSEconomics(epoch ...*types.Epoch) (*types.PoSEconomics, *error)
+```
+GetPoSEconomics returns accumulate interest rate of the given epoch
+
+#### func (*BulkCfxCaller) GetPoSRewardByEpoch
+
+```go
+func (client *BulkCfxCaller) GetPoSRewardByEpoch(epoch types.Epoch) (*postypes.EpochReward, *error)
+```
+GetPoSRewardByEpoch returns PoS reward in the epoch
 
 #### func (*BulkCfxCaller) GetRawBlockConfirmationRisk
 
@@ -1918,12 +1986,14 @@ Execute sends all rpc requests in queue by rpc call "batch" on one request
 ```go
 func (client *BulkDebugCaller) GetEpochReceipts(epoch types.Epoch) (*[][]types.TransactionReceipt, *error)
 ```
+GetEpochReceiptsByEpochNumber returns epoch receipts by epoch number
 
 #### func (*BulkDebugCaller) GetEpochReceiptsByPivotBlockHash
 
 ```go
 func (client *BulkDebugCaller) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (*[][]types.TransactionReceipt, *error)
 ```
+GetEpochReceiptsByPivotBlockHash returns epoch receipts by pivot block hash
 
 ### type BulkPosCaller
 
@@ -1987,6 +2057,7 @@ GetRewardsByEpoch returns rewards of epoch
 ```go
 func (client *BulkPosCaller) GetStatus() (*postypes.Status, *error)
 ```
+GetStatus returns pos chain status
 
 #### func (*BulkPosCaller) GetTransactionByNumber
 
@@ -2620,6 +2691,7 @@ type Drip struct {
 }
 ```
 
+Drip is minimal unit of conflux network coin, 1CFX = 10^18 DRIP
 
 #### func  NewDrip
 
@@ -2632,48 +2704,71 @@ func NewDrip(value *big.Int) *Drip
 ```go
 func NewDripFromString(prettyValue string) (*Drip, error)
 ```
+NewDripFromString create Drip from string, prettyValue could be one part or two
+parts, if one part like "12345" that equals to "12345 Drip", if two parts like
+"1.2 CFX", the second part is unit
+
+    NewDripFromString("12345") => 12345 Drip
+    NewDripFromString("1.2 CFX") => 1.2 CFX
 
 #### func (*Drip) BigInt
 
 ```go
 func (d *Drip) BigInt() *big.Int
 ```
+BigInt return drip value as big.Int
 
 #### func (*Drip) Cmp
 
 ```go
 func (d *Drip) Cmp(y *Drip) int
 ```
+Cmp compare drip value with another drip value
 
 #### func (*Drip) Format
 
 ```go
 func (d *Drip) Format(unit UnitType) decimal.Decimal
 ```
+Format format drip to value with unit
+
+    d := NewDrip(big.NewInt(1000000000))
+    d.Format(UNIT_CFX) => 0.0000000001
 
 #### func (*Drip) FormatCFX
 
 ```go
 func (d *Drip) FormatCFX() decimal.Decimal
 ```
+FormatCFX format drip to value with unit CFX
+
+    d := NewDrip(big.NewInt(1000000000))
+    d.Format() => 0.0000000001
 
 #### func (*Drip) ParseFrom
 
 ```go
 func (d *Drip) ParseFrom(value decimal.Decimal, unit UnitType) error
 ```
+ParseFrom parse drip from value with uint
+
+    ParseFrom(10, UNIT_GCFX) => 10_000_000_000 Drip
 
 #### func (*Drip) ParseFromCFX
 
 ```go
 func (d *Drip) ParseFromCFX(value decimal.Decimal) error
 ```
+ParseFrom same to ParseFrom and unit is CFX
+
+    ParseFrom(10) => 10_000_000_000 Drip
 
 #### func (Drip) String
 
 ```go
 func (d Drip) String() string
 ```
+String implements Stringer interface
 
 ### type UnitType
 

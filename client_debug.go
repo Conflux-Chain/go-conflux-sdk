@@ -23,6 +23,7 @@ func (c *RpcDebugClient) TxpoolGetAccountTransactions(address types.Address) (va
 	return
 }
 
+// GetEpochReceiptsByEpochNumber returns epoch receipts by epoch number
 func (c *RpcDebugClient) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
 	err = c.core.CallRPC(&receipts, "cfx_getEpochReceipts", epoch)
 	if ok, code := sdkErrors.DetectErrorCode(err); ok {
@@ -31,6 +32,7 @@ func (c *RpcDebugClient) GetEpochReceipts(epoch types.Epoch) (receipts [][]types
 	return
 }
 
+// GetEpochReceiptsByPivotBlockHash returns epoch receipts by pivot block hash
 func (c *RpcDebugClient) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error) {
 	err = c.core.CallRPC(&receipts, "cfx_getEpochReceipts", fmt.Sprintf("hash:%v", hash))
 	if ok, code := sdkErrors.DetectErrorCode(err); ok {

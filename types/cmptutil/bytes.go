@@ -6,6 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
+// Bytes for unmarshalling both hex and byte array
 type Bytes []byte
 
 func (b Bytes) MarshalText() ([]byte, error) {
