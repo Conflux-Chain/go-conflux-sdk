@@ -58,7 +58,7 @@ type ClientOption struct {
 
 // NewClient creates an instance of Client with specified conflux node url, it will creat account manager if option.KeystorePath not empty.
 // 	client, err := sdk.NewClient("https://test.confluxrpc.com", sdk.ClientOption{
-// 	    KeystorePath: "../context/keystore",
+// 	    KeystorePath: "your keystore folder path",
 // 		RetryCount	: 3,
 // 	})
 //	// query rpc
