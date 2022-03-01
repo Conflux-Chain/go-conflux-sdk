@@ -9,6 +9,7 @@ import (
 	crand "crypto/rand"
 	"encoding/hex"
 	"io/ioutil"
+	"sync"
 	"time"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
@@ -34,8 +35,9 @@ var (
 
 // AccountManager manages Conflux accounts.
 type AccountManager struct {
-	ks            *keystore.KeyStore
-	cfxAddressDic map[string]accounts.Account
+	ks *keystore.KeyStore
+	// cfxAddressDic map[string]accounts.Account
+	cfxAddressDic sync.Map
 	networkID     uint32
 }
 
@@ -46,11 +48,10 @@ func NewAccountManager(keydir string, networkID uint32) *AccountManager {
 	am.networkID = networkID
 
 	am.ks = keystore.NewKeyStore(keydir, keystore.StandardScryptN, keystore.StandardScryptP)
-	am.cfxAddressDic = make(map[string]accounts.Account)
 
 	for _, account := range am.ks.Accounts() {
 		addr := getCfxUserAddress(account, networkID)
-		am.cfxAddressDic[addr.GetHexAddress()] = account
+		am.cfxAddressDic.Store(addr.GetHexAddress(), account)
 	}
 
 	return am
@@ -64,7 +65,7 @@ func (m *AccountManager) Create(passphrase string) (address types.Address, err e
 	}
 
 	addr := getCfxUserAddress(account, m.networkID)
-	m.cfxAddressDic[addr.GetHexAddress()] = account
+	m.cfxAddressDic.Store(addr.GetHexAddress(), account)
 	return addr, nil
 }
 
@@ -111,8 +112,7 @@ func (m *AccountManager) Import(keyFile, passphrase, newPassphrase string) (addr
 	}
 
 	address = getCfxUserAddress(account, m.networkID)
-
-	m.cfxAddressDic[address.GetHexAddress()] = account
+	m.cfxAddressDic.Store(address.GetHexAddress(), account)
 	return
 }
 
@@ -133,7 +133,7 @@ func (m *AccountManager) ImportKey(keyString string, passphrase string) (address
 	}
 
 	address = getCfxUserAddress(account, m.networkID)
-	m.cfxAddressDic[address.GetHexAddress()] = account
+	m.cfxAddressDic.Store(address.GetHexAddress(), account)
 	return
 }
 
@@ -182,9 +182,7 @@ func (m *AccountManager) List() []types.Address {
 	result := make([]types.Address, 0)
 
 	for _, account := range m.ks.Accounts() {
-
 		cfxAddress := getCfxUserAddress(account, m.networkID)
-		// fmt.Printf("list %v %v\n", m.networkID, cfxAddress)
 		result = append(result, cfxAddress)
 	}
 
@@ -202,12 +200,12 @@ func (m *AccountManager) GetDefault() (*types.Address, error) {
 }
 
 func (m *AccountManager) account(address types.Address) (accounts.Account, error) {
-	realAccount := m.cfxAddressDic[address.GetHexAddress()]
-	if realAccount == emptyAccount {
+	realAccount, ok := m.cfxAddressDic.Load(address.GetHexAddress())
+	if !ok {
 		return emptyAccount, sdkErrors.NewAccountNotFoundError(address)
 	}
 
-	return realAccount, nil
+	return realAccount.(accounts.Account), nil
 }
 
 // Unlock unlocks the specified account indefinitely.
