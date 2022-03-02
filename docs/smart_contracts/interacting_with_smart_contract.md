@@ -1,17 +1,17 @@
 
 ## Interaca with Smart Contract
 
-The simplest and recommended way is to use [conflux-abigen](https://github.com/Conflux-Chain/conflux-abigen) to generate contract binding to deploy and invoke with contract
+The simplest and recommended way is to use [conflux-abigen](../cfxabigen.md) to generate contract binding to deploy and invoke with contract
 
-### [Deploy Contract](https://github.com/Conflux-Chain/conflux-abigen#deploy-contract)
+### [Deploy Contract](../cfxabigen.md#deploy-contract)
 
-### [Accessing an Conflux contract](https://github.com/Conflux-Chain/conflux-abigen#accessing-an-conflux-contract)
+### [Accessing an Conflux contract](../cfxabigen.md#accessing-an-conflux-contract)
 
-### [Transacting with an Conflux contract](https://github.com/Conflux-Chain/conflux-abigen#transacting-with-an-conflux-contract)
+### [Transacting with an Conflux contract](../cfxabigen.md#transacting-with-an-conflux-contract)
 
-### [Batch Accessing an Conflux contract](https://github.com/Conflux-Chain/conflux-abigen#batch-accessing-an-conflux-contract)
+### [Batch Accessing an Conflux contract](../cfxabigen.md#batch-accessing-an-conflux-contract)
 
-### [Batch Transacting with an Conflux contract](https://github.com/Conflux-Chain/conflux-abigen#batch-transacting-with-an-conflux-contract)
+### [Batch Transacting with an Conflux contract](../cfxabigen.md#batch-transacting-with-an-conflux-contract)
 
 ## Direct interact with go-conflux-sdk ***[Depreated]***
 

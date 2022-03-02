@@ -90,7 +90,7 @@ To call a smart contract:
 result,err := yourContract.someMethod(<*bind.CallOpts>, <param1>, ...);
 ```
 
-For more information refer to  [conflux-abigen](https://github.com/Conflux-Chain/conflux-abigen#readme)
+For more information refer to  [conflux-abigen](..//cfxabigen.md#readme)
 
 Smart contract examples
 -----------------------
