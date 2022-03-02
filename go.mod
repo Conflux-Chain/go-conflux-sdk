@@ -13,6 +13,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	gopkg.in/urfave/cli.v1 v1.20.0
 	gotest.tools v2.2.0+incompatible
+
 )
 
 // replace github.com/ethereum/go-ethereum => ../../ethereum/go-ethereum
