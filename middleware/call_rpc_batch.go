@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/fatih/color"
+	rpc "github.com/openweb3/go-rpc-provider"
 )
 
 // BatchCallRpcHandler represents interface of batch call rpc handler

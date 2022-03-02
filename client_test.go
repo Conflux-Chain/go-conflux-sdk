@@ -15,7 +15,7 @@ import (
 	. "bou.ke/monkey"
 	// "github.com/ethereum/go-ethereum/rpc"
 
-	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
+	rpc "github.com/openweb3/go-rpc-provider"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

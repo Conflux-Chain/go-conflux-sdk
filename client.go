@@ -14,11 +14,11 @@ import (
 
 	"github.com/Conflux-Chain/go-conflux-sdk/constants"
 	"github.com/Conflux-Chain/go-conflux-sdk/middleware"
-	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	sdkerrors "github.com/Conflux-Chain/go-conflux-sdk/types/errors"
 	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
+	rpc "github.com/openweb3/go-rpc-provider"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"

@@ -7,7 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
-	rpc "github.com/Conflux-Chain/go-conflux-sdk/rpc"
+	rpc "github.com/openweb3/go-rpc-provider"
 )
 
 var (

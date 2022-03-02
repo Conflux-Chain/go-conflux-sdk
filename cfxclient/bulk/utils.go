@@ -1,9 +1,9 @@
 package bulk
 
 import (
-	"github.com/Conflux-Chain/go-conflux-sdk/rpc"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	rpc "github.com/openweb3/go-rpc-provider"
 )
 
 func get1stEpochIfy(epoch []*types.Epoch) *types.Epoch {
