@@ -103,7 +103,7 @@ var (
 )
 
 func init() {
-	app = flags.NewApp(gitCommit, gitDate, "conflux checkpoint helper tool")
+	app = flags.NewApp(gitCommit, gitDate, "Conflux-Abigen is migrated from Ethereum tool Abigen for generating Go language bindings to any smart contract")
 	app.Flags = []cli.Flag{
 		abiFlag,
 		binFlag,
@@ -120,7 +120,8 @@ func init() {
 		aliasFlag,
 	}
 	app.Action = utils.MigrateFlags(abigen)
-	// cli.CommandHelpTemplate = flags.OriginCommandHelpTemplate
+	app.Description = "Migrated from Ethereum tool Abigen"
+	app.CustomAppHelpTemplate = flags.AbigenTemplate
 }
 
 func abigen(c *cli.Context) error {
