@@ -34,7 +34,7 @@ fmt.Printf("nonce %v", nonce)
 
 ### Batch call contract
 1. New `BulkCaller`
-2. Use [`abigen`](https://github.com/Conflux-Chain/conflux-abigen) to generate contract binding
+2. Use [`abigen`](../cfxabigen.md) to generate contract binding
 3. There is a struct called `XXXBulkCaller` *(XXX means your contract name)* for bulk call contract methods
 4. `XXXBulkCaller.YourContractMethod` to append request to its first parameter which is `BulkCaller` instance created in step 1, and the returned result and error arepointersr for saving results after requests be sent.
 5. `BulkCaller.Execute` to send requests.
@@ -91,7 +91,7 @@ for i := 0; i < len(hashes); i++ {
 [Example Location](https://github.com/conflux-fans/go-conflux-sdk-examples/blob/9074ff226371a3610e5f98cfb4bd32c4ae3d126e/example_bulk/main.go#L127)
 
 ### Batch send contract transaction
-1. Use [`abigen`](https://github.com/Conflux-Chain/conflux-abigen) to generate contract binding
+1. Use [`abigen`](../cfxabigen.md) to generate contract binding
 2. There is a struct called `XXXBulkTransactor` *(XXX means your contract name)* for bulk send contract transactions
 3. `BulkSender.SignAndSend` to send requests. The transaction hashes and errors will be returned. All of them are slice with the same length of appended transactions.
 4. `BulkSender.Clear` to clear request cache for new bulk send action.
