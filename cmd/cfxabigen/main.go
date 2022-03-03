@@ -103,7 +103,8 @@ var (
 )
 
 func init() {
-	app = flags.NewApp(gitCommit, gitDate, "Conflux-Abigen is migrated from Ethereum tool Abigen for generating Go language bindings to any smart contract")
+	app = flags.NewApp(gitCommit, gitDate,
+		"cfxabigen is a source code generator to convert Conflux contract definitions into easy to use, compile-time type-safe Go packages")
 	app.Flags = []cli.Flag{
 		abiFlag,
 		binFlag,
