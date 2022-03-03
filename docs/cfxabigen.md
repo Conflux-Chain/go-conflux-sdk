@@ -1,5 +1,7 @@
 # Conflux-Abigen
-Conflux-Abigen is migrated from Ethereum tool Abigen. 
+Conflux-Abigen is migrated from Ethereum tool [Abigen](https://geth.ethereum.org/docs/dapp/native-bindings).
+
+Conflux-Abigen, like Abigen, is a source code generator to convert Conflux contract definitions into easy to use, compile-time type-safe Go packages. It operates on plain [Ethereum contract ABIs](https://docs.soliditylang.org/en/develop/abi-spec.html) with expanded functionality if the contract bytecode is also available. However, it also accepts Solidity source files, making development much more streamlined. Please see Ethereum [Native DApps](https://geth.ethereum.org/docs/dapp/native-bindings) page for details.
 
 This page introduces the concept of server-side native Dapps: Go language bindings to any Conflux contract that is compiled-time type-safe, highly performant, and best of all, can be generated fully automatically from a contract ABI and optionally the CVM bytecode.
 
