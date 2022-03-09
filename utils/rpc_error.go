@@ -7,6 +7,8 @@ import (
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils/abiutil"
 	"github.com/pkg/errors"
+
+	rpcutils "github.com/openweb3/go-rpc-provider/utils"
 )
 
 type RpcError struct {
@@ -25,7 +27,7 @@ func (e *RpcError) Error() string {
 // ToRpcError converts a error to JsonError
 func ToRpcError(origin error) (*RpcError, error) {
 
-	if !IsRPCJSONError(origin) {
+	if !rpcutils.IsRPCJSONError(origin) {
 		return nil, errors.New("not a rpc error")
 	}
 
