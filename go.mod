@@ -8,7 +8,7 @@ require (
 	github.com/fatih/color v1.7.0
 	github.com/graph-gophers/graphql-go v1.3.0 // indirect
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
-	github.com/openweb3/go-rpc-provider v0.1.1
+	github.com/openweb3/go-rpc-provider v0.1.2
 	github.com/pkg/errors v0.9.1
 	github.com/shopspring/decimal v1.3.1
 	github.com/smartystreets/goconvey v1.6.4
