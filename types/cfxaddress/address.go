@@ -29,9 +29,11 @@ type Address struct {
 	networkID uint32
 }
 
+// TODO: Add env variable to control whether to use verbose address or short address
 // String returns verbose base32 string of address
 func (a Address) String() string {
-	return a.MustGetVerboseBase32Address()
+	return a.MustGetBase32Address()
+	// return a.MustGetVerboseBase32Address()
 }
 
 // Equals reports whether a and target are equal
