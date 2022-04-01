@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"testing"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
@@ -84,11 +85,13 @@ func genCfxTestConfig() rpcTestConfig {
 		},
 	}
 
+	// ignoreRpc priority is higher than onlyTestRpc
 	var ignoreRpc map[string]bool = map[string]bool{
 		// "cfx_getBlockByEpochNumber": true,
 		"cfx_getLogs": true,
 	}
 
+	// onlyTestRpc priority is lower than ignoreRpc
 	var onlyTestRpc map[string]bool = map[string]bool{
 		// "cfx_getLogs": true,
 	}
@@ -106,6 +109,9 @@ func genCfxTestConfig() rpcTestConfig {
 }
 
 func TestClientCFX(t *testing.T) {
+	os.Setenv("TESTRPC", "1")
+	defer os.Unsetenv("TESTRPC")
+
 	config := genCfxTestConfig()
 	doClinetTest(t, config)
 }

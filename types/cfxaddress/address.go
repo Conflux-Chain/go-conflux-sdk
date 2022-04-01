@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"reflect"
 	"regexp"
 	"strings"
@@ -32,8 +33,10 @@ type Address struct {
 // TODO: Add env variable to control whether to use verbose address or short address
 // String returns verbose base32 string of address
 func (a Address) String() string {
+	if _, ok := os.LookupEnv("TESTRPC"); ok {
+		return a.MustGetVerboseBase32Address()
+	}
 	return a.MustGetBase32Address()
-	// return a.MustGetVerboseBase32Address()
 }
 
 // Equals reports whether a and target are equal
