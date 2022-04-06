@@ -31,6 +31,9 @@ type Address struct {
 
 // String returns verbose base32 string of address
 func (a Address) String() string {
+	if GetConfig().AddressStringVerbose {
+		return a.MustGetVerboseBase32Address()
+	}
 	return a.MustGetBase32Address()
 }
 

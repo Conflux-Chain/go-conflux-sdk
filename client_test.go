@@ -9,13 +9,13 @@ package sdk
 // 			When rpc dail success
 // 				Return client instance
 import (
-	"errors"
 	"testing"
 
 	. "bou.ke/monkey"
 	// "github.com/ethereum/go-ethereum/rpc"
 
 	rpc "github.com/openweb3/go-rpc-provider"
+	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
