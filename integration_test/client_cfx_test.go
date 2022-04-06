@@ -5,9 +5,10 @@ import (
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	"github.com/openweb3/go-sdk-common/rpctest"
 )
 
-func genCfxTestConfig() rpcTestConfig {
+func genCfxTestConfig() rpctest.RpcTestConfig {
 
 	var rpc2Func map[string]string = map[string]string{
 		"cfx_getStatus":                         "GetStatus",
@@ -91,14 +92,14 @@ func genCfxTestConfig() rpcTestConfig {
 		// "cfx_getLogs": true,
 	}
 
-	return rpcTestConfig{
-		examplesUrl: "https://raw.githubusercontent.com/Conflux-Chain/jsonrpc-spec/main/src/cfx/examples.json",
-		client:      sdk.MustNewClient("http://47.93.101.243"),
+	return rpctest.RpcTestConfig{
+		ExamplesUrl: "https://raw.githubusercontent.com/Conflux-Chain/jsonrpc-spec/main/src/cfx/examples.json",
+		Client:      sdk.MustNewClient("http://47.93.101.243"),
 
-		rpc2Func:         rpc2Func,
-		rpc2FuncSelector: rpc2FuncSelector,
-		ignoreRpc:        ignoreRpc,
-		onlyTestRpc:      onlyTestRpc,
+		Rpc2Func:         rpc2Func,
+		Rpc2FuncSelector: rpc2FuncSelector,
+		IgnoreRpcs:       ignoreRpc,
+		OnlyTestRpcs:     onlyTestRpc,
 	}
 
 }
@@ -110,5 +111,5 @@ func _TestClientCFX(t *testing.T) {
 	})
 
 	config := genCfxTestConfig()
-	doClientTest(t, config)
+	rpctest.DoClientTest(t, config)
 }
