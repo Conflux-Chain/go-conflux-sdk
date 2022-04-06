@@ -1,10 +1,10 @@
 package integrationtest
 
 import (
-	"os"
 	"testing"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 )
 
 func genCfxTestConfig() rpcTestConfig {
@@ -104,8 +104,9 @@ func genCfxTestConfig() rpcTestConfig {
 }
 
 func TestClientCFX(t *testing.T) {
-	os.Setenv("TESTRPC", "1")
-	defer os.Unsetenv("TESTRPC")
+	cfxaddress.SetConfig(cfxaddress.Config{
+		AddressStringVerbose: true,
+	})
 
 	config := genCfxTestConfig()
 	doClinetTest(t, config)

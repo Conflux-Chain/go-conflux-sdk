@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"reflect"
 	"regexp"
 	"strings"
@@ -30,10 +29,9 @@ type Address struct {
 	networkID uint32
 }
 
-// TODO: Add env variable to control whether to use verbose address or short address
 // String returns verbose base32 string of address
 func (a Address) String() string {
-	if _, ok := os.LookupEnv("TESTRPC"); ok {
+	if GetConfig().AddressStringVerbose {
 		return a.MustGetVerboseBase32Address()
 	}
 	return a.MustGetBase32Address()
