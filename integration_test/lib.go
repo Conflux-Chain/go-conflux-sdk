@@ -16,7 +16,7 @@ import (
 // compare result
 //   order both config result and response result by their fields
 //   json marshal then amd compare
-func doClinetTest(t *testing.T, config rpcTestConfig) {
+func doClientTest(t *testing.T, config rpcTestConfig) {
 
 	rpc2Func, rpc2FuncSelector, ignoreRpc, onlyTestRpc := config.rpc2Func, config.rpc2FuncSelector, config.ignoreRpc, config.onlyTestRpc
 
@@ -45,33 +45,34 @@ func doClinetTest(t *testing.T, config rpcTestConfig) {
 			continue
 		}
 
-		subExamp := subExamps[0]
+		for _, subExamp := range subExamps {
 
-		var sdkFunc string
-		var params []interface{}
+			var sdkFunc string
+			var params []interface{}
 
-		if _sdkFunc, ok := rpc2Func[rpcName]; ok {
-			sdkFunc, params = _sdkFunc, subExamp.Params
+			if _sdkFunc, ok := rpc2Func[rpcName]; ok {
+				sdkFunc, params = _sdkFunc, subExamp.Params
+			}
+
+			if sdkFuncSelector, ok := rpc2FuncSelector[rpcName]; ok {
+				sdkFunc, params = sdkFuncSelector(subExamp.Params)
+			}
+
+			if sdkFunc == "" {
+				t.Fatalf("no sdk func for rpc:%s", rpcName)
+				continue
+			}
+
+			fmt.Printf("\n========== %s %v ==========\n", rpcName, jsonMarshalAndOrdered(params))
+			// reflect call sdkFunc
+			rpcReuslt, rpcError, err := reflectCall(config.client, sdkFunc, params)
+			if err != nil {
+				t.Fatal(err)
+				continue
+			}
+			assert.Equal(t, jsonMarshalAndOrdered(subExamp.Result), jsonMarshalAndOrdered(rpcReuslt))
+			assert.Equal(t, jsonMarshalAndOrdered(subExamp.Error), jsonMarshalAndOrdered(rpcError))
 		}
-
-		if sdkFuncSelector, ok := rpc2FuncSelector[rpcName]; ok {
-			sdkFunc, params = sdkFuncSelector(subExamp.Params)
-		}
-
-		if sdkFunc == "" {
-			t.Fatalf("no sdk func for rpc:%s", rpcName)
-			continue
-		}
-
-		fmt.Printf("\n========== %s %v ==========\n", rpcName, jsonMarshalAndOrdered(params))
-		// reflect call sdkFunc
-		rpcReuslt, rpcError, err := reflectCall(config.client, sdkFunc, params)
-		if err != nil {
-			t.Fatal(err)
-			continue
-		}
-		assert.Equal(t, jsonMarshalAndOrdered(subExamp.Result), jsonMarshalAndOrdered(rpcReuslt))
-		assert.Equal(t, jsonMarshalAndOrdered(subExamp.Error), jsonMarshalAndOrdered(rpcError))
 	}
 }
 

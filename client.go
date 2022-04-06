@@ -533,7 +533,7 @@ func (client *Client) Call(request types.CallRequest, epoch *types.Epoch) (resul
 	}
 
 	if rpcErr, err2 := utils.ToRpcError(err); err2 == nil {
-	return result, rpcErr
+		return result, rpcErr
 	}
 
 	return

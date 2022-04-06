@@ -109,5 +109,5 @@ func TestClientCFX(t *testing.T) {
 	})
 
 	config := genCfxTestConfig()
-	doClinetTest(t, config)
+	doClientTest(t, config)
 }
