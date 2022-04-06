@@ -103,7 +103,8 @@ func genCfxTestConfig() rpcTestConfig {
 
 }
 
-func TestClientCFX(t *testing.T) {
+// TODO: Open after rpc mock server ready
+func _TestClientCFX(t *testing.T) {
 	cfxaddress.SetConfig(cfxaddress.Config{
 		AddressStringVerbose: true,
 	})
