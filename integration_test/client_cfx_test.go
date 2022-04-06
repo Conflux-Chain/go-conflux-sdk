@@ -1,15 +1,10 @@
 package integrationtest
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"testing"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
-	"gotest.tools/assert"
 )
 
 func genCfxTestConfig() rpcTestConfig {
@@ -114,67 +109,4 @@ func TestClientCFX(t *testing.T) {
 
 	config := genCfxTestConfig()
 	doClinetTest(t, config)
-}
-
-// request rpc
-// compare result
-//   order both config result and response result by their fields
-//   json marshal then amd compare
-func doClinetTest(t *testing.T, config rpcTestConfig) {
-
-	rpc2Func, rpc2FuncSelector, ignoreRpc, onlyTestRpc := config.rpc2Func, config.rpc2FuncSelector, config.ignoreRpc, config.onlyTestRpc
-
-	// read json config
-	httpClient := &http.Client{}
-	resp, err := httpClient.Get(config.examplesUrl)
-	if err != nil {
-		t.Fatal(err)
-	}
-	source := resp.Body
-	defer resp.Body.Close()
-
-	b, _ := ioutil.ReadAll(source)
-	m := &MockRPC{}
-	err = json.Unmarshal(b, m)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for rpcName, subExamps := range m.Examples {
-		if ignoreRpc[rpcName] {
-			continue
-		}
-
-		if len(onlyTestRpc) > 0 && !onlyTestRpc[rpcName] {
-			continue
-		}
-
-		subExamp := subExamps[0]
-
-		var sdkFunc string
-		var params []interface{}
-
-		if _sdkFunc, ok := rpc2Func[rpcName]; ok {
-			sdkFunc, params = _sdkFunc, subExamp.Params
-		}
-
-		if sdkFuncSelector, ok := rpc2FuncSelector[rpcName]; ok {
-			sdkFunc, params = sdkFuncSelector(subExamp.Params)
-		}
-
-		if sdkFunc == "" {
-			t.Fatalf("no sdk func for rpc:%s", rpcName)
-			continue
-		}
-
-		fmt.Printf("\n========== %s %v ==========\n", rpcName, JsonMarshalAndOrdered(params))
-		// reflect call sdkFunc
-		rpcReuslt, rpcError, err := reflectCall(config.client, sdkFunc, params)
-		if err != nil {
-			t.Fatal(err)
-			continue
-		}
-		assert.Equal(t, JsonMarshalAndOrdered(subExamp.Result), JsonMarshalAndOrdered(rpcReuslt))
-		assert.Equal(t, JsonMarshalAndOrdered(subExamp.Error), JsonMarshalAndOrdered(rpcError))
-	}
 }

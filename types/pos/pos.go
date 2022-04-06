@@ -88,8 +88,8 @@ type Block struct {
 }
 
 type Signature struct {
-	Account Address
-	Votes   hexutil.Uint64
+	Account Address        `json:"account"`
+	Votes   hexutil.Uint64 `json:"votes"`
 }
 
 type Transaction struct {

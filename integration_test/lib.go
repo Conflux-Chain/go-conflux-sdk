@@ -4,13 +4,76 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"reflect"
 	"testing"
 
-	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/pkg/errors"
 	"gotest.tools/assert"
 )
+
+// request rpc
+// compare result
+//   order both config result and response result by their fields
+//   json marshal then amd compare
+func doClinetTest(t *testing.T, config rpcTestConfig) {
+
+	rpc2Func, rpc2FuncSelector, ignoreRpc, onlyTestRpc := config.rpc2Func, config.rpc2FuncSelector, config.ignoreRpc, config.onlyTestRpc
+
+	// read json config
+	httpClient := &http.Client{}
+	resp, err := httpClient.Get(config.examplesUrl)
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := resp.Body
+	defer resp.Body.Close()
+
+	b, _ := ioutil.ReadAll(source)
+	m := &MockRPC{}
+	err = json.Unmarshal(b, m)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for rpcName, subExamps := range m.Examples {
+		if ignoreRpc[rpcName] {
+			continue
+		}
+
+		if len(onlyTestRpc) > 0 && !onlyTestRpc[rpcName] {
+			continue
+		}
+
+		subExamp := subExamps[0]
+
+		var sdkFunc string
+		var params []interface{}
+
+		if _sdkFunc, ok := rpc2Func[rpcName]; ok {
+			sdkFunc, params = _sdkFunc, subExamp.Params
+		}
+
+		if sdkFuncSelector, ok := rpc2FuncSelector[rpcName]; ok {
+			sdkFunc, params = sdkFuncSelector(subExamp.Params)
+		}
+
+		if sdkFunc == "" {
+			t.Fatalf("no sdk func for rpc:%s", rpcName)
+			continue
+		}
+
+		fmt.Printf("\n========== %s %v ==========\n", rpcName, jsonMarshalAndOrdered(params))
+		// reflect call sdkFunc
+		rpcReuslt, rpcError, err := reflectCall(config.client, sdkFunc, params)
+		if err != nil {
+			t.Fatal(err)
+			continue
+		}
+		assert.Equal(t, jsonMarshalAndOrdered(subExamp.Result), jsonMarshalAndOrdered(rpcReuslt))
+		assert.Equal(t, jsonMarshalAndOrdered(subExamp.Error), jsonMarshalAndOrdered(rpcError))
+	}
+}
 
 func reflectCall(c interface{}, sdkFunc string, params []interface{}) (resp interface{}, respError interface{}, err error) {
 	typeOfClient := reflect.TypeOf(c)
@@ -33,7 +96,7 @@ func reflectCall(c interface{}, sdkFunc string, params []interface{}) (resp inte
 			in[i+1] = reflect.ValueOf(v)
 		}
 		out := method.Func.Call(in)
-		fmt.Printf("func %v, params %v, resp type %T, respError type %T, out %v\n", sdkFunc, JsonMarshalAndOrdered(getReflectValuesInterfaces(in[1:])), out[0].Interface(), out[1].Interface(), JsonMarshalAndOrdered(getReflectValuesInterfaces(out)))
+		fmt.Printf("func %v, params %v, resp type %T, respError type %T, out %v\n", sdkFunc, jsonMarshalAndOrdered(getReflectValuesInterfaces(in[1:])), out[0].Interface(), out[1].Interface(), jsonMarshalAndOrdered(getReflectValuesInterfaces(out)))
 		return out[0].Interface(), out[1].Interface(), nil
 	}
 	return nil, nil, errors.Errorf("not found method %v", sdkFunc)
@@ -62,14 +125,24 @@ func convertType(from interface{}, to interface{}) interface{} {
 	return to
 }
 
-func orderJson(j []byte) []byte {
+func orderJson(j []byte, indent ...bool) []byte {
 	var r interface{}
 	err := json.Unmarshal(j, &r)
 	if err != nil {
 		panic(err)
 	}
 
-	j, err = json.MarshalIndent(r, "", "  ")
+	isIndent := false
+	if len(indent) > 0 {
+		isIndent = indent[0]
+	}
+
+	if isIndent {
+		j, err = json.MarshalIndent(r, "", "  ")
+	} else {
+		j, err = json.Marshal(r)
+	}
+
 	if err != nil {
 		panic(err)
 	}
@@ -77,79 +150,12 @@ func orderJson(j []byte) []byte {
 	return j
 }
 
-func JsonMarshalAndOrdered(v interface{}) string {
+func jsonMarshalAndOrdered(v interface{}, indent ...bool) string {
 
 	j, err := json.Marshal(v)
 	if err != nil {
 		panic(err)
 	}
 
-	return string(orderJson(j))
-}
-
-func TestJsonMarshalMapping(t *testing.T) {
-	m := map[string]interface{}{
-		"c": struct {
-			C3 string
-			C2 string
-		}{"C3", "C2"},
-		"b": "A",
-		"a": "A",
-	}
-	j, _ := json.Marshal(m)
-
-	var m2 interface{}
-	json.Unmarshal(j, &m2)
-	j2, _ := json.Marshal(m2)
-
-	assert.Equal(t, string(j), string(j2))
-
-	fmt.Println(string(j))
-}
-
-func TestUnmarshalMockRPC(t *testing.T) {
-	content, err := ioutil.ReadFile("./tmp/rpc_example.json")
-	if err != nil {
-		panic(err)
-	}
-	m := &MockRPC{}
-	err = json.Unmarshal(content, m)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(m)
-}
-
-func TestReflectCall(t *testing.T) {
-	c := sdk.MustNewClient("http://47.93.101.243")
-	typeOfClient := reflect.TypeOf(c)
-	if method, ok := typeOfClient.MethodByName("GetStatus"); ok {
-		in := make([]reflect.Value, 1)
-		in[0] = reflect.ValueOf(c)
-		// for i, param := range params {
-		// 	in[i] = reflect.ValueOf(param)
-		// }
-		// fmt.Printf("func %v, params %+v\n", sdkFunc, in)
-		out := method.Func.Call(in)
-		//  out[0].Interface(), out[1].Interface(), nil
-		fmt.Printf("%v", out)
-	}
-
-}
-
-func TestReflect(t *testing.T) {
-	a := 1
-	typea := reflect.TypeOf(a)
-	vptrInReflect := reflect.New(typea)
-	vptr := vptrInReflect.Interface()
-	e := json.Unmarshal([]byte("1"), vptr)
-	if e != nil {
-		t.Fatal(e)
-	}
-
-	v := reflect.ValueOf(vptr).Elem().Interface().(int)
-	fmt.Printf("%T %v\n", v, v)
-
-	typea = reflect.TypeOf([]int{}).Elem()
-	fmt.Printf("%T %v\n", typea, typea)
+	return string(orderJson(j, indent...))
 }
