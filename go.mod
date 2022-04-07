@@ -19,5 +19,5 @@ require (
 	gotest.tools v2.2.0+incompatible
 
 )
-
+replace github.com/openweb3/go-sdk-common => ../go-sdk-common
 // replace github.com/ethereum/go-ethereum => ../../ethereum/go-ethereum

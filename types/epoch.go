@@ -115,7 +115,12 @@ func (e *Epoch) UnmarshalJSON(data []byte) error {
 	}
 
 	switch input {
-	case EpochEarliest.name, EpochLatestCheckpoint.name, EpochLatestConfirmed.name, EpochLatestState.name, EpochLatestMined.name:
+	case EpochEarliest.name,
+		EpochLatestCheckpoint.name,
+		EpochLatestConfirmed.name,
+		EpochLatestState.name,
+		EpochLatestMined.name,
+		EpochLatestFinalized.name:
 		e.name = input
 		return nil
 	default:

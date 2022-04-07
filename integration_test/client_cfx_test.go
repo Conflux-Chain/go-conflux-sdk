@@ -82,15 +82,14 @@ func genCfxTestConfig() rpctest.RpcTestConfig {
 	}
 
 	// ignoreRpc priority is higher than onlyTestRpc
-	var ignoreRpc map[string]bool = map[string]bool{
-		// "cfx_getBlockByEpochNumber": true,
-		"cfx_getLogs": true,
+	var ignoreRpc map[string]bool = map[string]bool{}
+
+	var ignoreExamples map[string]bool = map[string]bool{
+		"cfx_getBlockByEpochNumber-1649303708800": true, // TODO: Epoch number type is U256 and conflux-rust is U64
 	}
 
 	// onlyTestRpc priority is lower than ignoreRpc
-	var onlyTestRpc map[string]bool = map[string]bool{
-		// "cfx_getLogs": true,
-	}
+	var onlyTestRpc map[string]bool = map[string]bool{}
 
 	return rpctest.RpcTestConfig{
 		ExamplesUrl: "https://raw.githubusercontent.com/Conflux-Chain/jsonrpc-spec/main/src/cfx/examples.json",
@@ -99,13 +98,14 @@ func genCfxTestConfig() rpctest.RpcTestConfig {
 		Rpc2Func:         rpc2Func,
 		Rpc2FuncSelector: rpc2FuncSelector,
 		IgnoreRpcs:       ignoreRpc,
+		IgnoreExamples:   ignoreExamples,
 		OnlyTestRpcs:     onlyTestRpc,
 	}
 
 }
 
 // TODO: Open after rpc mock server ready
-func _TestClientCFX(t *testing.T) {
+func TestClientCFX(t *testing.T) {
 	cfxaddress.SetConfig(cfxaddress.Config{
 		AddressStringVerbose: true,
 	})

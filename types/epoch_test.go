@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"testing"
 )
 
@@ -23,6 +24,21 @@ func TestEpochEquals(t *testing.T) {
 	if a.Equals(b) {
 		t.Errorf("expect %v not equals %v", a, b)
 	}
+}
+
+func TestUnmarshalEpoch(t *testing.T) {
+	epochStrs := []string{
+		"latest_mined",
+		"latest_finalized",
+	}
+
+	for _, epochStr := range epochStrs {
+		err := json.Unmarshal([]byte(`"`+epochStr+`"`), &Epoch{})
+		if err != nil {
+			t.Fatalf("failed unmarshal %v, %v", epochStr, err)
+		}
+	}
+
 }
 
 func TestString(t *testing.T) {
