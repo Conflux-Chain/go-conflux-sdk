@@ -723,7 +723,7 @@ func (client *Client) GetTransactionTraces(txHash types.Hash) (traces []types.Lo
 
 // GetPosRewardByEpoch returns pos rewarded in this epoch
 func (client *Client) GetPoSRewardByEpoch(epoch types.Epoch) (reward *postypes.EpochReward, err error) {
-	err = client.CallRPC(&reward, "cfx_getPoSRewardByEpoch", epoch)
+	err = client.wrappedCallRPC(&reward, "cfx_getPoSRewardByEpoch", epoch)
 	return
 }
 
