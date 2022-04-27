@@ -1,5 +1,9 @@
 Go-conflux-sdk Change Log
 ============
+V1.1.4
+------------
+-   Fix RPC GetPoSRewardByEpoch
+
 V1.1.0
 ------------
 -   Complete docs
