@@ -722,8 +722,8 @@ func (client *Client) GetTransactionTraces(txHash types.Hash) (traces []types.Lo
 }
 
 // GetPosRewardByEpoch returns pos rewarded in this epoch
-func (client *Client) GetPosRewardByEpoch(epoch types.Epoch) (val *types.EpochPosReward, err error) {
-	err = client.CallRPC(&val, "cfx_getPoSRewardByEpoch", epoch)
+func (client *Client) GetPoSRewardByEpoch(epoch types.Epoch) (reward *postypes.EpochReward, err error) {
+	err = client.wrappedCallRPC(&reward, "cfx_getPoSRewardByEpoch", epoch)
 	return
 }
 
@@ -960,13 +960,6 @@ func (client *Client) GetPoSEconomics(epoch ...*types.Epoch) (posEconomics types
 func (client *Client) GetOpenedMethodGroups() (openedGroups []string, err error) {
 	err = client.wrappedCallRPC(&openedGroups, "cfx_openedMethodGroups")
 	return
-}
-
-// GetPoSRewardByEpoch returns PoS reward in the epoch
-func (client *Client) GetPoSRewardByEpoch(epoch types.Epoch) (reward *postypes.EpochReward, err error) {
-	err = client.wrappedCallRPC(&reward, "cfx_getPoSRewardByEpoch")
-	return
-
 }
 
 // =====Debug RPC=====

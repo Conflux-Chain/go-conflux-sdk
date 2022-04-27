@@ -46,7 +46,7 @@ func genCfxTestConfig() rpctest.RpcTestConfig {
 		"trace_block":                           "GetBlockTraces",
 		"trace_filter":                          "FilterTraces",
 		"trace_transaction":                     "GetTransactionTraces",
-		"cfx_getPoSRewardByEpoch":               "GetPosRewardByEpoch",
+		"cfx_getPoSRewardByEpoch":               "GetPoSRewardByEpoch",
 		"cfx_getAccountPendingInfo":             "GetAccountPendingInfo",
 		"cfx_getAccountPendingTransactions":     "GetAccountPendingTransactions",
 		"cfx_getPoSEconomics":                   "GetPoSEconomics",
