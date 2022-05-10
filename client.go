@@ -6,6 +6,7 @@ package sdk
 
 import (
 	"context"
+	"net/url"
 	"sync/atomic"
 
 	"math/big"
@@ -19,6 +20,7 @@ import (
 	sdkerrors "github.com/Conflux-Chain/go-conflux-sdk/types/errors"
 	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
 	rpc "github.com/openweb3/go-rpc-provider"
+	"github.com/valyala/fasthttp"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -54,6 +56,8 @@ type ClientOption struct {
 	RetryInterval time.Duration
 	// timeout of request
 	RequestTimeout time.Duration
+	// Maximum number of connections may be established. The default value is 512. It's only useful for http(s) prococal
+	MaxConnectionNum int
 }
 
 // NewClient creates an instance of Client with specified conflux node url, it will creat account manager if option.KeystorePath not empty.
@@ -125,7 +129,7 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 	client.rpcDebugClient = RpcDebugClient{&client}
 	client.option.setDefault()
 
-	rpcClient, err := rpc.Dial(nodeURL)
+	rpcClient, err := dialRpcClient(nodeURL, clientOption)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to dial to fullnode")
 	}
@@ -156,6 +160,17 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 	}
 
 	return &client, nil
+}
+
+func dialRpcClient(nodeURL string, clientOption ClientOption) (*rpc.Client, error) {
+	if u, err := url.Parse(nodeURL); err == nil {
+		if u.Scheme == "http" || u.Scheme == "https" {
+			fasthttpClient := new(fasthttp.Client)
+			fasthttpClient.MaxConnsPerHost = clientOption.MaxConnectionNum
+			return rpc.DialHTTPWithClient(nodeURL, fasthttpClient)
+		}
+	}
+	return rpc.Dial(nodeURL)
 }
 
 func (co *ClientOption) setDefault() {
