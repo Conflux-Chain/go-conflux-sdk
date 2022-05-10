@@ -164,7 +164,7 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 
 func dialRpcClient(nodeURL string, clientOption ClientOption) (*rpc.Client, error) {
 	if u, err := url.Parse(nodeURL); err == nil {
-		if u.Scheme == "http" || u.Scheme == "https" {
+		if (u.Scheme == "http" || u.Scheme == "https") && clientOption.MaxConnectionNum > 0 {
 			fasthttpClient := new(fasthttp.Client)
 			fasthttpClient.MaxConnsPerHost = clientOption.MaxConnectionNum
 			return rpc.DialHTTPWithClient(nodeURL, fasthttpClient)
