@@ -1,5 +1,10 @@
 Go-conflux-sdk Change Log
 ============
+
+V1.1.5
+------------
+-   support setting max connection number for client with http(s) protocal
+
 V1.1.4
 ------------
 -   Fix RPC GetPoSRewardByEpoch
