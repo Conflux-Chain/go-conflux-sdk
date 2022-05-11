@@ -14,6 +14,7 @@ import (
 // use
 func TestBulkCall(t *testing.T) {
 	_client, err := client.NewClient("https://test.confluxrpc.com")
+	// _client.UseBatchCallRpcMiddleware(middleware.BatchCallRpcConsoleMiddleware)
 	if err != nil {
 		panic(err)
 	}
