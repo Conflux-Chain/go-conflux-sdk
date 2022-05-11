@@ -14,7 +14,7 @@ require (
 	github.com/shopspring/decimal v1.3.1
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/stretchr/testify v1.7.0
-	github.com/valyala/fasthttp v1.33.0
+	github.com/valyala/fasthttp v1.34.0
 	gopkg.in/urfave/cli.v1 v1.20.0
 	gotest.tools v2.2.0+incompatible
 
