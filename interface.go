@@ -171,6 +171,8 @@ type RpcDebug interface {
 type AccountManagerOperator interface {
 	Create(passphrase string) (types.Address, error)
 	Import(keyFile, passphrase, newPassphrase string) (types.Address, error)
+	ImportKey(keyString string, passphrase string) (types.Address, error)
+	Export(address types.Address, passphrase string) (string, error)
 	Delete(address types.Address, passphrase string) error
 	Update(address types.Address, passphrase, newPassphrase string) error
 	List() []types.Address
