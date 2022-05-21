@@ -8,6 +8,7 @@ import (
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/fatih/color"
+	providers "github.com/openweb3/go-rpc-provider/provider_wrapper"
 )
 
 // CallRpcHandler represents interface of call rpc handler
@@ -15,7 +16,7 @@ type CallRpcHandler interface {
 	Handle(result interface{}, method string, args ...interface{}) error
 }
 
-type CallRpcHandlerFunc func(result interface{}, method string, args ...interface{}) error
+type CallRpcHandlerFunc providers.CallFunc
 
 // CallRpcMiddleware represents the middleware for call rpc
 type CallRpcMiddleware func(CallRpcHandler) CallRpcHandler

@@ -5,7 +5,6 @@
 package sdk
 
 import (
-	"context"
 	"math/big"
 	"net/http"
 	"time"
@@ -15,6 +14,7 @@ import (
 	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	rpc "github.com/openweb3/go-rpc-provider"
+	"github.com/openweb3/go-rpc-provider/interfaces"
 )
 
 // HTTPRequester is interface for emitting a http requester
@@ -186,11 +186,5 @@ type AccountManagerOperator interface {
 	Sign(tx types.UnsignedTransaction, passphrase string) (v byte, r, s []byte, err error)
 }
 
-type RpcRequester interface {
-	Call(resultPtr interface{}, method string, args ...interface{}) error
-	CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error
-	BatchCall(b []rpc.BatchElem) error
-	BatchCallContext(ctx context.Context, b []rpc.BatchElem) error
-	Subscribe(ctx context.Context, namespace string, channel interface{}, args ...interface{}) (*rpc.ClientSubscription, error)
-	Close()
-}
+// reserve for forward compatbility
+type RpcRequester = interfaces.Provider

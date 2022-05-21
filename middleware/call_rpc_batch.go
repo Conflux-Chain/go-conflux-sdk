@@ -7,6 +7,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/fatih/color"
 	rpc "github.com/openweb3/go-rpc-provider"
+	providers "github.com/openweb3/go-rpc-provider/provider_wrapper"
 )
 
 // BatchCallRpcHandler represents interface of batch call rpc handler
@@ -14,7 +15,7 @@ type BatchCallRpcHandler interface {
 	Handle(b []rpc.BatchElem) error
 }
 
-type BatchCallRpcHandlerFunc func(b []rpc.BatchElem) error
+type BatchCallRpcHandlerFunc providers.BatchCallFunc
 
 // BatchCallRpcMiddleware represents the middleware for batch call rpc
 type BatchCallRpcMiddleware func(BatchCallRpcHandler) BatchCallRpcHandler
