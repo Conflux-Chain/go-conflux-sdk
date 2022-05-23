@@ -124,8 +124,8 @@ func newClientWithOption(nodeURL string, clientOption ClientOption) (*Client, er
 
 	client.nodeURL = nodeURL
 	client.option = clientOption
-	client.callRpcHandler = middleware.CallRpcHandlerFunc(client.callRpc)
-	client.batchCallRpcHandler = middleware.BatchCallRpcHandlerFunc(client.batchCallRPC)
+	client.callRpcHandler = middleware.CallRpcHandlerFunc(client.coreCallContext)
+	client.batchCallRpcHandler = middleware.BatchCallRpcHandlerFunc(client.coreBatchCallContext)
 
 	client.rpcPosClient = RpcPosClient{&client}
 	client.rpcTxpoolClient = RpcTxpoolClient{&client}
@@ -206,14 +206,14 @@ func (client *Client) MustNewAddress(base32OrHex string) types.Address {
 //
 // You could use UseCallRpcMiddleware to add middleware for hooking CallRPC
 func (client *Client) CallRPC(result interface{}, method string, args ...interface{}) error {
-	return client.callRpcHandler.Handle(result, method, args...)
+	// ctx, cancelFunc := client.genContext()
+	// if cancelFunc != nil {
+	// 	defer cancelFunc()
+	// }
+	return client.callRpcHandler.Handle(context.Background(), result, method, args...)
 }
 
-func (client *Client) callRpc(result interface{}, method string, args ...interface{}) error {
-	ctx, cancelFunc := client.genContext()
-	if cancelFunc != nil {
-		defer cancelFunc()
-	}
+func (client *Client) coreCallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error {
 	return client.rpcRequester.CallContext(ctx, result, method, args...)
 }
 
@@ -233,15 +233,14 @@ func (client *Client) UseCallRpcMiddleware(middleware middleware.CallRpcMiddlewa
 //
 // You could use UseBatchCallRpcMiddleware to add middleware for hooking BatchCallRPC
 func (client *Client) BatchCallRPC(b []rpc.BatchElem) error {
-	return client.batchCallRpcHandler.Handle(b)
+	// ctx, cancelFunc := client.genContext()
+	// if cancelFunc != nil {
+	// 	defer cancelFunc()
+	// }
+	return client.batchCallRpcHandler.Handle(context.Background(), b)
 }
 
-func (client *Client) batchCallRPC(b []rpc.BatchElem) error {
-	ctx, cancelFunc := client.genContext()
-	if cancelFunc != nil {
-		defer cancelFunc()
-	}
-
+func (client *Client) coreBatchCallContext(ctx context.Context, b []rpc.BatchElem) error {
 	err := client.rpcRequester.BatchCallContext(ctx, b)
 	if err != nil {
 		return err
@@ -1349,9 +1348,9 @@ func (client *Client) genContext() (context.Context, context.CancelFunc) {
 
 func (c *ClientOption) genProviderOption() *providers.Option {
 	return &providers.Option{
-		RequestTimeout:   c.RequestTimeout,
-		RetryCount:       c.RetryCount,
-		RetryInterval:    c.RetryInterval,
-		MaxConnectionNum: c.MaxConnectionNum,
+		RequestTimeout:       c.RequestTimeout,
+		RetryCount:           c.RetryCount,
+		RetryInterval:        c.RetryInterval,
+		MaxConnectionPerHost: c.MaxConnectionNum,
 	}
 }
