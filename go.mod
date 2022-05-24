@@ -22,4 +22,4 @@ require (
 
 // replace github.com/openweb3/go-sdk-common => ../go-sdk-common
 // replace github.com/ethereum/go-ethereum => ../../ethereum/go-ethereum
-replace github.com/openweb3/go-rpc-provider v0.1.3 => ../go-rpc-provider
+// replace github.com/openweb3/go-rpc-provider v0.1.3 => ../go-rpc-provider
