@@ -131,7 +131,7 @@ func newClientWithOption(nodeURL string, clientOption ClientOption) (*Client, er
 	client.rpcTxpoolClient = RpcTxpoolClient{&client}
 	client.rpcDebugClient = RpcDebugClient{&client}
 
-	p, err := providers.NewProviderWithOption(nodeURL, clientOption.genProviderOption())
+	p, err := providers.NewProviderWithOption(nodeURL, *clientOption.genProviderOption())
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to new provider")
 	}
@@ -206,10 +206,6 @@ func (client *Client) MustNewAddress(base32OrHex string) types.Address {
 //
 // You could use UseCallRpcMiddleware to add middleware for hooking CallRPC
 func (client *Client) CallRPC(result interface{}, method string, args ...interface{}) error {
-	// ctx, cancelFunc := client.genContext()
-	// if cancelFunc != nil {
-	// 	defer cancelFunc()
-	// }
 	return client.callRpcHandler.Handle(context.Background(), result, method, args...)
 }
 

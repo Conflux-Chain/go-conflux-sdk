@@ -9,8 +9,8 @@ require (
 	github.com/graph-gophers/graphql-go v1.3.0 // indirect
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
 	github.com/mcuadros/go-defaults v1.2.0
-	github.com/openweb3/go-rpc-provider v0.1.3
-	github.com/openweb3/go-sdk-common v0.0.0-20220407083459-597b845413e8
+	github.com/openweb3/go-rpc-provider v0.2.0
+	github.com/openweb3/go-sdk-common v0.0.0-20220524083215-d22d44765e44
 	github.com/pkg/errors v0.9.1
 	github.com/shopspring/decimal v1.3.1
 	github.com/smartystreets/goconvey v1.6.4
