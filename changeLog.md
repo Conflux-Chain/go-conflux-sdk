@@ -1,6 +1,11 @@
 Go-conflux-sdk Change Log
 ============
 
+v1.2.0
+------------
+-   add context in CallRpcHandlerFunc/BatchCallRpcHandlerFunc for hook context when Call/Batchcall
+> Note: It's not compatiable with previous version
+
 V1.1.5
 ------------
 -   support setting max connection number for client with http(s) protocal
