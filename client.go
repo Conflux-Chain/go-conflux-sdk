@@ -55,9 +55,9 @@ type ClientOption struct {
 	RetryCount    int
 	RetryInterval time.Duration `default:"1s"`
 	// timeout of request
-	RequestTimeout time.Duration `default:"30s"`
+	RequestTimeout time.Duration `default:"3s"`
 	// Maximum number of connections may be established. The default value is 512. It's only useful for http(s) prococal
-	MaxConnectionNum int
+	MaxConnectionPerHost int
 }
 
 // NewClient creates an instance of Client with specified conflux node url, it will creat account manager if option.KeystorePath not empty.
@@ -229,10 +229,6 @@ func (client *Client) UseCallRpcMiddleware(middleware middleware.CallRpcMiddlewa
 //
 // You could use UseBatchCallRpcMiddleware to add middleware for hooking BatchCallRPC
 func (client *Client) BatchCallRPC(b []rpc.BatchElem) error {
-	// ctx, cancelFunc := client.genContext()
-	// if cancelFunc != nil {
-	// 	defer cancelFunc()
-	// }
 	return client.batchCallRpcHandler.Handle(context.Background(), b)
 }
 
@@ -1335,18 +1331,11 @@ func get1stU64Ify(values []hexutil.Uint64) *hexutil.Uint64 {
 	return nil
 }
 
-func (client *Client) genContext() (context.Context, context.CancelFunc) {
-	if client.option.RequestTimeout > 0 {
-		return context.WithTimeout(context.Background(), client.option.RequestTimeout)
-	}
-	return context.Background(), nil
-}
-
 func (c *ClientOption) genProviderOption() *providers.Option {
 	return &providers.Option{
 		RequestTimeout:       c.RequestTimeout,
 		RetryCount:           c.RetryCount,
 		RetryInterval:        c.RetryInterval,
-		MaxConnectionPerHost: c.MaxConnectionNum,
+		MaxConnectionPerHost: c.MaxConnectionPerHost,
 	}
 }
