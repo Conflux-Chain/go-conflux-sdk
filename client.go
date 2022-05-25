@@ -766,20 +766,6 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 			tx.ChainID = &chainID
 		}
 
-		if tx.GasPrice == nil {
-			gasPrice, err := client.GetGasPrice()
-			if err != nil {
-				return errors.Wrap(err, "failed to get gas price")
-			}
-
-			// conflux responsed gasprice offen be 0, but the min gasprice is 1 when sending transaction, so do this
-			if gasPrice.ToInt().Cmp(big.NewInt(constants.MinGasprice)) < 1 {
-				gasPrice = types.NewBigInt(constants.MinGasprice)
-			}
-			tmp := hexutil.Big(*gasPrice)
-			tx.GasPrice = &tmp
-		}
-
 		if tx.EpochHeight == nil {
 			epoch, err := client.GetEpochNumber(types.EpochLatestState)
 			if err != nil {
@@ -808,6 +794,20 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 			if tx.StorageLimit == nil {
 				tx.StorageLimit = types.NewUint64(sm.StorageCollateralized.ToInt().Uint64() * 10 / 9)
 			}
+		}
+
+		if tx.GasPrice == nil {
+			gasPrice, err := client.GetGasPrice()
+			if err != nil {
+				return errors.Wrap(err, "failed to get gas price")
+			}
+
+			// conflux responsed gasprice offen be 0, but the min gasprice is 1 when sending transaction, so do this
+			if gasPrice.ToInt().Cmp(big.NewInt(constants.MinGasprice)) < 1 {
+				gasPrice = types.NewBigInt(constants.MinGasprice)
+			}
+			tmp := hexutil.Big(*gasPrice)
+			tx.GasPrice = &tmp
 		}
 
 		tx.ApplyDefault()
