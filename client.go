@@ -6,7 +6,6 @@ package sdk
 
 import (
 	"context"
-	"net/url"
 	"sync/atomic"
 
 	"math/big"
@@ -19,8 +18,9 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	sdkerrors "github.com/Conflux-Chain/go-conflux-sdk/types/errors"
 	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
+	"github.com/mcuadros/go-defaults"
 	rpc "github.com/openweb3/go-rpc-provider"
-	"github.com/valyala/fasthttp"
+	providers "github.com/openweb3/go-rpc-provider/provider_wrapper"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -53,11 +53,11 @@ type ClientOption struct {
 	KeystorePath string
 	// retry
 	RetryCount    int
-	RetryInterval time.Duration
+	RetryInterval time.Duration `default:"1s"`
 	// timeout of request
-	RequestTimeout time.Duration
+	RequestTimeout time.Duration `default:"30s"`
 	// Maximum number of connections may be established. The default value is 512. It's only useful for http(s) prococal
-	MaxConnectionNum int
+	MaxConnectionPerHost int
 }
 
 // NewClient creates an instance of Client with specified conflux node url, it will creat account manager if option.KeystorePath not empty.
@@ -90,7 +90,7 @@ func NewClient(nodeURL string, option ...ClientOption) (*Client, error) {
 		realOption = option[0]
 	}
 
-	client, err := newClientWithRetry(nodeURL, realOption)
+	client, err := newClientWithOption(nodeURL, realOption)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to new client with retry")
 	}
@@ -117,37 +117,25 @@ func NewClientWithRPCRequester(rpcRequester RpcRequester) (*Client, error) {
 // NewClientWithRetry creates a retryable new instance of Client with specified conflux node url and retry options.
 //
 // the clientOption.RetryInterval will be set to 1 second if pass 0
-func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, error) {
+func newClientWithOption(nodeURL string, clientOption ClientOption) (*Client, error) {
 
 	var client Client
+	defaults.SetDefaults(&clientOption)
+
 	client.nodeURL = nodeURL
 	client.option = clientOption
-	client.callRpcHandler = middleware.CallRpcHandlerFunc(client.callRpc)
-	client.batchCallRpcHandler = middleware.BatchCallRpcHandlerFunc(client.batchCallRPC)
+	client.callRpcHandler = middleware.CallRpcHandlerFunc(client.coreCallContext)
+	client.batchCallRpcHandler = middleware.BatchCallRpcHandlerFunc(client.coreBatchCallContext)
+
 	client.rpcPosClient = RpcPosClient{&client}
 	client.rpcTxpoolClient = RpcTxpoolClient{&client}
 	client.rpcDebugClient = RpcDebugClient{&client}
-	client.option.setDefault()
 
-	rpcClient, err := dialRpcClient(nodeURL, clientOption)
+	p, err := providers.NewProviderWithOption(nodeURL, *clientOption.genProviderOption())
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to dial to fullnode")
+		return nil, errors.Wrap(err, "failed to new provider")
 	}
-
-	if client.option.RetryCount == 0 {
-		client.rpcRequester = rpcClient
-	} else {
-		client.rpcRequester = &rpcClientWithRetry{
-			inner:      rpcClient,
-			retryCount: client.option.RetryCount,
-			interval:   client.option.RetryInterval,
-		}
-	}
-
-	_, err = client.GetNetworkID()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get networkID")
-	}
+	client.rpcRequester = p
 
 	if client.option.KeystorePath != "" {
 		am := NewAccountManager(client.option.KeystorePath, *client.networkID)
@@ -162,25 +150,8 @@ func newClientWithRetry(nodeURL string, clientOption ClientOption) (*Client, err
 	return &client, nil
 }
 
-func dialRpcClient(nodeURL string, clientOption ClientOption) (*rpc.Client, error) {
-	if u, err := url.Parse(nodeURL); err == nil {
-		if (u.Scheme == "http" || u.Scheme == "https") && clientOption.MaxConnectionNum > 0 {
-			fasthttpClient := new(fasthttp.Client)
-			fasthttpClient.MaxConnsPerHost = clientOption.MaxConnectionNum
-			return rpc.DialHTTPWithClient(nodeURL, fasthttpClient)
-		}
-	}
-	return rpc.Dial(nodeURL)
-}
-
-func (co *ClientOption) setDefault() {
-	if co.RequestTimeout == 0 {
-		co.RequestTimeout = time.Second * 30
-	}
-	// Interval 0 is meaningless and may lead full node busy, so default sets it to 1 second
-	if co.RetryInterval == 0 {
-		co.RetryInterval = time.Second
-	}
+func (client *Client) Provider() RpcRequester {
+	return client.rpcRequester
 }
 
 // Pos returns RpcPosClient for invoke rpc with pos namespace
@@ -235,14 +206,10 @@ func (client *Client) MustNewAddress(base32OrHex string) types.Address {
 //
 // You could use UseCallRpcMiddleware to add middleware for hooking CallRPC
 func (client *Client) CallRPC(result interface{}, method string, args ...interface{}) error {
-	return client.callRpcHandler.Handle(result, method, args...)
+	return client.callRpcHandler.Handle(context.Background(), result, method, args...)
 }
 
-func (client *Client) callRpc(result interface{}, method string, args ...interface{}) error {
-	ctx, cancelFunc := client.genContext()
-	if cancelFunc != nil {
-		defer cancelFunc()
-	}
+func (client *Client) coreCallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error {
 	return client.rpcRequester.CallContext(ctx, result, method, args...)
 }
 
@@ -262,15 +229,10 @@ func (client *Client) UseCallRpcMiddleware(middleware middleware.CallRpcMiddlewa
 //
 // You could use UseBatchCallRpcMiddleware to add middleware for hooking BatchCallRPC
 func (client *Client) BatchCallRPC(b []rpc.BatchElem) error {
-	return client.batchCallRpcHandler.Handle(b)
+	return client.batchCallRpcHandler.Handle(context.Background(), b)
 }
 
-func (client *Client) batchCallRPC(b []rpc.BatchElem) error {
-	ctx, cancelFunc := client.genContext()
-	if cancelFunc != nil {
-		defer cancelFunc()
-	}
-
+func (client *Client) coreBatchCallContext(ctx context.Context, b []rpc.BatchElem) error {
 	err := client.rpcRequester.BatchCallContext(ctx, b)
 	if err != nil {
 		return err
@@ -1369,9 +1331,11 @@ func get1stU64Ify(values []hexutil.Uint64) *hexutil.Uint64 {
 	return nil
 }
 
-func (client *Client) genContext() (context.Context, context.CancelFunc) {
-	if client.option.RequestTimeout > 0 {
-		return context.WithTimeout(context.Background(), client.option.RequestTimeout)
+func (c *ClientOption) genProviderOption() *providers.Option {
+	return &providers.Option{
+		RequestTimeout:       c.RequestTimeout,
+		RetryCount:           c.RetryCount,
+		RetryInterval:        c.RetryInterval,
+		MaxConnectionPerHost: c.MaxConnectionPerHost,
 	}
-	return context.Background(), nil
 }

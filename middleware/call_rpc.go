@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -8,25 +9,26 @@ import (
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/fatih/color"
+	providers "github.com/openweb3/go-rpc-provider/provider_wrapper"
 )
 
 // CallRpcHandler represents interface of call rpc handler
 type CallRpcHandler interface {
-	Handle(result interface{}, method string, args ...interface{}) error
+	Handle(ctx context.Context, result interface{}, method string, args ...interface{}) error
 }
 
-type CallRpcHandlerFunc func(result interface{}, method string, args ...interface{}) error
+type CallRpcHandlerFunc providers.CallContextFunc
 
 // CallRpcMiddleware represents the middleware for call rpc
 type CallRpcMiddleware func(CallRpcHandler) CallRpcHandler
 
-func (c CallRpcHandlerFunc) Handle(result interface{}, method string, args ...interface{}) error {
-	return c(result, method, args...)
+func (c CallRpcHandlerFunc) Handle(ctx context.Context, result interface{}, method string, args ...interface{}) error {
+	return c(ctx, result, method, args...)
 }
 
 // CallRpcConsoleMiddleware is the middleware for console request and response when call rpc
 func CallRpcConsoleMiddleware(handler CallRpcHandler) CallRpcHandler {
-	logFn := func(result interface{}, method string, args ...interface{}) error {
+	logFn := func(ctx context.Context, result interface{}, method string, args ...interface{}) error {
 
 		argsStr := fmt.Sprintf("%+v", args)
 		argsJson, err := json.Marshal(args)
@@ -35,7 +37,7 @@ func CallRpcConsoleMiddleware(handler CallRpcHandler) CallRpcHandler {
 		}
 
 		start := time.Now()
-		err = handler.Handle(result, method, args...)
+		err = handler.Handle(ctx, result, method, args...)
 		duration := time.Since(start)
 
 		if err == nil {
