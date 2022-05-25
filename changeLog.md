@@ -4,6 +4,7 @@ Go-conflux-sdk Change Log
 v1.2.0
 ------------
 -   add context in CallRpcHandlerFunc/BatchCallRpcHandlerFunc for hook context when Call/Batchcall
+-   AccountManagerOperator support ImportKey and Export interface
 > Note: It's not compatiable with previous version
 
 V1.1.5
