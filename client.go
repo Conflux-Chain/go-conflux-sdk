@@ -135,7 +135,13 @@ func newClientWithOption(nodeURL string, clientOption ClientOption) (*Client, er
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to new provider")
 	}
+
 	client.rpcRequester = p
+
+	_, err = client.GetNetworkID()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get networkID")
+	}
 
 	if client.option.KeystorePath != "" {
 		am := NewAccountManager(client.option.KeystorePath, *client.networkID)
