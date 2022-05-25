@@ -6,6 +6,7 @@ package sdk
 
 import (
 	"context"
+	"io"
 	"sync/atomic"
 
 	"math/big"
@@ -13,13 +14,13 @@ import (
 	"time"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/constants"
-	"github.com/Conflux-Chain/go-conflux-sdk/middleware"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	sdkerrors "github.com/Conflux-Chain/go-conflux-sdk/types/errors"
 	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
 	"github.com/mcuadros/go-defaults"
 	rpc "github.com/openweb3/go-rpc-provider"
+	"github.com/openweb3/go-rpc-provider/interfaces"
 	providers "github.com/openweb3/go-rpc-provider/provider_wrapper"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
@@ -32,14 +33,15 @@ const errMsgApplyTxValues = "failed to apply default transaction values"
 
 // Client represents a client to interact with Conflux blockchain.
 type Client struct {
-	AccountManager      AccountManagerOperator
-	nodeURL             string
-	rpcRequester        RpcRequester
-	networkID           *uint32
-	chainID             *uint32
-	option              ClientOption
-	callRpcHandler      middleware.CallRpcHandler
-	batchCallRpcHandler middleware.BatchCallRpcHandler
+	*providers.MiddlewarableProvider
+	AccountManager AccountManagerOperator
+	nodeURL        string
+
+	networkID *uint32
+	chainID   *uint32
+	option    ClientOption
+	// callRpcHandler      middleware.CallRpcHandler
+	// batchCallRpcHandler middleware.BatchCallRpcHandler
 
 	rpcPosClient    RpcPosClient
 	rpcTxpoolClient RpcTxpoolClient
@@ -58,6 +60,8 @@ type ClientOption struct {
 	RequestTimeout time.Duration `default:"30s"`
 	// Maximum number of connections may be established. The default value is 512. It's only useful for http(s) prococal
 	MaxConnectionPerHost int
+
+	Logger io.Writer
 }
 
 // NewClient creates an instance of Client with specified conflux node url, it will creat account manager if option.KeystorePath not empty.
@@ -107,10 +111,16 @@ func MustNewClient(nodeURL string, option ...ClientOption) *Client {
 	return client
 }
 
+// @deperacated use NewClientWithProvider instead
 // NewClientWithRPCRequester creates client with specified rpcRequester
-func NewClientWithRPCRequester(rpcRequester RpcRequester) (*Client, error) {
+func NewClientWithRPCRequester(provider RpcRequester) (*Client, error) {
+	return NewClientWithProvider(provider)
+}
+
+// NewClientWithProvider creates an instance of Client with specified provider, and will wrap it to create a MiddlewarableProvider for be able to hooking CallContext/BatchCallContext/Subscribe
+func NewClientWithProvider(provider interfaces.Provider) (*Client, error) {
 	return &Client{
-		rpcRequester: rpcRequester,
+		MiddlewarableProvider: providers.NewMiddlewarableProvider(provider),
 	}, nil
 }
 
@@ -124,8 +134,6 @@ func newClientWithOption(nodeURL string, clientOption ClientOption) (*Client, er
 
 	client.nodeURL = nodeURL
 	client.option = clientOption
-	client.callRpcHandler = middleware.CallRpcHandlerFunc(client.coreCallContext)
-	client.batchCallRpcHandler = middleware.BatchCallRpcHandlerFunc(client.coreBatchCallContext)
 
 	client.rpcPosClient = RpcPosClient{&client}
 	client.rpcTxpoolClient = RpcTxpoolClient{&client}
@@ -135,7 +143,12 @@ func newClientWithOption(nodeURL string, clientOption ClientOption) (*Client, er
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to new provider")
 	}
-	client.rpcRequester = p
+	client.MiddlewarableProvider = p
+
+	_, err = client.GetNetworkID()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get networkID")
+	}
 
 	if client.option.KeystorePath != "" {
 		am := NewAccountManager(client.option.KeystorePath, *client.networkID)
@@ -150,8 +163,9 @@ func newClientWithOption(nodeURL string, clientOption ClientOption) (*Client, er
 	return &client, nil
 }
 
-func (client *Client) Provider() RpcRequester {
-	return client.rpcRequester
+// Provider returns the middlewarable provider
+func (client *Client) Provider() *providers.MiddlewarableProvider {
+	return client.MiddlewarableProvider
 }
 
 // Pos returns RpcPosClient for invoke rpc with pos namespace
@@ -206,17 +220,8 @@ func (client *Client) MustNewAddress(base32OrHex string) types.Address {
 //
 // You could use UseCallRpcMiddleware to add middleware for hooking CallRPC
 func (client *Client) CallRPC(result interface{}, method string, args ...interface{}) error {
-	return client.callRpcHandler.Handle(context.Background(), result, method, args...)
-}
-
-func (client *Client) coreCallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error {
-	return client.rpcRequester.CallContext(ctx, result, method, args...)
-}
-
-// UseCallRpcMiddleware set middleware to hook CallRpc, for example use middleware.CallRpcLogMiddleware for logging request info.
-// You can customize your CallRpcMiddleware and use multi CallRpcMiddleware.
-func (client *Client) UseCallRpcMiddleware(middleware middleware.CallRpcMiddleware) {
-	client.callRpcHandler = middleware(client.callRpcHandler)
+	// return client.callRpcHandler.Handle(context.Background(), result, method, args...)
+	return client.MiddlewarableProvider.CallContext(context.Background(), result, method, args...)
 }
 
 // BatchCallRPC sends all given requests as a single batch and waits for the server
@@ -229,11 +234,8 @@ func (client *Client) UseCallRpcMiddleware(middleware middleware.CallRpcMiddlewa
 //
 // You could use UseBatchCallRpcMiddleware to add middleware for hooking BatchCallRPC
 func (client *Client) BatchCallRPC(b []rpc.BatchElem) error {
-	return client.batchCallRpcHandler.Handle(context.Background(), b)
-}
-
-func (client *Client) coreBatchCallContext(ctx context.Context, b []rpc.BatchElem) error {
-	err := client.rpcRequester.BatchCallContext(ctx, b)
+	// return client.batchCallRpcHandler.Handle(context.Background(), b)
+	err := client.MiddlewarableProvider.BatchCallContext(context.Background(), b)
 	if err != nil {
 		return err
 	}
@@ -244,13 +246,22 @@ func (client *Client) coreBatchCallContext(ctx context.Context, b []rpc.BatchEle
 		}
 	}
 	return nil
+
 }
 
-// UseBatchCallRpcMiddleware set middleware to hook BatchCallRpc, for example use middleware.BatchCallRpcLogMiddleware for logging batch request info.
-// You can customize your BatchCallRpcMiddleware and use multi BatchCallRpcMiddleware.
-func (client *Client) UseBatchCallRpcMiddleware(middleware middleware.BatchCallRpcMiddleware) {
-	client.batchCallRpcHandler = middleware(client.batchCallRpcHandler)
-}
+// func (client *Client) coreBatchCallContext(ctx context.Context, b []rpc.BatchElem) error {
+// 	err := client.rpcRequester.BatchCallContext(ctx, b)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	for i := range b {
+// 		if rpcErr, err2 := utils.ToRpcError(b[i].Error); err2 == nil {
+// 			b[i].Error = rpcErr
+// 		}
+// 	}
+// 	return nil
+// }
 
 // SetAccountManager sets account manager for sign transaction
 func (client *Client) SetAccountManager(accountManager AccountManagerOperator) {
@@ -1165,27 +1176,27 @@ func (client *Client) BatchGetBlockConfirmationRisk(blockhashes []types.Hash) (m
 
 // Close closes the client, aborting any in-flight requests.
 func (client *Client) Close() {
-	client.rpcRequester.Close()
+	client.Close()
 }
 
 // === pub/sub ===
 
 // SubscribeNewHeads subscribes all new block headers participating in the consensus.
 func (client *Client) SubscribeNewHeads(channel chan types.BlockHeader) (*rpc.ClientSubscription, error) {
-	return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "newHeads")
+	return client.Subscribe(context.Background(), "cfx", channel, "newHeads")
 }
 
 // SubscribeEpochs subscribes consensus results: the total order of blocks, as expressed by a sequence of epochs. Currently subscriptionEpochType only support "latest_mined" and "latest_state"
 func (client *Client) SubscribeEpochs(channel chan types.WebsocketEpochResponse, subscriptionEpochType ...types.Epoch) (*rpc.ClientSubscription, error) {
 	if len(subscriptionEpochType) > 0 {
-		return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "epochs", subscriptionEpochType[0].String())
+		return client.Subscribe(context.Background(), "cfx", channel, "epochs", subscriptionEpochType[0].String())
 	}
-	return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "epochs")
+	return client.Subscribe(context.Background(), "cfx", channel, "epochs")
 }
 
 // SubscribeLogs subscribes all logs matching a certain filter, in order.
 func (client *Client) SubscribeLogs(channel chan types.SubscriptionLog, filter types.LogFilter) (*rpc.ClientSubscription, error) {
-	return client.rpcRequester.Subscribe(context.Background(), "cfx", channel, "logs", filter)
+	return client.Subscribe(context.Background(), "cfx", channel, "logs", filter)
 }
 
 // === helper methods ===
@@ -1337,5 +1348,6 @@ func (c *ClientOption) genProviderOption() *providers.Option {
 		RetryCount:           c.RetryCount,
 		RetryInterval:        c.RetryInterval,
 		MaxConnectionPerHost: c.MaxConnectionPerHost,
+		Logger:               c.Logger,
 	}
 }

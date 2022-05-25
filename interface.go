@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Conflux-Chain/go-conflux-sdk/middleware"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -38,9 +37,6 @@ type ClientOperator interface {
 
 	CallRPC(result interface{}, method string, args ...interface{}) error
 	BatchCallRPC(b []rpc.BatchElem) error
-
-	UseCallRpcMiddleware(middleware middleware.CallRpcMiddleware)
-	UseBatchCallRpcMiddleware(middleware middleware.BatchCallRpcMiddleware)
 
 	SetAccountManager(accountManager AccountManagerOperator)
 	GetAccountManager() AccountManagerOperator
