@@ -1,6 +1,7 @@
 package integrationtest
 
 import (
+	"os"
 	"testing"
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
@@ -93,7 +94,7 @@ func genCfxTestConfig() rpctest.RpcTestConfig {
 
 	return rpctest.RpcTestConfig{
 		ExamplesUrl: "https://raw.githubusercontent.com/Conflux-Chain/jsonrpc-spec/main/src/cfx/examples.json",
-		Client:      sdk.MustNewClient("http://47.93.101.243"),
+		Client:      sdk.MustNewClient("http://47.93.101.243", sdk.ClientOption{Logger: os.Stdout}),
 
 		Rpc2Func:         rpc2Func,
 		Rpc2FuncSelector: rpc2FuncSelector,
@@ -104,7 +105,6 @@ func genCfxTestConfig() rpctest.RpcTestConfig {
 
 }
 
-// TODO: Open after rpc mock server ready
 func TestClientCFX(t *testing.T) {
 	cfxaddress.SetConfig(cfxaddress.Config{
 		AddressStringVerbose: true,

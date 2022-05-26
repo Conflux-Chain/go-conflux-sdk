@@ -66,9 +66,15 @@ func TestInterfaceImplementation(t *testing.T) {
 	var _ ClientOperator = &Client{}
 }
 
+func TestNewClientNotCrash(t *testing.T) {
+	NewClient("https://test.confluxrpc.com", ClientOption{
+		KeystorePath: "./keystore",
+	})
+}
+
 func TestClientHookCallContext(t *testing.T) {
 	c := MustNewClient("https://test.confluxrpc.com")
-	mp := c.Provider().(*providers.MiddlewarableProvider)
+	mp := c.Provider()
 	mp.HookCallContext(callContextMid1)
 	mp.HookCallContext(callContextMid2)
 	c.GetStatus()
