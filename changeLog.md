@@ -1,5 +1,9 @@
 Go-conflux-sdk Change Log
 ============
+v1.3.0
+------------
+-   Use MiddlewareableProvider in client for convinenet to HookCallContext/HookBatchCallContext
+-   Remove client.UseCallRpcMiddleware and client.UseBatchCallRpcMiddleware, and use client.HookCallContext and client.HookBatchCallContext to replace them
 
 v1.2.0
 ------------
