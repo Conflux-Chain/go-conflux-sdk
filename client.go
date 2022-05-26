@@ -143,6 +143,7 @@ func newClientWithOption(nodeURL string, clientOption ClientOption) (*Client, er
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to new provider")
 	}
+
 	client.MiddlewarableProvider = p
 
 	_, err = client.GetNetworkID()
