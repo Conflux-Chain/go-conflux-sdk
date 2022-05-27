@@ -72,6 +72,11 @@ func TestNewClientNotCrash(t *testing.T) {
 	})
 }
 
+func TestClose(t *testing.T) {
+	c := MustNewClient("https://test.confluxrpc.com")
+	c.Close()
+}
+
 func TestClientHookCallContext(t *testing.T) {
 	c := MustNewClient("https://test.confluxrpc.com")
 	mp := c.Provider()

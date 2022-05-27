@@ -1175,11 +1175,6 @@ func (client *Client) BatchGetBlockConfirmationRisk(blockhashes []types.Hash) (m
 	return hashToRevertRateMap, nil
 }
 
-// Close closes the client, aborting any in-flight requests.
-func (client *Client) Close() {
-	client.Close()
-}
-
 // === pub/sub ===
 
 // SubscribeNewHeads subscribes all new block headers participating in the consensus.
