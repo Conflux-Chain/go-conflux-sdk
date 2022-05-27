@@ -161,11 +161,6 @@ func main() {
 		panic(err)
 	}
 
-	err = client.AccountManager.UnlockDefault("hello")
-	if err != nil {
-		panic(err)
-	}
-
 	user := cfxaddress.MustNew("cfxtest:aasfup1wgjyxkzy3575cbnn87xj5tam2zud125twew")
 	result, err := instance.BalanceOf(nil, user.MustGetCommonAddress())
 	if err != nil {
@@ -209,11 +204,6 @@ func main() {
 
 	contractAddr := cfxaddress.MustNew("cfxtest:acd7apn6pnfhna7w1pa8evzhwhv3085vjjp1b8bav5")
 	instance, err := NewMyToken(contractAddr, client)
-	if err != nil {
-		panic(err)
-	}
-
-	err = client.AccountManager.UnlockDefault("hello")
 	if err != nil {
 		panic(err)
 	}
