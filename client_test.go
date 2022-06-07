@@ -11,11 +11,13 @@ package sdk
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	. "bou.ke/monkey"
 	// "github.com/ethereum/go-ethereum/rpc"
 
+	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	rpc "github.com/openweb3/go-rpc-provider"
 	providers "github.com/openweb3/go-rpc-provider/provider_wrapper"
 	"github.com/pkg/errors"
@@ -97,4 +99,29 @@ func callContextMid2(f providers.CallContextFunc) providers.CallContextFunc {
 		fmt.Printf("ctx value of foo: %+v\n", ctx.Value("foo"))
 		return f(ctx, result, method, args...)
 	}
+}
+
+func TestEstimateGasAndCollateralAlwaysWithGaspriceNil(t *testing.T) {
+	c := MustNewClient("https://test.confluxrpc.com", ClientOption{
+		KeystorePath: "./keystore",
+		Logger:       os.Stdout,
+	})
+	c.Provider().HookCallContext(func(f providers.CallContextFunc) providers.CallContextFunc {
+		return func(ctx context.Context, result interface{}, method string, args ...interface{}) error {
+			if method == "cfx_estimateGasAndCollateral" {
+				fmt.Printf("cfx_estimateGasAndCollateral args: %+v\n", args)
+				if args[0].(types.CallRequest).GasPrice != nil {
+					t.Fatalf("gasPrice should be nil")
+				}
+			}
+			return f(ctx, result, method, args...)
+		}
+	})
+	c.AccountManager.Create("123456")
+	defaultAccount, _ := c.AccountManager.GetDefault()
+	c.EstimateGasAndCollateral(
+		types.CallRequest{
+			GasPrice: types.NewBigInt(1000000000),
+			To:       defaultAccount,
+		})
 }

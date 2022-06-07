@@ -545,6 +545,8 @@ func (client *Client) GetTransactionByHash(txHash types.Hash) (tx *types.Transac
 // and returns the amount of the gas used and storage for collateral
 func (client *Client) EstimateGasAndCollateral(request types.CallRequest, epoch ...*types.Epoch) (estimat types.Estimate, err error) {
 	realEpoch := get1stEpochIfy(epoch)
+	// avoid gasprice leads to estimate fail
+	request.GasPrice = nil
 	err = client.wrappedCallRPC(&estimat, "cfx_estimateGasAndCollateral", request, realEpoch)
 	return
 }
@@ -749,6 +751,9 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 	if client != nil {
 		if tx.From == nil {
 			//TODO: return error if client.AccountManager is nil?
+			if client.AccountManager == nil {
+				return errors.New("failed to get account manager")
+			}
 			if client.AccountManager != nil {
 				defaultAccount, err := client.AccountManager.GetDefault()
 				if err != nil {
@@ -796,8 +801,6 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 			if err != nil {
 				return errors.Wrapf(err, "failed to estimate gas and collateral, request = %+v", *callReq)
 			}
-
-			// fmt.Printf("callreq, %+v,sm:%+v\n", *callReq, sm)
 
 			if tx.Gas == nil {
 				tx.Gas = sm.GasLimit
