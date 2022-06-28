@@ -392,7 +392,7 @@ package main
 
 import (
 	"fmt"
-	"log"****
+	"log"
 	"math/big"
 	"time"
 
