@@ -26,8 +26,8 @@ func NewBuckSender(signableClient sdk.Client) *BulkSender {
 }
 
 // AppendTransaction append unsigned transaction to queue
-func (b *BulkSender) AppendTransaction(tx types.UnsignedTransaction) *BulkSender {
-	b.unsignedTxs = append(b.unsignedTxs, &tx)
+func (b *BulkSender) AppendTransaction(tx *types.UnsignedTransaction) *BulkSender {
+	b.unsignedTxs = append(b.unsignedTxs, tx)
 	return b
 }
 
@@ -108,13 +108,19 @@ func (b *BulkSender) populateGasAndStorage() error {
 		return errors.WithStack(err)
 	}
 
+	estimateErrors := ErrBulkEstimate{}
+	for i, e := range errPtrs {
+		if *e != nil {
+			estimateErrors[i] = &ErrEstimate{*e}
+		}
+	}
+	if len(estimateErrors) > 0 {
+		return estimateErrors
+	}
+
 	for i, utx := range b.unsignedTxs {
 		if utx.StorageLimit != nil && utx.Gas != nil {
 			continue
-		}
-
-		if *errPtrs[i] != nil {
-			return errors.WithMessagef(*errPtrs[i], "failed to estimate %vth transaction %+v", i, utx)
 		}
 
 		if utx.Gas == nil {
