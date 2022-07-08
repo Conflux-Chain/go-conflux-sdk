@@ -114,11 +114,13 @@ func (b *BulkSender) populateGasAndStorage() error {
 			estimateErrors[i] = &ErrEstimate{*e}
 		}
 	}
-	if len(estimateErrors) > 0 {
-		return estimateErrors
-	}
 
 	for i, utx := range b.unsignedTxs {
+
+		if _, ok := estimateErrors[i]; ok {
+			continue
+		}
+
 		if utx.StorageLimit != nil && utx.Gas != nil {
 			continue
 		}
@@ -130,6 +132,10 @@ func (b *BulkSender) populateGasAndStorage() error {
 		if utx.StorageLimit == nil {
 			utx.StorageLimit = types.NewUint64(estimatPtrs[i].StorageCollateralized.ToInt().Uint64())
 		}
+	}
+
+	if len(estimateErrors) > 0 {
+		return estimateErrors
 	}
 	return nil
 }
