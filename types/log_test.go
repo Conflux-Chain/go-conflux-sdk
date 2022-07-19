@@ -36,7 +36,6 @@ var (
 			{"0xB", "0xC"},
 			nil,
 		},
-		Limit: NewUint64(0x1),
 	}
 )
 
