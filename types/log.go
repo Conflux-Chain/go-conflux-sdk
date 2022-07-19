@@ -18,15 +18,13 @@ import (
 
 // LogFilter represents the filter of event in a smart contract.
 type LogFilter struct {
-	FromEpoch   *Epoch          `json:"fromEpoch,omitempty"`
-	ToEpoch     *Epoch          `json:"toEpoch,omitempty"`
-	FromBlock   *hexutil.Big    `json:"fromBlock,omitempty"`
-	ToBlock     *hexutil.Big    `json:"toBlock,omitempty"`
-	BlockHashes []Hash          `json:"blockHashes,omitempty"`
-	Address     []Address       `json:"address,omitempty"`
-	Topics      [][]Hash        `json:"topics,omitempty"`
-	Offset      *hexutil.Uint64 `json:"offset,omitempty"`
-	Limit       *hexutil.Uint64 `json:"limit,omitempty"`
+	FromEpoch   *Epoch       `json:"fromEpoch,omitempty"`
+	ToEpoch     *Epoch       `json:"toEpoch,omitempty"`
+	FromBlock   *hexutil.Big `json:"fromBlock,omitempty"`
+	ToBlock     *hexutil.Big `json:"toBlock,omitempty"`
+	BlockHashes []Hash       `json:"blockHashes,omitempty"`
+	Address     []Address    `json:"address,omitempty"`
+	Topics      [][]Hash     `json:"topics,omitempty"`
 }
 
 // Log represents the event in a smart contract
@@ -149,8 +147,6 @@ func (l *LogFilter) UnmarshalJSON(data []byte) error {
 	l.FromBlock = t.FromBlock
 	l.ToBlock = t.ToBlock
 	l.BlockHashes = t.BlockHashes
-	l.Offset = t.Offset
-	l.Limit = t.Limit
 	if l.Address, err = resolveToAddresses(t.Address); err != nil {
 		return err
 	}
