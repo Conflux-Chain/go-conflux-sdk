@@ -171,7 +171,7 @@ func (p *PrivatekeyAccountManager) Sign(tx types.UnsignedTransaction, passphrase
 	}
 
 	if !p.Contains(*tx.From) {
-		return 0, nil, nil, ErrNotFound
+		return 0, nil, nil, sdkErrors.NewAccountNotFoundError(*tx.From)
 	}
 
 	sig, err := crypto.Sign(hash, p.accountsMap[tx.From.GetHexAddress()])
