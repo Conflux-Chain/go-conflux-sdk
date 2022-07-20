@@ -53,5 +53,5 @@ if err!=nil {
 txhash, err := client.SendTransaction(utx)
 ```
 ### Interact With Smart Contract
-The most simple way to interact with contract is generator contract binding by `conflux-abigen`, see details from [here](./cfxabigen.md)
+The most simple way to interact with contract is generator contract binding by `conflux-abigen`, see details from [here](./docs/cfxabigen.md)
 

@@ -1,8 +1,14 @@
 Go-conflux-sdk Change Log
 ============
+
+v1.4.0
+------------
+-   Remove offset & limit from LogFilter
+
 v1.3.2
 ------------
 -   Always set gasprice to nil when EstimateGasAndCollateral
+
 v1.3.0
 ------------
 -   Use MiddlewareableProvider in client for convinenet to HookCallContext/HookBatchCallContext

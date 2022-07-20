@@ -72,10 +72,3 @@ func Keccak256(hexStr string) (string, error) {
 	hash := crypto.Keccak256(bytes)
 	return "0x" + hex.EncodeToString(hash), nil
 }
-
-// ToCfxGeneralAddress converts a normal address to conflux customerd general address
-// whose hex string starts with '0x1'
-// func ToCfxGeneralAddress(address common.Address, chainID uint32) types.Address {
-// 	address[0] = (address[0] & 0x0f) | 0x10
-// 	return cfxaddress.MustNewAddressFromHex(hexutil.Encode(address.Bytes()), chainID)
-// }
