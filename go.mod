@@ -4,9 +4,7 @@ go 1.14
 
 require (
 	bou.ke/monkey v1.0.2
-	github.com/ethereum/go-ethereum v1.10.15
-	github.com/graph-gophers/graphql-go v1.3.0 // indirect
-	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
+	github.com/ethereum/go-ethereum v1.10.17
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/openweb3/go-rpc-provider v0.2.2
 	github.com/openweb3/go-sdk-common v0.0.0-20220720074746-a7134e1d372c
