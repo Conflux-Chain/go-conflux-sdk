@@ -42,8 +42,8 @@ func (p *PrivatekeyAccountManager) Create(passphrase string) (types.Address, err
 	return addr, nil
 }
 
-func (p *PrivatekeyAccountManager) Import(keyFile string, passphrase string, newPassphrase string) (types.Address, error) {
-	key, err := privatekeyhelper.NewFromKeystoreFile(keyFile, passphrase)
+func (p *PrivatekeyAccountManager) Import(keystoreFile string, passphrase string, newPassphrase string) (types.Address, error) {
+	key, err := privatekeyhelper.NewFromKeystoreFile(keystoreFile, passphrase)
 	if err != nil {
 		return types.Address{}, err
 	}
