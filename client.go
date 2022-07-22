@@ -954,6 +954,11 @@ func (client *Client) GetOpenedMethodGroups() (openedGroups []string, err error)
 	return
 }
 
+func (client *Client) GetParamsFromVote(epoch ...*types.Epoch) (info postypes.VoteParamsInfo, err error) {
+	err = client.wrappedCallRPC(&info, "cfx_getParamsFromVote", get1stEpochIfy(epoch))
+	return
+}
+
 // =====Debug RPC=====
 
 func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
