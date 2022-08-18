@@ -73,6 +73,11 @@ type RpcTermData struct {
 	TopElectingNodes []NodeVotingPower `json:"topElectingNodes"`
 }
 
+type VoteParamsInfo struct {
+	PowBaseReward *hexutil.Big `json:"powBaseReward"`
+	InterestRate  *hexutil.Big `json:"interestRate"`
+}
+
 type Block struct {
 	Hash          common.Hash    `json:"hash"`
 	Height        hexutil.Uint64 `json:"height"`

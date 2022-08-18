@@ -481,11 +481,11 @@ func (client *BulkCfxCaller) GetOpenedMethodGroups() (*[]string, *error) {
 }
 
 // GetPoSRewardByEpoch returns PoS reward in the epoch
-func (client *BulkCfxCaller) GetPoSRewardByEpoch(epoch types.Epoch) (*postypes.EpochReward, *error) {
-	result := new(postypes.EpochReward)
+func (client *BulkCfxCaller) GetParamsFromVote(epoch ...*types.Epoch) (*postypes.VoteParamsInfo, *error) {
+	result := new(postypes.VoteParamsInfo)
 	err := new(error)
 
-	elem := newBatchElem(result, "cfx_getPoSRewardByEpoch")
+	elem := newBatchElem(result, "cfx_getParamsFromVote")
 	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
