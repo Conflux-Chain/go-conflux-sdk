@@ -110,9 +110,11 @@ func (b *BulkSender) populateGasAndStorage() error {
 
 	estimateErrors := ErrBulkEstimate{}
 	for i, e := range errPtrs {
-		if *e != nil {
-			estimateErrors[i] = &ErrEstimate{*e}
+		// not estimat beccause of both StorageLimit and Gas are has values
+		if e == nil || *e == nil {
+			continue
 		}
+		estimateErrors[i] = &ErrEstimate{*e}
 	}
 
 	for i, utx := range b.unsignedTxs {
