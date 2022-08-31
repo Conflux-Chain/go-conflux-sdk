@@ -208,6 +208,11 @@ func (m *AccountManager) account(address types.Address) (accounts.Account, error
 	return realAccount.(accounts.Account), nil
 }
 
+func (m *AccountManager) Exists(address types.Address) bool {
+	_, ok := m.cfxAddressDic.Load(address.GetHexAddress())
+	return ok
+}
+
 // Unlock unlocks the specified account indefinitely.
 func (m *AccountManager) Unlock(address types.Address, passphrase string) error {
 	account, err := m.account(address)

@@ -117,6 +117,8 @@ type ClientOperator interface {
 	GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error)
 	GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error)
 
+	GetParamsFromVote(epoch ...*types.Epoch) (info postypes.VoteParamsInfo, err error)
+
 	BatchGetTxByHashes(txhashes []types.Hash) (map[types.Hash]*types.Transaction, error)
 	BatchGetBlockSummarys(blockhashes []types.Hash) (map[types.Hash]*types.BlockSummary, error)
 	BatchGetBlockSummarysByNumber(blocknumbers []hexutil.Uint64) (map[hexutil.Uint64]*types.BlockSummary, error)
