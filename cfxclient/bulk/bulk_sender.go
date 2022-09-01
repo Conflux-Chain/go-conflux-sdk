@@ -34,9 +34,15 @@ func (b *BulkSender) AppendTransaction(tx *types.UnsignedTransaction) *BulkSende
 }
 
 // PopulateTransactions fill missing fields and nonce for unsigned transactions in queue
-func (b *BulkSender) PopulateTransactions(force bool) ([]*types.UnsignedTransaction, error) {
-	if !force && b.isPopulated {
+// default use pending nonce
+func (b *BulkSender) PopulateTransactions(usePendingNonce ...bool) ([]*types.UnsignedTransaction, error) {
+	if b.isPopulated {
 		return b.unsignedTxs, b.bulkEstimateErrors
+	}
+
+	isUsePendingNonce := true
+	if len(usePendingNonce) > 0 {
+		isUsePendingNonce = usePendingNonce[0]
 	}
 
 	defaultAccount, chainID, networkId, gasPrice, epochHeight, err := b.getChainInfos()
@@ -53,20 +59,14 @@ func (b *BulkSender) PopulateTransactions(force bool) ([]*types.UnsignedTransact
 		}
 	}
 
-	// results := []*types.UnsignedTransaction{}
-	// for _, utx := range b.unsignedTxs {
-	// 	tmp := *utx
-	// 	results = append(results, &tmp)
-	// }
-
 	estimatErrs, err := b.populateGasAndStorage()
 	if err != nil {
 		return nil, err
 	}
 
+	// set nonce
 	userUsedNoncesMap := b.gatherUsedNonces()
-	// fill nonce
-	userNextNonceCache, err := b.gatherInitNextNonces()
+	userNextNonceCache, err := b.gatherInitNextNonces(isUsePendingNonce)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -107,34 +107,6 @@ func (b *BulkSender) PopulateTransactions(force bool) ([]*types.UnsignedTransact
 
 		}
 	}
-
-	// if estimatErrs == nil {
-	// 	return results, nil
-	// }
-	// // re-assign nonces
-	// userNextNonceCache, err = b.gatherInitNextNonces()
-	// if err != nil {
-	// 	return nil, errors.WithStack(err)
-	// }
-	// for i, utx := range results {
-	// 	if _, ok := (*estimatErrs)[i]; ok {
-	// 		continue
-	// 	}
-
-	// 	if b.checkIsNonceUsed(userUsedNoncesMap, utx.From, utx.Nonce) {
-	// 		continue
-	// 	}
-
-	// 	from := utx.From.String()
-	// 	utx.Nonce = (*hexutil.Big)(userNextNonceCache[from])
-	// 	// avoid to reuse user used nonce, increase it if transactions used the nonce in cache
-	// 	for {
-	// 		userNextNonceCache[from] = big.NewInt(0).Add(userNextNonceCache[from], big.NewInt(1))
-	// 		if !b.checkIsNonceUsed(userUsedNoncesMap, utx.From, (*hexutil.Big)(userNextNonceCache[from])) {
-	// 			break
-	// 		}
-	// 	}
-	// }
 
 	// return results, estimatErrs
 	b.isPopulated = true
@@ -211,7 +183,7 @@ func (b *BulkSender) gatherUsedNonces() map[string]map[string]bool {
 	return result
 }
 
-func (b *BulkSender) gatherInitNextNonces() (map[string]*big.Int, error) {
+func (b *BulkSender) gatherInitNextNonces(usePendingNonce bool) (map[string]*big.Int, error) {
 	result := make(map[string]*big.Int)
 
 	bulkCaller := NewBulkCaller(b.signalbeCaller)
@@ -238,7 +210,7 @@ func (b *BulkSender) gatherInitNextNonces() (map[string]*big.Int, error) {
 			continue
 		}
 
-		if *poolNextNonceErrs[user] == nil {
+		if *poolNextNonceErrs[user] == nil && usePendingNonce {
 			result[utx.From.String()] = poolNextNonces[user].ToInt()
 			continue
 		}
