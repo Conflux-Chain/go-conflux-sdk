@@ -36,10 +36,6 @@ func (b *BulkSender) AppendTransaction(tx *types.UnsignedTransaction) *BulkSende
 // PopulateTransactions fill missing fields and nonce for unsigned transactions in queue
 // default use pending nonce
 func (b *BulkSender) PopulateTransactions(usePendingNonce ...bool) ([]*types.UnsignedTransaction, error) {
-	if b.isPopulated {
-		return b.unsignedTxs, b.bulkEstimateErrors
-	}
-
 	isUsePendingNonce := true
 	if len(usePendingNonce) > 0 {
 		isUsePendingNonce = usePendingNonce[0]
@@ -276,13 +272,17 @@ func (b *BulkSender) Clear() {
 	b.isPopulated = false
 }
 
+func (b *BulkSender) IsPopulated() bool {
+	return b.isPopulated
+}
+
 // SignAndSend signs and sends all unsigned transactions in queue by rpc call "batch" on one request
 // and returns the result of sending transactions.
 // If there is any error on rpc "batch", it will be returned with err not nil.
 // If there is no error on rpc "batch", it will return the txHashes or txErrors of sending transactions.
 func (b *BulkSender) SignAndSend() (txHashes []*types.Hash, txErrors []error, err error) {
-	if !b.isPopulated {
-		_, err := b.PopulateTransactions(true)
+	if !b.IsPopulated() {
+		_, err := b.PopulateTransactions()
 		if err != nil {
 			return nil, nil, err
 		}
