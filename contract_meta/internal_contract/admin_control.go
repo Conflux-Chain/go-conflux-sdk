@@ -16,12 +16,17 @@ type AdminControl struct {
 	sdk.Contract
 }
 
-var adminControl *AdminControl
+var adminControlMap sync.Map
 var adminControlMu sync.Mutex
 
 // NewAdminControl gets the AdminControl contract object
 func NewAdminControl(client sdk.ClientOperator) (ac AdminControl, err error) {
-	if adminControl == nil {
+	netId, err := client.GetNetworkID()
+	if err != nil {
+		return AdminControl{}, err
+	}
+	val, ok := adminControlMap.Load(netId)
+	if !ok {
 		adminControlMu.Lock()
 		defer adminControlMu.Unlock()
 		abi := getAdminControlAbi()
@@ -33,9 +38,11 @@ func NewAdminControl(client sdk.ClientOperator) (ac AdminControl, err error) {
 		if e != nil {
 			return ac, errors.Wrap(e, "failed to new admin control contract")
 		}
-		adminControl = &AdminControl{Contract: *contract}
+
+		val = AdminControl{Contract: *contract}
+		adminControlMap.Store(netId, val)
 	}
-	return *adminControl, nil
+	return val.(AdminControl), nil
 }
 
 // Destroy destroies contract `contractAddr`.

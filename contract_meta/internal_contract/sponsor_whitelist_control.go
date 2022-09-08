@@ -16,12 +16,17 @@ type Sponsor struct {
 	sdk.Contract
 }
 
-var sponsor *Sponsor
+var sponsorMap sync.Map
 var sponsorMu sync.Mutex
 
 // NewSponsor gets the SponsorWhitelistControl contract object
 func NewSponsor(client sdk.ClientOperator) (s Sponsor, err error) {
-	if sponsor == nil {
+	netId, err := client.GetNetworkID()
+	if err != nil {
+		return Sponsor{}, err
+	}
+	val, ok := sponsorMap.Load(netId)
+	if !ok {
 		sponsorMu.Lock()
 		defer sponsorMu.Unlock()
 		abi := getSponsorAbi()
@@ -33,9 +38,11 @@ func NewSponsor(client sdk.ClientOperator) (s Sponsor, err error) {
 		if e != nil {
 			return s, errors.Wrap(e, "failed to new sponsor contract")
 		}
-		sponsor = &Sponsor{Contract: *contract}
+
+		val = Sponsor{Contract: *contract}
+		sponsorMap.Store(netId, val)
 	}
-	return *sponsor, nil
+	return val.(Sponsor), nil
 }
 
 // GetSponsorForGas gets gas sponsor address of specific contract

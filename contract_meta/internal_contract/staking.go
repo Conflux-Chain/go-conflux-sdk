@@ -15,12 +15,17 @@ type Staking struct {
 	sdk.Contract
 }
 
-var staking *Staking
+var stakingMap sync.Map
 var stakingMu sync.Mutex
 
 // NewStaking gets the Staking contract object
 func NewStaking(client sdk.ClientOperator) (s Staking, err error) {
-	if staking == nil {
+	netId, err := client.GetNetworkID()
+	if err != nil {
+		return Staking{}, err
+	}
+	val, ok := stakingMap.Load(netId)
+	if !ok {
 		stakingMu.Lock()
 		defer stakingMu.Unlock()
 		abi := getStakingAbi()
@@ -32,9 +37,11 @@ func NewStaking(client sdk.ClientOperator) (s Staking, err error) {
 		if e != nil {
 			return s, errors.Wrap(e, "failed to new staking contract")
 		}
-		staking = &Staking{Contract: *contract}
+
+		val = Staking{Contract: *contract}
+		stakingMap.Store(netId, val)
 	}
-	return *staking, nil
+	return val.(Staking), nil
 }
 
 // GetStakingBalance returns user's staking balance
