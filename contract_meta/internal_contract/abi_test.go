@@ -3,7 +3,6 @@ package internalcontract
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -23,5 +22,6 @@ func TestUnpackToTuple(t *testing.T) {
 	err = _abi.UnpackIntoInterface(&out, "getVotes", data)
 	assert.NoError(t, err)
 
-	fmt.Printf("Unpack result %v\n", out)
+	assert.Equal(t, out[0].String(), "1")
+	assert.Equal(t, out[1].String(), "0")
 }
