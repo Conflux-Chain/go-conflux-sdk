@@ -16,12 +16,17 @@ type CrossSpaceCall struct {
 	sdk.Contract
 }
 
-var crossSpaceCall *CrossSpaceCall
+var corssSpaceCallMap sync.Map
 var crossSpaceCallMu sync.Mutex
 
 // NewCrossSpaceCall gets the CrossSpaceCall contract object
 func NewCrossSpaceCall(client sdk.ClientOperator) (s CrossSpaceCall, err error) {
-	if crossSpaceCall == nil {
+	netId, err := client.GetNetworkID()
+	if err != nil {
+		return CrossSpaceCall{}, err
+	}
+	val, ok := corssSpaceCallMap.Load(netId)
+	if !ok {
 		crossSpaceCallMu.Lock()
 		defer crossSpaceCallMu.Unlock()
 		abi := getCrossSpaceCallAbi()
@@ -33,9 +38,11 @@ func NewCrossSpaceCall(client sdk.ClientOperator) (s CrossSpaceCall, err error) 
 		if e != nil {
 			return s, errors.Wrap(e, "failed to new CrossSpaceCall contract")
 		}
-		crossSpaceCall = &CrossSpaceCall{Contract: *contract}
+
+		val = CrossSpaceCall{Contract: *contract}
+		corssSpaceCallMap.Store(netId, val)
 	}
-	return *crossSpaceCall, nil
+	return val.(CrossSpaceCall), nil
 }
 
 func getCrossSpaceCallAbi() string {

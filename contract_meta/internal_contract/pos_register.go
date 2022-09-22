@@ -17,12 +17,17 @@ type PoSRegister struct {
 	sdk.Contract
 }
 
-var poSRegister *PoSRegister
+var poSRegisterMap sync.Map
 var poSRegisterMu sync.Mutex
 
 // NewPoSRegister gets the PoSRegister contract object
 func NewPoSRegister(client sdk.ClientOperator) (s PoSRegister, err error) {
-	if poSRegister == nil {
+	netId, err := client.GetNetworkID()
+	if err != nil {
+		return PoSRegister{}, err
+	}
+	val, ok := poSRegisterMap.Load(netId)
+	if !ok {
 		poSRegisterMu.Lock()
 		defer poSRegisterMu.Unlock()
 		abi := getPoSRegisterAbi()
@@ -34,9 +39,10 @@ func NewPoSRegister(client sdk.ClientOperator) (s PoSRegister, err error) {
 		if e != nil {
 			return s, errors.Wrap(e, "failed to new PoSRegister contract")
 		}
-		poSRegister = &PoSRegister{Contract: *contract}
+		val = PoSRegister{Contract: *contract}
+		poSRegisterMap.Store(netId, val)
 	}
-	return *poSRegister, nil
+	return val.(PoSRegister), nil
 }
 
 func getPoSRegisterAbi() string {

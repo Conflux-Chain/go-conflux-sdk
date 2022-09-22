@@ -20,12 +20,17 @@ type ParamsControlVote struct {
 	Votes      [3]*big.Int
 }
 
-var paramsControl *ParamsControl
+var paramsControlMap sync.Map
 var paramsControlMu sync.Mutex
 
 // NewParamsControl gets the ParamsControl contract object
 func NewParamsControl(client sdk.ClientOperator) (s ParamsControl, err error) {
-	if paramsControl == nil {
+	netId, err := client.GetNetworkID()
+	if err != nil {
+		return ParamsControl{}, err
+	}
+	val, ok := paramsControlMap.Load(netId)
+	if !ok {
 		paramsControlMu.Lock()
 		defer paramsControlMu.Unlock()
 		abi := getParamsControlAbi()
@@ -37,9 +42,10 @@ func NewParamsControl(client sdk.ClientOperator) (s ParamsControl, err error) {
 		if e != nil {
 			return s, errors.Wrap(e, "failed to new ParamsControl contract")
 		}
-		paramsControl = &ParamsControl{Contract: *contract}
+		val = ParamsControl{Contract: *contract}
+		paramsControlMap.Store(netId, val)
 	}
-	return *paramsControl, nil
+	return val.(ParamsControl), nil
 }
 
 func getParamsControlAbi() string {
