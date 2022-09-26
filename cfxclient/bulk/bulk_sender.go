@@ -55,7 +55,7 @@ func (b *BulkSender) PopulateTransactions(usePendingNonce ...bool) ([]*types.Uns
 		}
 	}
 
-	estimatErrs, err := b.populateGasAndStorage()
+	estimateErrs, err := b.populateGasAndStorage()
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (b *BulkSender) PopulateTransactions(usePendingNonce ...bool) ([]*types.Uns
 		return nil, errors.WithStack(err)
 	}
 	for i, utx := range b.unsignedTxs {
-		if estimatErrs != nil && (*estimatErrs)[i] != nil {
+		if estimateErrs != nil && (*estimateErrs)[i] != nil {
 			continue
 		}
 
@@ -106,8 +106,8 @@ func (b *BulkSender) PopulateTransactions(usePendingNonce ...bool) ([]*types.Uns
 
 	// return results, estimatErrs
 	b.isPopulated = true
-	if estimatErrs != nil {
-		b.bulkEstimateErrors = estimatErrs
+	if estimateErrs != nil {
+		b.bulkEstimateErrors = estimateErrs
 		return b.unsignedTxs, b.bulkEstimateErrors
 	}
 	return b.unsignedTxs, nil
@@ -133,7 +133,7 @@ func (b *BulkSender) populateGasAndStorage() (*ErrBulkEstimate, error) {
 
 	estimateErrors := ErrBulkEstimate{}
 	for i, e := range errPtrs {
-		// not estimat beccause of both StorageLimit and Gas have values
+		// not estimate because of both StorageLimit and Gas have values
 		if e == nil || *e == nil {
 			continue
 		}
