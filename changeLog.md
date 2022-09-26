@@ -1,8 +1,5 @@
 Go-conflux-sdk Change Log
 ============
-v1.4.1
-------------
-- Support cfx_getParamsFromVote
 
 v1.4.0
 ------------

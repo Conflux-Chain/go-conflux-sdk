@@ -14,31 +14,39 @@ import (
 // BulkSender used for bulk send unsigned tranactions in one request to improve efficiency,
 // it will auto populate missing fields and nonce of unsigned transactions in queue before send.
 type BulkSender struct {
-	signalbeCaller sdk.ClientOperator
-	unsignedTxs    []*types.UnsignedTransaction
+	signableCaller     sdk.ClientOperator
+	unsignedTxs        []*types.UnsignedTransaction
+	bulkEstimateErrors *ErrBulkEstimate
+	isPopulated        bool
 }
 
-// NewBuckSender creates new bulk sender instance
-func NewBuckSender(signableClient sdk.Client) *BulkSender {
+// NewBulkSender creates new bulk sender instance
+func NewBulkSender(signableClient sdk.Client) *BulkSender {
 	return &BulkSender{
-		signalbeCaller: &signableClient,
+		signableCaller: &signableClient,
 	}
 }
 
 // AppendTransaction append unsigned transaction to queue
-func (b *BulkSender) AppendTransaction(tx types.UnsignedTransaction) *BulkSender {
-	b.unsignedTxs = append(b.unsignedTxs, &tx)
+func (b *BulkSender) AppendTransaction(tx *types.UnsignedTransaction) *BulkSender {
+	b.unsignedTxs = append(b.unsignedTxs, tx)
 	return b
 }
 
 // PopulateTransactions fill missing fields and nonce for unsigned transactions in queue
-func (b *BulkSender) PopulateTransactions() error {
+// default use pending nonce
+func (b *BulkSender) PopulateTransactions(usePendingNonce ...bool) ([]*types.UnsignedTransaction, error) {
+	isUsePendingNonce := true
+	if len(usePendingNonce) > 0 {
+		isUsePendingNonce = usePendingNonce[0]
+	}
+
 	defaultAccount, chainID, networkId, gasPrice, epochHeight, err := b.getChainInfos()
 	if err != nil {
-		return errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
 	if defaultAccount == nil {
-		return errors.Wrap(err, "failed to pupulate, no account found")
+		return nil, errors.Wrap(err, "failed to pupulate, no account found")
 	}
 
 	for _, utx := range b.unsignedTxs {
@@ -47,14 +55,22 @@ func (b *BulkSender) PopulateTransactions() error {
 		}
 	}
 
-	userUsedNoncesMap := b.gatherUsedNonces()
-	// fill nonce
-	userNextNonceCache, err := b.gatherInitNextNonces()
+	estimateErrs, err := b.populateGasAndStorage()
 	if err != nil {
-		return errors.WithStack(err)
+		return nil, err
 	}
 
-	for _, utx := range b.unsignedTxs {
+	// set nonce
+	userUsedNoncesMap := b.gatherUsedNonces()
+	userNextNonceCache, err := b.gatherInitNextNonces(isUsePendingNonce)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	for i, utx := range b.unsignedTxs {
+		if estimateErrs != nil && (*estimateErrs)[i] != nil {
+			continue
+		}
+
 		utx.From.CompleteByNetworkID(networkId)
 		utx.To.CompleteByNetworkID(networkId)
 
@@ -87,12 +103,19 @@ func (b *BulkSender) PopulateTransactions() error {
 
 		}
 	}
-	return b.populateGasAndStorage()
+
+	// return results, estimatErrs
+	b.isPopulated = true
+	if estimateErrs != nil {
+		b.bulkEstimateErrors = estimateErrs
+		return b.unsignedTxs, b.bulkEstimateErrors
+	}
+	return b.unsignedTxs, nil
 }
 
-func (b *BulkSender) populateGasAndStorage() error {
+func (b *BulkSender) populateGasAndStorage() (*ErrBulkEstimate, error) {
 	estimatPtrs, errPtrs := make([]*types.Estimate, len(b.unsignedTxs)), make([]*error, len(b.unsignedTxs))
-	bulkCaller := NewBulkCaller(b.signalbeCaller)
+	bulkCaller := NewBulkCaller(b.signableCaller)
 	for i, utx := range b.unsignedTxs {
 		if utx.StorageLimit != nil && utx.Gas != nil {
 			continue
@@ -105,16 +128,26 @@ func (b *BulkSender) populateGasAndStorage() error {
 
 	err := bulkCaller.Execute()
 	if err != nil {
-		return errors.WithStack(err)
+		return nil, errors.WithStack(err)
+	}
+
+	estimateErrors := ErrBulkEstimate{}
+	for i, e := range errPtrs {
+		// not estimate because of both StorageLimit and Gas have values
+		if e == nil || *e == nil {
+			continue
+		}
+		estimateErrors[i] = &ErrEstimate{*e}
 	}
 
 	for i, utx := range b.unsignedTxs {
-		if utx.StorageLimit != nil && utx.Gas != nil {
+
+		if _, ok := estimateErrors[i]; ok {
 			continue
 		}
 
-		if *errPtrs[i] != nil {
-			return errors.WithMessagef(*errPtrs[i], "failed to estimate %vth transaction %+v", i, utx)
+		if utx.StorageLimit != nil && utx.Gas != nil {
+			continue
 		}
 
 		if utx.Gas == nil {
@@ -125,7 +158,11 @@ func (b *BulkSender) populateGasAndStorage() error {
 			utx.StorageLimit = types.NewUint64(estimatPtrs[i].StorageCollateralized.ToInt().Uint64())
 		}
 	}
-	return nil
+
+	if len(estimateErrors) > 0 {
+		return &estimateErrors, nil
+	}
+	return nil, nil
 }
 
 func (b *BulkSender) gatherUsedNonces() map[string]map[string]bool {
@@ -142,10 +179,10 @@ func (b *BulkSender) gatherUsedNonces() map[string]map[string]bool {
 	return result
 }
 
-func (b *BulkSender) gatherInitNextNonces() (map[string]*big.Int, error) {
+func (b *BulkSender) gatherInitNextNonces(usePendingNonce bool) (map[string]*big.Int, error) {
 	result := make(map[string]*big.Int)
 
-	bulkCaller := NewBulkCaller(b.signalbeCaller)
+	bulkCaller := NewBulkCaller(b.signableCaller)
 	isUserCached := make(map[string]bool)
 	poolNextNonces, poolNextNonceErrs := make(map[string]*hexutil.Big), make(map[string]*error)
 	nextNonces, nextNonceErrs := make(map[string]*hexutil.Big), make(map[string]*error)
@@ -169,7 +206,7 @@ func (b *BulkSender) gatherInitNextNonces() (map[string]*big.Int, error) {
 			continue
 		}
 
-		if *poolNextNonceErrs[user] == nil {
+		if *poolNextNonceErrs[user] == nil && usePendingNonce {
 			result[utx.From.String()] = poolNextNonces[user].ToInt()
 			continue
 		}
@@ -200,7 +237,7 @@ func (b *BulkSender) getChainInfos() (
 	epochHeight *hexutil.Uint64,
 	err error,
 ) {
-	_client := b.signalbeCaller
+	_client := b.signableCaller
 
 	_defaultAccount, err := _client.GetAccountManager().GetDefault()
 	if err != nil {
@@ -232,40 +269,52 @@ func (b *BulkSender) getChainInfos() (
 // Clear clear batch elems and errors in queue for new bulk call action
 func (b *BulkSender) Clear() {
 	b.unsignedTxs = b.unsignedTxs[:0]
+	b.isPopulated = false
+}
+
+func (b *BulkSender) IsPopulated() bool {
+	return b.isPopulated
 }
 
 // SignAndSend signs and sends all unsigned transactions in queue by rpc call "batch" on one request
 // and returns the result of sending transactions.
-// If there is any error on rpc "batch", it will be returned with batchErr not nil.
+// If there is any error on rpc "batch", it will be returned with err not nil.
 // If there is no error on rpc "batch", it will return the txHashes or txErrors of sending transactions.
-func (b *BulkSender) SignAndSend() (txHashes []*types.Hash, txErrors []error, batchErr error) {
+func (b *BulkSender) SignAndSend() (txHashes []*types.Hash, txErrors []error, err error) {
+	if !b.IsPopulated() {
+		_, err := b.PopulateTransactions()
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
 	rawTxs := make([][]byte, len(b.unsignedTxs))
 
 	for i, utx := range b.unsignedTxs {
 		var err error
-		rawTxs[i], err = b.signalbeCaller.GetAccountManager().SignTransaction(*utx)
+		rawTxs[i], err = b.signableCaller.GetAccountManager().SignTransaction(*utx)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "failed to encode the %vth transaction: %+v", i, utx)
 		}
 	}
 
 	// send
-	bulkCaller := NewBulkCaller(b.signalbeCaller)
+	bulkCaller := NewBulkCaller(b.signableCaller)
 	hashes := make([]*types.Hash, len(rawTxs))
-	errs := make([]*error, len(rawTxs))
+	txErrs := make([]*error, len(rawTxs))
 	for i, rawTx := range rawTxs {
-		hashes[i], errs[i] = bulkCaller.Cfx().SendRawTransaction(rawTx)
+		hashes[i], txErrs[i] = bulkCaller.Cfx().SendRawTransaction(rawTx)
 	}
 
-	batchErr = bulkCaller.Execute()
-	if batchErr != nil {
-		return nil, nil, errors.Wrapf(batchErr, "failed to batch send transactions")
+	err = bulkCaller.Execute()
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "failed to batch send transactions")
 	}
 
-	errorVals := make([]error, len(errs))
-	for i, err := range errs {
+	errorVals := make([]error, len(txErrs))
+	for i, err := range txErrs {
 		errorVals[i] = *err
 	}
 
-	return hashes, errorVals, batchErr
+	return hashes, errorVals, err
 }
