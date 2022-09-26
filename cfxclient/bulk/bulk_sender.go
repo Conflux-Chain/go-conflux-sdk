@@ -14,7 +14,7 @@ import (
 // BulkSender used for bulk send unsigned tranactions in one request to improve efficiency,
 // it will auto populate missing fields and nonce of unsigned transactions in queue before send.
 type BulkSender struct {
-	signalbeCaller     sdk.ClientOperator
+	signableCaller     sdk.ClientOperator
 	unsignedTxs        []*types.UnsignedTransaction
 	bulkEstimateErrors *ErrBulkEstimate
 	isPopulated        bool
@@ -23,7 +23,7 @@ type BulkSender struct {
 // NewBulkSender creates new bulk sender instance
 func NewBulkSender(signableClient sdk.Client) *BulkSender {
 	return &BulkSender{
-		signalbeCaller: &signableClient,
+		signableCaller: &signableClient,
 	}
 }
 
@@ -115,7 +115,7 @@ func (b *BulkSender) PopulateTransactions(usePendingNonce ...bool) ([]*types.Uns
 
 func (b *BulkSender) populateGasAndStorage() (*ErrBulkEstimate, error) {
 	estimatPtrs, errPtrs := make([]*types.Estimate, len(b.unsignedTxs)), make([]*error, len(b.unsignedTxs))
-	bulkCaller := NewBulkCaller(b.signalbeCaller)
+	bulkCaller := NewBulkCaller(b.signableCaller)
 	for i, utx := range b.unsignedTxs {
 		if utx.StorageLimit != nil && utx.Gas != nil {
 			continue
@@ -182,7 +182,7 @@ func (b *BulkSender) gatherUsedNonces() map[string]map[string]bool {
 func (b *BulkSender) gatherInitNextNonces(usePendingNonce bool) (map[string]*big.Int, error) {
 	result := make(map[string]*big.Int)
 
-	bulkCaller := NewBulkCaller(b.signalbeCaller)
+	bulkCaller := NewBulkCaller(b.signableCaller)
 	isUserCached := make(map[string]bool)
 	poolNextNonces, poolNextNonceErrs := make(map[string]*hexutil.Big), make(map[string]*error)
 	nextNonces, nextNonceErrs := make(map[string]*hexutil.Big), make(map[string]*error)
@@ -237,7 +237,7 @@ func (b *BulkSender) getChainInfos() (
 	epochHeight *hexutil.Uint64,
 	err error,
 ) {
-	_client := b.signalbeCaller
+	_client := b.signableCaller
 
 	_defaultAccount, err := _client.GetAccountManager().GetDefault()
 	if err != nil {
@@ -292,14 +292,14 @@ func (b *BulkSender) SignAndSend() (txHashes []*types.Hash, txErrors []error, er
 
 	for i, utx := range b.unsignedTxs {
 		var err error
-		rawTxs[i], err = b.signalbeCaller.GetAccountManager().SignTransaction(*utx)
+		rawTxs[i], err = b.signableCaller.GetAccountManager().SignTransaction(*utx)
 		if err != nil {
 			return nil, nil, errors.Wrapf(err, "failed to encode the %vth transaction: %+v", i, utx)
 		}
 	}
 
 	// send
-	bulkCaller := NewBulkCaller(b.signalbeCaller)
+	bulkCaller := NewBulkCaller(b.signableCaller)
 	hashes := make([]*types.Hash, len(rawTxs))
 	txErrs := make([]*error, len(rawTxs))
 	for i, rawTx := range rawTxs {
