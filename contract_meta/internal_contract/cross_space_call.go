@@ -16,7 +16,7 @@ type CrossSpaceCall struct {
 	sdk.Contract
 }
 
-var corssSpaceCallMap sync.Map
+var crossSpaceCallMap sync.Map
 var crossSpaceCallMu sync.Mutex
 
 // NewCrossSpaceCall gets the CrossSpaceCall contract object
@@ -25,7 +25,7 @@ func NewCrossSpaceCall(client sdk.ClientOperator) (s CrossSpaceCall, err error) 
 	if err != nil {
 		return CrossSpaceCall{}, err
 	}
-	val, ok := corssSpaceCallMap.Load(netId)
+	val, ok := crossSpaceCallMap.Load(netId)
 	if !ok {
 		crossSpaceCallMu.Lock()
 		defer crossSpaceCallMu.Unlock()
@@ -40,7 +40,7 @@ func NewCrossSpaceCall(client sdk.ClientOperator) (s CrossSpaceCall, err error) 
 		}
 
 		val = CrossSpaceCall{Contract: *contract}
-		corssSpaceCallMap.Store(netId, val)
+		crossSpaceCallMap.Store(netId, val)
 	}
 	return val.(CrossSpaceCall), nil
 }
@@ -100,6 +100,10 @@ func (s *CrossSpaceCall) TransferEVM(opts *types.ContractMethodSendOption, to co
 
 func (s *CrossSpaceCall) WithdrawFromMapped(opts *types.ContractMethodSendOption, value *big.Int) (types.Hash, error) {
 	return s.SendTransaction(opts, "withdrawFromMapped", value)
+}
+
+func (s *CrossSpaceCall) DeployEip1820(opts *types.ContractMethodSendOption) (types.Hash, error) {
+	return s.SendTransaction(opts, "deployEip1820")
 }
 
 // =================== events ==================

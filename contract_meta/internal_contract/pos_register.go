@@ -102,8 +102,8 @@ func (p *PoSRegister) IncreaseStake(opts *bind.TransactOpts, votePower uint64) (
 	return p.SendTransaction(opts, "increaseStake", votePower)
 }
 
-func (p *PoSRegister) Register(opts *bind.TransactOpts, indentifier [32]byte, votePower uint64, blsPubKey []byte, vrfPubKey []byte, blsPubKeyProof [2][]byte) (types.Hash, error) {
-	return p.SendTransaction(opts, "register", indentifier, votePower, blsPubKey, vrfPubKey, blsPubKeyProof)
+func (p *PoSRegister) Register(opts *bind.TransactOpts, identifier [32]byte, votePower uint64, blsPubKey []byte, vrfPubKey []byte, blsPubKeyProof [2][]byte) (types.Hash, error) {
+	return p.SendTransaction(opts, "register", identifier, votePower, blsPubKey, vrfPubKey, blsPubKeyProof)
 }
 
 func (p *PoSRegister) Retire(opts *bind.TransactOpts, votePower uint64) (types.Hash, error) {

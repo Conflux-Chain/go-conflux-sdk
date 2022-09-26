@@ -60,36 +60,44 @@ func getParamsControlAddress(client sdk.ClientOperator) (types.Address, error) {
 
 // =================== calls ==================
 
-func (ac *ParamsControl) ReadVote(opts *types.ContractMethodCallOption, addr types.Address) ([]ParamsControlVote, error) {
+func (p *ParamsControl) ReadVote(opts *types.ContractMethodCallOption, addr types.Address) ([]ParamsControlVote, error) {
 	out := []ParamsControlVote{}
-	err := ac.Call(opts, &out, "readVote", addr.MustGetCommonAddress())
+	err := p.Call(opts, &out, "readVote", addr.MustGetCommonAddress())
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (ac *ParamsControl) TotalVotes(opts *types.ContractMethodCallOption, vote_round uint64) ([]ParamsControlVote, error) {
+func (p *ParamsControl) TotalVotes(opts *types.ContractMethodCallOption, vote_round uint64) ([]ParamsControlVote, error) {
 	out := []ParamsControlVote{}
-	err := ac.Call(opts, &out, "totalVotes", vote_round)
+	err := p.Call(opts, &out, "totalVotes", vote_round)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (ac *ParamsControl) VoteRound(opts *types.ContractMethodCallOption) (uint64, error) {
+func (p *ParamsControl) CurrentRound(opts *types.ContractMethodCallOption) (uint64, error) {
 	var out uint64
-	err := ac.Call(opts, &out, "voteRound")
+	err := p.Call(opts, &out, "currentRound")
 	if err != nil {
 		return 0, err
 	}
 	return out, nil
+}
 
+func (p *ParamsControl) PosStakeForVotes(opts *types.ContractMethodCallOption, arg0 uint64) (*big.Int, error) {
+	var out = new(big.Int)
+	err := p.Call(opts, &out, "posStakeForVotes")
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // =================== sends ==================
 
-func (ac *ParamsControl) CastVote(opts *types.ContractMethodSendOption, vote_round uint64, vote_data []ParamsControlVote) (types.Hash, error) {
-	return ac.SendTransaction(opts, "castVote", vote_round, vote_data)
+func (p *ParamsControl) CastVote(opts *types.ContractMethodSendOption, vote_round uint64, vote_data []ParamsControlVote) (types.Hash, error) {
+	return p.SendTransaction(opts, "castVote", vote_round, vote_data)
 }
