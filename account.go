@@ -189,6 +189,11 @@ func (m *AccountManager) List() []types.Address {
 	return result
 }
 
+func (m *AccountManager) Contains(address types.Address) bool {
+	_, err := m.account(address)
+	return err == nil
+}
+
 // GetDefault return first account in keystore directory
 func (m *AccountManager) GetDefault() (*types.Address, error) {
 	list := m.List()

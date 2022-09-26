@@ -10,6 +10,7 @@ import (
 )
 
 var ErrTimeout error = errors.New("timeout")
+var ErrEmptyAddresses = errors.New("address list is empty")
 
 // AccountNotFoundError represents error of account not found.
 type AccountNotFoundError struct {
