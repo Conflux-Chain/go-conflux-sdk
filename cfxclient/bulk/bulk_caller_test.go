@@ -13,7 +13,7 @@ import (
 
 // use
 func TestBulkCall(t *testing.T) {
-	_client, err := client.NewClient("https://test.confluxrpc.com")
+	_client, err := client.NewClient("https://test.confluxrpc.com", client.ClientOption{RetryCount: 3})
 	// _client.UseBatchCallRpcMiddleware(middleware.BatchCallRpcConsoleMiddleware)
 	if err != nil {
 		panic(err)
