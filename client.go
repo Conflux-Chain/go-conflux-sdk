@@ -1203,6 +1203,24 @@ func (client *Client) SubscribeLogs(channel chan types.SubscriptionLog, filter t
 	return client.Subscribe(context.Background(), "cfx", channel, "logs", filter)
 }
 
+// SubscribeNewHeads subscribes all new block headers participating in the consensus.
+func (client *Client) SubscribeNewHeadsWitReconn(channel chan types.BlockHeader) *rpc.ReconnClientSubscription {
+	return client.SubscribeWithReconn(context.Background(), "cfx", channel, "newHeads")
+}
+
+// SubscribeEpochs subscribes consensus results: the total order of blocks, as expressed by a sequence of epochs. Currently subscriptionEpochType only support "latest_mined" and "latest_state"
+func (client *Client) SubscribeEpochsWithReconn(channel chan types.WebsocketEpochResponse, subscriptionEpochType ...types.Epoch) *rpc.ReconnClientSubscription {
+	if len(subscriptionEpochType) > 0 {
+		return client.SubscribeWithReconn(context.Background(), "cfx", channel, "epochs", subscriptionEpochType[0].String())
+	}
+	return client.SubscribeWithReconn(context.Background(), "cfx", channel, "epochs")
+}
+
+// SubscribeLogs subscribes all logs matching a certain filter, in order.
+func (client *Client) SubscribeLogsWithReconn(channel chan types.SubscriptionLog, filter types.LogFilter) *rpc.ReconnClientSubscription {
+	return client.SubscribeWithReconn(context.Background(), "cfx", channel, "logs", filter)
+}
+
 // === helper methods ===
 
 // WaitForTransationBePacked returns transaction when it is packed
