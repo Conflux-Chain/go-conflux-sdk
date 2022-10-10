@@ -1,6 +1,10 @@
 Go-conflux-sdk Change Log
 ============
 
+v1.4.3
+------------
+-   Support `SubscribeNewHeadsWitReconn`, `SubscribeEpochsWithReconn`, `SubscribeLogsWithReconn`
+
 v1.4.0
 ------------
 -   Remove offset & limit from LogFilter
