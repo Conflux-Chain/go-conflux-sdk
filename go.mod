@@ -8,11 +8,12 @@ require (
 	github.com/graph-gophers/graphql-go v1.3.0 // indirect
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
 	github.com/mcuadros/go-defaults v1.2.0
-	github.com/openweb3/go-rpc-provider v0.2.2
+	github.com/openweb3/go-rpc-provider v0.3.0
 	github.com/openweb3/go-sdk-common v0.0.0-20220720074746-a7134e1d372c
 	github.com/pkg/errors v0.9.1
 	github.com/shopspring/decimal v1.3.1
 	github.com/smartystreets/goconvey v1.6.4
+	github.com/status-im/keycard-go v0.0.0-20190316090335-8537d3370df4
 	github.com/stretchr/testify v1.7.0
 	gopkg.in/urfave/cli.v1 v1.20.0
 	gotest.tools v2.2.0+incompatible
@@ -21,4 +22,4 @@ require (
 
 // replace github.com/openweb3/go-sdk-common => ../go-sdk-common
 // replace github.com/ethereum/go-ethereum => ../../ethereum/go-ethereum
-// replace github.com/openweb3/go-rpc-provider v0.2.0 => ../go-rpc-provider
+// replace github.com/openweb3/go-rpc-provider v0.2.2 => ../go-rpc-provider
