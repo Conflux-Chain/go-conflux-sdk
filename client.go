@@ -1203,12 +1203,14 @@ func (client *Client) SubscribeLogs(channel chan types.SubscriptionLog, filter t
 	return client.Subscribe(context.Background(), "cfx", channel, "logs", filter)
 }
 
-// SubscribeNewHeads subscribes all new block headers participating in the consensus.
+// SubscribeNewHeadsWitReconn subscribes all new block headers participating in the consensus.
+// It will auto re-subscribe if lost connect.
 func (client *Client) SubscribeNewHeadsWitReconn(channel chan types.BlockHeader) *rpc.ReconnClientSubscription {
 	return client.SubscribeWithReconn(context.Background(), "cfx", channel, "newHeads")
 }
 
-// SubscribeEpochs subscribes consensus results: the total order of blocks, as expressed by a sequence of epochs. Currently subscriptionEpochType only support "latest_mined" and "latest_state"
+// SubscribeEpochsWithReconn subscribes consensus results: the total order of blocks, as expressed by a sequence of epochs. Currently subscriptionEpochType only support "latest_mined" and "latest_state"
+// It will auto re-subscribe if lost connect.
 func (client *Client) SubscribeEpochsWithReconn(channel chan types.WebsocketEpochResponse, subscriptionEpochType ...types.Epoch) *rpc.ReconnClientSubscription {
 	if len(subscriptionEpochType) > 0 {
 		return client.SubscribeWithReconn(context.Background(), "cfx", channel, "epochs", subscriptionEpochType[0].String())
@@ -1217,6 +1219,7 @@ func (client *Client) SubscribeEpochsWithReconn(channel chan types.WebsocketEpoc
 }
 
 // SubscribeLogs subscribes all logs matching a certain filter, in order.
+// It will auto re-subscribe if lost connect.
 func (client *Client) SubscribeLogsWithReconn(channel chan types.SubscriptionLog, filter types.LogFilter) *rpc.ReconnClientSubscription {
 	return client.SubscribeWithReconn(context.Background(), "cfx", channel, "logs", filter)
 }
