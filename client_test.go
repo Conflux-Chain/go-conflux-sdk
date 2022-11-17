@@ -127,7 +127,7 @@ func TestEstimateGasAndCollateralAlwaysWithGaspriceNil(t *testing.T) {
 		})
 }
 
-func TestGetPosTxByNum(t *testing.T) {
+func _TestGetPosTxByNum(t *testing.T) {
 	c := MustNewClient("https://test-internal.confluxrpc.com", ClientOption{Logger: os.Stdout})
 	tx, err := c.Pos().GetTransactionByNumber(*types.NewUint64(0x76657))
 	assert.NoError(t, err)
