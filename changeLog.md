@@ -1,5 +1,8 @@
 Go-conflux-sdk Change Log
 ============
+v1.4.4
+------------
+-   Fix pos rpc `GetTransactionByNumber` return result
 
 v1.4.3
 ------------
