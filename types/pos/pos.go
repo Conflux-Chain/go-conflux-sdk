@@ -144,7 +144,7 @@ func (b *Transaction) UnmarshalJSON(data []byte) error {
 		tmpTx.Timestamp, tmpTx.Number, nil, tmpTx.Status, tmpTx.Type}
 
 	if tmpTx.Payload != nil {
-		marshaed, err := json.Marshal(tmpTx.Payload)
+		marshaled, err := json.Marshal(tmpTx.Payload)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -153,17 +153,17 @@ func (b *Transaction) UnmarshalJSON(data []byte) error {
 		realPayload.SetTransactionType(tmpTx.Type)
 		switch tmpTx.Type {
 		case "Election":
-			err = json.Unmarshal(marshaed, &realPayload.ElectionPayload)
+			err = json.Unmarshal(marshaled, &realPayload.ElectionPayload)
 		case "Retire":
-			err = json.Unmarshal(marshaed, &realPayload.RetirePayload)
+			err = json.Unmarshal(marshaled, &realPayload.RetirePayload)
 		case "Register":
-			err = json.Unmarshal(marshaed, &realPayload.RegisterPayload)
+			err = json.Unmarshal(marshaled, &realPayload.RegisterPayload)
 		case "UpdateVotingPower":
-			err = json.Unmarshal(marshaed, &realPayload.UpdateVotingPowerPayload)
+			err = json.Unmarshal(marshaled, &realPayload.UpdateVotingPowerPayload)
 		case "PivotDecision":
-			err = json.Unmarshal(marshaed, &realPayload.PivotBlockDecision)
+			err = json.Unmarshal(marshaled, &realPayload.PivotBlockDecision)
 		case "Dispute":
-			err = json.Unmarshal(marshaed, &realPayload.DisputePayload)
+			err = json.Unmarshal(marshaled, &realPayload.DisputePayload)
 		}
 		if err != nil {
 			return errors.WithStack(err)
