@@ -22,6 +22,7 @@ import (
 	providers "github.com/openweb3/go-rpc-provider/provider_wrapper"
 	"github.com/pkg/errors"
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 func _TestNewClient(t *testing.T) {
@@ -124,4 +125,11 @@ func TestEstimateGasAndCollateralAlwaysWithGaspriceNil(t *testing.T) {
 			GasPrice: types.NewBigInt(1000000000),
 			To:       defaultAccount,
 		})
+}
+
+func _TestGetPosTxByNum(t *testing.T) {
+	c := MustNewClient("https://test-internal.confluxrpc.com", ClientOption{Logger: os.Stdout})
+	tx, err := c.Pos().GetTransactionByNumber(*types.NewUint64(0x76657))
+	assert.NoError(t, err)
+	fmt.Printf("%v\n", tx)
 }

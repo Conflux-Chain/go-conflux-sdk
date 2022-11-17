@@ -73,10 +73,16 @@ type PivotBlockDecision struct {
 }
 
 type DisputePayload struct {
-	Address          Address           `json:"address"`
-	BlsPubKey        string            `json:"blsPubKey"`
-	VrfPubKey        string            `json:"vrfPubKey"`
-	ConflictingVotes ConflictSignature `json:"conflictingVotes"`
+	Address          Address          `json:"address"`
+	BlsPublicKey     string           `json:"blsPublicKey"`
+	VrfPublicKey     string           `json:"vrfPublicKey"`
+	ConflictingVotes ConflictingVotes `json:"conflictingVotes"`
+}
+
+type ConflictingVotes struct {
+	ConflictVoteType string `json:"conflictVoteType"`
+	First            string `json:"first"`
+	Second           string `json:"second"`
 }
 
 type ConflictSignature struct {

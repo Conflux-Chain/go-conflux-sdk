@@ -134,16 +134,6 @@ func (b *Transaction) UnmarshalJSON(data []byte) error {
 		Type        string          `json:"type"`
 	}
 
-	type tmpPayload struct {
-		ElectionPayload
-		RetirePayload
-		// RegisterPayload
-		UpdateVotingPowerPayload
-		PivotBlockDecision
-		DisputePayload
-		ConflictSignature
-	}
-
 	tmpTx := tmpTransaction{}
 
 	if err := json.Unmarshal(data, &tmpTx); err != nil {
@@ -154,39 +144,31 @@ func (b *Transaction) UnmarshalJSON(data []byte) error {
 		tmpTx.Timestamp, tmpTx.Number, nil, tmpTx.Status, tmpTx.Type}
 
 	if tmpTx.Payload != nil {
-		marshaed, err := json.Marshal(tmpTx.Payload)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-
-		payload := tmpPayload{}
-		err = json.Unmarshal(marshaed, &payload)
+		marshaled, err := json.Marshal(tmpTx.Payload)
 		if err != nil {
 			return errors.WithStack(err)
 		}
 
 		realPayload := TransactionPayload{}
+		realPayload.SetTransactionType(tmpTx.Type)
 		switch tmpTx.Type {
 		case "Election":
-			realPayload.ElectionPayload = payload.ElectionPayload
+			err = json.Unmarshal(marshaled, &realPayload.ElectionPayload)
 		case "Retire":
-			realPayload.RetirePayload = payload.RetirePayload
+			err = json.Unmarshal(marshaled, &realPayload.RetirePayload)
 		case "Register":
-			realPayload.RegisterPayload = RegisterPayload{
-				PublicKey:    payload.ElectionPayload.PublicKey,
-				VrfPublicKey: payload.ElectionPayload.VrfPublicKey,
-			}
-			// fmt.Printf("realPayload.RegisterPayload: %#v\n\n", realPayload.RegisterPayload)
+			err = json.Unmarshal(marshaled, &realPayload.RegisterPayload)
 		case "UpdateVotingPower":
-			realPayload.UpdateVotingPowerPayload = payload.UpdateVotingPowerPayload
+			err = json.Unmarshal(marshaled, &realPayload.UpdateVotingPowerPayload)
 		case "PivotDecision":
-			realPayload.PivotBlockDecision = payload.PivotBlockDecision
+			err = json.Unmarshal(marshaled, &realPayload.PivotBlockDecision)
 		case "Dispute":
-			realPayload.DisputePayload = payload.DisputePayload
+			err = json.Unmarshal(marshaled, &realPayload.DisputePayload)
+		}
+		if err != nil {
+			return errors.WithStack(err)
 		}
 
-		realPayload.SetTransactionType(tmpTx.Type)
-		// fmt.Printf("tmpTxType:%v,payload:%#v, realPayload %#v", tmpTx.Type, payload, realPayload)
 		b.Payload = &realPayload
 	}
 
