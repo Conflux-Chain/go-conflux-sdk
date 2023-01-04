@@ -6,5 +6,5 @@ import "github.com/ethereum/go-ethereum/common/hexutil"
 type DepositInfo struct {
 	AccumulatedInterestRate *hexutil.Big `json:"accumulatedInterestRate"`
 	Amount                  *hexutil.Big `json:"amount"`
-	DepositTime             uint64       `json:"depositTime"`
+	DepositTime             *hexutil.Big `json:"depositTime"`
 }
