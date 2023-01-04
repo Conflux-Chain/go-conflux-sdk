@@ -18,6 +18,7 @@ import (
 	// "github.com/ethereum/go-ethereum/rpc"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	rpc "github.com/openweb3/go-rpc-provider"
 	providers "github.com/openweb3/go-rpc-provider/provider_wrapper"
 	"github.com/pkg/errors"
@@ -132,4 +133,11 @@ func _TestGetPosTxByNum(t *testing.T) {
 	tx, err := c.Pos().GetTransactionByNumber(*types.NewUint64(0x76657))
 	assert.NoError(t, err)
 	fmt.Printf("%v\n", tx)
+}
+
+func _TestDeposite(t *testing.T) {
+	c := MustNewClient("https://test.confluxrpc.com", ClientOption{Logger: os.Stdout})
+	di, err := c.GetDepositList(cfxaddress.MustNew("cfxtest:aanhtnrex2nj56kkbws4yx0jeab34ae16pcap53w13"))
+	assert.NoError(t, err)
+	fmt.Printf("%v\n", di)
 }
