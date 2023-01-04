@@ -1,5 +1,9 @@
 Go-conflux-sdk Change Log
 ============
+v1.5.0
+------------
+-   Update field `DepositTime` of `DepositInfo` to `*hexutil.Big`
+
 v1.4.4
 ------------
 -   Fix pos rpc `GetTransactionByNumber` return result
