@@ -248,9 +248,18 @@ func (b *BulkSender) getChainInfos() (
 	_status, statusErr := bulkCaller.GetStatus()
 	_gasPrice, gasPriceErr := bulkCaller.GetGasPrice()
 	_epoch, epochErr := bulkCaller.GetEpochNumber(types.EpochLatestState)
-	err = bulkCaller.Execute()
 
-	if err != nil || *statusErr != nil || *gasPriceErr != nil || *epochErr != nil {
+	err = bulkCaller.Execute()
+	if *statusErr != nil {
+		return nil, nil, 0, nil, nil, errors.Wrap(*statusErr, "failed to bulk fetch chain infos")
+	}
+	if *gasPriceErr != nil {
+		return nil, nil, 0, nil, nil, errors.Wrap(*gasPriceErr, "failed to bulk fetch chain infos")
+	}
+	if *epochErr != nil {
+		return nil, nil, 0, nil, nil, errors.Wrap(*epochErr, "failed to bulk fetch chain infos")
+	}
+	if err != nil {
 		return nil, nil, 0, nil, nil, errors.Wrap(err, "failed to bulk fetch chain infos")
 	}
 

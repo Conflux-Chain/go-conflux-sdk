@@ -31,7 +31,7 @@ func ToRpcError(origin error) (*RpcError, error) {
 		return nil, errors.New("not a rpc error")
 	}
 
-	j, err := json.Marshal(origin)
+	j, err := json.Marshal(errors.Cause(origin))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
