@@ -1,5 +1,9 @@
 Go-conflux-sdk Change Log
 ============
+v1.5.2
+------------
+-   Dont clear gasPrice when estimate
+
 v1.5.0
 ------------
 -   Update field `DepositTime` of `DepositInfo` to `*hexutil.Big`
