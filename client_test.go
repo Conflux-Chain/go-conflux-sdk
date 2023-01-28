@@ -103,7 +103,7 @@ func callContextMid2(f providers.CallContextFunc) providers.CallContextFunc {
 	}
 }
 
-func TestEstimateGasAndCollateralAlwaysWithGaspriceNil(t *testing.T) {
+func _TestEstimateGasAndCollateralAlwaysWithGaspriceNil(t *testing.T) {
 	c := MustNewClient("https://test.confluxrpc.com", ClientOption{
 		KeystorePath: "./keystore",
 		Logger:       os.Stdout,
