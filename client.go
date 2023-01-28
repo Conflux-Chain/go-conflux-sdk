@@ -545,8 +545,6 @@ func (client *Client) GetTransactionByHash(txHash types.Hash) (tx *types.Transac
 // and returns the amount of the gas used and storage for collateral
 func (client *Client) EstimateGasAndCollateral(request types.CallRequest, epoch ...*types.Epoch) (estimat types.Estimate, err error) {
 	realEpoch := get1stEpochIfy(epoch)
-	// avoid gasprice leads to estimate fail
-	request.GasPrice = nil
 	err = client.wrappedCallRPC(&estimat, "cfx_estimateGasAndCollateral", request, realEpoch)
 	return
 }
