@@ -4,9 +4,7 @@ go 1.14
 
 require (
 	bou.ke/monkey v1.0.2
-	github.com/ethereum/go-ethereum v1.10.15
-	github.com/graph-gophers/graphql-go v1.3.0 // indirect
-	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
+	github.com/ethereum/go-ethereum v1.10.22
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/openweb3/go-rpc-provider v0.3.0
 	github.com/openweb3/go-sdk-common v0.0.0-20220720074746-a7134e1d372c
@@ -14,7 +12,7 @@ require (
 	github.com/shopspring/decimal v1.3.1
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/status-im/keycard-go v0.0.0-20190316090335-8537d3370df4
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.2
 	gopkg.in/urfave/cli.v1 v1.20.0
 	gotest.tools v2.2.0+incompatible
 
