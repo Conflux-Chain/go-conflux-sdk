@@ -44,7 +44,7 @@ func TestNonceCorrectWhenBulkSendPopulate(t *testing.T) {
 		AppendTransaction(&types.UnsignedTransaction{types.UnsignedTransactionBase{From: &user}, &user, nil}).                // correct
 		AppendTransaction(&types.UnsignedTransaction{types.UnsignedTransactionBase{From: &user}, &usdt, dtatOfTransfer1000}). // fail
 		AppendTransaction(&types.UnsignedTransaction{types.UnsignedTransactionBase{From: &user}, &user, nil})                 // correct
-	populated, err := bulkSender.PopulateTransactions(false)
+	populated, err := bulkSender.PopulateTransactions(types.NONCE_TYPE_NONCE)
 	fmt.Printf("%v\n", utils.PrettyJSON(populated))
 	fmt.Printf("error %+v\n", err)
 	assert.True(t, err != nil)
@@ -62,7 +62,7 @@ func TestNonceCorrectWhenBulkSendPopulate(t *testing.T) {
 		AppendTransaction(&types.UnsignedTransaction{types.UnsignedTransactionBase{From: &user}, &user, nil}).
 		AppendTransaction(&types.UnsignedTransaction{types.UnsignedTransactionBase{From: &user}, &user, nil}).
 		AppendTransaction(&types.UnsignedTransaction{types.UnsignedTransactionBase{From: &user}, &user, nil})
-	populated, err = bulkSender.PopulateTransactions(false)
+	populated, err = bulkSender.PopulateTransactions(types.NONCE_TYPE_NONCE)
 	fmt.Printf("%v\n", utils.PrettyJSON(populated))
 	fmt.Printf("error %+v\n", err)
 	assert.True(t, err != nil)

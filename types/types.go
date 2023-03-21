@@ -41,6 +41,14 @@ func (hash *Hash) UnmarshalJSON(input []byte) error {
 // Bloom is a hash type with 256 bytes.
 type Bloom string
 
+type NonceType int
+
+const (
+	NONCE_TYPE_AUTO NonceType = iota
+	NONCE_TYPE_NONCE
+	NONCE_TYPE_PENDING_NONCE
+)
+
 // NewBigInt creates a big number with specified uint64 value.
 func NewBigInt(x uint64) *hexutil.Big {
 	n1 := new(big.Int).SetUint64(x)

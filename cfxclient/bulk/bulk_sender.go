@@ -33,13 +33,15 @@ func (b *BulkSender) AppendTransaction(tx *types.UnsignedTransaction) *BulkSende
 	return b
 }
 
-// PopulateTransactions fill missing fields and nonce for unsigned transactions in queue
-// default use pending nonce
-func (b *BulkSender) PopulateTransactions(usePendingNonce ...bool) ([]*types.UnsignedTransaction, error) {
-	isUsePendingNonce := true
-	if len(usePendingNonce) > 0 {
-		isUsePendingNonce = usePendingNonce[0]
-	}
+// PopulateTransactions fill missing fields and nonce for unsigned transactions in queue.
+// nonceSouce means use pending nonce or nonce be the nonce of first tx not setted nonce.
+// if set NONCE_TYPE_AUTO, it will use nonce when exist pending txs because of notEnoughCash/notEnoughCash/outDatedStatus/outOfEpochHeight/noncefuture
+// and use pending nonce when no pending txs.
+func (b *BulkSender) PopulateTransactions(nonceSource types.NonceType) ([]*types.UnsignedTransaction, error) {
+	// isUsePendingNonce := true
+	// if len(usePendingNonce) > 0 {
+	// 	isUsePendingNonce = usePendingNonce[0]
+	// }
 
 	defaultAccount, chainID, networkId, gasPrice, epochHeight, err := b.getChainInfos()
 	if err != nil {
@@ -62,7 +64,7 @@ func (b *BulkSender) PopulateTransactions(usePendingNonce ...bool) ([]*types.Uns
 
 	// set nonce
 	userUsedNoncesMap := b.gatherUsedNonces()
-	userNextNonceCache, err := b.gatherInitNextNonces(isUsePendingNonce)
+	userNextNonceCache, err := b.gatherInitNextNonces(nonceSource)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -100,7 +102,6 @@ func (b *BulkSender) PopulateTransactions(usePendingNonce ...bool) ([]*types.Uns
 					break
 				}
 			}
-
 		}
 	}
 
@@ -179,7 +180,7 @@ func (b *BulkSender) gatherUsedNonces() map[string]map[string]bool {
 	return result
 }
 
-func (b *BulkSender) gatherInitNextNonces(usePendingNonce bool) (map[string]*big.Int, error) {
+func (b *BulkSender) gatherInitNextNonces(nonceSource types.NonceType) (map[string]*big.Int, error) {
 	result := make(map[string]*big.Int)
 
 	bulkCaller := NewBulkCaller(b.signableCaller)
@@ -200,23 +201,118 @@ func (b *BulkSender) gatherInitNextNonces(usePendingNonce bool) (map[string]*big
 		return nil, errors.WithStack(err)
 	}
 
-	for _, utx := range b.unsignedTxs {
-		user := utx.From.String()
-		if utx.Nonce != nil || result[user] != nil {
-			continue
-		}
-
-		if *poolNextNonceErrs[user] == nil && usePendingNonce {
+	switch nonceSource {
+	case types.NONCE_TYPE_PENDING_NONCE:
+		for _, utx := range b.unsignedTxs {
+			user := utx.From.String()
+			if utx.Nonce != nil || result[user] != nil {
+				continue
+			}
+			if *poolNextNonceErrs[user] != nil {
+				return nil, errors.WithStack(*poolNextNonceErrs[user])
+			}
 			result[utx.From.String()] = poolNextNonces[user].ToInt()
-			continue
 		}
-
-		if *nextNonceErrs[user] == nil {
+	case types.NONCE_TYPE_NONCE:
+		for _, utx := range b.unsignedTxs {
+			user := utx.From.String()
+			if utx.Nonce != nil || result[user] != nil {
+				continue
+			}
+			if *nextNonceErrs[user] != nil {
+				return nil, errors.WithStack(*nextNonceErrs[user])
+			}
 			result[utx.From.String()] = nextNonces[user].ToInt()
-			continue
 		}
+	case types.NONCE_TYPE_AUTO:
+		pendingStatus, err := b.getSenderPendingStatus()
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		for _, utx := range b.unsignedTxs {
+			user := utx.From.String()
+			if utx.Nonce != nil || result[user] != nil {
+				continue
+			}
+			if pendingStatus[user] {
+				if *nextNonceErrs[user] != nil {
+					return nil, errors.WithStack(*nextNonceErrs[user])
+				}
+				result[utx.From.String()] = nextNonces[user].ToInt()
+			} else {
+				if *poolNextNonceErrs[user] != nil {
+					return nil, errors.WithStack(*poolNextNonceErrs[user])
+				}
+				result[utx.From.String()] = poolNextNonces[user].ToInt()
+			}
+		}
+	}
 
-		return nil, errors.WithStack(*nextNonceErrs[user])
+	// for _, utx := range b.unsignedTxs {
+	// 	user := utx.From.String()
+	// 	if utx.Nonce != nil || result[user] != nil {
+	// 		continue
+	// 	}
+
+	// 	switch nonceSource {
+	// 	case NONCE_TYPE_PENDING_NONCE:
+	// 		if *poolNextNonceErrs[user] != nil {
+	// 			return nil, errors.WithStack(*poolNextNonceErrs[user])
+	// 		}
+	// 		result[utx.From.String()] = poolNextNonces[user].ToInt()
+	// 	case NONCE_TYPE_NONCE:
+	// 		if *nextNonceErrs[user] != nil {
+	// 			return nil, errors.WithStack(*nextNonceErrs[user])
+	// 		}
+	// 		result[utx.From.String()] = nextNonces[user].ToInt()
+	// 	case NONCE_TYPE_AUTO:
+	// 	}
+
+	// 	// if *poolNextNonceErrs[user] == nil && usePendingNonce {
+	// 	// 	result[utx.From.String()] = poolNextNonces[user].ToInt()
+	// 	// 	continue
+	// 	// }
+
+	// 	// if *nextNonceErrs[user] == nil {
+	// 	// 	result[utx.From.String()] = nextNonces[user].ToInt()
+	// 	// 	continue
+	// 	// }
+
+	// 	return nil, errors.WithStack(*nextNonceErrs[user])
+	// }
+	return result, nil
+}
+
+func (b *BulkSender) getSenderPendingStatus() (map[string]bool, error) {
+	type pendingTxRes struct {
+		res *types.AccountPendingTransactions
+		err *error
+	}
+
+	senderPendingTxRes := make(map[string]*pendingTxRes)
+	for _, v := range b.unsignedTxs {
+		senderPendingTxRes[v.From.String()] = &pendingTxRes{}
+	}
+
+	bulkCaller := NewBulkCaller(b.signableCaller)
+	for user, pendingTxRes := range senderPendingTxRes {
+		// logrus.WithField("user", user).Info("ready to check pending result")
+		res, err := bulkCaller.GetAccountPendingTransactions(cfxaddress.MustNew(user), nil, nil)
+		pendingTxRes.res = res
+		pendingTxRes.err = err
+	}
+
+	// err means timeout
+	if err := bulkCaller.Execute(); err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]bool)
+	for user, v := range senderPendingTxRes {
+		if v.res.PendingCount > 0 && v.res.FirstTxStatus != nil {
+			isPending, _ := v.res.FirstTxStatus.IsPending()
+			result[user] = isPending
+		}
 	}
 	return result, nil
 }
@@ -291,7 +387,7 @@ func (b *BulkSender) IsPopulated() bool {
 // If there is no error on rpc "batch", it will return the txHashes or txErrors of sending transactions.
 func (b *BulkSender) SignAndSend() (txHashes []*types.Hash, txErrors []error, err error) {
 	if !b.IsPopulated() {
-		_, err := b.PopulateTransactions()
+		_, err := b.PopulateTransactions(types.NONCE_TYPE_AUTO)
 		if err != nil {
 			return nil, nil, err
 		}
