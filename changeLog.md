@@ -3,7 +3,10 @@ Go-conflux-sdk Change Log
 v1.5.2
 ------------
 -   Dont clear gasPrice when estimate
-
+v1.5.3
+------------
+-   Bulk sender populate can select nonce mode, contains auto/nonce/pendingnonce
+   
 v1.5.0
 ------------
 -   Update field `DepositTime` of `DepositInfo` to `*hexutil.Big`
