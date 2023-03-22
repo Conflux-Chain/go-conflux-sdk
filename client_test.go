@@ -89,6 +89,11 @@ func TestClientHookCallContext(t *testing.T) {
 	c.GetStatus()
 }
 
+func TestEpochWhenGetNextnonce(t *testing.T) {
+	c := MustNewClient("https://test.confluxrpc.com", ClientOption{Logger: os.Stdout})
+	c.GetNextNonce(cfxaddress.MustNew("cfxtest:aaskvgxcfej371g4ecepx9an78ngrke5ay9f8jtbgg"), types.EpochLatestMined)
+}
+
 func callContextMid1(f providers.CallContextFunc) providers.CallContextFunc {
 	return func(ctx context.Context, result interface{}, method string, args ...interface{}) error {
 		ctx = context.WithValue(ctx, "foo", "bar")

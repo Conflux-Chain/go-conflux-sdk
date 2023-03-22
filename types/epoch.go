@@ -14,18 +14,19 @@ import (
 
 // Const epoch definitions
 var (
-	EpochEarliest         *Epoch = &Epoch{"earliest", nil}
-	EpochLatestCheckpoint *Epoch = &Epoch{"latest_checkpoint", nil}
-	EpochLatestConfirmed  *Epoch = &Epoch{"latest_confirmed", nil}
-	EpochLatestState      *Epoch = &Epoch{"latest_state", nil}
-	EpochLatestMined      *Epoch = &Epoch{"latest_mined", nil}
-	EpochLatestFinalized  *Epoch = &Epoch{"latest_finalized", nil}
+	EpochEarliest         *Epoch = &Epoch{"earliest", nil, false}
+	EpochLatestCheckpoint *Epoch = &Epoch{"latest_checkpoint", nil, false}
+	EpochLatestConfirmed  *Epoch = &Epoch{"latest_confirmed", nil, false}
+	EpochLatestState      *Epoch = &Epoch{"latest_state", nil, false}
+	EpochLatestMined      *Epoch = &Epoch{"latest_mined", nil, false}
+	EpochLatestFinalized  *Epoch = &Epoch{"latest_finalized", nil, false}
 )
 
 // Epoch represents an epoch in Conflux.
 type Epoch struct {
-	name   string
-	number *hexutil.Big
+	name         string
+	number       *hexutil.Big
+	requirePivot bool
 }
 
 // WebsocketEpochResponse represents result of epoch websocket subscription
@@ -36,22 +37,25 @@ type WebsocketEpochResponse struct {
 
 // NewEpochNumber creates an instance of Epoch with specified number.
 func NewEpochNumber(number *hexutil.Big) *Epoch {
-	return &Epoch{"", number}
+	return &Epoch{"", number, false}
 }
 
 // NewEpochNumberBig creates an instance of Epoch with specified big number.
 func NewEpochNumberBig(number *big.Int) *Epoch {
-	return &Epoch{"", NewBigIntByRaw(number)}
+	return &Epoch{"", NewBigIntByRaw(number), false}
 }
 
 // NewEpochNumberUint64 creates an instance of Epoch with specified uint64 number.
 func NewEpochNumberUint64(number uint64) *Epoch {
-	return &Epoch{"", NewBigInt(number)}
+	return &Epoch{"", NewBigInt(number), false}
 }
 
 // NewEpochWithBlockHash creates an instance of Epoch with specified block hash.
-func NewEpochWithBlockHash(blockHash Hash) *Epoch {
-	return &Epoch{string(blockHash), nil}
+func NewEpochWithBlockHash(blockHash Hash, requirePivot ...bool) *Epoch {
+	if len(requirePivot) == 0 {
+		requirePivot = append(requirePivot, false)
+	}
+	return &Epoch{string(blockHash), nil, requirePivot[0]}
 }
 
 // String implements the fmt.Stringer interface
@@ -101,9 +105,9 @@ func (e *Epoch) Equals(target *Epoch) bool {
 	return e.number.ToInt().Cmp(target.number.ToInt()) == 0
 }
 
+// TODO: support requirePivot
 // MarshalText implements the encoding.TextMarshaler interface.
 func (e Epoch) MarshalText() ([]byte, error) {
-	// fmt.Println("marshal text for epoch")
 	return []byte(e.String()), nil
 }
 
