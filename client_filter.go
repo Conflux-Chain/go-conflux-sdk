@@ -8,7 +8,6 @@ type RpcFilterClient struct {
 	core *Client
 }
 
-// NewRpcPosClient creates a new RpcPosClient instance.
 func NewRpcFilterClient(core *Client) RpcPosClient {
 	return RpcPosClient{core}
 }
