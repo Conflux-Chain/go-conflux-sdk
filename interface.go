@@ -165,6 +165,15 @@ type RpcDebug interface {
 	GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error)
 }
 
+type RpcFilter interface {
+	NewFilter() (filterId types.H128, err error)
+	NewBlockFilter() (filterId types.H128, err error)
+	NewPendingTransactionFilter() (filterId types.H128, err error)
+	GetFilterChanges(filterId types.H128) (cfxFilterChanges *types.CfxFilterChanges, err error)
+	GetFilterLogs(filterID types.H128) (logs []types.Log, err error)
+	UninstallFilter(filterId types.H128) (isUninstalled bool, err error)
+}
+
 // AccountManagerOperator is interface of operate actions on account manager
 type AccountManagerOperator interface {
 	Create(passphrase string) (types.Address, error)

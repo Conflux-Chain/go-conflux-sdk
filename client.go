@@ -40,12 +40,11 @@ type Client struct {
 	networkID *uint32
 	chainID   *uint32
 	option    ClientOption
-	// callRpcHandler      middleware.CallRpcHandler
-	// batchCallRpcHandler middleware.BatchCallRpcHandler
 
 	rpcPosClient    RpcPosClient
 	rpcTxpoolClient RpcTxpoolClient
 	rpcDebugClient  RpcDebugClient
+	rpcFilterClient RpcFilterClient
 }
 
 // ClientOption for set keystore path and flags for retry and timeout
@@ -138,6 +137,7 @@ func newClientWithOption(nodeURL string, clientOption ClientOption) (*Client, er
 	client.rpcPosClient = RpcPosClient{&client}
 	client.rpcTxpoolClient = RpcTxpoolClient{&client}
 	client.rpcDebugClient = RpcDebugClient{&client}
+	client.rpcFilterClient = RpcFilterClient{&client}
 
 	p, err := providers.NewProviderWithOption(nodeURL, *clientOption.genProviderOption())
 	if err != nil {
@@ -182,6 +182,10 @@ func (client *Client) TxPool() RpcTxpool {
 // Debug returns RpcDebugClient for invoke rpc with debug namespace
 func (client *Client) Debug() RpcDebug {
 	return &client.rpcDebugClient
+}
+
+func (client *Client) Filter() RpcFilter {
+	return &client.rpcFilterClient
 }
 
 // GetNodeURL returns node url
