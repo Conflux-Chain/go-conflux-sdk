@@ -166,12 +166,12 @@ type RpcDebug interface {
 }
 
 type RpcFilter interface {
-	NewFilter() (filterId types.H128, err error)
-	NewBlockFilter() (filterId types.H128, err error)
-	NewPendingTransactionFilter() (filterId types.H128, err error)
-	GetFilterChanges(filterId types.H128) (cfxFilterChanges *types.CfxFilterChanges, err error)
-	GetFilterLogs(filterID types.H128) (logs []types.Log, err error)
-	UninstallFilter(filterId types.H128) (isUninstalled bool, err error)
+	NewFilter() (filterId *rpc.ID, err error)
+	NewBlockFilter() (filterId *rpc.ID, err error)
+	NewPendingTransactionFilter() (filterId *rpc.ID, err error)
+	GetFilterChanges(filterId rpc.ID) (cfxFilterChanges *types.CfxFilterChanges, err error)
+	GetFilterLogs(filterID rpc.ID) (logs []types.Log, err error)
+	UninstallFilter(filterId rpc.ID) (isUninstalled bool, err error)
 }
 
 // AccountManagerOperator is interface of operate actions on account manager
