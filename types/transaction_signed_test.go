@@ -3,7 +3,13 @@ package types
 import (
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"testing"
+
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/status-im/keycard-go/hexutils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDecodeTransaction(t *testing.T) {
@@ -52,4 +58,60 @@ func mustDecodeStringToBytes(t *testing.T, s string) []byte {
 		t.Fatal(e)
 	}
 	return b
+}
+
+/*
+  "result": {
+    "hash": "0xbe47fb886dd24dba30cb25527b866b3139fb020ac344d5dc910b0140cce05478",
+    "nonce": "0x4d073",
+    "blockHash": "0xd530f560436892a034ccd3516de50a8745d7607b834d483d75097ad13e1bfb0a",
+    "transactionIndex": "0x0",
+    "from": "cfxtest:aaph8hphbv84fkn3bunm051aek68aua6wy0tg08xnd",
+    "to": "cfxtest:achs3nehae0j6ksvy1bhrffsh1rtfrw1f6w1kzv46t",
+    "value": "0x1",
+    "gasPrice": "0x3b9aca00",
+    "gas": "0xb316",
+    "contractCreated": null,
+    "data": "0xd0e30db0",
+    "storageLimit": "0x0",
+    "epochHeight": "0x6f26e7b",
+    "chainId": "0x1",
+    "status": "0x0",
+    "v": "0x1",
+    "r": "0x8a0a8568bab8a8cd0105e9caeb0fc0d5aa4a568cea123ce41a0299e9f18ebccf",
+    "s": "0x7831351ea915b82625f728239eef279aaecb74a90abd066cf85e2f5d3e3a5f40"
+  }
+*/
+func TestTransactionHashShouldBeSignedTxHash(t *testing.T) {
+	to := cfxaddress.MustNew("cfxtest:achs3nehae0j6ksvy1bhrffsh1rtfrw1f6w1kzv46t")
+	utx := UnsignedTransaction{
+		UnsignedTransactionBase: UnsignedTransactionBase{
+			Nonce:        NewBigInt(0x4d073),
+			Value:        NewBigInt(1),
+			GasPrice:     NewBigInt(0x3b9aca00),
+			Gas:          NewBigInt(0xb316),
+			StorageLimit: NewUint64(0x0),
+			EpochHeight:  NewUint64(0x6f26e7b),
+			ChainID:      NewUint(1),
+		},
+		To:   &to,
+		Data: hexutils.HexToBytes("d0e30db0"),
+	}
+	fmt.Printf("utx %+v\n", utx)
+
+	signedTx := SignedTransaction{
+		UnsignedTransaction: utx,
+		V:                   1,
+		R:                   hexutils.HexToBytes("8a0a8568bab8a8cd0105e9caeb0fc0d5aa4a568cea123ce41a0299e9f18ebccf"),
+		S:                   hexutils.HexToBytes("7831351ea915b82625f728239eef279aaecb74a90abd066cf85e2f5d3e3a5f40"),
+	}
+
+	utxHash, err := utx.Hash()
+	assert.NoError(t, err)
+
+	signedTxhash, err := signedTx.Hash()
+	assert.NoError(t, err)
+
+	assert.NotEqual(t, "0xbe47fb886dd24dba30cb25527b866b3139fb020ac344d5dc910b0140cce05478", hexutil.Encode(utxHash))
+	assert.Equal(t, "0xbe47fb886dd24dba30cb25527b866b3139fb020ac344d5dc910b0140cce05478", hexutil.Encode(signedTxhash))
 }
