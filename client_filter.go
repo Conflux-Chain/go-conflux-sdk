@@ -13,8 +13,8 @@ func NewRpcFilterClient(core *Client) RpcPosClient {
 	return RpcPosClient{core}
 }
 
-func (c *RpcFilterClient) NewFilter() (filterId *rpc.ID, err error) {
-	err = c.core.CallRPC(&filterId, "cfx_newFilter")
+func (c *RpcFilterClient) NewFilter(logFilter types.LogFilter) (filterId *rpc.ID, err error) {
+	err = c.core.CallRPC(&filterId, "cfx_newFilter", logFilter)
 	return
 }
 
