@@ -166,7 +166,7 @@ type RpcDebug interface {
 }
 
 type RpcFilter interface {
-	NewFilter() (filterId *rpc.ID, err error)
+	NewFilter(logFilter types.LogFilter) (filterId *rpc.ID, err error)
 	NewBlockFilter() (filterId *rpc.ID, err error)
 	NewPendingTransactionFilter() (filterId *rpc.ID, err error)
 	GetFilterChanges(filterId rpc.ID) (cfxFilterChanges *types.CfxFilterChanges, err error)
