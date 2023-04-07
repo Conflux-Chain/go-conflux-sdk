@@ -251,7 +251,6 @@ type rlpEncodableSubscriptionLog struct {
 
 func (s SubscriptionLog) IsRevertLog() bool {
 	return s.ChainReorg != nil
-	// return !reflect.DeepEqual(s.ChainReorg, ChainReorg{})
 }
 
 func (s SubscriptionLog) MarshalJSON() ([]byte, error) {
@@ -308,4 +307,8 @@ func (s *SubscriptionLog) DecodeRLP(r *rlp.Stream) error {
 type CfxFilterLog struct {
 	Log        *Log        `json:"Log,omitempty"`
 	ChainReorg *ChainReorg `json:"ChainReorg,omitempty"`
+}
+
+func (c CfxFilterLog) IsRevertLog() bool {
+	return c.ChainReorg != nil
 }
