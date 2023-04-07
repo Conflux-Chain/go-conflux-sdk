@@ -10,9 +10,11 @@ package sdk
 // 				Return client instance
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	. "bou.ke/monkey"
 	// "github.com/ethereum/go-ethereum/rpc"
@@ -145,4 +147,20 @@ func _TestDeposite(t *testing.T) {
 	di, err := c.GetDepositList(cfxaddress.MustNew("cfxtest:aanhtnrex2nj56kkbws4yx0jeab34ae16pcap53w13"))
 	assert.NoError(t, err)
 	fmt.Printf("%v\n", di)
+}
+
+func _TestGetFilterChanges(t *testing.T) {
+	c := MustNewClient("http://test-internal.confluxrpc.com", ClientOption{Logger: os.Stdout})
+	filter := c.Filter()
+	fID, err := filter.NewFilter(types.LogFilter{})
+	assert.NoError(t, err)
+
+	ticker := time.NewTicker(time.Second)
+	for range ticker.C {
+		fcg, err := c.Filter().GetFilterChanges(*fID)
+		assert.NoError(t, err)
+		j, _ := json.MarshalIndent(fcg, "", " ")
+		fmt.Printf("new log json: , %s\n", j)
+		fmt.Printf("new log: %+v\n", fcg)
+	}
 }

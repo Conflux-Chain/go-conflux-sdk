@@ -304,3 +304,8 @@ func (s *SubscriptionLog) DecodeRLP(r *rlp.Stream) error {
 	*s = rlpSubLog.toNormal()
 	return nil
 }
+
+type CfxFilterLog struct {
+	Log        *Log        `json:"Log,omitempty"`
+	ChainReorg *ChainReorg `json:"ChainReorg,omitempty"`
+}

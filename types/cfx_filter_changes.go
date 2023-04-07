@@ -1,6 +1,9 @@
 package types
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 /*
 #[derive(Debug, PartialEq)]
@@ -16,7 +19,7 @@ pub enum CfxFilterChanges {
 
 type CfxFilterChanges struct {
 	Type   string
-	Logs   []SubscriptionLog
+	Logs   []CfxFilterLog
 	Hashes []Hash
 }
 
@@ -31,12 +34,13 @@ func (u CfxFilterChanges) MarshalJSON() ([]byte, error) {
 }
 
 func (u *CfxFilterChanges) UnmarshalJSON(data []byte) error {
+	fmt.Printf("received data string: %s\n", data)
 	if string(data) == `[]` {
 		u.Type = "empty"
 		return nil
 	}
 
-	logs := []SubscriptionLog{}
+	logs := []CfxFilterLog{}
 	err := json.Unmarshal(data, &logs)
 	if err == nil {
 		u.Logs = logs
