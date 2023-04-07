@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 /*
@@ -34,7 +33,6 @@ func (u CfxFilterChanges) MarshalJSON() ([]byte, error) {
 }
 
 func (u *CfxFilterChanges) UnmarshalJSON(data []byte) error {
-	fmt.Printf("received data string: %s\n", data)
 	if string(data) == `[]` {
 		u.Type = "empty"
 		return nil
