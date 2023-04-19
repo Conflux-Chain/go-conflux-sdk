@@ -18,7 +18,7 @@ pub enum CfxFilterChanges {
 
 type CfxFilterChanges struct {
 	Type   string
-	Logs   []CfxFilterLog
+	Logs   []*SubscriptionLog
 	Hashes []Hash
 }
 
@@ -38,7 +38,7 @@ func (u *CfxFilterChanges) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	logs := []CfxFilterLog{}
+	logs := []*SubscriptionLog{}
 	err := json.Unmarshal(data, &logs)
 	if err == nil {
 		u.Logs = logs
