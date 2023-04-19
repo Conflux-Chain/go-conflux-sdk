@@ -149,7 +149,7 @@ func _TestDeposite(t *testing.T) {
 	fmt.Printf("%v\n", di)
 }
 
-func _TestGetFilterChanges(t *testing.T) {
+func TestGetFilterChanges(t *testing.T) {
 	c := MustNewClient("http://test-internal.confluxrpc.com", ClientOption{Logger: os.Stdout})
 	filter := c.Filter()
 	fID, err := filter.NewFilter(types.LogFilter{})
