@@ -164,3 +164,10 @@ func TestGetFilterChanges(t *testing.T) {
 		fmt.Printf("new log: %+v\n", fcg)
 	}
 }
+
+func TestCall(t *testing.T) {
+	c := MustNewClient("http://test-internal.confluxrpc.com", ClientOption{Logger: os.Stdout})
+	var result interface{}
+	c.CallRPC(&result, "pos_getLedgerInfoByEpoch", "0x1234")
+}
+

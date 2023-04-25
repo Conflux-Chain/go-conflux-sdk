@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
@@ -26,6 +27,13 @@ func (c *RpcPosClient) GetStatus() (status postypes.Status, err error) {
 func (c *RpcPosClient) GetAccount(address postypes.Address, blockNumber ...hexutil.Uint64) (account postypes.Account, err error) {
 	_view := get1stU64Ify(blockNumber)
 	err = c.core.CallRPC(&account, "pos_getAccount", address, _view)
+	return
+}
+
+// GetAccount returns pos account of pow address info at block
+func (c *RpcPosClient) GetAccountByPowAddress(address cfxaddress.Address, blockNumber ...hexutil.Uint64) (account postypes.Account, err error) {
+	_view := get1stU64Ify(blockNumber)
+	err = c.core.CallRPC(&account, "pos_getAccountByPowAddress", address, _view)
 	return
 }
 
@@ -57,5 +65,28 @@ func (c *RpcPosClient) GetTransactionByNumber(txNumber hexutil.Uint64) (transact
 // GetRewardsByEpoch returns rewards of epoch
 func (c *RpcPosClient) GetRewardsByEpoch(epochNumber hexutil.Uint64) (reward postypes.EpochReward, err error) {
 	err = c.core.CallRPC(&reward, "pos_getRewardsByEpoch", epochNumber)
+	return
+}
+
+// ========================================== debug rpcs =======================================================
+func (c *RpcPosClient) GetConsensusBlocks() (blocks []*postypes.Block, err error) {
+	err = c.core.CallRPC(&blocks, "pos_getConsensusBlocks")
+	return
+}
+
+func (c *RpcPosClient) GetEpochState(epochNumber ...hexutil.Uint64) (epochState *postypes.EpochState, err error) {
+	_view := get1stU64Ify(epochNumber)
+	err = c.core.CallRPC(&epochState, "pos_getEpochState", _view)
+	return
+}
+
+func (c *RpcPosClient) GetLedgerInfoByEpoch(epochNumber ...hexutil.Uint64) (ledgerInfoWithSigs *postypes.LedgerInfoWithSignatures, err error) {
+	_view := get1stU64Ify(epochNumber)
+	err = c.core.CallRPC(&ledgerInfoWithSigs, "pos_getLedgerInfoByEpoch", _view)
+	return
+}
+
+func (c *RpcPosClient) GetLedgerInfosByEpoch(startEpoch hexutil.Uint64, endEpoch hexutil.Uint64) (ledgerInfoWithSigs []*postypes.LedgerInfoWithSignatures, err error) {
+	err = c.core.CallRPC(&ledgerInfoWithSigs, "pos_getLedgerInfosByEpoch", startEpoch, endEpoch)
 	return
 }
