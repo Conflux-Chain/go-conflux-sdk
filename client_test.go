@@ -166,8 +166,7 @@ func TestGetFilterChanges(t *testing.T) {
 }
 
 func TestCall(t *testing.T) {
-	c := MustNewClient("http://test-internal.confluxrpc.com", ClientOption{Logger: os.Stdout})
+	c := MustNewClient("http://net8888cfx.confluxrpc.com", ClientOption{Logger: os.Stdout})
 	var result interface{}
-	c.CallRPC(&result, "pos_getLedgerInfoByEpoch", "0x1234")
+	c.CallRPC(&result, "pos_getEpochState", "0x1234")
 }
-

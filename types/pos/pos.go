@@ -177,10 +177,10 @@ func (b *Transaction) UnmarshalJSON(data []byte) error {
 
 // Helper struct to manage validator information for validation
 type ValidatorConsensusInfo struct {
-	PublicKey string `json:"public_key"`
+	PublicKey string `json:"publicKey"`
 	/// None if we do not need VRF.
-	VrfPublicKey string `json:"vrf_public_key,omitempty"`
-	VotingPower  uint64 `json:"voting_power"`
+	VrfPublicKey string         `json:"vrfPublicKey,omitempty"`
+	VotingPower  hexutil.Uint64 `json:"votingPower"`
 }
 
 // Supports validation of signatures for known authors with individual voting
@@ -189,20 +189,20 @@ type ValidatorConsensusInfo struct {
 type ValidatorVerifier struct {
 	// An ordered map of each validator's on-chain account address to its
 	// pubkeys and voting power.
-	AddressToValidatorInfo map[string]ValidatorConsensusInfo `json:"address_to_validator_info"`
+	AddressToValidatorInfo map[common.Hash]ValidatorConsensusInfo `json:"addressToValidatorInfo"`
 	// The minimum voting power required to achieve a quorum
-	QuorumVotingPower uint64 `json:"quorum_voting_power"`
+	QuorumVotingPower hexutil.Uint64 `json:"quorumVotingPower"`
 	// Total voting power of all validators (cached from
 	// address_to_validator_info)
-	TotalVotingPower uint64 `json:"total_voting_power"`
+	TotalVotingPower hexutil.Uint64 `json:"totalVotingPower"`
 }
 
 // EpochState represents a trusted validator set to validate messages from the
 // specific epoch, it could be updated with EpochChangeProof.
 type EpochState struct {
-	Epoch    uint64            `json:"epoch"`
+	Epoch    hexutil.Uint64    `json:"epoch"`
 	Verifier ValidatorVerifier `json:"verifier"`
-	VrfSeed  []uint8           `json:"vrf_seed"`
+	VrfSeed  hexutil.Bytes     `json:"vrfSeed"`
 }
 
 /// This structure contains all the information needed for tracking a block
@@ -211,20 +211,20 @@ type EpochState struct {
 type BlockInfo struct {
 	/// Epoch number corresponds to the set of validators that are active for
 	/// this block.
-	Epoch uint64 `json:"epoch"`
+	Epoch hexutil.Uint64 `json:"epoch"`
 	/// The consensus protocol is executed in rounds, which monotonically
 	/// increase per epoch.
-	Round uint64 `json:"round"`
+	Round hexutil.Uint64 `json:"round"`
 	/// The identifier (hash) of the block.
-	Id string `json:"id"`
+	Id common.Hash `json:"id"`
 	/// The accumulator root hash after executing this block.
-	ExecutedStateId string `json:"executed_state_id"`
+	ExecutedStateId common.Hash `json:"executedStateId"`
 	/// The version of the latest transaction after executing this block.
-	Version uint64 `json:"version"`
+	Version hexutil.Uint64 `json:"version"`
 	/// The timestamp this block was proposed by a proposer.
-	TimestampUsecs uint64 `json:"timestamp_usecs"`
+	TimestampUsecs hexutil.Uint64 `json:"timestampUsecs"`
 	/// An optional field containing the next epoch info
-	NextEpochState *EpochState `json:"next_epoch_state"`
+	NextEpochState *EpochState `json:"nextEpochState"`
 	/// TODO(lpl): Remove Option?
 	/// The last pivot block selection after executing this block.
 	/// None means choosing TreeGraph genesis as the first pivot block.
@@ -232,11 +232,11 @@ type BlockInfo struct {
 }
 
 type LedgerInfo struct {
-	CommitInfo Block `json:"commit_info"`
+	CommitInfo BlockInfo `json:"commitInfo"`
 
 	/// Hash of consensus specific data that is opaque to all parts of the
 	/// system other than consensus.
-	ConsensusDataHash string `json:"consensus_data_hash"`
+	ConsensusDataHash string `json:"consensusDataHash"`
 }
 
 type ConsensusSignature string
@@ -246,16 +246,10 @@ type ConsensusSignature string
 /// the LedgerInfo element since the validator node doesn't need to know the
 /// signatures again when the client performs a query, those are only there for
 /// the client to be able to verify the state
-type LedgerInfoWithV0 struct {
-	LedgerInfo LedgerInfo `json:"ledger_info,omitempty"`
+type LedgerInfoWithSignatures struct {
+	LedgerInfo LedgerInfo `json:"ledgerInfo,omitempty"`
 	/// The validator is identified by its account address: in order to verify
 	/// a signature one needs to retrieve the public key of the validator
 	/// for the given epoch.
-	Signatures map[string]ConsensusSignature `json:"signatures"`
-}
-
-// Wrapper around LedgerInfoWithScheme to support future upgrades, this is the
-// data being persisted.
-type LedgerInfoWithSignatures struct {
-	V0 LedgerInfoWithV0
+	Signatures map[common.Hash]ConsensusSignature `json:"signatures"`
 }
