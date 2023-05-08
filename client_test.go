@@ -149,7 +149,7 @@ func _TestDeposite(t *testing.T) {
 	fmt.Printf("%v\n", di)
 }
 
-func TestGetFilterChanges(t *testing.T) {
+func _TestGetFilterChanges(t *testing.T) {
 	c := MustNewClient("http://test-internal.confluxrpc.com", ClientOption{Logger: os.Stdout})
 	filter := c.Filter()
 	fID, err := filter.NewFilter(types.LogFilter{})
@@ -165,7 +165,7 @@ func TestGetFilterChanges(t *testing.T) {
 	}
 }
 
-func TestCall(t *testing.T) {
+func _TestCall(t *testing.T) {
 	c := MustNewClient("http://net8888cfx.confluxrpc.com", ClientOption{Logger: os.Stdout})
 	var result interface{}
 	c.CallRPC(&result, "pos_getEpochState", "0x1234")
