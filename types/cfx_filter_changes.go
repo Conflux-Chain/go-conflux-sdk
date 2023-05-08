@@ -4,18 +4,6 @@ import (
 	"encoding/json"
 )
 
-/*
-#[derive(Debug, PartialEq)]
-pub enum CfxFilterChanges {
-    /// New logs.
-    Logs(Vec<CfxFilterLog>),
-    /// New hashes (block or transactions)
-    Hashes(Vec<H256>),
-    /// Empty result
-    Empty,
-}
-*/
-
 type CfxFilterChanges struct {
 	Type   string
 	Logs   []*SubscriptionLog
