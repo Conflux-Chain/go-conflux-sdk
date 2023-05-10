@@ -93,7 +93,7 @@ func TestClientHookCallContext(t *testing.T) {
 
 func TestEpochWhenGetNextnonce(t *testing.T) {
 	c := MustNewClient("https://test.confluxrpc.com", ClientOption{Logger: os.Stdout})
-	c.GetNextNonce(cfxaddress.MustNew("cfxtest:aaskvgxcfej371g4ecepx9an78ngrke5ay9f8jtbgg"), types.EpochLatestMined)
+	c.GetNextNonce(cfxaddress.MustNew("cfxtest:aaskvgxcfej371g4ecepx9an78ngrke5ay9f8jtbgg"), types.NewEpochOrBlockHashWithEpoch(types.EpochLatestMined))
 }
 
 func callContextMid1(f providers.CallContextFunc) providers.CallContextFunc {

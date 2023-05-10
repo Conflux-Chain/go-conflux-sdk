@@ -275,8 +275,11 @@ func (e *EpochOrBlockHash) UnmarshalJSON(data []byte) error {
 }
 
 // NewEpochWithBlockHash creates an instance of Epoch with specified epoch.
-func NewEpochOrBlockHashWithEpoch(epoch Epoch) *EpochOrBlockHash {
-	return &EpochOrBlockHash{epoch: &epoch}
+func NewEpochOrBlockHashWithEpoch(epoch *Epoch) *EpochOrBlockHash {
+	if epoch == nil {
+		epoch = EpochLatestCheckpoint
+	}
+	return &EpochOrBlockHash{epoch: epoch}
 }
 
 // NewEpochWithBlockHash creates an instance of Epoch with specified block hash.

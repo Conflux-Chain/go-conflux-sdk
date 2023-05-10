@@ -24,7 +24,7 @@ func (c *RpcDebugClient) TxpoolGetAccountTransactions(address types.Address) (va
 }
 
 // GetEpochReceiptsByEpochNumber returns epoch receipts by epoch number
-func (c *RpcDebugClient) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
+func (c *RpcDebugClient) GetEpochReceipts(epoch types.EpochOrBlockHash) (receipts [][]types.TransactionReceipt, err error) {
 	err = c.core.CallRPC(&receipts, "cfx_getEpochReceipts", epoch)
 	if ok, code := sdkErrors.DetectErrorCode(err); ok {
 		err = sdkErrors.BusinessError{Code: code, Inner: err}

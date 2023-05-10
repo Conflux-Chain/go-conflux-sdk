@@ -46,13 +46,13 @@ type ClientOperator interface {
 	Debug() RpcDebug
 
 	GetGasPrice() (*hexutil.Big, error)
-	GetNextNonce(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, error)
+	GetNextNonce(address types.Address, epoch ...*types.EpochOrBlockHash) (*hexutil.Big, error)
 	GetStatus() (types.Status, error)
 	GetNetworkID() (uint32, error)
 	GetChainID() (uint32, error)
 	GetEpochNumber(epoch ...*types.Epoch) (*hexutil.Big, error)
-	GetBalance(address types.Address, epoch ...*types.Epoch) (*hexutil.Big, error)
-	GetCode(address types.Address, epoch ...*types.Epoch) (hexutil.Bytes, error)
+	GetBalance(address types.Address, epoch ...*types.EpochOrBlockHash) (*hexutil.Big, error)
+	GetCode(address types.Address, epoch ...*types.EpochOrBlockHash) (hexutil.Bytes, error)
 	GetBlockSummaryByHash(blockHash types.Hash) (*types.BlockSummary, error)
 	GetBlockByHash(blockHash types.Hash) (*types.Block, error)
 	GetBlockSummaryByEpoch(epoch *types.Epoch) (*types.BlockSummary, error)
@@ -67,7 +67,7 @@ type ClientOperator interface {
 	SendRawTransaction(rawData []byte) (types.Hash, error)
 	SignEncodedTransactionAndSend(encodedTx []byte, v byte, r, s []byte) (*types.Transaction, error)
 
-	Call(request types.CallRequest, epoch *types.Epoch) (hexutil.Bytes, error)
+	Call(request types.CallRequest, epoch *types.EpochOrBlockHash) (hexutil.Bytes, error)
 
 	GetLogs(filter types.LogFilter) ([]types.Log, error)
 	GetTransactionByHash(txHash types.Hash) (*types.Transaction, error)
@@ -78,7 +78,7 @@ type ClientOperator interface {
 	GetSponsorInfo(contractAddress types.Address, epoch ...*types.Epoch) (sponsor types.SponsorInfo, err error)
 	GetStakingBalance(account types.Address, epoch ...*types.Epoch) (balance *hexutil.Big, err error)
 	GetCollateralForStorage(account types.Address, epoch ...*types.Epoch) (storage *hexutil.Big, err error)
-	GetStorageAt(address types.Address, position *hexutil.Big, epoch ...*types.Epoch) (storageEntries hexutil.Bytes, err error)
+	GetStorageAt(address types.Address, position *hexutil.Big, epoch ...*types.EpochOrBlockHash) (storageEntries hexutil.Bytes, err error)
 	GetStorageRoot(address types.Address, epoch ...*types.Epoch) (storageRoot *types.StorageRoot, err error)
 	GetBlockByHashWithPivotAssumption(blockHash types.Hash, pivotHash types.Hash, epoch hexutil.Uint64) (block types.Block, err error)
 	CheckBalanceAgainstTransaction(accountAddress types.Address,
@@ -114,7 +114,7 @@ type ClientOperator interface {
 	GetOpenedMethodGroups() (openedGroups []string, err error)
 	GetPoSRewardByEpoch(epoch types.Epoch) (reward *postypes.EpochReward, err error)
 
-	GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error)
+	GetEpochReceipts(epoch types.EpochOrBlockHash) (receipts [][]types.TransactionReceipt, err error)
 	GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error)
 
 	GetParamsFromVote(epoch ...*types.Epoch) (info postypes.VoteParamsInfo, err error)
@@ -161,7 +161,7 @@ type RpcTxpool interface {
 
 type RpcDebug interface {
 	// TxpoolGetAccountTransactions(address types.Address) (val []types.Transaction, err error)
-	GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error)
+	GetEpochReceipts(epoch types.EpochOrBlockHash) (receipts [][]types.TransactionReceipt, err error)
 	GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error)
 }
 
