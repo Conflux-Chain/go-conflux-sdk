@@ -40,3 +40,19 @@ func (c *RpcDebugClient) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (rece
 	}
 	return
 }
+
+func (c *RpcDebugClient) GetTransactionsByEpoch(epoch types.Epoch) (wrapTransactions []types.WrapTransaction, err error) {
+	err = c.core.CallRPC(&wrapTransactions, "cfx_getTransactionsByEpoch", epoch)
+	if ok, code := sdkErrors.DetectErrorCode(err); ok {
+		err = sdkErrors.BusinessError{Code: code, Inner: err}
+	}
+	return
+}
+
+func (c *RpcDebugClient) GetTransactionsByBlock(hash types.Hash) (wrapTransactions []types.WrapTransaction, err error) {
+	err = c.core.CallRPC(&wrapTransactions, "cfx_getTransactionsByBlock", hash)
+	if ok, code := sdkErrors.DetectErrorCode(err); ok {
+		err = sdkErrors.BusinessError{Code: code, Inner: err}
+	}
+	return
+}

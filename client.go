@@ -41,6 +41,7 @@ type Client struct {
 	chainID   *uint32
 	option    ClientOption
 
+	RpcTraceClient
 	rpcPosClient    RpcPosClient
 	rpcTxpoolClient RpcTxpoolClient
 	rpcDebugClient  RpcDebugClient
@@ -138,6 +139,7 @@ func newClientWithOption(nodeURL string, clientOption ClientOption) (*Client, er
 	client.rpcTxpoolClient = RpcTxpoolClient{&client}
 	client.rpcDebugClient = RpcDebugClient{&client}
 	client.rpcFilterClient = RpcFilterClient{&client}
+	client.RpcTraceClient = RpcTraceClient{&client}
 
 	p, err := providers.NewProviderWithOption(nodeURL, *clientOption.genProviderOption())
 	if err != nil {
@@ -186,6 +188,10 @@ func (client *Client) Debug() RpcDebug {
 
 func (client *Client) Filter() RpcFilter {
 	return &client.rpcFilterClient
+}
+
+func (client *Client) Trace() RpcTrace {
+	return &client.RpcTraceClient
 }
 
 // GetNodeURL returns node url
@@ -693,24 +699,6 @@ func (client *Client) GetVoteList(address types.Address, epoch ...*types.Epoch) 
 func (client *Client) GetSupplyInfo(epoch ...*types.Epoch) (info types.TokenSupplyInfo, err error) {
 	realEpoch := get1stEpochIfy(epoch)
 	err = client.wrappedCallRPC(&info, "cfx_getSupplyInfo", realEpoch)
-	return
-}
-
-// GetBlockTrace returns all traces produced at given block.
-func (client *Client) GetBlockTraces(blockHash types.Hash) (traces *types.LocalizedBlockTrace, err error) {
-	err = client.wrappedCallRPC(&traces, "trace_block", blockHash)
-	return
-}
-
-// GetFilterTraces returns all traces matching the provided filter.
-func (client *Client) FilterTraces(traceFilter types.TraceFilter) (traces []types.LocalizedTrace, err error) {
-	err = client.wrappedCallRPC(&traces, "trace_filter", traceFilter)
-	return
-}
-
-// GetTransactionTraces returns all traces produced at the given transaction.
-func (client *Client) GetTransactionTraces(txHash types.Hash) (traces []types.LocalizedTrace, err error) {
-	err = client.wrappedCallRPC(&traces, "trace_transaction", txHash)
 	return
 }
 

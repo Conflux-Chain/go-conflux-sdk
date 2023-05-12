@@ -44,6 +44,8 @@ type ClientOperator interface {
 	Pos() RpcPos
 	TxPool() RpcTxpool
 	Debug() RpcDebug
+	Filter() RpcFilter
+	Trace() RpcTrace
 
 	GetGasPrice() (*hexutil.Big, error)
 	GetNextNonce(address types.Address, epoch ...*types.EpochOrBlockHash) (*hexutil.Big, error)
@@ -98,10 +100,6 @@ type ClientOperator interface {
 	GetVoteList(address types.Address, epoch ...*types.Epoch) ([]types.VoteStakeInfo, error)
 	GetSupplyInfo(epoch ...*types.Epoch) (info types.TokenSupplyInfo, err error)
 
-	GetBlockTraces(blockHash types.Hash) (*types.LocalizedBlockTrace, error)
-	FilterTraces(traceFilter types.TraceFilter) (traces []types.LocalizedTrace, err error)
-	GetTransactionTraces(txHash types.Hash) (traces []types.LocalizedTrace, err error)
-
 	CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (types.UnsignedTransaction, error)
 	ApplyUnsignedTransactionDefault(tx *types.UnsignedTransaction) error
 
@@ -137,6 +135,12 @@ type ClientOperator interface {
 
 	GetChainIDCached() uint32
 	GetNetworkIDCached() uint32
+}
+
+type RpcTrace interface {
+	GetBlockTraces(blockHash types.Hash) (*types.LocalizedBlockTrace, error)
+	FilterTraces(traceFilter types.TraceFilter) (traces []types.LocalizedTrace, err error)
+	GetTransactionTraces(txHash types.Hash) (traces []types.LocalizedTrace, err error)
 }
 
 type RpcPos interface {
