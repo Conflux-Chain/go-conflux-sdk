@@ -778,7 +778,6 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 			if err != nil {
 				return errors.Wrap(err, "failed to get the latest state epoch number")
 			}
-			// tx.EpochHeight = (*hexutil.Big)(epoch).toi
 			tx.EpochHeight = types.NewUint64(epoch.ToInt().Uint64())
 		}
 
@@ -1147,8 +1146,6 @@ func (client *Client) BatchGetRawBlockConfirmationRisk(blockhashes []types.Hash)
 				hashToRiskMap[bh] = constants.MaxUint256
 			}
 			continue
-			// hashToRiskMap[bh] = nil
-			// continue
 		}
 		risk, err := hexutil.DecodeBig(riskStr)
 		if err != nil {

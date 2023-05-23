@@ -51,14 +51,6 @@ func NewEpochNumberUint64(number uint64) *Epoch {
 	return &Epoch{"", NewBigInt(number)}
 }
 
-// // NewEpochWithBlockHash creates an instance of Epoch with specified block hash.
-// func NewEpochWithBlockHash(blockHash Hash, requirePivot ...bool) *Epoch {
-// 	if len(requirePivot) == 0 {
-// 		requirePivot = append(requirePivot, false)
-// 	}
-// 	return &Epoch{"", nil, blockHash.ToCommonHash(), requirePivot[0]}
-// }
-
 // String implements the fmt.Stringer interface
 func (e *Epoch) String() string {
 	if e.number != nil {
@@ -232,46 +224,6 @@ func (e *EpochOrBlockHash) UnmarshalJSON(data []byte) error {
 	e.BlockHash = val.BlockHash
 	e.RequirePivot = val.RequirePivot
 	return nil
-
-	// var input string
-	// err = json.Unmarshal(data, &input)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// switch input {
-	// case EpochEarliest.name:
-	// 	fallthrough
-	// case EpochLatestCheckpoint.name:
-	// 	fallthrough
-	// case EpochLatestConfirmed.name:
-	// 	fallthrough
-	// case EpochLatestState.name:
-	// 	fallthrough
-	// case EpochLatestMined.name:
-	// 	fallthrough
-	// case EpochLatestFinalized.name:
-	// 	e.name = input
-	// 	return nil
-	// default:
-	// 	if len(input) == 66 {
-	// 		hash := common.Hash{}
-	// 		err := hash.UnmarshalText([]byte(input))
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		e.BlockHash = &hash
-	// 		return nil
-	// 	} else {
-	// 		blckNum, err := hexutil.DecodeBig(input)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		e.number = NewBigIntByRaw(blckNum)
-	// 		return nil
-	// 	}
-	// }
-
 }
 
 // NewEpochOrBlockHashWithEpoch creates an instance of Epoch with specified epoch.

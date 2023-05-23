@@ -38,11 +38,6 @@ func (b *BulkSender) AppendTransaction(tx *types.UnsignedTransaction) *BulkSende
 // if set NONCE_TYPE_AUTO, it will use nonce when exist pending txs because of notEnoughCash/notEnoughCash/outDatedStatus/outOfEpochHeight/noncefuture
 // and use pending nonce when no pending txs.
 func (b *BulkSender) PopulateTransactions(nonceSource types.NonceType) ([]*types.UnsignedTransaction, error) {
-	// isUsePendingNonce := true
-	// if len(usePendingNonce) > 0 {
-	// 	isUsePendingNonce = usePendingNonce[0]
-	// }
-
 	defaultAccount, chainID, networkId, gasPrice, epochHeight, err := b.getChainInfos()
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -247,39 +242,6 @@ func (b *BulkSender) gatherInitNextNonces(nonceSource types.NonceType) (map[stri
 			}
 		}
 	}
-
-	// for _, utx := range b.unsignedTxs {
-	// 	user := utx.From.String()
-	// 	if utx.Nonce != nil || result[user] != nil {
-	// 		continue
-	// 	}
-
-	// 	switch nonceSource {
-	// 	case NONCE_TYPE_PENDING_NONCE:
-	// 		if *poolNextNonceErrs[user] != nil {
-	// 			return nil, errors.WithStack(*poolNextNonceErrs[user])
-	// 		}
-	// 		result[utx.From.String()] = poolNextNonces[user].ToInt()
-	// 	case NONCE_TYPE_NONCE:
-	// 		if *nextNonceErrs[user] != nil {
-	// 			return nil, errors.WithStack(*nextNonceErrs[user])
-	// 		}
-	// 		result[utx.From.String()] = nextNonces[user].ToInt()
-	// 	case NONCE_TYPE_AUTO:
-	// 	}
-
-	// 	// if *poolNextNonceErrs[user] == nil && usePendingNonce {
-	// 	// 	result[utx.From.String()] = poolNextNonces[user].ToInt()
-	// 	// 	continue
-	// 	// }
-
-	// 	// if *nextNonceErrs[user] == nil {
-	// 	// 	result[utx.From.String()] = nextNonces[user].ToInt()
-	// 	// 	continue
-	// 	// }
-
-	// 	return nil, errors.WithStack(*nextNonceErrs[user])
-	// }
 	return result, nil
 }
 
