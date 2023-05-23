@@ -950,8 +950,8 @@ func (client *Client) GetParamsFromVote(epoch ...*types.Epoch) (info postypes.Vo
 
 // =====Debug RPC=====
 
-func (client *Client) GetEpochReceipts(epoch types.EpochOrBlockHash) (receipts [][]types.TransactionReceipt, err error) {
-	return client.Debug().GetEpochReceipts(epoch)
+func (client *Client) GetEpochReceipts(epoch types.EpochOrBlockHash, include_eth_recepits ...bool) (receipts [][]types.TransactionReceipt, err error) {
+	return client.Debug().GetEpochReceipts(epoch, include_eth_recepits...)
 }
 
 func (client *Client) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error) {

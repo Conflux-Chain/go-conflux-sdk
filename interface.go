@@ -112,7 +112,7 @@ type ClientOperator interface {
 	GetOpenedMethodGroups() (openedGroups []string, err error)
 	GetPoSRewardByEpoch(epoch types.Epoch) (reward *postypes.EpochReward, err error)
 
-	GetEpochReceipts(epoch types.EpochOrBlockHash) (receipts [][]types.TransactionReceipt, err error)
+	GetEpochReceipts(epoch types.EpochOrBlockHash, include_eth_recepits ...bool) (receipts [][]types.TransactionReceipt, err error)
 	GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error)
 
 	GetParamsFromVote(epoch ...*types.Epoch) (info postypes.VoteParamsInfo, err error)
