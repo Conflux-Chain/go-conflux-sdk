@@ -20,7 +20,7 @@ func (b *BulkDebugCaller) Execute() ([]error, error) {
 }
 
 // GetEpochReceiptsByEpochNumber returns epoch receipts by epoch number
-func (client *BulkDebugCaller) GetEpochReceipts(epoch types.Epoch) (*[][]types.TransactionReceipt, *error) {
+func (client *BulkDebugCaller) GetEpochReceipts(epoch types.EpochOrBlockHash) (*[][]types.TransactionReceipt, *error) {
 	result := new([][]types.TransactionReceipt)
 	err := new(error)
 
