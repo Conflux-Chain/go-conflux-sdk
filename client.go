@@ -41,6 +41,7 @@ type Client struct {
 	chainID   *uint32
 	option    ClientOption
 
+	RpcTraceClient
 	rpcPosClient    RpcPosClient
 	rpcTxpoolClient RpcTxpoolClient
 	rpcDebugClient  RpcDebugClient
@@ -138,6 +139,7 @@ func newClientWithOption(nodeURL string, clientOption ClientOption) (*Client, er
 	client.rpcTxpoolClient = RpcTxpoolClient{&client}
 	client.rpcDebugClient = RpcDebugClient{&client}
 	client.rpcFilterClient = RpcFilterClient{&client}
+	client.RpcTraceClient = RpcTraceClient{&client}
 
 	p, err := providers.NewProviderWithOption(nodeURL, *clientOption.genProviderOption())
 	if err != nil {
@@ -186,6 +188,10 @@ func (client *Client) Debug() RpcDebug {
 
 func (client *Client) Filter() RpcFilter {
 	return &client.rpcFilterClient
+}
+
+func (client *Client) Trace() RpcTrace {
+	return &client.RpcTraceClient
 }
 
 // GetNodeURL returns node url
@@ -280,8 +286,8 @@ func (client *Client) GetGasPrice() (gasPrice *hexutil.Big, err error) {
 }
 
 // GetNextNonce returns the next transaction nonce of address
-func (client *Client) GetNextNonce(address types.Address, epoch ...*types.Epoch) (nonce *hexutil.Big, err error) {
-	realEpoch := get1stEpochIfy(epoch)
+func (client *Client) GetNextNonce(address types.Address, epoch ...*types.EpochOrBlockHash) (nonce *hexutil.Big, err error) {
+	realEpoch := get1stEpochOrBlockhashIfy(epoch)
 	err = client.wrappedCallRPC(&nonce, "cfx_getNextNonce", address, realEpoch)
 	return
 }
@@ -345,8 +351,8 @@ func (client *Client) GetEpochNumber(epoch ...*types.Epoch) (epochNumber *hexuti
 }
 
 // GetBalance returns the balance of specified address at epoch.
-func (client *Client) GetBalance(address types.Address, epoch ...*types.Epoch) (balance *hexutil.Big, err error) {
-	realEpoch := get1stEpochIfy(epoch)
+func (client *Client) GetBalance(address types.Address, epoch ...*types.EpochOrBlockHash) (balance *hexutil.Big, err error) {
+	realEpoch := get1stEpochOrBlockhashIfy(epoch)
 	err = client.wrappedCallRPC(&balance, "cfx_getBalance", address, realEpoch)
 	if err != nil {
 		balance = nil
@@ -355,8 +361,8 @@ func (client *Client) GetBalance(address types.Address, epoch ...*types.Epoch) (
 }
 
 // GetCode returns the bytecode in HEX format of specified address at epoch.
-func (client *Client) GetCode(address types.Address, epoch ...*types.Epoch) (code hexutil.Bytes, err error) {
-	realEpoch := get1stEpochIfy(epoch)
+func (client *Client) GetCode(address types.Address, epoch ...*types.EpochOrBlockHash) (code hexutil.Bytes, err error) {
+	realEpoch := get1stEpochOrBlockhashIfy(epoch)
 	err = client.wrappedCallRPC(&code, "cfx_getCode", address, realEpoch)
 	return
 }
@@ -519,7 +525,7 @@ func (client *Client) signTransactionAndSend(tx *types.UnsignedTransaction, v by
 // Call executes a message call transaction "request" at specified epoch,
 // which is directly executed in the VM of the node, but never mined into the block chain
 // and returns the contract execution result.
-func (client *Client) Call(request types.CallRequest, epoch *types.Epoch) (result hexutil.Bytes, err error) {
+func (client *Client) Call(request types.CallRequest, epoch *types.EpochOrBlockHash) (result hexutil.Bytes, err error) {
 	err = client.wrappedCallRPC(&result, "cfx_call", request, epoch)
 	if err == nil {
 		return
@@ -597,8 +603,8 @@ func (client *Client) GetCollateralForStorage(account types.Address, epoch ...*t
 }
 
 // GetStorageAt returns storage entries from a given contract.
-func (client *Client) GetStorageAt(address types.Address, position *hexutil.Big, epoch ...*types.Epoch) (storageEntries hexutil.Bytes, err error) {
-	realEpoch := get1stEpochIfy(epoch)
+func (client *Client) GetStorageAt(address types.Address, position *hexutil.Big, epoch ...*types.EpochOrBlockHash) (storageEntries hexutil.Bytes, err error) {
+	realEpoch := get1stEpochOrBlockhashIfy(epoch)
 	err = client.wrappedCallRPC(&storageEntries, "cfx_getStorageAt", address, position, realEpoch)
 	return
 }
@@ -696,24 +702,6 @@ func (client *Client) GetSupplyInfo(epoch ...*types.Epoch) (info types.TokenSupp
 	return
 }
 
-// GetBlockTrace returns all traces produced at given block.
-func (client *Client) GetBlockTraces(blockHash types.Hash) (traces *types.LocalizedBlockTrace, err error) {
-	err = client.wrappedCallRPC(&traces, "trace_block", blockHash)
-	return
-}
-
-// GetFilterTraces returns all traces matching the provided filter.
-func (client *Client) FilterTraces(traceFilter types.TraceFilter) (traces []types.LocalizedTrace, err error) {
-	err = client.wrappedCallRPC(&traces, "trace_filter", traceFilter)
-	return
-}
-
-// GetTransactionTraces returns all traces produced at the given transaction.
-func (client *Client) GetTransactionTraces(txHash types.Hash) (traces []types.LocalizedTrace, err error) {
-	err = client.wrappedCallRPC(&traces, "trace_transaction", txHash)
-	return
-}
-
 // GetPosRewardByEpoch returns pos rewarded in this epoch
 func (client *Client) GetPoSRewardByEpoch(epoch types.Epoch) (reward *postypes.EpochReward, err error) {
 	err = client.wrappedCallRPC(&reward, "cfx_getPoSRewardByEpoch", epoch)
@@ -790,7 +778,6 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 			if err != nil {
 				return errors.Wrap(err, "failed to get the latest state epoch number")
 			}
-			// tx.EpochHeight = (*hexutil.Big)(epoch).toi
 			tx.EpochHeight = types.NewUint64(epoch.ToInt().Uint64())
 		}
 
@@ -963,7 +950,7 @@ func (client *Client) GetParamsFromVote(epoch ...*types.Epoch) (info postypes.Vo
 
 // =====Debug RPC=====
 
-func (client *Client) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
+func (client *Client) GetEpochReceipts(epoch types.EpochOrBlockHash) (receipts [][]types.TransactionReceipt, err error) {
 	return client.Debug().GetEpochReceipts(epoch)
 }
 
@@ -1159,8 +1146,6 @@ func (client *Client) BatchGetRawBlockConfirmationRisk(blockhashes []types.Hash)
 				hashToRiskMap[bh] = constants.MaxUint256
 			}
 			continue
-			// hashToRiskMap[bh] = nil
-			// continue
 		}
 		risk, err := hexutil.DecodeBig(riskStr)
 		if err != nil {
@@ -1347,6 +1332,14 @@ func (client *Client) genRPCParams(args ...interface{}) ([]interface{}, error) {
 
 func get1stEpochIfy(epoch []*types.Epoch) *types.Epoch {
 	var realEpoch *types.Epoch
+	if len(epoch) > 0 {
+		realEpoch = epoch[0]
+	}
+	return realEpoch
+}
+
+func get1stEpochOrBlockhashIfy(epoch []*types.EpochOrBlockHash) *types.EpochOrBlockHash {
+	var realEpoch *types.EpochOrBlockHash
 	if len(epoch) > 0 {
 		realEpoch = epoch[0]
 	}

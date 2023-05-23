@@ -24,7 +24,7 @@ func (c *RpcDebugClient) TxpoolGetAccountTransactions(address types.Address) (va
 }
 
 // GetEpochReceiptsByEpochNumber returns epoch receipts by epoch number
-func (c *RpcDebugClient) GetEpochReceipts(epoch types.Epoch) (receipts [][]types.TransactionReceipt, err error) {
+func (c *RpcDebugClient) GetEpochReceipts(epoch types.EpochOrBlockHash) (receipts [][]types.TransactionReceipt, err error) {
 	err = c.core.CallRPC(&receipts, "cfx_getEpochReceipts", epoch)
 	if ok, code := sdkErrors.DetectErrorCode(err); ok {
 		err = sdkErrors.BusinessError{Code: code, Inner: err}
@@ -35,6 +35,30 @@ func (c *RpcDebugClient) GetEpochReceipts(epoch types.Epoch) (receipts [][]types
 // GetEpochReceiptsByPivotBlockHash returns epoch receipts by pivot block hash
 func (c *RpcDebugClient) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error) {
 	err = c.core.CallRPC(&receipts, "cfx_getEpochReceipts", fmt.Sprintf("hash:%v", hash))
+	if ok, code := sdkErrors.DetectErrorCode(err); ok {
+		err = sdkErrors.BusinessError{Code: code, Inner: err}
+	}
+	return
+}
+
+func (c *RpcDebugClient) GetEpochReceiptProofByTransaction(hash types.Hash) (proof *string, err error) {
+	err = c.core.CallRPC(&proof, "debug_getEpochReceiptProofByTransaction", hash)
+	if ok, code := sdkErrors.DetectErrorCode(err); ok {
+		err = sdkErrors.BusinessError{Code: code, Inner: err}
+	}
+	return
+}
+
+func (c *RpcDebugClient) GetTransactionsByEpoch(epoch types.Epoch) (wrapTransactions []types.WrapTransaction, err error) {
+	err = c.core.CallRPC(&wrapTransactions, "debug_getTransactionsByEpoch", epoch)
+	if ok, code := sdkErrors.DetectErrorCode(err); ok {
+		err = sdkErrors.BusinessError{Code: code, Inner: err}
+	}
+	return
+}
+
+func (c *RpcDebugClient) GetTransactionsByBlock(hash types.Hash) (wrapTransactions []types.WrapTransaction, err error) {
+	err = c.core.CallRPC(&wrapTransactions, "debug_getTransactionsByBlock", hash)
 	if ok, code := sdkErrors.DetectErrorCode(err); ok {
 		err = sdkErrors.BusinessError{Code: code, Inner: err}
 	}

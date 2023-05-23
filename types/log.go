@@ -38,6 +38,7 @@ type Log struct {
 	TransactionIndex    *hexutil.Big  `json:"transactionIndex,omitempty"`
 	LogIndex            *hexutil.Big  `json:"logIndex,omitempty"`
 	TransactionLogIndex *hexutil.Big  `json:"transactionLogIndex,omitempty"`
+	Space               *SpaceType    `json:"space,omitempty"`
 }
 
 // rlpNilableBigInt nilable pointer to big int used for rlp encoding

@@ -6,28 +6,13 @@ package types
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
-
-// Const epoch definitions
-var (
-	EpochEarliest         *Epoch = &Epoch{"earliest", nil, false}
-	EpochLatestCheckpoint *Epoch = &Epoch{"latest_checkpoint", nil, false}
-	EpochLatestConfirmed  *Epoch = &Epoch{"latest_confirmed", nil, false}
-	EpochLatestState      *Epoch = &Epoch{"latest_state", nil, false}
-	EpochLatestMined      *Epoch = &Epoch{"latest_mined", nil, false}
-	EpochLatestFinalized  *Epoch = &Epoch{"latest_finalized", nil, false}
-)
-
-// Epoch represents an epoch in Conflux.
-type Epoch struct {
-	name         string
-	number       *hexutil.Big
-	requirePivot bool
-}
 
 // WebsocketEpochResponse represents result of epoch websocket subscription
 type WebsocketEpochResponse struct {
@@ -35,27 +20,35 @@ type WebsocketEpochResponse struct {
 	EpochNumber        *hexutil.Big `json:"epochNumber"`
 }
 
+// Epoch represents an epoch in Conflux.
+type Epoch struct {
+	name   string
+	number *hexutil.Big
+}
+
+// Const epoch definitions
+var (
+	EpochEarliest         *Epoch = &Epoch{"earliest", nil}
+	EpochLatestCheckpoint *Epoch = &Epoch{"latest_checkpoint", nil}
+	EpochLatestConfirmed  *Epoch = &Epoch{"latest_confirmed", nil}
+	EpochLatestState      *Epoch = &Epoch{"latest_state", nil}
+	EpochLatestMined      *Epoch = &Epoch{"latest_mined", nil}
+	EpochLatestFinalized  *Epoch = &Epoch{"latest_finalized", nil}
+)
+
 // NewEpochNumber creates an instance of Epoch with specified number.
 func NewEpochNumber(number *hexutil.Big) *Epoch {
-	return &Epoch{"", number, false}
+	return &Epoch{"", number}
 }
 
 // NewEpochNumberBig creates an instance of Epoch with specified big number.
 func NewEpochNumberBig(number *big.Int) *Epoch {
-	return &Epoch{"", NewBigIntByRaw(number), false}
+	return &Epoch{"", NewBigIntByRaw(number)}
 }
 
 // NewEpochNumberUint64 creates an instance of Epoch with specified uint64 number.
 func NewEpochNumberUint64(number uint64) *Epoch {
-	return &Epoch{"", NewBigInt(number), false}
-}
-
-// NewEpochWithBlockHash creates an instance of Epoch with specified block hash.
-func NewEpochWithBlockHash(blockHash Hash, requirePivot ...bool) *Epoch {
-	if len(requirePivot) == 0 {
-		requirePivot = append(requirePivot, false)
-	}
-	return &Epoch{string(blockHash), nil, requirePivot[0]}
+	return &Epoch{"", NewBigInt(number)}
 }
 
 // String implements the fmt.Stringer interface
@@ -105,7 +98,6 @@ func (e *Epoch) Equals(target *Epoch) bool {
 	return e.number.ToInt().Cmp(target.number.ToInt()) == 0
 }
 
-// TODO: support requirePivot
 // MarshalText implements the encoding.TextMarshaler interface.
 func (e Epoch) MarshalText() ([]byte, error) {
 	return []byte(e.String()), nil
@@ -141,4 +133,111 @@ func (e *Epoch) UnmarshalJSON(data []byte) error {
 		e.number = NewBigIntByRaw(epochNumber)
 		return nil
 	}
+}
+
+type EpochOrBlockHash struct {
+	epoch        *Epoch
+	epochNumber  *hexutil.Big
+	BlockHash    *common.Hash
+	RequirePivot bool
+}
+
+// String implements the fmt.Stringer interface
+func (e *EpochOrBlockHash) String() string {
+	if e.epoch != nil {
+		return e.epoch.String()
+	}
+
+	if e.epochNumber != nil {
+		return e.epochNumber.String()
+	}
+
+	if e.BlockHash != nil {
+		return e.BlockHash.String()
+	}
+
+	return "nil"
+}
+
+// MarshalText implements the encoding.TextMarshaler interface.
+func (e EpochOrBlockHash) MarshalText() ([]byte, error) {
+	return []byte(e.String()), nil
+}
+
+func (e EpochOrBlockHash) MarshalJSON() ([]byte, error) {
+	if e.epoch != nil {
+		return json.Marshal(e.epoch)
+	}
+
+	if e.epochNumber != nil {
+		return json.Marshal(struct {
+			EpochNumber *hexutil.Big `json:"epochNumber"`
+		}{
+			EpochNumber: e.epochNumber,
+		})
+	}
+
+	if e.BlockHash != nil {
+		return json.Marshal(struct {
+			BlockHash    common.Hash `json:"blockHash"`
+			RequirePivot bool        `json:"requirePivot"`
+		}{
+			BlockHash:    *e.BlockHash,
+			RequirePivot: e.RequirePivot,
+		})
+	}
+	return nil, errors.New("unkown EpochOrBlockHash")
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+func (e *EpochOrBlockHash) UnmarshalJSON(data []byte) error {
+
+	var epoch Epoch
+	err := json.Unmarshal(data, &epoch)
+	if err == nil {
+		e.epoch = &epoch
+		return nil
+	}
+
+	type tmpEpoch struct {
+		EpochNumber  *hexutil.Big `json:"epochNumber"`
+		BlockHash    *common.Hash `json:"blockHash"`
+		RequirePivot bool         `json:"requirePivot"`
+	}
+
+	var val tmpEpoch
+	err = json.Unmarshal(data, &val)
+	if err != nil {
+		return err
+	}
+
+	if val.EpochNumber != nil && val.BlockHash != nil {
+		return fmt.Errorf("cannot specify both BlockHash and EpochNumber, choose one or the other")
+	}
+	if val.EpochNumber != nil && val.RequirePivot {
+		return fmt.Errorf("cannot specify both EpochNumber and RequirePivot, choose one or the other")
+	}
+	if val.EpochNumber != nil {
+		e.epochNumber = val.EpochNumber
+		return nil
+	}
+	e.BlockHash = val.BlockHash
+	e.RequirePivot = val.RequirePivot
+	return nil
+}
+
+// NewEpochOrBlockHashWithEpoch creates an instance of Epoch with specified epoch.
+func NewEpochOrBlockHashWithEpoch(epoch *Epoch) *EpochOrBlockHash {
+	if epoch == nil {
+		epoch = EpochLatestCheckpoint
+	}
+	return &EpochOrBlockHash{epoch: epoch}
+}
+
+// NewEpochOrBlockHashWithBlockHash creates an instance of Epoch with specified block hash.
+func NewEpochOrBlockHashWithBlockHash(blockHash Hash, requirePivot ...bool) *EpochOrBlockHash {
+	if len(requirePivot) == 0 {
+		requirePivot = append(requirePivot, false)
+	}
+	return &EpochOrBlockHash{nil, nil, blockHash.ToCommonHash(), requirePivot[0]}
 }

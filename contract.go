@@ -76,9 +76,9 @@ func (contract *Contract) Call(option *types.ContractMethodCallOption, resultPtr
 	callRequest.Data = &hexData
 	callRequest.FillByCallOption(option)
 
-	var epoch *types.Epoch = nil
+	var epoch *types.EpochOrBlockHash = nil
 	if option != nil && option.Epoch != nil {
-		epoch = option.Epoch
+		epoch = types.NewEpochOrBlockHashWithEpoch(option.Epoch)
 	}
 	// fmt.Printf("data: %x,hexdata:%v,callRequest.Data:%v\n", data, hexData, *callRequest.Data)
 	resultHexStr, err := contract.Client.Call(*callRequest, epoch)
