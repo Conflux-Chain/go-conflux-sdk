@@ -68,7 +68,6 @@ func (e *Epoch) String() string {
 	return e.name
 }
 
-// @depercated
 // ToInt returns epoch number in type big.Int
 func (e *Epoch) ToInt() (result *big.Int, isSuccess bool) {
 	if e.number != nil {
@@ -216,22 +215,23 @@ func (e *EpochOrBlockHash) UnmarshalJSON(data []byte) error {
 
 	var val tmpEpoch
 	err = json.Unmarshal(data, &val)
-	if err == nil {
-		if val.EpochNumber != nil && val.BlockHash != nil {
-			return fmt.Errorf("cannot specify both BlockHash and EpochNumber, choose one or the other")
-		}
-		if val.EpochNumber != nil && val.RequirePivot {
-			return fmt.Errorf("cannot specify both EpochNumber and RequirePivot, choose one or the other")
-		}
-		if val.EpochNumber != nil {
-			e.epochNumber = val.EpochNumber
-			return nil
-		}
-		e.BlockHash = val.BlockHash
-		e.RequirePivot = val.RequirePivot
+	if err != nil {
+		return err
+	}
+
+	if val.EpochNumber != nil && val.BlockHash != nil {
+		return fmt.Errorf("cannot specify both BlockHash and EpochNumber, choose one or the other")
+	}
+	if val.EpochNumber != nil && val.RequirePivot {
+		return fmt.Errorf("cannot specify both EpochNumber and RequirePivot, choose one or the other")
+	}
+	if val.EpochNumber != nil {
+		e.epochNumber = val.EpochNumber
 		return nil
 	}
-	return err
+	e.BlockHash = val.BlockHash
+	e.RequirePivot = val.RequirePivot
+	return nil
 
 	// var input string
 	// err = json.Unmarshal(data, &input)
@@ -274,7 +274,7 @@ func (e *EpochOrBlockHash) UnmarshalJSON(data []byte) error {
 
 }
 
-// NewEpochWithBlockHash creates an instance of Epoch with specified epoch.
+// NewEpochOrBlockHashWithEpoch creates an instance of Epoch with specified epoch.
 func NewEpochOrBlockHashWithEpoch(epoch *Epoch) *EpochOrBlockHash {
 	if epoch == nil {
 		epoch = EpochLatestCheckpoint
@@ -282,7 +282,7 @@ func NewEpochOrBlockHashWithEpoch(epoch *Epoch) *EpochOrBlockHash {
 	return &EpochOrBlockHash{epoch: epoch}
 }
 
-// NewEpochWithBlockHash creates an instance of Epoch with specified block hash.
+// NewEpochOrBlockHashWithBlockHash creates an instance of Epoch with specified block hash.
 func NewEpochOrBlockHashWithBlockHash(blockHash Hash, requirePivot ...bool) *EpochOrBlockHash {
 	if len(requirePivot) == 0 {
 		requirePivot = append(requirePivot, false)

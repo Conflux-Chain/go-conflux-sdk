@@ -164,9 +164,12 @@ type RpcTxpool interface {
 }
 
 type RpcDebug interface {
-	// TxpoolGetAccountTransactions(address types.Address) (val []types.Transaction, err error)
+	TxpoolGetAccountTransactions(address types.Address) (val []types.Transaction, err error)
 	GetEpochReceipts(epoch types.EpochOrBlockHash) (receipts [][]types.TransactionReceipt, err error)
 	GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error)
+	GetEpochReceiptProofByTransaction(hash types.Hash) (proof *string, err error)
+	GetTransactionsByEpoch(epoch types.Epoch) (wrapTransactions []types.WrapTransaction, err error)
+	GetTransactionsByBlock(hash types.Hash) (wrapTransactions []types.WrapTransaction, err error)
 }
 
 type RpcFilter interface {
