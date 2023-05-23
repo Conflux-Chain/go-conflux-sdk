@@ -130,3 +130,11 @@ func FormatJson(input string) string {
 	formated, _ := json.Marshal(oInput)
 	return string(formated)
 }
+
+func Get1stBoolIfy(values []bool) bool {
+	value := false
+	if len(values) > 0 {
+		value = values[0]
+	}
+	return value
+}

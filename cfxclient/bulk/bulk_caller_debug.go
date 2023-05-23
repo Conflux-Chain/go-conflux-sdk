@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 )
 
 // BulkDebugCaller used for bulk call rpc in one request to improve efficiency
@@ -20,11 +21,12 @@ func (b *BulkDebugCaller) Execute() ([]error, error) {
 }
 
 // GetEpochReceiptsByEpochNumber returns epoch receipts by epoch number
-func (client *BulkDebugCaller) GetEpochReceipts(epoch types.EpochOrBlockHash) (*[][]types.TransactionReceipt, *error) {
+func (client *BulkDebugCaller) GetEpochReceipts(epoch types.EpochOrBlockHash, include_eth_recepits ...bool) (*[][]types.TransactionReceipt, *error) {
 	result := new([][]types.TransactionReceipt)
 	err := new(error)
 
-	elem := newBatchElem(result, "cfx_getEpochReceipts", epoch)
+	includeEth := utils.Get1stBoolIfy(include_eth_recepits)
+	elem := newBatchElem(result, "cfx_getEpochReceipts", epoch, includeEth)
 	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 
 	return result, err
