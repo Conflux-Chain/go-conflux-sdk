@@ -80,6 +80,11 @@ func (c *RpcPosClient) GetEpochState(epochNumber ...hexutil.Uint64) (epochState 
 	return
 }
 
+func (c *RpcPosClient) GetLedgerInfoByBlockNumber(blockNumber postypes.BlockNumber) (ledgerInfoWithSigs *postypes.LedgerInfoWithSignatures, err error) {
+	err = c.core.CallRPC(&ledgerInfoWithSigs, "pos_getLedgerInfoByBlockNumber", blockNumber)
+	return
+}
+
 func (c *RpcPosClient) GetLedgerInfoByEpoch(epochNumber ...hexutil.Uint64) (ledgerInfoWithSigs *postypes.LedgerInfoWithSignatures, err error) {
 	_view := get1stU64Ify(epochNumber)
 	err = c.core.CallRPC(&ledgerInfoWithSigs, "pos_getLedgerInfoByEpoch", _view)
