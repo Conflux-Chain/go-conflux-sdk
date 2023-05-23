@@ -1,11 +1,18 @@
 Go-conflux-sdk Change Log
 ============
-v1.5.2
+
+v1.5.4
 ------------
--   Dont clear gasPrice when estimate
+-   Support debug rpcs
+-   Support EIP-1898 style epoch parameters in some core space RPCs (including cfx_getBalance, cfx_getStorageAt, cfx_call, cfx_getNextNonce, cfx_getCode, and cfx_epochReceipts)
+
 v1.5.3
 ------------
 -   Bulk sender populate can select nonce mode, contains auto/nonce/pendingnonce
+
+v1.5.2
+------------
+-   Dont clear gasPrice when estimate
    
 v1.5.0
 ------------
