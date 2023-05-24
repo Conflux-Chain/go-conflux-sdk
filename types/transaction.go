@@ -9,6 +9,7 @@ import (
 	"io"
 	"math/big"
 
+	"github.com/Conflux-Chain/go-conflux-sdk/types/enums"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/pkg/errors"
@@ -121,6 +122,42 @@ type TransactionReceipt struct {
 	// Storage collaterals released during the execution of the transaction.
 	StorageReleased []StorageChange `json:"storageReleased"`
 	Space           *SpaceType      `json:"space,omitempty"`
+}
+
+func (r *TransactionReceipt) GetOutcomeType() (enums.TransactionOutcome, error) {
+	switch *r.Space {
+	case SPACE_NATIVE:
+		outcome := enums.NativeSpaceOutcome(r.OutcomeStatus)
+		switch outcome {
+		case enums.NATIVE_SPACE_SUCCESS:
+			return enums.TRANSACTION_OUTCOME_SUCCESS, nil
+		case enums.NATIVE_SPACE_EXCEPTION_WITH_NONCE_BUMPING:
+			return enums.TRANSACTION_OUTCOME_FAILURE, nil
+		case enums.NATIVE_SPACE_EXCEPTION_WITHOUT_NONCE_BUMPING:
+			return enums.TRANSACTION_OUTCOME_SKIPPED, nil
+		}
+	case SPACE_EVM:
+		outcome := enums.EvmSpaceOutcome(r.OutcomeStatus)
+		switch outcome {
+		case enums.EVM_SPACE_SUCCESS:
+			return enums.TRANSACTION_OUTCOME_SUCCESS, nil
+		case enums.EVM_SPACE_FAIL:
+			return enums.TRANSACTION_OUTCOME_FAILURE, nil
+		case enums.EVM_SPACE_SKIPPED:
+			return enums.TRANSACTION_OUTCOME_SKIPPED, nil
+		}
+	default:
+		return enums.TransactionOutcome(-1), errors.New("unknown space")
+	}
+	return enums.TransactionOutcome(-1), errors.New("unknown outcome status")
+}
+
+func (r *TransactionReceipt) MustGetOutcomeType() enums.TransactionOutcome {
+	result, err := r.GetOutcomeType()
+	if err != nil {
+		panic(err)
+	}
+	return result
 }
 
 // StorageChange represents storage change information of the address
