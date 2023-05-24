@@ -152,6 +152,14 @@ func (r *TransactionReceipt) GetOutcomeType() (enums.TransactionOutcome, error) 
 	return enums.TransactionOutcome(-1), errors.New("unknown outcome status")
 }
 
+func (r *TransactionReceipt) MustGetOutcomeType() enums.TransactionOutcome {
+	result, err := r.GetOutcomeType()
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
+
 // StorageChange represents storage change information of the address
 type StorageChange struct {
 	Address Address `json:"address"`
