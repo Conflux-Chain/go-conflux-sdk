@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	rpc "github.com/openweb3/go-rpc-provider"
@@ -141,16 +142,23 @@ type RpcTrace interface {
 	GetBlockTraces(blockHash types.Hash) (*types.LocalizedBlockTrace, error)
 	FilterTraces(traceFilter types.TraceFilter) (traces []types.LocalizedTrace, err error)
 	GetTransactionTraces(txHash types.Hash) (traces []types.LocalizedTrace, err error)
+	GetEpochTraces(epoch types.Epoch) (traces []types.LocalizedTrace, err error)
 }
 
 type RpcPos interface {
 	GetStatus() (postypes.Status, error)
 	GetAccount(address postypes.Address, blockNumber ...hexutil.Uint64) (postypes.Account, error)
+	GetAccountByPowAddress(address cfxaddress.Address, blockNumber ...hexutil.Uint64) (account postypes.Account, err error)
 	GetCommittee(blockNumber ...hexutil.Uint64) (postypes.CommitteeState, error)
 	GetBlockByHash(types.Hash) (*postypes.Block, error)
 	GetBlockByNumber(blockNumber postypes.BlockNumber) (*postypes.Block, error)
 	GetTransactionByNumber(txNumber hexutil.Uint64) (*postypes.Transaction, error)
 	GetRewardsByEpoch(epochNumber hexutil.Uint64) (postypes.EpochReward, error)
+	GetConsensusBlocks() (blocks []*postypes.Block, err error)
+	GetEpochState(epochNumber ...hexutil.Uint64) (epochState *postypes.EpochState, err error)
+	GetLedgerInfoByBlockNumber(blockNumber postypes.BlockNumber) (ledgerInfoWithSigs *postypes.LedgerInfoWithSignatures, err error)
+	GetLedgerInfoByEpoch(epochNumber ...hexutil.Uint64) (ledgerInfoWithSigs *postypes.LedgerInfoWithSignatures, err error)
+	GetLedgerInfosByEpoch(startEpoch hexutil.Uint64, endEpoch hexutil.Uint64) (ledgerInfoWithSigs []*postypes.LedgerInfoWithSignatures, err error)
 }
 
 type RpcTxpool interface {

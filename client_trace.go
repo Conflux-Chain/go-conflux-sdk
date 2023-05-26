@@ -33,7 +33,3 @@ func (c *RpcTraceClient) GetEpochTraces(epoch types.Epoch) (traces []types.Local
 	err = c.core.wrappedCallRPC(&traces, "trace_epoch", epoch)
 	return
 }
-
-// /// Return all traces of both spaces in an epoch.
-// #[rpc(name = "trace_epoch")]
-// fn epoch_traces(&self, epoch: EpochNumber) -> JsonRpcResult<EpochTrace>;

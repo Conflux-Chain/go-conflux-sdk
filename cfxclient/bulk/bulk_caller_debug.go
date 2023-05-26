@@ -33,6 +33,8 @@ func (client *BulkDebugCaller) GetEpochReceipts(epoch types.EpochOrBlockHash, in
 }
 
 // GetEpochReceiptsByPivotBlockHash returns epoch receipts by pivot block hash
+//
+// Deprecated: Replace by GetEpochReceipts
 func (client *BulkDebugCaller) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (*[][]types.TransactionReceipt, *error) {
 	result := new([][]types.TransactionReceipt)
 	err := new(error)

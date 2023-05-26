@@ -138,8 +138,27 @@ func (e *Epoch) UnmarshalJSON(data []byte) error {
 type EpochOrBlockHash struct {
 	epoch        *Epoch
 	epochNumber  *hexutil.Big
-	BlockHash    *common.Hash
-	RequirePivot bool
+	blockHash    *common.Hash
+	requirePivot bool
+}
+
+// IsEpoch returns epoch if it is epoch, and the 2rd return value represents if is epoch.
+func (e *EpochOrBlockHash) IsEpoch() (*Epoch, bool) {
+	if e.epoch != nil {
+		return e.epoch, true
+	}
+	if e.epochNumber != nil {
+		return NewEpochNumber(e.epochNumber), true
+	}
+	return nil, false
+}
+
+// IsBlockHash returns "block hash" and "require pivot" if it is blockhash, and the 3rd return value represents if is block hash.
+func (e *EpochOrBlockHash) IsBlockHash() (*common.Hash, bool, bool) {
+	if e.blockHash != nil {
+		return e.blockHash, e.requirePivot, true
+	}
+	return nil, false, false
 }
 
 // String implements the fmt.Stringer interface
@@ -152,8 +171,8 @@ func (e *EpochOrBlockHash) String() string {
 		return e.epochNumber.String()
 	}
 
-	if e.BlockHash != nil {
-		return e.BlockHash.String()
+	if e.blockHash != nil {
+		return e.blockHash.String()
 	}
 
 	return "nil"
@@ -177,13 +196,13 @@ func (e EpochOrBlockHash) MarshalJSON() ([]byte, error) {
 		})
 	}
 
-	if e.BlockHash != nil {
+	if e.blockHash != nil {
 		return json.Marshal(struct {
 			BlockHash    common.Hash `json:"blockHash"`
 			RequirePivot bool        `json:"requirePivot"`
 		}{
-			BlockHash:    *e.BlockHash,
-			RequirePivot: e.RequirePivot,
+			BlockHash:    *e.blockHash,
+			RequirePivot: e.requirePivot,
 		})
 	}
 	return nil, errors.New("unkown EpochOrBlockHash")
@@ -221,8 +240,8 @@ func (e *EpochOrBlockHash) UnmarshalJSON(data []byte) error {
 		e.epochNumber = val.EpochNumber
 		return nil
 	}
-	e.BlockHash = val.BlockHash
-	e.RequirePivot = val.RequirePivot
+	e.blockHash = val.BlockHash
+	e.requirePivot = val.RequirePivot
 	return nil
 }
 
