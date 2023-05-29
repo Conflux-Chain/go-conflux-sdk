@@ -204,6 +204,14 @@ func (client *Client) GetAccountManager() AccountManagerOperator {
 	return client.AccountManager
 }
 
+func (client *Client) SetNetworkId(networkId uint32) {
+	client.networkID = &networkId
+}
+
+func (client *Client) SetChainId(chainId uint32) {
+	client.chainID = &chainId
+}
+
 // NewAddress create conflux address by base32 string or hex40 string, if base32OrHex is base32 and networkID is passed it will create cfx Address use networkID of current client.
 func (client *Client) NewAddress(base32OrHex string) (types.Address, error) {
 	networkID, err := client.GetNetworkID()

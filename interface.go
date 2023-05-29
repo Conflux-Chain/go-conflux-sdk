@@ -42,6 +42,9 @@ type ClientOperator interface {
 	SetAccountManager(accountManager AccountManagerOperator)
 	GetAccountManager() AccountManagerOperator
 
+	SetNetworkId(networkId uint32)
+	SetChainId(chainId uint32)
+
 	Pos() RpcPos
 	TxPool() RpcTxpool
 	Debug() RpcDebug
