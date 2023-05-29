@@ -119,3 +119,26 @@ type AccountPendingInfo struct {
 	PendingNonce  *hexutil.Big `json:"pendingNonce"`
 	NextPendingTx Hash         `json:"nextPendingTx"`
 }
+
+type StorageCollateralInfo struct {
+	TotalStorageTokens     *hexutil.Big `json:"totalStorageTokens"`
+	ConvertedStoragePoints *hexutil.Big `json:"convertedStoragePoints"`
+	UsedStoragePoints      *hexutil.Big `json:"usedStoragePoints"`
+}
+
+// pub struct EpochReceiptProof {
+//     pub block_index_proof: TrieProof,
+//     pub block_receipt_proof: TrieProof,
+// }
+
+// #[derive(Clone, Debug, Default, PartialEq)]
+// pub struct TrieProof {
+//     /// The first node must be the root node. Child node must come later than
+//     /// one of its parent node.
+//     nodes: Vec<TrieProofNode>,
+//     merkle_to_node_index: HashMap<MerkleHash, usize>,
+//     number_leaf_nodes: u32,
+// }
+
+// #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+// pub struct TrieProofNode(VanillaTrieNode<MerkleHash>);
