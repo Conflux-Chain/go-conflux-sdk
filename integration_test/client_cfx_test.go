@@ -24,7 +24,7 @@ func genCfxTestConfig() rpctest.RpcTestConfig {
 		"cfx_call":                              "Call",
 		"cfx_getLogs":                           "GetLogs",
 		"cfx_getTransactionByHash":              "GetTransactionByHash",
-		"cfx_estimateGasAndCollateral":          "EstimateGasAndCollateral",
+		"cfx_EstimateGas":                       "EstimateGas",
 		"cfx_getBlocksByEpoch":                  "GetBlocksByEpoch",
 		"cfx_getTransactionReceipt":             "GetTransactionReceipt",
 		"cfx_getAdmin":                          "GetAdmin",

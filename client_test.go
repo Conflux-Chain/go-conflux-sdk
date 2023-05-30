@@ -110,15 +110,15 @@ func callContextMid2(f providers.CallContextFunc) providers.CallContextFunc {
 	}
 }
 
-func _TestEstimateGasAndCollateralAlwaysWithGaspriceNil(t *testing.T) {
+func _TestEstimateGasAlwaysWithGaspriceNil(t *testing.T) {
 	c := MustNewClient("https://test.confluxrpc.com", ClientOption{
 		KeystorePath: "./keystore",
 		Logger:       os.Stdout,
 	})
 	c.Provider().HookCallContext(func(f providers.CallContextFunc) providers.CallContextFunc {
 		return func(ctx context.Context, result interface{}, method string, args ...interface{}) error {
-			if method == "cfx_estimateGasAndCollateral" {
-				fmt.Printf("cfx_estimateGasAndCollateral args: %+v\n", args)
+			if method == "cfx_EstimateGas" {
+				fmt.Printf("cfx_EstimateGas args: %+v\n", args)
 				if args[0].(types.CallRequest).GasPrice != nil {
 					t.Fatalf("gasPrice should be nil")
 				}
@@ -128,7 +128,7 @@ func _TestEstimateGasAndCollateralAlwaysWithGaspriceNil(t *testing.T) {
 	})
 	c.AccountManager.Create("123456")
 	defaultAccount, _ := c.AccountManager.GetDefault()
-	c.EstimateGasAndCollateral(
+	c.EstimateGas(
 		types.CallRequest{
 			GasPrice: types.NewBigInt(1000000000),
 			To:       defaultAccount,

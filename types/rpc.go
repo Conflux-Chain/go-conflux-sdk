@@ -27,9 +27,8 @@ type AccountInfo struct {
 
 //Estimate represents estimated gas will be used and storage will be collateralized when transaction excutes
 type Estimate struct {
-	GasLimit              *hexutil.Big `json:"gasLimit"`
-	GasUsed               *hexutil.Big `json:"gasUsed"`
-	StorageCollateralized *hexutil.Big `json:"storageCollateralized"`
+	GasLimit *hexutil.Big `json:"gasLimit"`
+	GasUsed  *hexutil.Big `json:"gasUsed"`
 }
 
 type RewardInfo struct {

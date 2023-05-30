@@ -32,7 +32,7 @@ v1.4.0
 
 v1.3.2
 ------------
--   Always set gasprice to nil when EstimateGasAndCollateral
+-   Always set gasprice to nil when EstimateGas
 
 v1.3.0
 ------------

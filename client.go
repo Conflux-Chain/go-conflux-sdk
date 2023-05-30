@@ -559,11 +559,11 @@ func (client *Client) GetTransactionByHash(txHash types.Hash) (tx *types.Transac
 	return
 }
 
-// EstimateGasAndCollateral excutes a message call "request"
+// EstimateGas excutes a message call "request"
 // and returns the amount of the gas used and storage for collateral
-func (client *Client) EstimateGasAndCollateral(request types.CallRequest, epoch ...*types.Epoch) (estimat types.Estimate, err error) {
+func (client *Client) EstimateGas(request types.CallRequest, epoch ...*types.Epoch) (estimat types.Estimate, err error) {
 	realEpoch := get1stEpochIfy(epoch)
-	err = client.wrappedCallRPC(&estimat, "cfx_estimateGasAndCollateral", request, realEpoch)
+	err = client.wrappedCallRPC(&estimat, "cfx_estimateGas", request, realEpoch)
 	return
 }
 
@@ -794,7 +794,7 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 			callReq := new(types.CallRequest)
 			callReq.FillByUnsignedTx(tx)
 
-			sm, err := client.EstimateGasAndCollateral(*callReq)
+			sm, err := client.EstimateGas(*callReq)
 			if err != nil {
 				return errors.Wrapf(err, "failed to estimate gas and collateral, request = %+v", *callReq)
 			}
@@ -803,9 +803,9 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 				tx.Gas = sm.GasLimit
 			}
 
-			if tx.StorageLimit == nil {
-				tx.StorageLimit = types.NewUint64(sm.StorageCollateralized.ToInt().Uint64() * 10 / 9)
-			}
+			// if tx.StorageLimit == nil {
+			// 	tx.StorageLimit = types.NewUint64(sm.StorageCollateralized.ToInt().Uint64() * 10 / 9)
+			// }
 		}
 
 		if tx.GasPrice == nil {

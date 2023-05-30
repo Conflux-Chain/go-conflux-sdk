@@ -213,14 +213,14 @@ func (client *BulkCfxCaller) GetTransactionByHash(txHash types.Hash) (*types.Tra
 	return result, err
 }
 
-// EstimateGasAndCollateral excutes a message call "request"
+// EstimateGas excutes a message call "request"
 // and returns the amount of the gas used and storage for collateral
-func (client *BulkCfxCaller) EstimateGasAndCollateral(request types.CallRequest, epoch ...*types.Epoch) (*types.Estimate, *error) {
+func (client *BulkCfxCaller) EstimateGas(request types.CallRequest, epoch ...*types.Epoch) (*types.Estimate, *error) {
 	result := new(types.Estimate)
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 
-	elem := newBatchElem(result, "cfx_estimateGasAndCollateral", request, realEpoch)
+	elem := newBatchElem(result, "cfx_EstimateGas", request, realEpoch)
 	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }

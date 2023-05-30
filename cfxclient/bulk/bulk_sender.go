@@ -119,7 +119,7 @@ func (b *BulkSender) populateGasAndStorage() (*ErrBulkEstimate, error) {
 		callReq := new(types.CallRequest)
 		callReq.FillByUnsignedTx(utx)
 
-		estimatPtrs[i], errPtrs[i] = bulkCaller.EstimateGasAndCollateral(*callReq)
+		estimatPtrs[i], errPtrs[i] = bulkCaller.EstimateGas(*callReq)
 	}
 
 	err := bulkCaller.Execute()
@@ -150,9 +150,9 @@ func (b *BulkSender) populateGasAndStorage() (*ErrBulkEstimate, error) {
 			utx.Gas = estimatPtrs[i].GasLimit
 		}
 
-		if utx.StorageLimit == nil {
-			utx.StorageLimit = types.NewUint64(estimatPtrs[i].StorageCollateralized.ToInt().Uint64())
-		}
+		// if utx.StorageLimit == nil {
+		// 	utx.StorageLimit = types.NewUint64(estimatPtrs[i].StorageCollateralized.ToInt().Uint64())
+		// }
 	}
 
 	if len(estimateErrors) > 0 {

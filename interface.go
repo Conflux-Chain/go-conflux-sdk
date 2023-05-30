@@ -77,7 +77,7 @@ type ClientOperator interface {
 
 	GetLogs(filter types.LogFilter) ([]types.Log, error)
 	GetTransactionByHash(txHash types.Hash) (*types.Transaction, error)
-	EstimateGasAndCollateral(request types.CallRequest, epoch ...*types.Epoch) (types.Estimate, error)
+	EstimateGas(request types.CallRequest, epoch ...*types.Epoch) (types.Estimate, error)
 	GetBlocksByEpoch(epoch *types.Epoch) ([]types.Hash, error)
 	GetTransactionReceipt(txHash types.Hash) (*types.TransactionReceipt, error)
 	GetAdmin(contractAddress types.Address, epoch ...*types.Epoch) (admin *types.Address, err error)

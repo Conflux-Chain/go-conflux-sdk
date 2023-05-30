@@ -42,9 +42,9 @@ type unsignedTransactionForRlp struct {
 	To           *common.Address `rlp:"nil"`
 	Value        *big.Int        `rlp:"nil"`
 	StorageLimit *hexutil.Uint64 `rlp:"nil"`
-	EpochHeight  *hexutil.Uint64 `rlp:"nil"`
-	ChainID      *hexutil.Uint   `rlp:"nil"`
-	Data         []byte
+	// EpochHeight  *hexutil.Uint64 `rlp:"nil"`
+	ChainID *hexutil.Uint `rlp:"nil"`
+	Data    []byte
 }
 
 // DefaultGas is the default gas in a transaction to transfer amount without any data.
@@ -125,9 +125,9 @@ func (tx *UnsignedTransaction) toStructForRlp() *unsignedTransactionForRlp {
 		To:           to,
 		Value:        tx.Value.ToInt(),
 		StorageLimit: tx.StorageLimit,
-		EpochHeight:  tx.EpochHeight,
-		ChainID:      tx.ChainID,
-		Data:         tx.Data,
+		// EpochHeight:  tx.EpochHeight,
+		ChainID: tx.ChainID,
+		Data:    tx.Data,
 	}
 }
 
@@ -141,7 +141,7 @@ func (tx *unsignedTransactionForRlp) toUnsignedTransaction(networkID uint32) *Un
 	gasPrice := hexutil.Big(*tx.GasPrice)
 	value := hexutil.Big(*tx.Value)
 	storageLimit := tx.StorageLimit
-	epochHeight := tx.EpochHeight
+	// epochHeight := tx.EpochHeight
 
 	nonce := hexutil.Big(*tx.Nonce)
 	gas := hexutil.Big(*tx.Gas)
@@ -154,8 +154,8 @@ func (tx *unsignedTransactionForRlp) toUnsignedTransaction(networkID uint32) *Un
 			Gas:          &gas,
 			Value:        &value,
 			StorageLimit: storageLimit,
-			EpochHeight:  epochHeight,
-			ChainID:      chainid,
+			// EpochHeight:  epochHeight,
+			ChainID: chainid,
 		},
 		To:   to,
 		Data: tx.Data,
