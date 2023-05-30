@@ -117,8 +117,8 @@ func _TestEstimateGasAndCollateralAlwaysWithGaspriceNil(t *testing.T) {
 	})
 	c.Provider().HookCallContext(func(f providers.CallContextFunc) providers.CallContextFunc {
 		return func(ctx context.Context, result interface{}, method string, args ...interface{}) error {
-			if method == "cfx_EstimateGasAndCollateral" {
-				fmt.Printf("cfx_EstimateGasAndCollateral args: %+v\n", args)
+			if method == "cfx_estimateGas" {
+				fmt.Printf("cfx_estimateGas args: %+v\n", args)
 				if args[0].(types.CallRequest).GasPrice != nil {
 					t.Fatalf("gasPrice should be nil")
 				}

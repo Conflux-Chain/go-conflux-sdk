@@ -220,7 +220,7 @@ func (client *BulkCfxCaller) EstimateGasAndCollateral(request types.CallRequest,
 	err := new(error)
 	realEpoch := get1stEpochIfy(epoch)
 
-	elem := newBatchElem(result, "cfx_EstimateGasAndCollateral", request, realEpoch)
+	elem := newBatchElem(result, "cfx_estimateGas", request, realEpoch)
 	(*BulkCallerCore)(client).appendElemsAndError(elem, err)
 	return result, err
 }
