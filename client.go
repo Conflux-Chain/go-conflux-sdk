@@ -808,19 +808,19 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 			// }
 		}
 
-		if tx.GasPrice == nil {
-			gasPrice, err := client.GetGasPrice()
-			if err != nil {
-				return errors.Wrap(err, "failed to get gas price")
-			}
+		// if tx.GasPrice == nil {
+		// 	gasPrice, err := client.GetGasPrice()
+		// 	if err != nil {
+		// 		return errors.Wrap(err, "failed to get gas price")
+		// 	}
 
-			// conflux responsed gasprice offen be 0, but the min gasprice is 1 when sending transaction, so do this
-			if gasPrice.ToInt().Cmp(big.NewInt(constants.MinGasprice)) < 1 {
-				gasPrice = types.NewBigInt(constants.MinGasprice)
-			}
-			tmp := hexutil.Big(*gasPrice)
-			tx.GasPrice = &tmp
-		}
+		// 	// conflux responsed gasprice offen be 0, but the min gasprice is 1 when sending transaction, so do this
+		// 	if gasPrice.ToInt().Cmp(big.NewInt(constants.MinGasprice)) < 1 {
+		// 		gasPrice = types.NewBigInt(constants.MinGasprice)
+		// 	}
+		// 	tmp := hexutil.Big(*gasPrice)
+		// 	tx.GasPrice = &tmp
+		// }
 
 		tx.ApplyDefault()
 	}
