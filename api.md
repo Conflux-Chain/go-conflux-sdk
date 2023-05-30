@@ -375,12 +375,12 @@ DeployContract deploys a contract by abiJSON, bytecode and consturctor params.
 It returns a ContractDeployState instance which contains 3 channels for
 notifying when state changed.
 
-#### func (*Client) EstimateGas
+#### func (*Client) EstimateGasAndCollateral
 
 ```go
-func (client *Client) EstimateGas(request types.CallRequest, epoch ...*types.Epoch) (estimat types.Estimate, err error)
+func (client *Client) EstimateGasAndCollateral(request types.CallRequest, epoch ...*types.Epoch) (estimat types.Estimate, err error)
 ```
-EstimateGas excutes a message call "request" and returns the amount
+EstimateGasAndCollateral excutes a message call "request" and returns the amount
 of the gas used and storage for collateral
 
 #### func (*Client) FilterTraces
@@ -1627,12 +1627,12 @@ func (client *BulkCfxCaller) CheckBalanceAgainstTransaction(accountAddress types
 CheckBalanceAgainstTransaction checks if user balance is enough for the
 transaction.
 
-#### func (*BulkCfxCaller) EstimateGas
+#### func (*BulkCfxCaller) EstimateGasAndCollateral
 
 ```go
-func (client *BulkCfxCaller) EstimateGas(request types.CallRequest, epoch ...*types.Epoch) (*types.Estimate, *error)
+func (client *BulkCfxCaller) EstimateGasAndCollateral(request types.CallRequest, epoch ...*types.Epoch) (*types.Estimate, *error)
 ```
-EstimateGas excutes a message call "request" and returns the amount
+EstimateGasAndCollateral excutes a message call "request" and returns the amount
 of the gas used and storage for collateral
 
 #### func (*BulkCfxCaller) Execute

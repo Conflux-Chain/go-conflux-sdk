@@ -119,7 +119,7 @@ func (b *BulkSender) populateGasAndStorage() (*ErrBulkEstimate, error) {
 		callReq := new(types.CallRequest)
 		callReq.FillByUnsignedTx(utx)
 
-		estimatPtrs[i], errPtrs[i] = bulkCaller.EstimateGas(*callReq)
+		estimatPtrs[i], errPtrs[i] = bulkCaller.EstimateGasAndCollateral(*callReq)
 	}
 
 	err := bulkCaller.Execute()

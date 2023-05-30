@@ -559,11 +559,11 @@ func (client *Client) GetTransactionByHash(txHash types.Hash) (tx *types.Transac
 	return
 }
 
-// EstimateGas excutes a message call "request"
+// EstimateGasAndCollateral excutes a message call "request"
 // and returns the amount of the gas used and storage for collateral
-func (client *Client) EstimateGas(request types.CallRequest, epoch ...*types.Epoch) (estimat types.Estimate, err error) {
+func (client *Client) EstimateGasAndCollateral(request types.CallRequest, epoch ...*types.Epoch) (estimat types.Estimate, err error) {
 	realEpoch := get1stEpochIfy(epoch)
-	err = client.wrappedCallRPC(&estimat, "cfx_estimateGas", request, realEpoch)
+	err = client.wrappedCallRPC(&estimat, "cfx_EstimateGasAndCollateral", request, realEpoch)
 	return
 }
 
@@ -794,7 +794,7 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 			callReq := new(types.CallRequest)
 			callReq.FillByUnsignedTx(tx)
 
-			sm, err := client.EstimateGas(*callReq)
+			sm, err := client.EstimateGasAndCollateral(*callReq)
 			if err != nil {
 				return errors.Wrapf(err, "failed to estimate gas and collateral, request = %+v", *callReq)
 			}
