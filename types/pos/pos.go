@@ -177,10 +177,9 @@ func (b *Transaction) UnmarshalJSON(data []byte) error {
 
 // Helper struct to manage validator information for validation
 type ValidatorConsensusInfo struct {
-	PublicKey string `json:"publicKey"`
-	/// None if we do not need VRF.
-	VrfPublicKey string         `json:"vrfPublicKey,omitempty"`
-	VotingPower  hexutil.Uint64 `json:"votingPower"`
+	PublicKey    ConsensusPublicKey     `json:"publicKey"`
+	VrfPublicKey *ConsensusVRFPublicKey `json:"vrfPublicKey,omitempty"` // nil if VRF not needed
+	VotingPower  hexutil.Uint64         `json:"votingPower"`
 }
 
 // Supports validation of signatures for known authors with individual voting
@@ -236,10 +235,8 @@ type LedgerInfo struct {
 
 	/// Hash of consensus specific data that is opaque to all parts of the
 	/// system other than consensus.
-	ConsensusDataHash string `json:"consensusDataHash"`
+	ConsensusDataHash common.Hash `json:"consensusDataHash"`
 }
-
-type ConsensusSignature string
 
 /// The validator node returns this structure which includes signatures
 /// from validators that confirm the state.  The client needs to only pass back
@@ -247,7 +244,7 @@ type ConsensusSignature string
 /// signatures again when the client performs a query, those are only there for
 /// the client to be able to verify the state
 type LedgerInfoWithSignatures struct {
-	LedgerInfo LedgerInfo `json:"ledgerInfo,omitempty"`
+	LedgerInfo LedgerInfo `json:"ledgerInfo"`
 	/// The validator is identified by its account address: in order to verify
 	/// a signature one needs to retrieve the public key of the validator
 	/// for the given epoch.
