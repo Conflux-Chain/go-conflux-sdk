@@ -26,10 +26,10 @@ var (
 type ContractCaller interface {
 	// CodeAt returns the code of the given account. This is needed to differentiate
 	// between contract internal errors and the local chain being out of sync.
-	GetCode(address types.Address, epoch ...*types.Epoch) (code hexutil.Bytes, err error)
+	GetCode(address types.Address, epoch ...*types.EpochOrBlockHash) (hexutil.Bytes, error)
 	// ContractCall executes an Ethereum contract call with the specified data as the
 	// input.
-	Call(call types.CallRequest, epoch *types.Epoch) (result hexutil.Bytes, err error)
+	Call(request types.CallRequest, epoch *types.EpochOrBlockHash) (hexutil.Bytes, error)
 }
 
 // ContractTransactor defines the methods needed to allow operating with a contract
@@ -65,7 +65,7 @@ type ContractFilterer interface {
 // DeployBackend wraps the operations needed by WaitMined and WaitDeployed.
 type DeployBackend interface {
 	TransactionReceipt(txHash common.Hash) (*types.TransactionReceipt, error)
-	GetCode(address types.Address, epoch ...*types.Epoch) (code hexutil.Bytes, err error)
+	GetCode(address types.Address, epoch ...*types.EpochOrBlockHash) (hexutil.Bytes, error)
 }
 
 // ContractBackend defines the methods needed to work with contracts on a read-write basis.
