@@ -3,6 +3,7 @@ package types
 import (
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -124,6 +125,23 @@ type StorageCollateralInfo struct {
 	TotalStorageTokens     *hexutil.Big `json:"totalStorageTokens"`
 	ConvertedStoragePoints *hexutil.Big `json:"convertedStoragePoints"`
 	UsedStoragePoints      *hexutil.Big `json:"usedStoragePoints"`
+}
+
+type EpochReceiptProof struct {
+	BlockIndexProof   TrieProof `json:"block_index_proof"`
+	BlockReceiptProof TrieProof `json:"block_receipt_proof"`
+}
+
+type TrieProof []VanillaTrieNode
+
+type VanillaTrieNode struct {
+	ChildrenTable  []common.Hash `json:"childrenTable"`
+	CompressedPath struct {
+		PathMask  hexutil.Uint  `json:"pathMask"`
+		PathSlice hexutil.Bytes `json:"pathSlice"`
+	} `json:"compressedPath"`
+	MerkleHash common.Hash    `json:"merkleHash"`
+	MptValue   *hexutil.Bytes `json:"mptValue"`
 }
 
 // pub struct EpochReceiptProof {
