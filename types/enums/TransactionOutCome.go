@@ -1,6 +1,6 @@
 package enums
 
-type TransactionOutcome int
+type TransactionOutcome uint8
 
 const (
 	TRANSACTION_OUTCOME_SUCCESS TransactionOutcome = iota
@@ -8,7 +8,7 @@ const (
 	TRANSACTION_OUTCOME_SKIPPED
 )
 
-type NativeSpaceOutcome int
+type NativeSpaceOutcome uint8
 
 const (
 	NATIVE_SPACE_SUCCESS                         NativeSpaceOutcome = iota
@@ -16,7 +16,7 @@ const (
 	NATIVE_SPACE_EXCEPTION_WITHOUT_NONCE_BUMPING                    // no gas fee charged
 )
 
-type EvmSpaceOutcome int
+type EvmSpaceOutcome uint8
 
 const (
 	EVM_SPACE_FAIL EvmSpaceOutcome = iota

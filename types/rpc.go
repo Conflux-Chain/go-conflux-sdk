@@ -3,6 +3,7 @@ package types
 import (
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -119,3 +120,43 @@ type AccountPendingInfo struct {
 	PendingNonce  *hexutil.Big `json:"pendingNonce"`
 	NextPendingTx Hash         `json:"nextPendingTx"`
 }
+
+type StorageCollateralInfo struct {
+	TotalStorageTokens     *hexutil.Big `json:"totalStorageTokens"`
+	ConvertedStoragePoints *hexutil.Big `json:"convertedStoragePoints"`
+	UsedStoragePoints      *hexutil.Big `json:"usedStoragePoints"`
+}
+
+type EpochReceiptProof struct {
+	BlockIndexProof   TrieProof `json:"block_index_proof"`
+	BlockReceiptProof TrieProof `json:"block_receipt_proof"`
+}
+
+type TrieProof []VanillaTrieNode
+
+type VanillaTrieNode struct {
+	ChildrenTable  []common.Hash `json:"childrenTable"`
+	CompressedPath struct {
+		PathMask  hexutil.Uint  `json:"pathMask"`
+		PathSlice hexutil.Bytes `json:"pathSlice"`
+	} `json:"compressedPath"`
+	MerkleHash common.Hash    `json:"merkleHash"`
+	MptValue   *hexutil.Bytes `json:"mptValue"`
+}
+
+// pub struct EpochReceiptProof {
+//     pub block_index_proof: TrieProof,
+//     pub block_receipt_proof: TrieProof,
+// }
+
+// #[derive(Clone, Debug, Default, PartialEq)]
+// pub struct TrieProof {
+//     /// The first node must be the root node. Child node must come later than
+//     /// one of its parent node.
+//     nodes: Vec<TrieProofNode>,
+//     merkle_to_node_index: HashMap<MerkleHash, usize>,
+//     number_leaf_nodes: u32,
+// }
+
+// #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+// pub struct TrieProofNode(VanillaTrieNode<MerkleHash>);

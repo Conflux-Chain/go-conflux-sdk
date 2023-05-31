@@ -147,9 +147,9 @@ func (r *TransactionReceipt) GetOutcomeType() (enums.TransactionOutcome, error) 
 			return enums.TRANSACTION_OUTCOME_SKIPPED, nil
 		}
 	default:
-		return enums.TransactionOutcome(-1), errors.New("unknown space")
+		return enums.TransactionOutcome(0xff), errors.New("unknown space")
 	}
-	return enums.TransactionOutcome(-1), errors.New("unknown outcome status")
+	return enums.TransactionOutcome(0xff), errors.New("unknown outcome status")
 }
 
 func (r *TransactionReceipt) MustGetOutcomeType() enums.TransactionOutcome {

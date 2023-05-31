@@ -956,6 +956,17 @@ func (client *Client) GetParamsFromVote(epoch ...*types.Epoch) (info postypes.Vo
 	return
 }
 
+func (client *Client) GetCollateralInfo(epoch ...*types.Epoch) (info types.StorageCollateralInfo, err error) {
+	err = client.wrappedCallRPC(&info, "cfx_getCollateralInfo", get1stEpochIfy(epoch))
+	return
+}
+
+// /// Return information about total token supply.
+// #[rpc(name = "cfx_getCollateralInfo")]
+// fn get_collateral_info(
+//     &self, epoch_number: Option<EpochNumber>,
+// ) -> JsonRpcResult<StorageCollateralInfo>;
+
 // =====Debug RPC=====
 
 func (client *Client) GetEpochReceipts(epoch types.EpochOrBlockHash, include_eth_recepits ...bool) (receipts [][]types.TransactionReceipt, err error) {
