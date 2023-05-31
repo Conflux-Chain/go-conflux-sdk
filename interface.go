@@ -120,6 +120,7 @@ type ClientOperator interface {
 	GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error)
 
 	GetParamsFromVote(epoch ...*types.Epoch) (info postypes.VoteParamsInfo, err error)
+	GetCollateralInfo(epoch ...*types.Epoch) (info types.StorageCollateralInfo, err error)
 
 	BatchGetTxByHashes(txhashes []types.Hash) (map[types.Hash]*types.Transaction, error)
 	BatchGetBlockSummarys(blockhashes []types.Hash) (map[types.Hash]*types.BlockSummary, error)
@@ -160,6 +161,7 @@ type RpcPos interface {
 	GetConsensusBlocks() (blocks []*postypes.Block, err error)
 	GetEpochState(epochNumber ...hexutil.Uint64) (epochState *postypes.EpochState, err error)
 	GetLedgerInfoByBlockNumber(blockNumber postypes.BlockNumber) (ledgerInfoWithSigs *postypes.LedgerInfoWithSignatures, err error)
+	GetLedgerInfoByEpochAndRound(epochNumber hexutil.Uint64, round hexutil.Uint64) (ledgerInfoWithSigs *postypes.LedgerInfoWithSignatures, err error)
 	GetLedgerInfoByEpoch(epochNumber ...hexutil.Uint64) (ledgerInfoWithSigs *postypes.LedgerInfoWithSignatures, err error)
 	GetLedgerInfosByEpoch(startEpoch hexutil.Uint64, endEpoch hexutil.Uint64) (ledgerInfoWithSigs []*postypes.LedgerInfoWithSignatures, err error)
 }
