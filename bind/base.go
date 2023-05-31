@@ -116,13 +116,13 @@ func (c *BoundContract) Call(opts *CallOpts, results *[]interface{}, method stri
 		output []byte
 	)
 
-	output, err = c.caller.Call(msg, opts.EpochNumber)
+	output, err = c.caller.Call(msg, types.NewEpochOrBlockHashWithEpoch(opts.EpochNumber))
 	if err != nil {
 		return err
 	}
 	if len(output) == 0 {
 		// Make sure we have a contract to operate on, and bail out otherwise.
-		if code, err = c.caller.GetCode(c.address, opts.EpochNumber); err != nil {
+		if code, err = c.caller.GetCode(c.address, types.NewEpochOrBlockHashWithEpoch(opts.EpochNumber)); err != nil {
 			return err
 		} else if len(code) == 0 {
 			return ErrNoCode
