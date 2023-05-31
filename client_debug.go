@@ -42,7 +42,7 @@ func (c *RpcDebugClient) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (rece
 	return
 }
 
-func (c *RpcDebugClient) GetEpochReceiptProofByTransaction(hash types.Hash) (proof types.EpochReceiptProof, err error) {
+func (c *RpcDebugClient) GetEpochReceiptProofByTransaction(hash types.Hash) (proof *types.EpochReceiptProof, err error) {
 	err = c.core.CallRPC(&proof, "debug_getEpochReceiptProofByTransaction", hash)
 	if ok, code := sdkErrors.DetectErrorCode(err); ok {
 		err = sdkErrors.BusinessError{Code: code, Inner: err}
