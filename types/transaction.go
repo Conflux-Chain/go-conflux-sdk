@@ -98,21 +98,21 @@ func (tx *Transaction) DecodeRLP(r *rlp.Stream) error {
 // TransactionReceipt represents the transaction execution result in Conflux.
 // it is the response from conflux node when sending rpc request, such as cfx_getTransactionReceipt
 type TransactionReceipt struct {
-	TransactionHash    Hash            `json:"transactionHash"`
-	Index              hexutil.Uint64  `json:"index"`
-	BlockHash          Hash            `json:"blockHash"`
-	EpochNumber        *hexutil.Uint64 `json:"epochNumber"`
-	From               Address         `json:"from"`
-	To                 *Address        `json:"to"`
-	GasUsed            *hexutil.Big    `json:"gasUsed"`
-	AccumulatedGasUsed *hexutil.Big    `json:"accumulatedGasUsed,omitempty"`
-	GasFee             *hexutil.Big    `json:"gasFee"`
-	ContractCreated    *Address        `json:"contractCreated"`
-	Logs               []Log           `json:"logs"`
-	LogsBloom          Bloom           `json:"logsBloom"`
-	StateRoot          Hash            `json:"stateRoot"`
-	OutcomeStatus      hexutil.Uint64  `json:"outcomeStatus"`
-	TxExecErrorMsg     *string         `json:"txExecErrorMsg"`
+	TransactionHash    Hash           `json:"transactionHash"`
+	Index              hexutil.Uint64 `json:"index"`
+	BlockHash          Hash           `json:"blockHash"`
+	EpochNumber        uint64         `json:"epochNumber"`
+	From               Address        `json:"from"`
+	To                 *Address       `json:"to"`
+	GasUsed            *hexutil.Big   `json:"gasUsed"`
+	AccumulatedGasUsed *hexutil.Big   `json:"accumulatedGasUsed,omitempty"`
+	GasFee             *hexutil.Big   `json:"gasFee"`
+	ContractCreated    *Address       `json:"contractCreated"`
+	Logs               []Log          `json:"logs"`
+	LogsBloom          Bloom          `json:"logsBloom"`
+	StateRoot          Hash           `json:"stateRoot"`
+	OutcomeStatus      hexutil.Uint64 `json:"outcomeStatus"`
+	TxExecErrorMsg     *string        `json:"txExecErrorMsg"`
 	// Whether gas costs were covered by the sponsor.
 	GasCoveredBySponsor bool `json:"gasCoveredBySponsor"`
 	// Whether storage costs were covered by the sponsor.
@@ -172,7 +172,7 @@ type rlpEncodableTransactionReceipt struct {
 	TransactionHash Hash
 	Index           hexutil.Uint64
 	BlockHash       Hash
-	EpochNumber     *hexutil.Uint64
+	EpochNumber     uint64
 	From            Address
 	To              *Address `rlp:"nil"`
 	GasUsed         *big.Int
