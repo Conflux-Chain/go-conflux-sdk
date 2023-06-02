@@ -790,7 +790,7 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 		}
 
 		// The gas and storage limit may be influnced by all fileds of transaction ,so set them at last step.
-		if tx.StorageLimit == nil || tx.Gas == nil {
+		if tx.Gas == nil {
 			callReq := new(types.CallRequest)
 			callReq.FillByUnsignedTx(tx)
 

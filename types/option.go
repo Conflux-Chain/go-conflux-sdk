@@ -51,7 +51,7 @@ func (request *CallRequest) FillByUnsignedTx(tx *UnsignedTransaction) {
 		request.To = tx.To
 		request.GasPrice = tx.GasPrice
 		request.Value = tx.Value
-		request.StorageLimit = tx.StorageLimit
+		// request.StorageLimit = tx.StorageLimit
 
 		if tx.Gas != nil {
 			request.Gas = tx.Gas

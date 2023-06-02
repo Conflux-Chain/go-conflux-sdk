@@ -113,7 +113,7 @@ func (b *BulkSender) populateGasAndStorage() (*ErrBulkEstimate, error) {
 	estimatPtrs, errPtrs := make([]*types.Estimate, len(b.unsignedTxs)), make([]*error, len(b.unsignedTxs))
 	bulkCaller := NewBulkCaller(b.signableCaller)
 	for i, utx := range b.unsignedTxs {
-		if utx.StorageLimit != nil && utx.Gas != nil {
+		if utx.Gas != nil {
 			continue
 		}
 		callReq := new(types.CallRequest)
@@ -142,7 +142,7 @@ func (b *BulkSender) populateGasAndStorage() (*ErrBulkEstimate, error) {
 			continue
 		}
 
-		if utx.StorageLimit != nil && utx.Gas != nil {
+		if utx.Gas != nil {
 			continue
 		}
 

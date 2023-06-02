@@ -30,10 +30,10 @@ type Transaction struct {
 	Gas              *hexutil.Big    `json:"gas"`
 	ContractCreated  *Address        `json:"contractCreated"`
 	Data             string          `json:"data"`
-	StorageLimit     *hexutil.Big    `json:"storageLimit"`
-	EpochHeight      *hexutil.Big    `json:"epochHeight"`
-	ChainID          *hexutil.Big    `json:"chainId"`
-	Status           *hexutil.Uint64 `json:"status"`
+	// StorageLimit     *hexutil.Big    `json:"storageLimit"`
+	EpochHeight *hexutil.Big    `json:"epochHeight"`
+	ChainID     *hexutil.Big    `json:"chainId"`
+	Status      *hexutil.Uint64 `json:"status"`
 
 	//signature
 	V *hexutil.Big `json:"v"`
@@ -54,10 +54,10 @@ type rlpEncodableTransaction struct {
 	Gas              *big.Int
 	ContractCreated  *Address `rlp:"nil"` // nil means contract creation
 	Data             string
-	StorageLimit     *big.Int
-	EpochHeight      *big.Int
-	ChainID          *big.Int
-	Status           *hexutil.Uint64
+	// StorageLimit     *big.Int
+	EpochHeight *big.Int
+	ChainID     *big.Int
+	Status      *hexutil.Uint64
 
 	//signature
 	V *big.Int
@@ -70,7 +70,7 @@ func (tx Transaction) EncodeRLP(w io.Writer) error {
 	rtx := rlpEncodableTransaction{
 		tx.Hash, tx.Nonce.ToInt(), tx.BlockHash, tx.TransactionIndex, tx.From, tx.To,
 		tx.Value.ToInt(), tx.GasPrice.ToInt(), tx.Gas.ToInt(), tx.ContractCreated, tx.Data,
-		tx.StorageLimit.ToInt(), tx.EpochHeight.ToInt(), tx.ChainID.ToInt(), tx.Status,
+		tx.EpochHeight.ToInt(), tx.ChainID.ToInt(), tx.Status,
 		tx.V.ToInt(), tx.R.ToInt(), tx.S.ToInt(),
 	}
 
@@ -88,7 +88,7 @@ func (tx *Transaction) DecodeRLP(r *rlp.Stream) error {
 	tx.TransactionIndex, tx.From, tx.To = rtx.TransactionIndex, rtx.From, rtx.To
 	tx.Value, tx.GasPrice = (*hexutil.Big)(rtx.Value), (*hexutil.Big)(rtx.GasPrice)
 	tx.Gas, tx.ContractCreated, tx.Data = (*hexutil.Big)(rtx.Gas), rtx.ContractCreated, rtx.Data
-	tx.StorageLimit, tx.EpochHeight = (*hexutil.Big)(rtx.StorageLimit), (*hexutil.Big)(rtx.EpochHeight)
+	tx.EpochHeight = (*hexutil.Big)(rtx.EpochHeight)
 	tx.ChainID, tx.Status, tx.V = (*hexutil.Big)(rtx.ChainID), rtx.Status, (*hexutil.Big)(rtx.V)
 	tx.R, tx.S = (*hexutil.Big)(rtx.R), (*hexutil.Big)(rtx.S)
 
