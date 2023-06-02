@@ -13,7 +13,7 @@ import (
 )
 
 func TestDecodeTransaction(t *testing.T) {
-	rawData := `0xf84dc901010180010101010101a0ca43b3f84e4afefcc6946d2953a0391774bd3c692015f64e51895b4a93fcba31a036953d461a84e15367a463d4f7624970ad4c3833013f23103f2ea90a202e4aea`
+	rawData := `0xf852ce010183021000800183038e9b800101a0ca43b3f84e4afefcc6946d2953a0391774bd3c692015f64e51895b4a93fcba31a036953d461a84e15367a463d4f7624970ad4c3833013f23103f2ea90a202e4aea`
 	tx := SignedTransaction{}
 	b := mustDecodeStringToBytes(t, rawData)
 	err := tx.Decode(b, 1037)
@@ -26,7 +26,7 @@ func TestDecodeTransaction(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expect := `{"UnsignedTransaction":{"From":null,"Nonce":"0x1","GasPrice":"0x1","Gas":"0x1","Value":"0x1","StorageLimit":"0x1","EpochHeight":"0x1","ChainID":"0x1","To":null,"Data":"0x01"},"V":1,"R":"0xca43b3f84e4afefcc6946d2953a0391774bd3c692015f64e51895b4a93fcba31","S":"0x36953d461a84e15367a463d4f7624970ad4c3833013f23103f2ea90a202e4aea"}`
+	expect := `{"UnsignedTransaction":{"From":null,"Nonce":"0x1","GasPrice":"0x1","Gas":"0x21000","Value":"0x1","EpochHeight":"0x38e9b","ChainID":null,"To":null,"Data":"0x01"},"V":1,"R":"0xca43b3f84e4afefcc6946d2953a0391774bd3c692015f64e51895b4a93fcba31","S":"0x36953d461a84e15367a463d4f7624970ad4c3833013f23103f2ea90a202e4aea"}0xc0ebdb1465edbffd0491b5ad9080745b1adbbe0b4d19d74959734e8333b5cce4`
 
 	if string(b) != expect {
 		t.Fatalf("expect: %s, got: %s", expect, string(b))
@@ -34,7 +34,7 @@ func TestDecodeTransaction(t *testing.T) {
 }
 
 func TestEncodeTransaction(t *testing.T) {
-	jsonStr := `{"UnsignedTransaction":{"From":"CFXTEST:TYPE.USER:AAR7X4R8MKRNW39GGS8RZ40J1ZNWH5MRRPUFPR2U76","Nonce":"0x1","GasPrice":"0x1","Gas":"0x1","Value":"0x1","StorageLimit":"0x1","EpochHeight":"0x1","ChainID":"0x1","To":null,"Data":"0x01"},"V":1,"R":"0xca43b3f84e4afefcc6946d2953a0391774bd3c692015f64e51895b4a93fcba31","S":"0x36953d461a84e15367a463d4f7624970ad4c3833013f23103f2ea90a202e4aea"}`
+	jsonStr := `{"UnsignedTransaction":{"From":"CFXTEST:TYPE.USER:AAR7X4R8MKRNW39GGS8RZ40J1ZNWH5MRRPUFPR2U76","Nonce":"0x1","GasPrice":"0x1","Gas":"0x21000","Value":"0x1","StorageLimit":"0x1","EpochHeight":"0x38e9b","ChainID":"0x0","To":null,"Data":"0x01"},"V":1,"R":"0xca43b3f84e4afefcc6946d2953a0391774bd3c692015f64e51895b4a93fcba31","S":"0x36953d461a84e15367a463d4f7624970ad4c3833013f23103f2ea90a202e4aea"}`
 	tx := SignedTransaction{}
 	err := json.Unmarshal([]byte(jsonStr), &tx)
 	if err != nil {
@@ -46,7 +46,7 @@ func TestEncodeTransaction(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expect := `f84dc901010180010101010101a0ca43b3f84e4afefcc6946d2953a0391774bd3c692015f64e51895b4a93fcba31a036953d461a84e15367a463d4f7624970ad4c3833013f23103f2ea90a202e4aea`
+	expect := `f852ce010183021000800183038e9b800101a0ca43b3f84e4afefcc6946d2953a0391774bd3c692015f64e51895b4a93fcba31a036953d461a84e15367a463d4f7624970ad4c3833013f23103f2ea90a202e4aea`
 	if hex.EncodeToString(b) != expect {
 		t.Fatalf("expect %s, but got %s", expect, hex.EncodeToString(b))
 	}
