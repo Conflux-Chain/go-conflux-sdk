@@ -1,0 +1,280 @@
+[
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "root",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "key",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "valueHash",
+          "type": "bytes32"
+        },
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "bytes32",
+                  "name": "nibbles",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "start",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "end",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct ProofLib.NibblePath",
+              "name": "path",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes32[16]",
+              "name": "children",
+              "type": "bytes32[16]"
+            },
+            {
+              "internalType": "bytes",
+              "name": "value",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct ProofLib.ProofNode[]",
+          "name": "nodes",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "prove",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "blockRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "blockIndex",
+          "type": "bytes"
+        },
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "bytes32",
+                  "name": "nibbles",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "start",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "end",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct ProofLib.NibblePath",
+              "name": "path",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes32[16]",
+              "name": "children",
+              "type": "bytes32[16]"
+            },
+            {
+              "internalType": "bytes",
+              "name": "value",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct ProofLib.ProofNode[]",
+          "name": "blockProof",
+          "type": "tuple[]"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "receiptsRoot",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "index",
+          "type": "bytes"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "accumulatedGasUsed",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "gasFee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "gasSponsorPaid",
+              "type": "bool"
+            },
+            {
+              "internalType": "bytes",
+              "name": "logBloom",
+              "type": "bytes"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "addr",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes32[]",
+                  "name": "topics",
+                  "type": "bytes32[]"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "data",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint8",
+                  "name": "space",
+                  "type": "uint8"
+                }
+              ],
+              "internalType": "struct Types.TxLog[]",
+              "name": "logs",
+              "type": "tuple[]"
+            },
+            {
+              "internalType": "uint8",
+              "name": "outcomeStatus",
+              "type": "uint8"
+            },
+            {
+              "internalType": "bool",
+              "name": "storageSponsorPaid",
+              "type": "bool"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "account",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint64",
+                  "name": "collaterals",
+                  "type": "uint64"
+                }
+              ],
+              "internalType": "struct Types.StorageChange[]",
+              "name": "storageCollateralized",
+              "type": "tuple[]"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "account",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint64",
+                  "name": "collaterals",
+                  "type": "uint64"
+                }
+              ],
+              "internalType": "struct Types.StorageChange[]",
+              "name": "storageReleased",
+              "type": "tuple[]"
+            }
+          ],
+          "internalType": "struct Types.TxReceipt",
+          "name": "receipt",
+          "type": "tuple"
+        },
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "bytes32",
+                  "name": "nibbles",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "start",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "end",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct ProofLib.NibblePath",
+              "name": "path",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes32[16]",
+              "name": "children",
+              "type": "bytes32[16]"
+            },
+            {
+              "internalType": "bytes",
+              "name": "value",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct ProofLib.ProofNode[]",
+          "name": "receiptProof",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "proveReceipt",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    }
+  ]
