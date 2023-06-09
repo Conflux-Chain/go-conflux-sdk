@@ -265,6 +265,11 @@ func (r *EvmRelayer) isCommitted(epoch, round uint64) (bool, error) {
 		logrus.Fatal("Latest committed PoS block is nil")
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"epoch": uint64(block.Epoch),
+		"round": uint64(block.Round),
+	}).Debug("Latest committed block found")
+
 	if epoch > uint64(block.Epoch) {
 		return false, nil
 	}
