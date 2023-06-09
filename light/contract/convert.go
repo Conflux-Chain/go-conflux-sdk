@@ -1,7 +1,9 @@
 package contract
 
 import (
+	"bytes"
 	"math/big"
+	"sort"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
@@ -95,6 +97,7 @@ func ConvertLedger(ledger *postypes.LedgerInfoWithSignatures) TypesLedgerInfoWit
 
 	if ledger.LedgerInfo.CommitInfo.NextEpochState != nil {
 		result.NextEpochState.Epoch = uint64(ledger.LedgerInfo.CommitInfo.NextEpochState.Epoch)
+		var validators sortableValidators
 		for k, v := range ledger.LedgerInfo.CommitInfo.NextEpochState.Verifier.AddressToValidatorInfo {
 			validator := TypesValidatorInfo{
 				Account:     k,
@@ -106,8 +109,10 @@ func ConvertLedger(ledger *postypes.LedgerInfoWithSignatures) TypesLedgerInfoWit
 				validator.VrfPublicKey = (*v.VrfPublicKey)[:]
 			}
 
-			result.NextEpochState.Validators = append(result.NextEpochState.Validators, validator)
+			validators = append(validators, validator)
 		}
+		sort.Sort(validators)
+		result.NextEpochState.Validators = validators
 		result.NextEpochState.QuorumVotingPower = uint64(ledger.LedgerInfo.CommitInfo.NextEpochState.Verifier.QuorumVotingPower)
 		result.NextEpochState.TotalVotingPower = uint64(ledger.LedgerInfo.CommitInfo.NextEpochState.Verifier.TotalVotingPower)
 		result.NextEpochState.VrfSeed = ledger.LedgerInfo.CommitInfo.NextEpochState.VrfSeed
@@ -118,12 +123,15 @@ func ConvertLedger(ledger *postypes.LedgerInfoWithSignatures) TypesLedgerInfoWit
 		result.Pivot.BlockHash = ledger.LedgerInfo.CommitInfo.Pivot.BlockHash
 	}
 
+	var signatures sortableAccountSignatures
 	for k, v := range ledger.Signatures {
-		result.Signatures = append(result.Signatures, TypesAccountSignature{
+		signatures = append(signatures, TypesAccountSignature{
 			Account:            k,
 			ConsensusSignature: v[:],
 		})
 	}
+	sort.Sort(signatures)
+	result.Signatures = signatures
 
 	return result
 }
@@ -163,3 +171,19 @@ func ConvertBlockHeader(block *types.BlockSummary) TypesBlockHeader {
 		PosReference:          posRef,
 	}
 }
+
+type sortableAccountSignatures []TypesAccountSignature
+
+func (s sortableAccountSignatures) Len() int { return len(s) }
+func (s sortableAccountSignatures) Less(i, j int) bool {
+	return bytes.Compare(s[i].Account[:], s[j].Account[:]) < 0
+}
+func (s sortableAccountSignatures) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+
+type sortableValidators []TypesValidatorInfo
+
+func (s sortableValidators) Len() int { return len(s) }
+func (s sortableValidators) Less(i, j int) bool {
+	return bytes.Compare(s[i].Account[:], s[j].Account[:]) < 0
+}
+func (s sortableValidators) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
