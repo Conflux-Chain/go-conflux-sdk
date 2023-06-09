@@ -8,6 +8,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/light/contract"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/enums"
+	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -61,11 +62,17 @@ func NewEvmRelayer(coreClient *sdk.Client, evmClient *web3go.Client, config EvmR
 }
 
 func (r *EvmRelayer) Relay() {
+	var initialized bool
+
 	for {
-		relayed, err := r.relay()
+		relayed, err := r.relay(initialized)
 		if err != nil {
 			logrus.WithError(err).Warn("Failed to relay")
 		} else if relayed {
+			if !initialized {
+				initialized = true
+			}
+
 			continue
 		}
 
@@ -73,18 +80,18 @@ func (r *EvmRelayer) Relay() {
 	}
 }
 
-func (r *EvmRelayer) relay() (relayed bool, err error) {
+func (r *EvmRelayer) relay(initialized bool) (relayed bool, err error) {
 	state, err := r.lightNode.ClientState(nil)
 	if err != nil {
 		return false, errors.WithMessage(err, "Failed to get light node state")
 	}
 
 	// initialize light node
-	if relayed, err = r.initLightNode(&state); err != nil {
-		return false, errors.WithMessage(err, "Failed to initialize light node")
-	}
+	if !initialized {
+		if err = r.initLightNode(&state); err != nil {
+			return false, errors.WithMessage(err, "Failed to initialize light node")
+		}
 
-	if relayed {
 		return true, nil
 	}
 
@@ -114,20 +121,22 @@ func (r *EvmRelayer) relay() (relayed bool, err error) {
 	return relayed, nil
 }
 
-func (r *EvmRelayer) initLightNode(state *contract.ILightNodeClientState) (bool, error) {
+func (r *EvmRelayer) initLightNode(state *contract.ILightNodeClientState) error {
 	if state.Epoch.Uint64() > 0 {
 		logrus.Debug("Light node already initialized")
-		return false, nil
+		return nil
 	}
 
 	if r.EpochFrom == 0 {
 		logrus.Fatal("epoch not configured to initialize light node")
 	}
 
+	logrus.WithField("epoch", r.EpochFrom).Debug("Begin to initialize light node")
+
 	// get committee from previous epoch
 	lastEpochLedger, err := r.coreClient.Pos().GetLedgerInfoByEpoch(hexutil.Uint64(r.EpochFrom - 1))
 	if err != nil {
-		return false, errors.WithMessage(err, "Failed to get ledger of previous epoch")
+		return errors.WithMessage(err, "Failed to get ledger of previous epoch")
 	}
 
 	if lastEpochLedger == nil {
@@ -141,7 +150,7 @@ func (r *EvmRelayer) initLightNode(state *contract.ILightNodeClientState) (bool,
 	// get ledger of first round
 	ledger, err := r.coreClient.Pos().GetLedgerInfoByEpochAndRound(hexutil.Uint64(r.EpochFrom), 1)
 	if err != nil {
-		return false, errors.WithMessage(err, "Failed to get ledger")
+		return errors.WithMessage(err, "Failed to get ledger")
 	}
 
 	if ledger == nil {
@@ -155,23 +164,27 @@ func (r *EvmRelayer) initLightNode(state *contract.ILightNodeClientState) (bool,
 	// get pivot block
 	block, err := r.coreClient.GetBlockSummaryByHash(types.Hash(ledger.LedgerInfo.CommitInfo.Pivot.BlockHash.Hex()))
 	if err != nil {
-		return false, errors.WithMessage(err, "Failed to get block by hash")
+		return errors.WithMessage(err, "Failed to get block by hash")
 	}
 
 	ledger.LedgerInfo.CommitInfo.NextEpochState = lastEpochLedger.LedgerInfo.CommitInfo.NextEpochState
 
 	tx, err := r.lightNode.Initialize(r.txOpts, r.Admin, r.Verifier, contract.ConvertLedger(ledger), contract.ConvertBlockHeader(block))
 	if err != nil {
-		return false, errors.WithMessage(err, "Failed to send transaction")
+		return errors.WithMessage(err, "Failed to send transaction")
 	}
 
 	if err = r.waitForSuccess(tx.Hash()); err != nil {
-		return false, err
+		return err
 	}
 
-	logrus.Info("Light node initialized")
+	logrus.WithFields(logrus.Fields{
+		"epoch": r.EpochFrom,
+		"round": 1,
+		"pivot": uint64(ledger.LedgerInfo.CommitInfo.Pivot.Height),
+	}).Info("Light node initialized")
 
-	return true, nil
+	return nil
 }
 
 func (r *EvmRelayer) relayPosBlock(state *contract.ILightNodeClientState) (bool, error) {
@@ -181,20 +194,34 @@ func (r *EvmRelayer) relayPosBlock(state *contract.ILightNodeClientState) (bool,
 		round = r.skippedRound + 1
 	}
 
+	committed, err := r.isCommitted(epoch, round)
+	if err != nil {
+		return false, errors.WithMessage(err, "Failed to check commitment status")
+	}
+
+	if !committed {
+		logrus.WithField("epoch", epoch).WithField("round", round).Debug("No pos block to relay")
+		return false, nil
+	}
+
+	logrus.WithField("epoch", epoch).WithField("round", round).Debug("Begin to relay pos block")
+
 	ledger, err := r.coreClient.Pos().GetLedgerInfoByEpochAndRound(hexutil.Uint64(epoch), hexutil.Uint64(round))
 	if err != nil {
 		return false, errors.WithMessage(err, "Failed to get ledger by epoch and round")
 	}
 
-	// no new pos block
+	// no ledger in round, just skip it
 	if ledger == nil {
-		logrus.WithField("epoch", epoch).WithField("round", round).Debug("No pos block to relay")
-		return false, nil
+		logrus.WithField("epoch", epoch).WithField("round", round).Debug("No ledger info in this round")
+		r.skippedRound = round
+		return true, nil
 	}
+
+	pivot := ledger.LedgerInfo.CommitInfo.Pivot
 
 	// both committee and pow pivot block unchanged
 	if ledger.LedgerInfo.CommitInfo.NextEpochState == nil {
-		pivot := ledger.LedgerInfo.CommitInfo.Pivot
 		if pivot == nil || uint64(pivot.Height) <= state.FinalizedBlockNumber.Uint64() {
 			logrus.WithField("epoch", epoch).WithField("round", round).Debug("Pos block pivot not changed")
 			r.skippedRound = round
@@ -215,9 +242,43 @@ func (r *EvmRelayer) relayPosBlock(state *contract.ILightNodeClientState) (bool,
 	logrus.WithFields(logrus.Fields{
 		"epoch": epoch,
 		"round": round,
-	}).Info("Succeeded to relay PoS block")
+		"pivot": uint64(pivot.Height),
+	}).Info("Succeeded to relay pos block")
+
+	r.skippedRound = 0
 
 	return true, nil
+}
+
+func (r *EvmRelayer) isCommitted(epoch, round uint64) (bool, error) {
+	status, err := r.coreClient.Pos().GetStatus()
+	if err != nil {
+		return false, errors.WithMessage(err, "Failed to get pos status")
+	}
+
+	block, err := r.coreClient.Pos().GetBlockByNumber(postypes.NewBlockNumber(uint64(status.LatestCommitted)))
+	if err != nil {
+		return false, errors.WithMessage(err, "Failed to get the latest committed block")
+	}
+
+	if block == nil {
+		logrus.Fatal("Latest committed PoS block is nil")
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"epoch": uint64(block.Epoch),
+		"round": uint64(block.Round),
+	}).Debug("Latest committed block found")
+
+	if epoch > uint64(block.Epoch) {
+		return false, nil
+	}
+
+	if epoch < uint64(block.Epoch) {
+		return true, nil
+	}
+
+	return round <= uint64(block.Round), nil
 }
 
 func (r *EvmRelayer) relayPowBlocks(state *contract.ILightNodeClientState) (bool, error) {
