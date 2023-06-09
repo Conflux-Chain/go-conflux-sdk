@@ -230,8 +230,17 @@ type AccountPendingTransactions struct {
 	PendingCount  hexutil.Uint64     `json:"pendingCount"`
 }
 
+type PendingReason string
+
+const (
+	PENDING_REASON_FUTURE_NONCE     PendingReason = "futureNonce"
+	PENDING_REASON_NOT_ENOUGH_CASH  PendingReason = "notEnoughCash"
+	PENDING_REASON_OLD_EPOCH_HEIGHT PendingReason = "oldEpochHeight"
+	PENDING_REASON_OUTDATED_STATUS  PendingReason = "outdatedStatus"
+)
+
 type pending struct {
-	PendingReason string `json:"pending"`
+	PendingReason PendingReason `json:"pending"`
 }
 
 type TransactionStatus struct {
@@ -244,7 +253,7 @@ func (ts TransactionStatus) String() string {
 		return ts.packedOrReady
 	}
 	if (ts.pending != pending{}) {
-		return ts.pending.PendingReason
+		return string(ts.pending.PendingReason)
 	}
 	return ""
 }
@@ -279,6 +288,6 @@ func (ts *TransactionStatus) UnmarshalJSON(data []byte) error {
 	return errors.Errorf("failed to json unmarshal %v to TransactionStatus", string(data))
 }
 
-func (ts *TransactionStatus) IsPending() (bool, string) {
+func (ts *TransactionStatus) IsPending() (bool, PendingReason) {
 	return ts.pending != pending{}, ts.pending.PendingReason
 }
