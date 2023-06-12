@@ -49,7 +49,7 @@ for len(proof.Headers) > 30 {
     if err = relayer.RelayPoWBlocks(headers); err != nil {
         // Handle error
     }
-    proof.Headers = proof.Headers[:index]
+    proof.Headers = proof.Headers[:index+1]
 }
 abiEncodedProof := proof.ABIEncode()
 ```
