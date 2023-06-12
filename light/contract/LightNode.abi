@@ -3,77 +3,6 @@
       "anonymous": false,
       "inputs": [
         {
-          "indexed": false,
-          "internalType": "address",
-          "name": "previousAdmin",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "newAdmin",
-          "type": "address"
-        }
-      ],
-      "name": "AdminChanged",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "beacon",
-          "type": "address"
-        }
-      ],
-      "name": "BeaconUpgraded",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "uint8",
-          "name": "version",
-          "type": "uint8"
-        }
-      ],
-      "name": "Initialized",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        }
-      ],
-      "name": "Paused",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        }
-      ],
-      "name": "Unpaused",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
           "indexed": true,
           "internalType": "address",
           "name": "account",
@@ -115,49 +44,16 @@
           "internalType": "uint256",
           "name": "round",
           "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "height",
+          "type": "uint256"
         }
       ],
       "name": "UpdateLightClient",
       "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "implementation",
-          "type": "address"
-        }
-      ],
-      "name": "Upgraded",
-      "type": "event"
-    },
-    {
-      "inputs": [],
-      "name": "DEFER_EXECUTION_BLOCKS",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_admin",
-          "type": "address"
-        }
-      ],
-      "name": "changeAdmin",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
     },
     {
       "inputs": [],
@@ -187,21 +83,6 @@
             },
             {
               "internalType": "uint256",
-              "name": "relayBlockStartNumber",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "relayBlockEndNumber",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "relayBlockEndHash",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "uint256",
               "name": "blocks",
               "type": "uint256"
             },
@@ -214,51 +95,6 @@
           "internalType": "struct ILightNode.ClientState",
           "name": "",
           "type": "tuple"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "deferredReceiptsRoots",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getAdmin",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getImplementation",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
         }
       ],
       "stateMutability": "view",
@@ -405,93 +241,6 @@
           "internalType": "struct Types.LedgerInfoWithSignatures",
           "name": "ledgerInfo",
           "type": "tuple"
-        },
-        {
-          "components": [
-            {
-              "internalType": "bytes32",
-              "name": "parentHash",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "uint256",
-              "name": "height",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "timestamp",
-              "type": "uint256"
-            },
-            {
-              "internalType": "address",
-              "name": "author",
-              "type": "address"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "transactionsRoot",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "deferredStateRoot",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "deferredReceiptsRoot",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "deferredLogsBloomHash",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "uint256",
-              "name": "blame",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "difficulty",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bool",
-              "name": "adaptive",
-              "type": "bool"
-            },
-            {
-              "internalType": "uint256",
-              "name": "gasLimit",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bytes32[]",
-              "name": "refereeHashes",
-              "type": "bytes32[]"
-            },
-            {
-              "internalType": "bytes[]",
-              "name": "custom",
-              "type": "bytes[]"
-            },
-            {
-              "internalType": "uint256",
-              "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "posReference",
-              "type": "bytes32"
-            }
-          ],
-          "internalType": "struct Types.BlockHeader",
-          "name": "header",
-          "type": "tuple"
         }
       ],
       "name": "initialize",
@@ -500,39 +249,19 @@
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "mptVerify",
-      "outputs": [
+      "inputs": [
         {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
+          "internalType": "uint256",
+          "name": "height",
+          "type": "uint256"
         }
       ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "paused",
+      "name": "nearestPivot",
       "outputs": [
         {
-          "internalType": "bool",
+          "internalType": "uint256",
           "name": "",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "proxiableUUID",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -548,38 +277,6 @@
       ],
       "name": "removeBlockHeader",
       "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "val",
-          "type": "uint256"
-        }
-      ],
-      "name": "setMaxBlocks",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bool",
-          "name": "flag",
-          "type": "bool"
-        }
-      ],
-      "name": "togglePause",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
       "stateMutability": "nonpayable",
       "type": "function"
     },
@@ -817,37 +514,6 @@
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "newImplementation",
-          "type": "address"
-        }
-      ],
-      "name": "upgradeTo",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "newImplementation",
-          "type": "address"
-        },
-        {
-          "internalType": "bytes",
-          "name": "data",
-          "type": "bytes"
-        }
-      ],
-      "name": "upgradeToAndCall",
-      "outputs": [],
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
       "inputs": [],
       "name": "verifiableHeaderRange",
       "outputs": [
@@ -899,9 +565,91 @@
         {
           "components": [
             {
-              "internalType": "uint256",
-              "name": "epochNumber",
-              "type": "uint256"
+              "components": [
+                {
+                  "internalType": "bytes32",
+                  "name": "parentHash",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "height",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "timestamp",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "author",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "transactionsRoot",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "deferredStateRoot",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "deferredReceiptsRoot",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "deferredLogsBloomHash",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "blame",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "difficulty",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "adaptive",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "gasLimit",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes32[]",
+                  "name": "refereeHashes",
+                  "type": "bytes32[]"
+                },
+                {
+                  "internalType": "bytes[]",
+                  "name": "custom",
+                  "type": "bytes[]"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "nonce",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bytes32",
+                  "name": "posReference",
+                  "type": "bytes32"
+                }
+              ],
+              "internalType": "struct Types.BlockHeader[]",
+              "name": "headers",
+              "type": "tuple[]"
             },
             {
               "internalType": "bytes",

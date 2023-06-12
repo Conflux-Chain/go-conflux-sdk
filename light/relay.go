@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/light/contract"
-	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/enums"
 	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -22,12 +21,10 @@ var RelayInterval = 3 * time.Second
 type EvmRelayConfig struct {
 	LightNode common.Address // light node contract
 	Verifier  common.Address // MPT verification contract
-	Admin     common.Address // management admin address
+	Admin     common.Address // management admin address or relayer
 
-	EpochFrom   uint64 // epoch for initialization
-	RelayBlocks uint64 // number of pow blocks to relay at a time
-
-	GcLimits int64 // maximum number of blocks to remove at a time
+	EpochFrom uint64 // epoch for initialization
+	GcLimits  int64  // maximum number of blocks to remove at a time
 
 	GasLimit uint64 // Fixed gas limit to send transaction if specified
 }
@@ -41,11 +38,11 @@ type EvmRelayer struct {
 	skippedRound uint64
 }
 
-func NewEvmRelayer(coreClient *sdk.Client, evmClient *web3go.Client, config EvmRelayConfig) (*EvmRelayer, error) {
+func NewEvmRelayer(coreClient *sdk.Client, evmClient *web3go.Client, config EvmRelayConfig) *EvmRelayer {
 	backend, signer := evmClient.ToClientForContract()
 	lightNode, err := contract.NewLightNode(config.LightNode, backend)
 	if err != nil {
-		return nil, errors.WithMessage(err, "Failed to create light node stub")
+		panic(err.Error())
 	}
 
 	return &EvmRelayer{
@@ -58,7 +55,7 @@ func NewEvmRelayer(coreClient *sdk.Client, evmClient *web3go.Client, config EvmR
 			Signer:   signer,
 			GasLimit: config.GasLimit,
 		},
-	}, nil
+	}
 }
 
 func (r *EvmRelayer) Relay() {
@@ -92,15 +89,6 @@ func (r *EvmRelayer) relay(initialized bool) (relayed bool, err error) {
 			return false, errors.WithMessage(err, "Failed to initialize light node")
 		}
 
-		return true, nil
-	}
-
-	// relay pow blocks
-	if relayed, err = r.relayPowBlocks(&state); err != nil {
-		return false, errors.WithMessage(err, "Failed to relay pow blocks")
-	}
-
-	if relayed {
 		return true, nil
 	}
 
@@ -161,15 +149,9 @@ func (r *EvmRelayer) initLightNode(state *contract.ILightNodeClientState) error 
 		logrus.Fatal("Pivot in ledger is nil")
 	}
 
-	// get pivot block
-	block, err := r.coreClient.GetBlockSummaryByHash(types.Hash(ledger.LedgerInfo.CommitInfo.Pivot.BlockHash.Hex()))
-	if err != nil {
-		return errors.WithMessage(err, "Failed to get block by hash")
-	}
-
 	ledger.LedgerInfo.CommitInfo.NextEpochState = lastEpochLedger.LedgerInfo.CommitInfo.NextEpochState
 
-	tx, err := r.lightNode.Initialize(r.txOpts, r.Admin, r.Verifier, contract.ConvertLedger(ledger), contract.ConvertBlockHeader(block))
+	tx, err := r.lightNode.Initialize(r.txOpts, r.Admin, r.Verifier, contract.ConvertLedger(ledger))
 	if err != nil {
 		return errors.WithMessage(err, "Failed to send transaction")
 	}
@@ -281,44 +263,30 @@ func (r *EvmRelayer) isCommitted(epoch, round uint64) (bool, error) {
 	return round <= uint64(block.Round), nil
 }
 
-func (r *EvmRelayer) relayPowBlocks(state *contract.ILightNodeClientState) (bool, error) {
-	if state.RelayBlockEndNumber.Uint64() == 0 {
-		logrus.Debug("No pow block to relay")
-		return false, nil
+func (r *EvmRelayer) RelayPoWBlocks(headers []contract.TypesBlockHeader) error {
+	if len(headers) == 0 {
+		return nil
 	}
 
-	start := state.RelayBlockStartNumber.Uint64()
-	end := state.RelayBlockEndNumber.Uint64()
-
-	if end-start+1 > r.RelayBlocks {
-		start = end + 1 - r.RelayBlocks
+	state, err := r.lightNode.ClientState(nil)
+	if err != nil {
+		return errors.WithMessage(err, "Failed to get light node state")
 	}
 
-	var headers []contract.TypesBlockHeader
-	for i := start; i <= end; i++ {
-		block, err := r.coreClient.GetBlockSummaryByEpoch(types.NewEpochNumberUint64(i))
-		if err != nil {
-			return false, errors.WithMessage(err, "Failed to get block header")
-		}
+	if headers[0].Height.Uint64() < state.EarliestBlockNumber.Uint64() {
+		return errors.Errorf("Block height earlier than %v", state.EarliestBlockNumber.Uint64())
+	}
 
-		headers = append(headers, contract.ConvertBlockHeader(block))
+	if headers[len(headers)-1].Height.Uint64() > state.FinalizedBlockNumber.Uint64() {
+		return errors.Errorf("Block height later than %v", state.FinalizedBlockNumber.Uint64())
 	}
 
 	tx, err := r.lightNode.UpdateBlockHeader(r.txOpts, headers)
 	if err != nil {
-		return false, errors.WithMessage(err, "Failed to send transaction")
+		return errors.WithMessage(err, "Failed to send transaction")
 	}
 
-	if err = r.waitForSuccess(tx.Hash()); err != nil {
-		return false, err
-	}
-
-	logrus.WithFields(logrus.Fields{
-		"start": start,
-		"end":   end,
-	}).Debug("Succeeded to relay PoW blocks")
-
-	return true, nil
+	return r.waitForSuccess(tx.Hash())
 }
 
 func (r *EvmRelayer) removePowBlocks(state *contract.ILightNodeClientState) (bool, error) {
