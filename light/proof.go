@@ -13,43 +13,37 @@ import (
 	"github.com/pkg/errors"
 )
 
+const deferredExecutionEpochs uint64 = 5
+
 var ErrTransactionExecutionFailed = errors.New("transaction execution failed")
 
-// GetReceiptProofCore returns the receipt proof for specified `txHash` on core space.
-//
-// If receipt not found, it will return nil and requires client to retry later.
-//
-// If transaction execution failed, it will return `ErrTransactionExecutionFailed`.
-func GetReceiptProofCore(client *sdk.Client, txHash types.Hash) (*contract.TypesReceiptProof, error) {
-	receipt, err := client.GetTransactionReceipt(txHash)
-	if err != nil {
-		return nil, errors.WithMessage(err, "Failed to get transaction receipt")
-	}
-
-	if receipt == nil {
-		return nil, nil
-	}
-
-	// only return proof for success transaction
-	if uint8(receipt.OutcomeStatus) != uint8(enums.NATIVE_SPACE_SUCCESS) {
-		return nil, ErrTransactionExecutionFailed
-	}
-
-	// rare case that requires to retry
-	if receipt.EpochNumber == nil {
-		return nil, nil
-	}
-
-	return GetReceiptProof(client, uint64(*receipt.EpochNumber), txHash.String())
+type ProofGenerator struct {
+	coreClient *sdk.Client
+	evmClient  *web3go.Client
+	lightNode  *contract.LightNodeCaller
 }
 
-// GetReceiptProofEvm returns the receipt proof for specified `txHash` on eSpace.
+func NewProofGenerator(coreClient *sdk.Client, evmClient *web3go.Client, lightNodeContract common.Address) *ProofGenerator {
+	caller, _ := evmClient.ToClientForContract()
+	lightNode, err := contract.NewLightNodeCaller(lightNodeContract, caller)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return &ProofGenerator{
+		coreClient: coreClient,
+		evmClient:  evmClient,
+		lightNode:  lightNode,
+	}
+}
+
+// CreateReceiptProofEvm returns the receipt proof for specified `txHash` on eSpace.
 //
 // If receipt not found, it will return nil and requires client to retry later.
 //
 // If transaction execution failed, it will return `ErrTransactionExecutionFailed`.
-func GetReceiptProofEvm(coreClient *sdk.Client, evmClient *web3go.Client, txHash common.Hash) (*contract.TypesReceiptProof, error) {
-	receipt, err := evmClient.Eth.TransactionReceipt(txHash)
+func (g *ProofGenerator) CreateReceiptProofEvm(txHash common.Hash) (*contract.TypesReceiptProof, error) {
+	receipt, err := g.evmClient.Eth.TransactionReceipt(txHash)
 	if err != nil {
 		return nil, errors.WithMessage(err, "Failed to get transaction receipt")
 	}
@@ -67,24 +61,19 @@ func GetReceiptProofEvm(coreClient *sdk.Client, evmClient *web3go.Client, txHash
 		return nil, ErrTransactionExecutionFailed
 	}
 
-	return GetReceiptProof(coreClient, receipt.BlockNumber, txHash.Hex())
+	return g.getReceiptProof(receipt.BlockNumber, txHash.Hex())
 }
 
-// GetReceiptProof returns the receipt proof for specified `epochNumber` and `txHash` on either core space or eSpace.
-//
-// If receipt not found, it will return nil and requires client to retry later.
-//
-// If transaction execution failed, it will return `ErrTransactionExecutionFailed`.
-func GetReceiptProof(client *sdk.Client, epochNumber uint64, txHash string) (*contract.TypesReceiptProof, error) {
+func (g *ProofGenerator) getReceiptProof(epochNumber uint64, txHash string) (*contract.TypesReceiptProof, error) {
 	epoch := types.NewEpochNumberUint64(epochNumber)
 	epochOrHash := types.NewEpochOrBlockHashWithEpoch(epoch)
 
-	epochReceipts, err := client.Debug().GetEpochReceipts(*epochOrHash, true)
+	epochReceipts, err := g.coreClient.Debug().GetEpochReceipts(*epochOrHash, true)
 	if err != nil {
 		return nil, errors.WithMessagef(err, "Failed to get receipts by epoch number %v", epochNumber)
 	}
 
-	blockIndex, receipt := matchReceipt(epochReceipts, txHash)
+	blockIndex, receipt := g.matchReceipt(epochReceipts, txHash)
 	if receipt == nil {
 		return nil, nil
 	}
@@ -108,8 +97,13 @@ func GetReceiptProof(client *sdk.Client, epochNumber uint64, txHash string) (*co
 		return nil, errors.New("Failed to generate receipt proof")
 	}
 
+	headers, err := g.getHeaderChain(epochNumber + deferredExecutionEpochs)
+	if err != nil {
+		return nil, errors.WithMessage(err, "Failed to get header chain")
+	}
+
 	return &contract.TypesReceiptProof{
-		EpochNumber:  new(big.Int).SetUint64(epochNumber),
+		Headers:      headers,
 		BlockIndex:   blockIndexKey,
 		BlockProof:   mpt.ConvertProofNode(blockProof),
 		ReceiptsRoot: receiptsRoot,
@@ -119,7 +113,7 @@ func GetReceiptProof(client *sdk.Client, epochNumber uint64, txHash string) (*co
 	}, nil
 }
 
-func matchReceipt(epochReceipts [][]types.TransactionReceipt, txHash string) (blockIndex int, receipt *types.TransactionReceipt) {
+func (ProofGenerator) matchReceipt(epochReceipts [][]types.TransactionReceipt, txHash string) (blockIndex int, receipt *types.TransactionReceipt) {
 	for i, blockReceipts := range epochReceipts {
 		for _, v := range blockReceipts {
 			if v.MustGetOutcomeType() == enums.TRANSACTION_OUTCOME_SKIPPED {
@@ -135,4 +129,26 @@ func matchReceipt(epochReceipts [][]types.TransactionReceipt, txHash string) (bl
 	}
 
 	return 0, nil
+}
+
+func (g *ProofGenerator) getHeaderChain(epochNumber uint64) ([]contract.TypesBlockHeader, error) {
+	var chain []contract.TypesBlockHeader
+
+	pivot, err := g.lightNode.NearestPivot(nil, new(big.Int).SetUint64(epochNumber))
+	if err != nil {
+		return nil, errors.WithMessage(err, "Failed to get nearest pivot on chain")
+	}
+
+	// pivot should be >= epoch number
+
+	for i := epochNumber; i <= pivot.Uint64(); i++ {
+		block, err := g.coreClient.GetBlockSummaryByEpoch(types.NewEpochNumberUint64(i))
+		if err != nil {
+			return nil, errors.WithMessage(err, "Failed to get block summary by epoch")
+		}
+
+		chain = append(chain, contract.ConvertBlockHeader(block))
+	}
+
+	return chain, nil
 }

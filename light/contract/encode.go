@@ -36,5 +36,5 @@ func (proof TypesReceiptProof) ABIEncode() []byte {
 		panic(fmt.Sprintf("Failed to pack receipt proof, err = %v", err.Error()))
 	}
 
-	return encoded
+	return encoded[4:]
 }
