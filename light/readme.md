@@ -43,10 +43,10 @@ If there're too many PoW blocks in proof, e.g. 30, client could relay partial Po
 ```go
 proof, err := generator.CreateReceiptProofEvm(txHash)
 // Handle error
-for len(proof.Headers) > 30 {
-    index := len(proof.Headers) - 30
-    headers := proof.Headers[index:]
-    if err = relayer.RelayPoWBlocks(headers); err != nil {
+maxBlocks := 30
+for len(proof.Headers) > maxBlocks {
+    index := len(proof.Headers) - maxBlocks - 1
+    if err = relayer.RelayPoWBlocks(proof.Headers[index:]); err != nil {
         // Handle error
     }
     proof.Headers = proof.Headers[:index+1]
