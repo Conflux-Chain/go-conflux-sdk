@@ -19,12 +19,11 @@ var ErrTransactionExecutionFailed = errors.New("transaction execution failed")
 
 type ProofGenerator struct {
 	coreClient *sdk.Client
-	evmClient  *web3go.Client
 	lightNode  *contract.LightNodeCaller
 }
 
-func NewProofGenerator(coreClient *sdk.Client, evmClient *web3go.Client, lightNodeContract common.Address) *ProofGenerator {
-	caller, _ := evmClient.ToClientForContract()
+func NewProofGenerator(coreClient *sdk.Client, relayerClient *web3go.Client, lightNodeContract common.Address) *ProofGenerator {
+	caller, _ := relayerClient.ToClientForContract()
 	lightNode, err := contract.NewLightNodeCaller(lightNodeContract, caller)
 	if err != nil {
 		panic(err.Error())
@@ -32,7 +31,6 @@ func NewProofGenerator(coreClient *sdk.Client, evmClient *web3go.Client, lightNo
 
 	return &ProofGenerator{
 		coreClient: coreClient,
-		evmClient:  evmClient,
 		lightNode:  lightNode,
 	}
 }
@@ -42,8 +40,8 @@ func NewProofGenerator(coreClient *sdk.Client, evmClient *web3go.Client, lightNo
 // If receipt not found, it will return nil and requires client to retry later.
 //
 // If transaction execution failed, it will return `ErrTransactionExecutionFailed`.
-func (g *ProofGenerator) CreateReceiptProofEvm(txHash common.Hash) (*contract.TypesReceiptProof, error) {
-	receipt, err := g.evmClient.Eth.TransactionReceipt(txHash)
+func (g *ProofGenerator) CreateReceiptProofEvm(evmClient *web3go.Client, txHash common.Hash) (*contract.TypesReceiptProof, error) {
+	receipt, err := evmClient.Eth.TransactionReceipt(txHash)
 	if err != nil {
 		return nil, errors.WithMessage(err, "Failed to get transaction receipt")
 	}

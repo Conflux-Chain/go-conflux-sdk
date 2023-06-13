@@ -31,15 +31,15 @@ type EvmRelayConfig struct {
 
 type EvmRelayer struct {
 	EvmRelayConfig
-	coreClient   *sdk.Client
-	evmClient    *web3go.Client
-	lightNode    *contract.LightNode
-	txOpts       *bind.TransactOpts
-	skippedRound uint64
+	coreClient    *sdk.Client
+	relayerClient *web3go.Client
+	lightNode     *contract.LightNode
+	txOpts        *bind.TransactOpts
+	skippedRound  uint64
 }
 
-func NewEvmRelayer(coreClient *sdk.Client, evmClient *web3go.Client, config EvmRelayConfig) *EvmRelayer {
-	backend, signer := evmClient.ToClientForContract()
+func NewEvmRelayer(coreClient *sdk.Client, relayerClient *web3go.Client, config EvmRelayConfig) *EvmRelayer {
+	backend, signer := relayerClient.ToClientForContract()
 	lightNode, err := contract.NewLightNode(config.LightNode, backend)
 	if err != nil {
 		panic(err.Error())
@@ -48,7 +48,7 @@ func NewEvmRelayer(coreClient *sdk.Client, evmClient *web3go.Client, config EvmR
 	return &EvmRelayer{
 		EvmRelayConfig: config,
 		coreClient:     coreClient,
-		evmClient:      evmClient,
+		relayerClient:  relayerClient,
 		lightNode:      lightNode,
 		txOpts: &bind.TransactOpts{
 			From:     config.Admin,
@@ -317,7 +317,7 @@ func (r *EvmRelayer) waitForSuccess(txHash common.Hash) error {
 	for {
 		time.Sleep(time.Second)
 
-		receipt, err := r.evmClient.Eth.TransactionReceipt(txHash)
+		receipt, err := r.relayerClient.Eth.TransactionReceipt(txHash)
 		if err != nil {
 			logrus.WithError(err).Warn("Failed to wait for receipt")
 		} else if receipt != nil {
