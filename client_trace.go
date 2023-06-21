@@ -29,7 +29,7 @@ func (c *RpcTraceClient) GetTransactionTraces(txHash types.Hash) (traces []types
 	return
 }
 
-func (c *RpcTraceClient) GetEpochTraces(epoch types.Epoch) (traces []types.LocalizedTrace, err error) {
+func (c *RpcTraceClient) GetEpochTraces(epoch types.Epoch) (traces types.EpochTrace, err error) {
 	err = c.core.wrappedCallRPC(&traces, "trace_epoch", epoch)
 	return
 }
