@@ -146,7 +146,7 @@ type RpcTrace interface {
 	GetBlockTraces(blockHash types.Hash) (*types.LocalizedBlockTrace, error)
 	FilterTraces(traceFilter types.TraceFilter) (traces []types.LocalizedTrace, err error)
 	GetTransactionTraces(txHash types.Hash) (traces []types.LocalizedTrace, err error)
-	GetEpochTraces(epoch types.Epoch) (traces []types.LocalizedTrace, err error)
+	GetEpochTraces(epoch types.Epoch) (traces types.EpochTrace, err error)
 }
 
 type RpcPos interface {
