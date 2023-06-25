@@ -8,6 +8,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
@@ -88,11 +89,11 @@ func ConvertLedger(ledger *postypes.LedgerInfoWithSignatures) TypesLedgerInfoWit
 	result := TypesLedgerInfoWithSignatures{
 		Epoch:             uint64(ledger.LedgerInfo.CommitInfo.Epoch),
 		Round:             uint64(ledger.LedgerInfo.CommitInfo.Round),
-		Id:                ledger.LedgerInfo.CommitInfo.Id,
-		ExecutedStateId:   ledger.LedgerInfo.CommitInfo.ExecutedStateId,
+		Id:                common.BytesToHash(ledger.LedgerInfo.CommitInfo.Id),
+		ExecutedStateId:   common.BytesToHash(ledger.LedgerInfo.CommitInfo.ExecutedStateId),
 		Version:           uint64(ledger.LedgerInfo.CommitInfo.Version),
 		TimestampUsecs:    uint64(ledger.LedgerInfo.CommitInfo.TimestampUsecs),
-		ConsensusDataHash: ledger.LedgerInfo.ConsensusDataHash,
+		ConsensusDataHash: common.BytesToHash(ledger.LedgerInfo.ConsensusDataHash),
 	}
 
 	if ledger.LedgerInfo.CommitInfo.NextEpochState != nil {
@@ -101,12 +102,12 @@ func ConvertLedger(ledger *postypes.LedgerInfoWithSignatures) TypesLedgerInfoWit
 		for k, v := range ledger.LedgerInfo.CommitInfo.NextEpochState.Verifier.AddressToValidatorInfo {
 			validator := TypesValidatorInfo{
 				Account:     k,
-				PublicKey:   v.PublicKey[:],
+				PublicKey:   v.PublicKey,
 				VotingPower: uint64(v.VotingPower),
 			}
 
 			if v.VrfPublicKey != nil {
-				validator.VrfPublicKey = (*v.VrfPublicKey)[:]
+				validator.VrfPublicKey = *v.VrfPublicKey
 			}
 
 			validators = append(validators, validator)
@@ -120,14 +121,14 @@ func ConvertLedger(ledger *postypes.LedgerInfoWithSignatures) TypesLedgerInfoWit
 
 	if ledger.LedgerInfo.CommitInfo.Pivot != nil {
 		result.Pivot.Height = uint64(ledger.LedgerInfo.CommitInfo.Pivot.Height)
-		result.Pivot.BlockHash = ledger.LedgerInfo.CommitInfo.Pivot.BlockHash
+		result.Pivot.BlockHash = ledger.LedgerInfo.CommitInfo.Pivot.BlockHash.ToHash()
 	}
 
 	var signatures sortableAccountSignatures
 	for k, v := range ledger.Signatures {
 		signatures = append(signatures, TypesAccountSignature{
 			Account:            k,
-			ConsensusSignature: v[:],
+			ConsensusSignature: v,
 		})
 	}
 	sort.Sort(signatures)

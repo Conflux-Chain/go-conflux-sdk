@@ -69,7 +69,18 @@ type UpdateVotingPowerPayload struct {
 
 type PivotBlockDecision struct {
 	Height    hexutil.Uint64 `json:"height"`
-	BlockHash common.Hash    `json:"blockHash"`
+	BlockHash H256           `json:"blockHash"`
+}
+
+// for BCS serialization purpose
+type H256 string
+
+func (h H256) ToHash() common.Hash {
+	return common.HexToHash(string(h))
+}
+
+func (h H256) String() string {
+	return string(h)
 }
 
 type DisputePayload struct {
