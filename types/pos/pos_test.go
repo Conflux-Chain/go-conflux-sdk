@@ -34,7 +34,7 @@ func TestUnmarshalTransaction(t *testing.T) {
 				transactionType: "PivotDecision",
 				PivotBlockDecision: PivotBlockDecision{
 					Height:    740280,
-					BlockHash: common.HexToHash("0xe18e8f0ff9dbb12d0d27451fea177f277445e244e2524e9b5ea370282fc99565"),
+					BlockHash: "0xe18e8f0ff9dbb12d0d27451fea177f277445e244e2524e9b5ea370282fc99565",
 				},
 			}, "PivotDecision"),
 			actual: nil,
@@ -112,7 +112,7 @@ func TestUnmarshalTransaction(t *testing.T) {
 			expect: genTxWithPayload(&TransactionPayload{
 				transactionType: "PivotDecision",
 				PivotBlockDecision: PivotBlockDecision{
-					BlockHash: common.HexToHash("0xc50f035607c59ab5fb3f6fce4fed567691fa4c047d14661a5351808e80e9e0a1"),
+					BlockHash: "0xc50f035607c59ab5fb3f6fce4fed567691fa4c047d14661a5351808e80e9e0a1",
 					Height:    805260,
 				},
 			}, "PivotDecision"),

@@ -177,9 +177,9 @@ func (b *Transaction) UnmarshalJSON(data []byte) error {
 
 // Helper struct to manage validator information for validation
 type ValidatorConsensusInfo struct {
-	PublicKey    ConsensusPublicKey     `json:"publicKey"`
-	VrfPublicKey *ConsensusVRFPublicKey `json:"vrfPublicKey,omitempty"` // nil if VRF not needed
-	VotingPower  hexutil.Uint64         `json:"votingPower"`
+	PublicKey    hexutil.Bytes  `json:"publicKey"`              // uncompressed BLS public key
+	VrfPublicKey *hexutil.Bytes `json:"vrfPublicKey,omitempty"` // nil if VRF not needed
+	VotingPower  hexutil.Uint64 `json:"votingPower"`
 }
 
 // Supports validation of signatures for known authors with individual voting
@@ -215,9 +215,9 @@ type BlockInfo struct {
 	/// increase per epoch.
 	Round hexutil.Uint64 `json:"round"`
 	/// The identifier (hash) of the block.
-	Id common.Hash `json:"id"`
+	Id hexutil.Bytes `json:"id"`
 	/// The accumulator root hash after executing this block.
-	ExecutedStateId common.Hash `json:"executedStateId"`
+	ExecutedStateId hexutil.Bytes `json:"executedStateId"`
 	/// The version of the latest transaction after executing this block.
 	Version hexutil.Uint64 `json:"version"`
 	/// The timestamp this block was proposed by a proposer.
@@ -235,7 +235,7 @@ type LedgerInfo struct {
 
 	/// Hash of consensus specific data that is opaque to all parts of the
 	/// system other than consensus.
-	ConsensusDataHash common.Hash `json:"consensusDataHash"`
+	ConsensusDataHash hexutil.Bytes `json:"consensusDataHash"`
 }
 
 /// The validator node returns this structure which includes signatures
@@ -248,5 +248,5 @@ type LedgerInfoWithSignatures struct {
 	/// The validator is identified by its account address: in order to verify
 	/// a signature one needs to retrieve the public key of the validator
 	/// for the given epoch.
-	Signatures map[common.Hash]ConsensusSignature `json:"signatures"`
+	Signatures map[common.Hash]hexutil.Bytes `json:"signatures"` // BLS signature in uncompressed format
 }
