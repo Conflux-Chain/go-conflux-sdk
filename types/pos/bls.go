@@ -53,7 +53,7 @@ func (info *LedgerInfoWithSignatures) NextCommittee() (Committee, bool) {
 
 func (info *LedgerInfoWithSignatures) Verify(committee Committee) (bool, error) {
 	if len(info.Signatures) == 0 {
-		panic("signatures is empty")
+		return false, nil
 	}
 
 	if info.LedgerInfo.CommitInfo.Epoch != committee.state.Epoch {
@@ -140,9 +140,9 @@ func hashToCurve(msg []byte) (*bls12381.PointG2, error) {
 }
 
 func mapToCurve(input []byte) (*bls12381.PointG2, error) {
-	if len(input) != 128 {
-		panic("invalid length")
-	}
+	// if len(input) != 128 {
+	// 	panic("invalid length")
+	// }
 
 	fe := make([]byte, 96)
 	c0 := mustDecodeBLS12381FieldElement(input[:64])
@@ -160,9 +160,9 @@ func mapToCurve(input []byte) (*bls12381.PointG2, error) {
 }
 
 func mustDecodeBLS12381FieldElement(in []byte) []byte {
-	if len(in) != 64 {
-		panic("invalid field element length")
-	}
+	// if len(in) != 64 {
+	// 	panic("invalid field element length")
+	// }
 
 	// check top bytes
 	for i := 0; i < 16; i++ {
@@ -195,13 +195,13 @@ func hashToField(msg []byte, count int, degree int, dst []byte) [][]byte {
 }
 
 func expandMessageXmd(msg []byte, outputLen int, dst []byte) []byte {
-	if outputLen > 65535 || outputLen > 255*H_OUT_CHUNK_SIZE {
-		panic("outputLen too large")
-	}
+	// if outputLen > 65535 || outputLen > 255*H_OUT_CHUNK_SIZE {
+	// 	panic("outputLen too large")
+	// }
 
-	if len(dst) > 255 {
-		panic("DST length too large")
-	}
+	// if len(dst) > 255 {
+	// 	panic("DST length too large")
+	// }
 
 	suffix := append(dst, i2OSP(len(dst), 1)...)
 
