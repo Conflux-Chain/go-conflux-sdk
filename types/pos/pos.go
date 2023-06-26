@@ -177,7 +177,7 @@ func (b *Transaction) UnmarshalJSON(data []byte) error {
 
 // Helper struct to manage validator information for validation
 type ValidatorConsensusInfo struct {
-	PublicKey    hexutil.Bytes  `json:"publicKey"`              // uncompressed BLS public key
+	PublicKey    hexutil.Bytes  `json:"publicKey"`              // compressed BLS public key
 	VrfPublicKey *hexutil.Bytes `json:"vrfPublicKey,omitempty"` // nil if VRF not needed
 	VotingPower  hexutil.Uint64 `json:"votingPower"`
 }
@@ -245,8 +245,13 @@ type LedgerInfo struct {
 /// the client to be able to verify the state
 type LedgerInfoWithSignatures struct {
 	LedgerInfo LedgerInfo `json:"ledgerInfo"`
-	/// The validator is identified by its account address: in order to verify
-	/// a signature one needs to retrieve the public key of the validator
-	/// for the given epoch.
-	Signatures map[common.Hash]hexutil.Bytes `json:"signatures"` // BLS signature in uncompressed format
+	// The validator is identified by its account address: in order to verify
+	// a signature one needs to retrieve the public key of the validator
+	// for the given epoch.
+	//
+	// BLS signature in uncompressed format
+	Signatures map[common.Hash]hexutil.Bytes `json:"signatures"`
+	// Validators with uncompressed BLS public key (in 96 bytes) if next epoch
+	// state available. Generally, this is used to verify BLS signatures at client side.
+	NextEpochValidators map[common.Hash]hexutil.Bytes `json:"nextEpochValidators"`
 }
