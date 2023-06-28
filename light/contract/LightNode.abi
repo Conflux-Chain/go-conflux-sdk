@@ -109,6 +109,11 @@
         },
         {
           "internalType": "address",
+          "name": "_ledgerInfoUtil",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
           "name": "_mptVerify",
           "type": "address"
         },
@@ -160,7 +165,12 @@
                     },
                     {
                       "internalType": "bytes",
-                      "name": "publicKey",
+                      "name": "compressedPublicKey",
+                      "type": "bytes"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "uncompressedPublicKey",
                       "type": "bytes"
                     },
                     {
@@ -174,7 +184,7 @@
                       "type": "uint64"
                     }
                   ],
-                  "internalType": "struct Types.ValidatorInfo[]",
+                  "internalType": "struct LedgerInfoLib.ValidatorInfo[]",
                   "name": "validators",
                   "type": "tuple[]"
                 },
@@ -194,7 +204,7 @@
                   "type": "bytes"
                 }
               ],
-              "internalType": "struct Types.EpochState",
+              "internalType": "struct LedgerInfoLib.EpochState",
               "name": "nextEpochState",
               "type": "tuple"
             },
@@ -211,7 +221,7 @@
                   "type": "uint64"
                 }
               ],
-              "internalType": "struct Types.Decision",
+              "internalType": "struct LedgerInfoLib.Decision",
               "name": "pivot",
               "type": "tuple"
             },
@@ -233,12 +243,12 @@
                   "type": "bytes"
                 }
               ],
-              "internalType": "struct Types.AccountSignature[]",
+              "internalType": "struct LedgerInfoLib.AccountSignature[]",
               "name": "signatures",
               "type": "tuple[]"
             }
           ],
-          "internalType": "struct Types.LedgerInfoWithSignatures",
+          "internalType": "struct LedgerInfoLib.LedgerInfoWithSignatures",
           "name": "ledgerInfo",
           "type": "tuple"
         }
@@ -425,7 +435,12 @@
                     },
                     {
                       "internalType": "bytes",
-                      "name": "publicKey",
+                      "name": "compressedPublicKey",
+                      "type": "bytes"
+                    },
+                    {
+                      "internalType": "bytes",
+                      "name": "uncompressedPublicKey",
                       "type": "bytes"
                     },
                     {
@@ -439,7 +454,7 @@
                       "type": "uint64"
                     }
                   ],
-                  "internalType": "struct Types.ValidatorInfo[]",
+                  "internalType": "struct LedgerInfoLib.ValidatorInfo[]",
                   "name": "validators",
                   "type": "tuple[]"
                 },
@@ -459,7 +474,7 @@
                   "type": "bytes"
                 }
               ],
-              "internalType": "struct Types.EpochState",
+              "internalType": "struct LedgerInfoLib.EpochState",
               "name": "nextEpochState",
               "type": "tuple"
             },
@@ -476,7 +491,7 @@
                   "type": "uint64"
                 }
               ],
-              "internalType": "struct Types.Decision",
+              "internalType": "struct LedgerInfoLib.Decision",
               "name": "pivot",
               "type": "tuple"
             },
@@ -498,12 +513,12 @@
                   "type": "bytes"
                 }
               ],
-              "internalType": "struct Types.AccountSignature[]",
+              "internalType": "struct LedgerInfoLib.AccountSignature[]",
               "name": "signatures",
               "type": "tuple[]"
             }
           ],
-          "internalType": "struct Types.LedgerInfoWithSignatures",
+          "internalType": "struct LedgerInfoLib.LedgerInfoWithSignatures",
           "name": "ledgerInfo",
           "type": "tuple"
         }

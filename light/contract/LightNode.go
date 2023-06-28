@@ -38,6 +38,50 @@ type ILightNodeClientState struct {
 	MaxBlocks            *big.Int
 }
 
+// LedgerInfoLibAccountSignature is an auto generated low-level Go binding around an user-defined struct.
+type LedgerInfoLibAccountSignature struct {
+	Account            [32]byte
+	ConsensusSignature []byte
+}
+
+// LedgerInfoLibDecision is an auto generated low-level Go binding around an user-defined struct.
+type LedgerInfoLibDecision struct {
+	BlockHash [32]byte
+	Height    uint64
+}
+
+// LedgerInfoLibEpochState is an auto generated low-level Go binding around an user-defined struct.
+type LedgerInfoLibEpochState struct {
+	Epoch             uint64
+	Validators        []LedgerInfoLibValidatorInfo
+	QuorumVotingPower uint64
+	TotalVotingPower  uint64
+	VrfSeed           []byte
+}
+
+// LedgerInfoLibLedgerInfoWithSignatures is an auto generated low-level Go binding around an user-defined struct.
+type LedgerInfoLibLedgerInfoWithSignatures struct {
+	Epoch             uint64
+	Round             uint64
+	Id                [32]byte
+	ExecutedStateId   [32]byte
+	Version           uint64
+	TimestampUsecs    uint64
+	NextEpochState    LedgerInfoLibEpochState
+	Pivot             LedgerInfoLibDecision
+	ConsensusDataHash [32]byte
+	Signatures        []LedgerInfoLibAccountSignature
+}
+
+// LedgerInfoLibValidatorInfo is an auto generated low-level Go binding around an user-defined struct.
+type LedgerInfoLibValidatorInfo struct {
+	Account               [32]byte
+	CompressedPublicKey   []byte
+	UncompressedPublicKey []byte
+	VrfPublicKey          []byte
+	VotingPower           uint64
+}
+
 // ProofLibNibblePath is an auto generated low-level Go binding around an user-defined struct.
 type ProofLibNibblePath struct {
 	Nibbles [32]byte
@@ -50,12 +94,6 @@ type ProofLibProofNode struct {
 	Path     ProofLibNibblePath
 	Children [16][32]byte
 	Value    []byte
-}
-
-// TypesAccountSignature is an auto generated low-level Go binding around an user-defined struct.
-type TypesAccountSignature struct {
-	Account            [32]byte
-	ConsensusSignature []byte
 }
 
 // TypesBlockHeader is an auto generated low-level Go binding around an user-defined struct.
@@ -76,35 +114,6 @@ type TypesBlockHeader struct {
 	Custom                [][]byte
 	Nonce                 *big.Int
 	PosReference          [32]byte
-}
-
-// TypesDecision is an auto generated low-level Go binding around an user-defined struct.
-type TypesDecision struct {
-	BlockHash [32]byte
-	Height    uint64
-}
-
-// TypesEpochState is an auto generated low-level Go binding around an user-defined struct.
-type TypesEpochState struct {
-	Epoch             uint64
-	Validators        []TypesValidatorInfo
-	QuorumVotingPower uint64
-	TotalVotingPower  uint64
-	VrfSeed           []byte
-}
-
-// TypesLedgerInfoWithSignatures is an auto generated low-level Go binding around an user-defined struct.
-type TypesLedgerInfoWithSignatures struct {
-	Epoch             uint64
-	Round             uint64
-	Id                [32]byte
-	ExecutedStateId   [32]byte
-	Version           uint64
-	TimestampUsecs    uint64
-	NextEpochState    TypesEpochState
-	Pivot             TypesDecision
-	ConsensusDataHash [32]byte
-	Signatures        []TypesAccountSignature
 }
 
 // TypesReceiptProof is an auto generated low-level Go binding around an user-defined struct.
@@ -145,17 +154,9 @@ type TypesTxReceipt struct {
 	StorageReleased       []TypesStorageChange
 }
 
-// TypesValidatorInfo is an auto generated low-level Go binding around an user-defined struct.
-type TypesValidatorInfo struct {
-	Account      [32]byte
-	PublicKey    []byte
-	VrfPublicKey []byte
-	VotingPower  uint64
-}
-
 // LightNodeMetaData contains all meta data concerning the LightNode contract.
 var LightNodeMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"start\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"end\",\"type\":\"uint256\"}],\"name\":\"UpdateBlockHeader\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"epoch\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"round\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"height\",\"type\":\"uint256\"}],\"name\":\"UpdateLightClient\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"clientState\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"epoch\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"round\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"earliestBlockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"finalizedBlockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"blocks\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxBlocks\",\"type\":\"uint256\"}],\"internalType\":\"structILightNode.ClientState\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_controller\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_mptVerify\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"round\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"executedStateId\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"timestampUsecs\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"account\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"publicKey\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"vrfPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"votingPower\",\"type\":\"uint64\"}],\"internalType\":\"structTypes.ValidatorInfo[]\",\"name\":\"validators\",\"type\":\"tuple[]\"},{\"internalType\":\"uint64\",\"name\":\"quorumVotingPower\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"totalVotingPower\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"vrfSeed\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.EpochState\",\"name\":\"nextEpochState\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"height\",\"type\":\"uint64\"}],\"internalType\":\"structTypes.Decision\",\"name\":\"pivot\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"consensusDataHash\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"account\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"consensusSignature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.AccountSignature[]\",\"name\":\"signatures\",\"type\":\"tuple[]\"}],\"internalType\":\"structTypes.LedgerInfoWithSignatures\",\"name\":\"ledgerInfo\",\"type\":\"tuple\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"height\",\"type\":\"uint256\"}],\"name\":\"nearestPivot\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"limit\",\"type\":\"uint256\"}],\"name\":\"removeBlockHeader\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"parentHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"height\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"author\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"transactionsRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"deferredStateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"deferredReceiptsRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"deferredLogsBloomHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"blame\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"difficulty\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"adaptive\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"refereeHashes\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes[]\",\"name\":\"custom\",\"type\":\"bytes[]\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"posReference\",\"type\":\"bytes32\"}],\"internalType\":\"structTypes.BlockHeader[]\",\"name\":\"headers\",\"type\":\"tuple[]\"}],\"name\":\"updateBlockHeader\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"round\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"executedStateId\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"timestampUsecs\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"account\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"publicKey\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"vrfPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"votingPower\",\"type\":\"uint64\"}],\"internalType\":\"structTypes.ValidatorInfo[]\",\"name\":\"validators\",\"type\":\"tuple[]\"},{\"internalType\":\"uint64\",\"name\":\"quorumVotingPower\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"totalVotingPower\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"vrfSeed\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.EpochState\",\"name\":\"nextEpochState\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"height\",\"type\":\"uint64\"}],\"internalType\":\"structTypes.Decision\",\"name\":\"pivot\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"consensusDataHash\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"account\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"consensusSignature\",\"type\":\"bytes\"}],\"internalType\":\"structTypes.AccountSignature[]\",\"name\":\"signatures\",\"type\":\"tuple[]\"}],\"internalType\":\"structTypes.LedgerInfoWithSignatures\",\"name\":\"ledgerInfo\",\"type\":\"tuple\"}],\"name\":\"updateLightClient\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"verifiableHeaderRange\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"receiptProof\",\"type\":\"bytes\"}],\"name\":\"verifyProofData\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"},{\"internalType\":\"bytes\",\"name\":\"rlpLogs\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"parentHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"height\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"author\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"transactionsRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"deferredStateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"deferredReceiptsRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"deferredLogsBloomHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"blame\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"difficulty\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"adaptive\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"refereeHashes\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes[]\",\"name\":\"custom\",\"type\":\"bytes[]\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"posReference\",\"type\":\"bytes32\"}],\"internalType\":\"structTypes.BlockHeader[]\",\"name\":\"headers\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes\",\"name\":\"blockIndex\",\"type\":\"bytes\"},{\"components\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"nibbles\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"start\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"end\",\"type\":\"uint256\"}],\"internalType\":\"structProofLib.NibblePath\",\"name\":\"path\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[16]\",\"name\":\"children\",\"type\":\"bytes32[16]\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"structProofLib.ProofNode[]\",\"name\":\"blockProof\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes32\",\"name\":\"receiptsRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"index\",\"type\":\"bytes\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"accumulatedGasUsed\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasFee\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"gasSponsorPaid\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"logBloom\",\"type\":\"bytes\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"bytes32[]\",\"name\":\"topics\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"},{\"internalType\":\"uint8\",\"name\":\"space\",\"type\":\"uint8\"}],\"internalType\":\"structTypes.TxLog[]\",\"name\":\"logs\",\"type\":\"tuple[]\"},{\"internalType\":\"uint8\",\"name\":\"outcomeStatus\",\"type\":\"uint8\"},{\"internalType\":\"bool\",\"name\":\"storageSponsorPaid\",\"type\":\"bool\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint64\",\"name\":\"collaterals\",\"type\":\"uint64\"}],\"internalType\":\"structTypes.StorageChange[]\",\"name\":\"storageCollateralized\",\"type\":\"tuple[]\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint64\",\"name\":\"collaterals\",\"type\":\"uint64\"}],\"internalType\":\"structTypes.StorageChange[]\",\"name\":\"storageReleased\",\"type\":\"tuple[]\"}],\"internalType\":\"structTypes.TxReceipt\",\"name\":\"receipt\",\"type\":\"tuple\"},{\"components\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"nibbles\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"start\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"end\",\"type\":\"uint256\"}],\"internalType\":\"structProofLib.NibblePath\",\"name\":\"path\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[16]\",\"name\":\"children\",\"type\":\"bytes32[16]\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"structProofLib.ProofNode[]\",\"name\":\"receiptProof\",\"type\":\"tuple[]\"}],\"internalType\":\"structTypes.ReceiptProof\",\"name\":\"proof\",\"type\":\"tuple\"}],\"name\":\"verifyReceiptProof\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"bytes32[]\",\"name\":\"topics\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"},{\"internalType\":\"uint8\",\"name\":\"space\",\"type\":\"uint8\"}],\"internalType\":\"structTypes.TxLog[]\",\"name\":\"logs\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"start\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"end\",\"type\":\"uint256\"}],\"name\":\"UpdateBlockHeader\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"epoch\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"round\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"height\",\"type\":\"uint256\"}],\"name\":\"UpdateLightClient\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"clientState\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"epoch\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"round\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"earliestBlockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"finalizedBlockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"blocks\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxBlocks\",\"type\":\"uint256\"}],\"internalType\":\"structILightNode.ClientState\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_controller\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_ledgerInfoUtil\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_mptVerify\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"round\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"executedStateId\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"timestampUsecs\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"account\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"compressedPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"uncompressedPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"vrfPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"votingPower\",\"type\":\"uint64\"}],\"internalType\":\"structLedgerInfoLib.ValidatorInfo[]\",\"name\":\"validators\",\"type\":\"tuple[]\"},{\"internalType\":\"uint64\",\"name\":\"quorumVotingPower\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"totalVotingPower\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"vrfSeed\",\"type\":\"bytes\"}],\"internalType\":\"structLedgerInfoLib.EpochState\",\"name\":\"nextEpochState\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"height\",\"type\":\"uint64\"}],\"internalType\":\"structLedgerInfoLib.Decision\",\"name\":\"pivot\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"consensusDataHash\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"account\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"consensusSignature\",\"type\":\"bytes\"}],\"internalType\":\"structLedgerInfoLib.AccountSignature[]\",\"name\":\"signatures\",\"type\":\"tuple[]\"}],\"internalType\":\"structLedgerInfoLib.LedgerInfoWithSignatures\",\"name\":\"ledgerInfo\",\"type\":\"tuple\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"height\",\"type\":\"uint256\"}],\"name\":\"nearestPivot\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"limit\",\"type\":\"uint256\"}],\"name\":\"removeBlockHeader\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"parentHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"height\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"author\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"transactionsRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"deferredStateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"deferredReceiptsRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"deferredLogsBloomHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"blame\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"difficulty\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"adaptive\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"refereeHashes\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes[]\",\"name\":\"custom\",\"type\":\"bytes[]\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"posReference\",\"type\":\"bytes32\"}],\"internalType\":\"structTypes.BlockHeader[]\",\"name\":\"headers\",\"type\":\"tuple[]\"}],\"name\":\"updateBlockHeader\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"round\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"executedStateId\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"timestampUsecs\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"account\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"compressedPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"uncompressedPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"vrfPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"votingPower\",\"type\":\"uint64\"}],\"internalType\":\"structLedgerInfoLib.ValidatorInfo[]\",\"name\":\"validators\",\"type\":\"tuple[]\"},{\"internalType\":\"uint64\",\"name\":\"quorumVotingPower\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"totalVotingPower\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"vrfSeed\",\"type\":\"bytes\"}],\"internalType\":\"structLedgerInfoLib.EpochState\",\"name\":\"nextEpochState\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"height\",\"type\":\"uint64\"}],\"internalType\":\"structLedgerInfoLib.Decision\",\"name\":\"pivot\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"consensusDataHash\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"account\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"consensusSignature\",\"type\":\"bytes\"}],\"internalType\":\"structLedgerInfoLib.AccountSignature[]\",\"name\":\"signatures\",\"type\":\"tuple[]\"}],\"internalType\":\"structLedgerInfoLib.LedgerInfoWithSignatures\",\"name\":\"ledgerInfo\",\"type\":\"tuple\"}],\"name\":\"updateLightClient\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"verifiableHeaderRange\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"receiptProof\",\"type\":\"bytes\"}],\"name\":\"verifyProofData\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"},{\"internalType\":\"string\",\"name\":\"message\",\"type\":\"string\"},{\"internalType\":\"bytes\",\"name\":\"rlpLogs\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"parentHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"height\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"author\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"transactionsRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"deferredStateRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"deferredReceiptsRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"deferredLogsBloomHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"blame\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"difficulty\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"adaptive\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"gasLimit\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"refereeHashes\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes[]\",\"name\":\"custom\",\"type\":\"bytes[]\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"posReference\",\"type\":\"bytes32\"}],\"internalType\":\"structTypes.BlockHeader[]\",\"name\":\"headers\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes\",\"name\":\"blockIndex\",\"type\":\"bytes\"},{\"components\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"nibbles\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"start\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"end\",\"type\":\"uint256\"}],\"internalType\":\"structProofLib.NibblePath\",\"name\":\"path\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[16]\",\"name\":\"children\",\"type\":\"bytes32[16]\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"structProofLib.ProofNode[]\",\"name\":\"blockProof\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes32\",\"name\":\"receiptsRoot\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"index\",\"type\":\"bytes\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"accumulatedGasUsed\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"gasFee\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"gasSponsorPaid\",\"type\":\"bool\"},{\"internalType\":\"bytes\",\"name\":\"logBloom\",\"type\":\"bytes\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"bytes32[]\",\"name\":\"topics\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"},{\"internalType\":\"uint8\",\"name\":\"space\",\"type\":\"uint8\"}],\"internalType\":\"structTypes.TxLog[]\",\"name\":\"logs\",\"type\":\"tuple[]\"},{\"internalType\":\"uint8\",\"name\":\"outcomeStatus\",\"type\":\"uint8\"},{\"internalType\":\"bool\",\"name\":\"storageSponsorPaid\",\"type\":\"bool\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint64\",\"name\":\"collaterals\",\"type\":\"uint64\"}],\"internalType\":\"structTypes.StorageChange[]\",\"name\":\"storageCollateralized\",\"type\":\"tuple[]\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint64\",\"name\":\"collaterals\",\"type\":\"uint64\"}],\"internalType\":\"structTypes.StorageChange[]\",\"name\":\"storageReleased\",\"type\":\"tuple[]\"}],\"internalType\":\"structTypes.TxReceipt\",\"name\":\"receipt\",\"type\":\"tuple\"},{\"components\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"nibbles\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"start\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"end\",\"type\":\"uint256\"}],\"internalType\":\"structProofLib.NibblePath\",\"name\":\"path\",\"type\":\"tuple\"},{\"internalType\":\"bytes32[16]\",\"name\":\"children\",\"type\":\"bytes32[16]\"},{\"internalType\":\"bytes\",\"name\":\"value\",\"type\":\"bytes\"}],\"internalType\":\"structProofLib.ProofNode[]\",\"name\":\"receiptProof\",\"type\":\"tuple[]\"}],\"internalType\":\"structTypes.ReceiptProof\",\"name\":\"proof\",\"type\":\"tuple\"}],\"name\":\"verifyReceiptProof\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"success\",\"type\":\"bool\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"bytes32[]\",\"name\":\"topics\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"},{\"internalType\":\"uint8\",\"name\":\"space\",\"type\":\"uint8\"}],\"internalType\":\"structTypes.TxLog[]\",\"name\":\"logs\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // LightNodeABI is the input ABI used to generate the binding from.
@@ -493,25 +494,25 @@ func (_LightNode *LightNodeCallerSession) VerifyReceiptProof(proof TypesReceiptP
 	return _LightNode.Contract.VerifyReceiptProof(&_LightNode.CallOpts, proof)
 }
 
-// Initialize is a paid mutator transaction binding the contract method 0x086b531d.
+// Initialize is a paid mutator transaction binding the contract method 0xf3129c45.
 //
-// Solidity: function initialize(address _controller, address _mptVerify, (uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,(bytes32,bytes)[]) ledgerInfo) returns()
-func (_LightNode *LightNodeTransactor) Initialize(opts *bind.TransactOpts, _controller common.Address, _mptVerify common.Address, ledgerInfo TypesLedgerInfoWithSignatures) (*types.Transaction, error) {
-	return _LightNode.contract.Transact(opts, "initialize", _controller, _mptVerify, ledgerInfo)
+// Solidity: function initialize(address _controller, address _ledgerInfoUtil, address _mptVerify, (uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,(bytes32,bytes)[]) ledgerInfo) returns()
+func (_LightNode *LightNodeTransactor) Initialize(opts *bind.TransactOpts, _controller common.Address, _ledgerInfoUtil common.Address, _mptVerify common.Address, ledgerInfo LedgerInfoLibLedgerInfoWithSignatures) (*types.Transaction, error) {
+	return _LightNode.contract.Transact(opts, "initialize", _controller, _ledgerInfoUtil, _mptVerify, ledgerInfo)
 }
 
-// Initialize is a paid mutator transaction binding the contract method 0x086b531d.
+// Initialize is a paid mutator transaction binding the contract method 0xf3129c45.
 //
-// Solidity: function initialize(address _controller, address _mptVerify, (uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,(bytes32,bytes)[]) ledgerInfo) returns()
-func (_LightNode *LightNodeSession) Initialize(_controller common.Address, _mptVerify common.Address, ledgerInfo TypesLedgerInfoWithSignatures) (*types.Transaction, error) {
-	return _LightNode.Contract.Initialize(&_LightNode.TransactOpts, _controller, _mptVerify, ledgerInfo)
+// Solidity: function initialize(address _controller, address _ledgerInfoUtil, address _mptVerify, (uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,(bytes32,bytes)[]) ledgerInfo) returns()
+func (_LightNode *LightNodeSession) Initialize(_controller common.Address, _ledgerInfoUtil common.Address, _mptVerify common.Address, ledgerInfo LedgerInfoLibLedgerInfoWithSignatures) (*types.Transaction, error) {
+	return _LightNode.Contract.Initialize(&_LightNode.TransactOpts, _controller, _ledgerInfoUtil, _mptVerify, ledgerInfo)
 }
 
-// Initialize is a paid mutator transaction binding the contract method 0x086b531d.
+// Initialize is a paid mutator transaction binding the contract method 0xf3129c45.
 //
-// Solidity: function initialize(address _controller, address _mptVerify, (uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,(bytes32,bytes)[]) ledgerInfo) returns()
-func (_LightNode *LightNodeTransactorSession) Initialize(_controller common.Address, _mptVerify common.Address, ledgerInfo TypesLedgerInfoWithSignatures) (*types.Transaction, error) {
-	return _LightNode.Contract.Initialize(&_LightNode.TransactOpts, _controller, _mptVerify, ledgerInfo)
+// Solidity: function initialize(address _controller, address _ledgerInfoUtil, address _mptVerify, (uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,(bytes32,bytes)[]) ledgerInfo) returns()
+func (_LightNode *LightNodeTransactorSession) Initialize(_controller common.Address, _ledgerInfoUtil common.Address, _mptVerify common.Address, ledgerInfo LedgerInfoLibLedgerInfoWithSignatures) (*types.Transaction, error) {
+	return _LightNode.Contract.Initialize(&_LightNode.TransactOpts, _controller, _ledgerInfoUtil, _mptVerify, ledgerInfo)
 }
 
 // RemoveBlockHeader is a paid mutator transaction binding the contract method 0x8113e308.
@@ -556,24 +557,24 @@ func (_LightNode *LightNodeTransactorSession) UpdateBlockHeader(headers []TypesB
 	return _LightNode.Contract.UpdateBlockHeader(&_LightNode.TransactOpts, headers)
 }
 
-// UpdateLightClient is a paid mutator transaction binding the contract method 0xda027b4e.
+// UpdateLightClient is a paid mutator transaction binding the contract method 0xf548a7c4.
 //
-// Solidity: function updateLightClient((uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,(bytes32,bytes)[]) ledgerInfo) returns()
-func (_LightNode *LightNodeTransactor) UpdateLightClient(opts *bind.TransactOpts, ledgerInfo TypesLedgerInfoWithSignatures) (*types.Transaction, error) {
+// Solidity: function updateLightClient((uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,(bytes32,bytes)[]) ledgerInfo) returns()
+func (_LightNode *LightNodeTransactor) UpdateLightClient(opts *bind.TransactOpts, ledgerInfo LedgerInfoLibLedgerInfoWithSignatures) (*types.Transaction, error) {
 	return _LightNode.contract.Transact(opts, "updateLightClient", ledgerInfo)
 }
 
-// UpdateLightClient is a paid mutator transaction binding the contract method 0xda027b4e.
+// UpdateLightClient is a paid mutator transaction binding the contract method 0xf548a7c4.
 //
-// Solidity: function updateLightClient((uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,(bytes32,bytes)[]) ledgerInfo) returns()
-func (_LightNode *LightNodeSession) UpdateLightClient(ledgerInfo TypesLedgerInfoWithSignatures) (*types.Transaction, error) {
+// Solidity: function updateLightClient((uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,(bytes32,bytes)[]) ledgerInfo) returns()
+func (_LightNode *LightNodeSession) UpdateLightClient(ledgerInfo LedgerInfoLibLedgerInfoWithSignatures) (*types.Transaction, error) {
 	return _LightNode.Contract.UpdateLightClient(&_LightNode.TransactOpts, ledgerInfo)
 }
 
-// UpdateLightClient is a paid mutator transaction binding the contract method 0xda027b4e.
+// UpdateLightClient is a paid mutator transaction binding the contract method 0xf548a7c4.
 //
-// Solidity: function updateLightClient((uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,(bytes32,bytes)[]) ledgerInfo) returns()
-func (_LightNode *LightNodeTransactorSession) UpdateLightClient(ledgerInfo TypesLedgerInfoWithSignatures) (*types.Transaction, error) {
+// Solidity: function updateLightClient((uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,(bytes32,bytes)[]) ledgerInfo) returns()
+func (_LightNode *LightNodeTransactorSession) UpdateLightClient(ledgerInfo LedgerInfoLibLedgerInfoWithSignatures) (*types.Transaction, error) {
 	return _LightNode.Contract.UpdateLightClient(&_LightNode.TransactOpts, ledgerInfo)
 }
 
