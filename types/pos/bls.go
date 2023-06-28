@@ -63,6 +63,10 @@ func (info *LedgerInfoWithSignatures) Verify(committee Committee) (bool, error) 
 
 	bcsEncoded := bcs.MustEncodeToBytes(info.LedgerInfo)
 	bcsEncoded = append(bcsPrefix, bcsEncoded...)
+	hash, err := hashToCurve(bcsEncoded)
+	if err != nil {
+		return false, errors.WithMessage(err, "Failed to hash message into G2 point")
+	}
 
 	var votes hexutil.Uint64
 
@@ -72,7 +76,7 @@ func (info *LedgerInfoWithSignatures) Verify(committee Committee) (bool, error) 
 			return false, errors.Errorf("PoS account %v not found in committee", account)
 		}
 
-		verified, err := verifyBLS(signature, bcsEncoded, publicKey)
+		verified, err := verifyBLS(signature, publicKey, hash)
 		if err != nil {
 			return false, errors.WithMessage(err, "Failed to validate BLS signature")
 		}
@@ -92,7 +96,7 @@ func (info *LedgerInfoWithSignatures) Verify(committee Committee) (bool, error) 
 	return true, nil
 }
 
-func verifyBLS(signature, msg, publicKey []byte) (bool, error) {
+func verifyBLS(signature, publicKey []byte, hash *bls12381.PointG2) (bool, error) {
 	engine := bls12381.NewPairingEngine()
 
 	// public key is uncompressed BLS public key in 96 bytes
@@ -105,12 +109,6 @@ func verifyBLS(signature, msg, publicKey []byte) (bool, error) {
 	sigPointG2, err := engine.G2.FromBytes(signature)
 	if err != nil {
 		return false, errors.WithMessage(err, "Failed to decode signature to G2 point")
-	}
-
-	// hash to G2
-	hash, err := hashToCurve(msg)
-	if err != nil {
-		return false, errors.WithMessage(err, "Failed to hash message into G2 point")
 	}
 
 	return engine.
