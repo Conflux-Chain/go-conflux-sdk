@@ -18,7 +18,7 @@ Note, any one could relay the blocks, since all blocks are cryptographically ver
 There is an available component `EvmRelayer` to relay PoS blocks on eSpace:
 
 ```go
-relayer := light.NewEvmRelayer(coreClient, evmClient, config)
+relayer := light.NewEvmRelayer(coreClient, relayerClient, config)
 go relayer.Relay()
 ```
 
