@@ -19,9 +19,10 @@ import (
 var RelayInterval = 3 * time.Second
 
 type EvmRelayConfig struct {
-	LightNode common.Address // light node contract
-	Verifier  common.Address // MPT verification contract
-	Admin     common.Address // management admin address or relayer
+	LightNode  common.Address // light node contract
+	LedgerInfo common.Address // ledger info contract
+	Verifier   common.Address // MPT verification contract
+	Admin      common.Address // management admin address or relayer
 
 	EpochFrom uint64 // epoch for initialization
 	GcLimits  int64  // maximum number of blocks to remove at a time
@@ -149,9 +150,10 @@ func (r *EvmRelayer) initLightNode(state *contract.ILightNodeClientState) error 
 		logrus.Fatal("Pivot in ledger is nil")
 	}
 
+	ledger.NextEpochValidators = lastEpochLedger.NextEpochValidators
 	ledger.LedgerInfo.CommitInfo.NextEpochState = lastEpochLedger.LedgerInfo.CommitInfo.NextEpochState
 
-	tx, err := r.lightNode.Initialize(r.txOpts, r.Admin, r.Verifier, contract.ConvertLedger(ledger))
+	tx, err := r.lightNode.Initialize(r.txOpts, r.Admin, r.LedgerInfo, r.Verifier, contract.ConvertLedger(ledger))
 	if err != nil {
 		return errors.WithMessage(err, "Failed to send transaction")
 	}

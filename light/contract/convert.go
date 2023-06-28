@@ -85,8 +85,8 @@ func ConvertReceipt(receipt *types.TransactionReceipt) TypesTxReceipt {
 	}
 }
 
-func ConvertLedger(ledger *postypes.LedgerInfoWithSignatures) TypesLedgerInfoWithSignatures {
-	result := TypesLedgerInfoWithSignatures{
+func ConvertLedger(ledger *postypes.LedgerInfoWithSignatures) LedgerInfoLibLedgerInfoWithSignatures {
+	result := LedgerInfoLibLedgerInfoWithSignatures{
 		Epoch:             uint64(ledger.LedgerInfo.CommitInfo.Epoch),
 		Round:             uint64(ledger.LedgerInfo.CommitInfo.Round),
 		Id:                common.BytesToHash(ledger.LedgerInfo.CommitInfo.Id),
@@ -96,14 +96,15 @@ func ConvertLedger(ledger *postypes.LedgerInfoWithSignatures) TypesLedgerInfoWit
 		ConsensusDataHash: common.BytesToHash(ledger.LedgerInfo.ConsensusDataHash),
 	}
 
-	if ledger.LedgerInfo.CommitInfo.NextEpochState != nil {
-		result.NextEpochState.Epoch = uint64(ledger.LedgerInfo.CommitInfo.NextEpochState.Epoch)
+	if state := ledger.LedgerInfo.CommitInfo.NextEpochState; state != nil {
+		result.NextEpochState.Epoch = uint64(state.Epoch)
 		var validators sortableValidators
-		for k, v := range ledger.LedgerInfo.CommitInfo.NextEpochState.Verifier.AddressToValidatorInfo {
-			validator := TypesValidatorInfo{
-				Account:     k,
-				PublicKey:   v.PublicKey,
-				VotingPower: uint64(v.VotingPower),
+		for k, v := range state.Verifier.AddressToValidatorInfo {
+			validator := LedgerInfoLibValidatorInfo{
+				Account:               k,
+				CompressedPublicKey:   v.PublicKey,
+				UncompressedPublicKey: ledger.NextEpochValidators[k],
+				VotingPower:           uint64(v.VotingPower),
 			}
 
 			if v.VrfPublicKey != nil {
@@ -114,19 +115,19 @@ func ConvertLedger(ledger *postypes.LedgerInfoWithSignatures) TypesLedgerInfoWit
 		}
 		sort.Sort(validators)
 		result.NextEpochState.Validators = validators
-		result.NextEpochState.QuorumVotingPower = uint64(ledger.LedgerInfo.CommitInfo.NextEpochState.Verifier.QuorumVotingPower)
-		result.NextEpochState.TotalVotingPower = uint64(ledger.LedgerInfo.CommitInfo.NextEpochState.Verifier.TotalVotingPower)
-		result.NextEpochState.VrfSeed = ledger.LedgerInfo.CommitInfo.NextEpochState.VrfSeed
+		result.NextEpochState.QuorumVotingPower = uint64(state.Verifier.QuorumVotingPower)
+		result.NextEpochState.TotalVotingPower = uint64(state.Verifier.TotalVotingPower)
+		result.NextEpochState.VrfSeed = state.VrfSeed
 	}
 
-	if ledger.LedgerInfo.CommitInfo.Pivot != nil {
-		result.Pivot.Height = uint64(ledger.LedgerInfo.CommitInfo.Pivot.Height)
-		result.Pivot.BlockHash = ledger.LedgerInfo.CommitInfo.Pivot.BlockHash.ToHash()
+	if pivot := ledger.LedgerInfo.CommitInfo.Pivot; pivot != nil {
+		result.Pivot.Height = uint64(pivot.Height)
+		result.Pivot.BlockHash = pivot.BlockHash.ToHash()
 	}
 
 	var signatures sortableAccountSignatures
 	for k, v := range ledger.Signatures {
-		signatures = append(signatures, TypesAccountSignature{
+		signatures = append(signatures, LedgerInfoLibAccountSignature{
 			Account:            k,
 			ConsensusSignature: v,
 		})
@@ -173,7 +174,7 @@ func ConvertBlockHeader(block *types.BlockSummary) TypesBlockHeader {
 	}
 }
 
-type sortableAccountSignatures []TypesAccountSignature
+type sortableAccountSignatures []LedgerInfoLibAccountSignature
 
 func (s sortableAccountSignatures) Len() int { return len(s) }
 func (s sortableAccountSignatures) Less(i, j int) bool {
@@ -181,7 +182,7 @@ func (s sortableAccountSignatures) Less(i, j int) bool {
 }
 func (s sortableAccountSignatures) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
-type sortableValidators []TypesValidatorInfo
+type sortableValidators []LedgerInfoLibValidatorInfo
 
 func (s sortableValidators) Len() int { return len(s) }
 func (s sortableValidators) Less(i, j int) bool {

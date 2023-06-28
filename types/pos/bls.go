@@ -51,6 +51,23 @@ func (info *LedgerInfoWithSignatures) NextCommittee() (Committee, bool) {
 	}, true
 }
 
+func (info *LedgerInfoWithSignatures) EncodeBCS() []byte {
+	encoded := bcs.MustEncodeToBytes(info.LedgerInfo)
+	encoded = append(bcsPrefix, encoded...)
+	return encoded
+}
+
+func (info *LedgerInfoWithSignatures) PackSignatures(committee Committee) (signatures, publicKeys [][]byte) {
+	for account, sig := range info.Signatures {
+		if pubKey, ok := committee.uncompressedKeys[account]; ok {
+			signatures = append(signatures, sig)
+			publicKeys = append(publicKeys, pubKey)
+		}
+	}
+
+	return
+}
+
 func (info *LedgerInfoWithSignatures) Verify(committee Committee) (bool, error) {
 	if len(info.Signatures) == 0 {
 		return false, nil
