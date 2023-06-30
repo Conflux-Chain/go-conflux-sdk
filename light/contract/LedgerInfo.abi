@@ -188,6 +188,11 @@
           "internalType": "bytes",
           "name": "input",
           "type": "bytes"
+        },
+        {
+          "internalType": "uint256",
+          "name": "outputLen",
+          "type": "uint256"
         }
       ],
       "name": "callPrecompile",
@@ -212,9 +217,9 @@
       "name": "expandMessageXmd",
       "outputs": [
         {
-          "internalType": "bytes[2]",
+          "internalType": "bytes",
           "name": "",
-          "type": "bytes[2]"
+          "type": "bytes"
         }
       ],
       "stateMutability": "pure",
@@ -250,9 +255,9 @@
       "name": "hashToField",
       "outputs": [
         {
-          "internalType": "bytes[2]",
+          "internalType": "bytes",
           "name": "",
-          "type": "bytes[2]"
+          "type": "bytes"
         }
       ],
       "stateMutability": "view",
