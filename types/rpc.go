@@ -52,6 +52,8 @@ type SponsorInfo struct {
 	SponsorGasBound             *hexutil.Big `json:"sponsorGasBound"`
 	SponsorBalanceForGas        *hexutil.Big `json:"sponsorBalanceForGas"`
 	SponsorBalanceForCollateral *hexutil.Big `json:"sponsorBalanceForCollateral"`
+	AvailableStoragePoints      *hexutil.Big `json:"availableStoragePoints"`
+	UsedStoragePoints           *hexutil.Big `json:"usedStoragePoints"`
 }
 
 // Status represents current blockchain status
