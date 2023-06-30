@@ -4,6 +4,7 @@ v1.5.7
 ------------
 -   Support light POS relay
 -   Support RPC debug_getEpochReceiptProofByTransaction, pos_getLedgerInfoByEpochAndRound,cfx_getCollateralInfo
+
 v1.5.4
 ------------
 -   Support debug rpcs
