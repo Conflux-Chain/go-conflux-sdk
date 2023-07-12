@@ -83,7 +83,9 @@ func genCfxTestConfig() rpctest.RpcTestConfig {
 	}
 
 	// ignoreRpc priority is higher than onlyTestRpc
-	var ignoreRpc map[string]bool = map[string]bool{}
+	var ignoreRpc map[string]bool = map[string]bool{
+		"cfx_getSponsorInfo": true,
+	}
 
 	var ignoreExamples map[string]bool = map[string]bool{
 		"cfx_getBlockByEpochNumber-1649303708800": true, // TODO: Epoch number type is U256 and conflux-rust is U64
