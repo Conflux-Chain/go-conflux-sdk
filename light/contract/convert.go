@@ -2,90 +2,55 @@ package contract
 
 import (
 	"bytes"
-	"math/big"
 	"sort"
 
-	"github.com/Conflux-Chain/go-conflux-sdk/types"
-	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-func ConvertLogs(logs []types.Log) []TypesTxLog {
-	var result []TypesTxLog
+func ConvertCommittee(ledger *postypes.LedgerInfoWithSignatures) (LedgerInfoLibEpochState, bool) {
+	if ledger == nil {
+		return LedgerInfoLibEpochState{}, false
+	}
 
-	for _, v := range logs {
-		var topics [][32]byte
-		for _, t := range v.Topics {
-			topics = append(topics, *t.ToCommonHash())
+	state := ledger.LedgerInfo.CommitInfo.NextEpochState
+	if state == nil {
+		return LedgerInfoLibEpochState{}, false
+	}
+
+	var validators sortableValidators
+	for k, v := range state.Verifier.AddressToValidatorInfo {
+		validator := LedgerInfoLibValidatorInfo{
+			Account:               k,
+			CompressedPublicKey:   v.PublicKey,
+			UncompressedPublicKey: ledger.NextEpochValidators[k],
+			VotingPower:           uint64(v.VotingPower),
 		}
 
-		var space uint8
-		switch *v.Space {
-		case types.SPACE_NATIVE:
-			space = LogSpaceNative
-		case types.SPACE_EVM:
-			space = LogSpaceEthereum
-		default:
-			panic("invalid space in log entry")
+		if len(validator.UncompressedPublicKey) == 0 {
+			return LedgerInfoLibEpochState{}, false
 		}
 
-		result = append(result, TypesTxLog{
-			Addr:   v.Address.MustGetCommonAddress(),
-			Topics: topics,
-			Data:   v.Data,
-			Space:  space,
-		})
+		if v.VrfPublicKey != nil {
+			validator.VrfPublicKey = *v.VrfPublicKey
+		}
+
+		validators = append(validators, validator)
 	}
+	sort.Sort(validators)
 
-	return result
-}
-
-func ConstructStorageChanges(receipt *types.TransactionReceipt) (collateralized, released []TypesStorageChange) {
-	for _, v := range receipt.StorageReleased {
-		released = append(released, TypesStorageChange{
-			Account:     v.Address.MustGetCommonAddress(),
-			Collaterals: uint64(v.Collaterals),
-		})
-	}
-
-	if receipt.StorageCollateralized == 0 {
-		return
-	}
-
-	var account cfxaddress.Address
-	if receipt.StorageCoveredBySponsor {
-		account = *receipt.To
-	} else {
-		account = receipt.From
-	}
-
-	collateralized = append(collateralized, TypesStorageChange{
-		Account:     account.MustGetCommonAddress(),
-		Collaterals: uint64(receipt.StorageCollateralized),
-	})
-
-	return
-}
-
-func ConvertReceipt(receipt *types.TransactionReceipt) TypesTxReceipt {
-	storageCollateralized, storageReleased := ConstructStorageChanges(receipt)
-
-	return TypesTxReceipt{
-		AccumulatedGasUsed:    receipt.AccumulatedGasUsed.ToInt(),
-		GasFee:                receipt.GasFee.ToInt(),
-		GasSponsorPaid:        receipt.GasCoveredBySponsor,
-		LogBloom:              hexutil.MustDecode(string(receipt.LogsBloom)),
-		Logs:                  ConvertLogs(receipt.Logs),
-		OutcomeStatus:         uint8(receipt.MustGetOutcomeType()),
-		StorageSponsorPaid:    receipt.StorageCoveredBySponsor,
-		StorageCollateralized: storageCollateralized,
-		StorageReleased:       storageReleased,
-	}
+	return LedgerInfoLibEpochState{
+		Epoch:             uint64(state.Epoch),
+		Validators:        validators,
+		QuorumVotingPower: uint64(state.Verifier.QuorumVotingPower),
+		TotalVotingPower:  uint64(state.Verifier.TotalVotingPower),
+		VrfSeed:           state.VrfSeed,
+	}, true
 }
 
 func ConvertLedger(ledger *postypes.LedgerInfoWithSignatures) LedgerInfoLibLedgerInfoWithSignatures {
+	committee, _ := ConvertCommittee(ledger)
+
 	result := LedgerInfoLibLedgerInfoWithSignatures{
 		Epoch:             uint64(ledger.LedgerInfo.CommitInfo.Epoch),
 		Round:             uint64(ledger.LedgerInfo.CommitInfo.Round),
@@ -93,31 +58,8 @@ func ConvertLedger(ledger *postypes.LedgerInfoWithSignatures) LedgerInfoLibLedge
 		ExecutedStateId:   common.BytesToHash(ledger.LedgerInfo.CommitInfo.ExecutedStateId),
 		Version:           uint64(ledger.LedgerInfo.CommitInfo.Version),
 		TimestampUsecs:    uint64(ledger.LedgerInfo.CommitInfo.TimestampUsecs),
+		NextEpochState:    committee,
 		ConsensusDataHash: common.BytesToHash(ledger.LedgerInfo.ConsensusDataHash),
-	}
-
-	if state := ledger.LedgerInfo.CommitInfo.NextEpochState; state != nil {
-		result.NextEpochState.Epoch = uint64(state.Epoch)
-		var validators sortableValidators
-		for k, v := range state.Verifier.AddressToValidatorInfo {
-			validator := LedgerInfoLibValidatorInfo{
-				Account:               k,
-				CompressedPublicKey:   v.PublicKey,
-				UncompressedPublicKey: ledger.NextEpochValidators[k],
-				VotingPower:           uint64(v.VotingPower),
-			}
-
-			if v.VrfPublicKey != nil {
-				validator.VrfPublicKey = *v.VrfPublicKey
-			}
-
-			validators = append(validators, validator)
-		}
-		sort.Sort(validators)
-		result.NextEpochState.Validators = validators
-		result.NextEpochState.QuorumVotingPower = uint64(state.Verifier.QuorumVotingPower)
-		result.NextEpochState.TotalVotingPower = uint64(state.Verifier.TotalVotingPower)
-		result.NextEpochState.VrfSeed = state.VrfSeed
 	}
 
 	if pivot := ledger.LedgerInfo.CommitInfo.Pivot; pivot != nil {
@@ -136,42 +78,6 @@ func ConvertLedger(ledger *postypes.LedgerInfoWithSignatures) LedgerInfoLibLedge
 	result.Signatures = signatures
 
 	return result
-}
-
-func ConvertBlockHeader(block *types.BlockSummary) TypesBlockHeader {
-	var referees [][32]byte
-	for _, v := range block.RefereeHashes {
-		referees = append(referees, *v.ToCommonHash())
-	}
-
-	var custom [][]byte
-	for _, v := range block.Custom {
-		custom = append(custom, v)
-	}
-
-	var posRef [32]byte
-	if block.PosReference != nil {
-		posRef = *block.PosReference.ToCommonHash()
-	}
-
-	return TypesBlockHeader{
-		ParentHash:            *block.ParentHash.ToCommonHash(),
-		Height:                block.Height.ToInt(),
-		Timestamp:             block.Timestamp.ToInt(),
-		Author:                block.Miner.MustGetCommonAddress(),
-		TransactionsRoot:      *block.TransactionsRoot.ToCommonHash(),
-		DeferredStateRoot:     *block.DeferredStateRoot.ToCommonHash(),
-		DeferredReceiptsRoot:  *block.DeferredReceiptsRoot.ToCommonHash(),
-		DeferredLogsBloomHash: *block.DeferredLogsBloomHash.ToCommonHash(),
-		Blame:                 big.NewInt(int64(block.Blame)),
-		Difficulty:            block.Difficulty.ToInt(),
-		Adaptive:              block.Adaptive,
-		GasLimit:              block.GasLimit.ToInt(),
-		RefereeHashes:         referees,
-		Custom:                custom,
-		Nonce:                 block.Nonce.ToInt(),
-		PosReference:          posRef,
-	}
 }
 
 type sortableAccountSignatures []LedgerInfoLibAccountSignature

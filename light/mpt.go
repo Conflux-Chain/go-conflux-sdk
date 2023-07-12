@@ -5,7 +5,6 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/light/primitives"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/rlp"
 )
 
 func CreateTransactionsMPT(txs []types.WrapTransaction) *mpt.Node {
@@ -36,7 +35,7 @@ func CreateReceiptsMPT(epochReceipts [][]types.TransactionReceipt) ([]*mpt.Node,
 
 		for i, v := range blockReceipts {
 			key := mpt.IndexToKey(i, keyLen)
-			value, _ := rlp.EncodeToBytes(primitives.ConvertReceipt(&v))
+			value := primitives.MustRLPEncodeReceipt(&v)
 			root.Insert(key, value)
 		}
 

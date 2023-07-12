@@ -6,6 +6,7 @@ import (
 	sdk "github.com/Conflux-Chain/go-conflux-sdk"
 	"github.com/Conflux-Chain/go-conflux-sdk/light/contract"
 	"github.com/Conflux-Chain/go-conflux-sdk/light/mpt"
+	"github.com/Conflux-Chain/go-conflux-sdk/light/primitives"
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/enums"
 	"github.com/ethereum/go-ethereum/common"
@@ -59,19 +60,28 @@ func (g *ProofGenerator) CreateReceiptProofEvm(evmClient *web3go.Client, txHash 
 		return nil, ErrTransactionExecutionFailed
 	}
 
-	return g.getReceiptProof(receipt.BlockNumber, txHash.Hex())
+	pivot, err := g.lightNode.NearestPivot(nil, new(big.Int).SetUint64(receipt.BlockNumber+deferredExecutionEpochs))
+	if err != nil {
+		return nil, errors.WithMessage(err, "Failed to get nearest pivot on chain")
+	}
+
+	return CreateReceiptProofEvm(g.coreClient, txHash, receipt.BlockNumber, pivot.Uint64())
 }
 
-func (g *ProofGenerator) getReceiptProof(epochNumber uint64, txHash string) (*contract.TypesReceiptProof, error) {
+func CreateReceiptProofEvm(coreClient *sdk.Client, txHash common.Hash, epochNumber uint64, pivot uint64) (*contract.TypesReceiptProof, error) {
+	if epochNumber+deferredExecutionEpochs > pivot {
+		return nil, errors.New("invalid pivot")
+	}
+
 	epoch := types.NewEpochNumberUint64(epochNumber)
 	epochOrHash := types.NewEpochOrBlockHashWithEpoch(epoch)
 
-	epochReceipts, err := g.coreClient.Debug().GetEpochReceipts(*epochOrHash, true)
+	epochReceipts, err := coreClient.Debug().GetEpochReceipts(*epochOrHash, true)
 	if err != nil {
 		return nil, errors.WithMessagef(err, "Failed to get receipts by epoch number %v", epochNumber)
 	}
 
-	blockIndex, receipt := g.matchReceipt(epochReceipts, txHash)
+	blockIndex, receipt := matchReceipt(epochReceipts, txHash.Hex())
 	if receipt == nil {
 		return nil, nil
 	}
@@ -95,9 +105,14 @@ func (g *ProofGenerator) getReceiptProof(epochNumber uint64, txHash string) (*co
 		return nil, errors.New("Failed to generate receipt proof")
 	}
 
-	headers, err := g.getHeaderChain(epochNumber + deferredExecutionEpochs)
-	if err != nil {
-		return nil, errors.WithMessage(err, "Failed to get header chain")
+	var headers [][]byte
+	for i := epochNumber + deferredExecutionEpochs; i <= pivot; i++ {
+		block, err := coreClient.GetBlockSummaryByEpoch(types.NewEpochNumberUint64(i))
+		if err != nil {
+			return nil, errors.WithMessagef(err, "Failed to get block summary by epoch %v", i)
+		}
+
+		headers = append(headers, primitives.MustRLPEncodeBlock(block))
 	}
 
 	return &contract.TypesReceiptProof{
@@ -106,12 +121,12 @@ func (g *ProofGenerator) getReceiptProof(epochNumber uint64, txHash string) (*co
 		BlockProof:   mpt.ConvertProofNode(blockProof),
 		ReceiptsRoot: receiptsRoot,
 		Index:        receiptKey,
-		Receipt:      contract.ConvertReceipt(receipt),
+		Receipt:      primitives.MustRLPEncodeReceipt(receipt),
 		ReceiptProof: mpt.ConvertProofNode(receiptProof),
 	}, nil
 }
 
-func (ProofGenerator) matchReceipt(epochReceipts [][]types.TransactionReceipt, txHash string) (blockIndex int, receipt *types.TransactionReceipt) {
+func matchReceipt(epochReceipts [][]types.TransactionReceipt, txHash string) (blockIndex int, receipt *types.TransactionReceipt) {
 	for i, blockReceipts := range epochReceipts {
 		for _, v := range blockReceipts {
 			if v.MustGetOutcomeType() == enums.TRANSACTION_OUTCOME_SKIPPED {
@@ -127,26 +142,4 @@ func (ProofGenerator) matchReceipt(epochReceipts [][]types.TransactionReceipt, t
 	}
 
 	return 0, nil
-}
-
-func (g *ProofGenerator) getHeaderChain(epochNumber uint64) ([]contract.TypesBlockHeader, error) {
-	var chain []contract.TypesBlockHeader
-
-	pivot, err := g.lightNode.NearestPivot(nil, new(big.Int).SetUint64(epochNumber))
-	if err != nil {
-		return nil, errors.WithMessage(err, "Failed to get nearest pivot on chain")
-	}
-
-	// pivot should be >= epoch number
-
-	for i := epochNumber; i <= pivot.Uint64(); i++ {
-		block, err := g.coreClient.GetBlockSummaryByEpoch(types.NewEpochNumberUint64(i))
-		if err != nil {
-			return nil, errors.WithMessage(err, "Failed to get block summary by epoch")
-		}
-
-		chain = append(chain, contract.ConvertBlockHeader(block))
-	}
-
-	return chain, nil
 }
