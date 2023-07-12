@@ -79,7 +79,7 @@ func (r *EvmRelayer) Relay() {
 }
 
 func (r *EvmRelayer) relay(initialized bool) (relayed bool, err error) {
-	state, err := r.lightNode.ClientState(nil)
+	state, err := r.lightNode.State(nil)
 	if err != nil {
 		return false, errors.WithMessage(err, "Failed to get light node state")
 	}
@@ -110,7 +110,7 @@ func (r *EvmRelayer) relay(initialized bool) (relayed bool, err error) {
 	return relayed, nil
 }
 
-func (r *EvmRelayer) initLightNode(state *contract.ILightNodeClientState) error {
+func (r *EvmRelayer) initLightNode(state *contract.ILightNodeState) error {
 	if state.Epoch.Uint64() > 0 {
 		logrus.Debug("Light node already initialized")
 		return nil
@@ -128,11 +128,8 @@ func (r *EvmRelayer) initLightNode(state *contract.ILightNodeClientState) error 
 		return errors.WithMessage(err, "Failed to get ledger of previous epoch")
 	}
 
-	if lastEpochLedger == nil {
-		logrus.Fatal("Ledger of previous epoch not found")
-	}
-
-	if lastEpochLedger.LedgerInfo.CommitInfo.NextEpochState == nil {
+	committee, ok := contract.ConvertCommittee(lastEpochLedger)
+	if !ok {
 		logrus.Fatal("Committee not found")
 	}
 
@@ -150,10 +147,10 @@ func (r *EvmRelayer) initLightNode(state *contract.ILightNodeClientState) error 
 		logrus.Fatal("Pivot in ledger is nil")
 	}
 
-	ledger.NextEpochValidators = lastEpochLedger.NextEpochValidators
-	ledger.LedgerInfo.CommitInfo.NextEpochState = lastEpochLedger.LedgerInfo.CommitInfo.NextEpochState
-
-	tx, err := r.lightNode.Initialize(r.txOpts, r.Admin, r.LedgerInfo, r.Verifier, contract.ConvertLedger(ledger))
+	tx, err := r.lightNode.Initialize(r.txOpts,
+		r.Admin, r.LedgerInfo, r.Verifier,
+		committee, contract.ConvertLedger(ledger),
+	)
 	if err != nil {
 		return errors.WithMessage(err, "Failed to send transaction")
 	}
@@ -171,7 +168,7 @@ func (r *EvmRelayer) initLightNode(state *contract.ILightNodeClientState) error 
 	return nil
 }
 
-func (r *EvmRelayer) relayPosBlock(state *contract.ILightNodeClientState) (bool, error) {
+func (r *EvmRelayer) relayPosBlock(state *contract.ILightNodeState) (bool, error) {
 	epoch := state.Epoch.Uint64()
 	round := state.Round.Uint64() + 1
 	if r.skippedRound > 0 {
@@ -214,7 +211,7 @@ func (r *EvmRelayer) relayPosBlock(state *contract.ILightNodeClientState) (bool,
 	}
 
 	// update committee or pivot block
-	tx, err := r.lightNode.UpdateLightClient(r.txOpts, contract.ConvertLedger(ledger))
+	tx, err := r.lightNode.RelayPOS(r.txOpts, contract.ConvertLedger(ledger))
 	if err != nil {
 		return false, errors.WithMessage(err, "Failed to send transaction")
 	}
@@ -265,25 +262,8 @@ func (r *EvmRelayer) isCommitted(epoch, round uint64) (bool, error) {
 	return round <= uint64(block.Round), nil
 }
 
-func (r *EvmRelayer) RelayPoWBlocks(headers []contract.TypesBlockHeader) error {
-	if len(headers) == 0 {
-		return nil
-	}
-
-	state, err := r.lightNode.ClientState(nil)
-	if err != nil {
-		return errors.WithMessage(err, "Failed to get light node state")
-	}
-
-	if headers[0].Height.Uint64() < state.EarliestBlockNumber.Uint64() {
-		return errors.Errorf("Block height earlier than %v", state.EarliestBlockNumber.Uint64())
-	}
-
-	if headers[len(headers)-1].Height.Uint64() > state.FinalizedBlockNumber.Uint64() {
-		return errors.Errorf("Block height later than %v", state.FinalizedBlockNumber.Uint64())
-	}
-
-	tx, err := r.lightNode.UpdateBlockHeader(r.txOpts, headers)
+func (r *EvmRelayer) RelayPoWBlocks(headers [][]byte) error {
+	tx, err := r.lightNode.RelayPOW(r.txOpts, headers)
 	if err != nil {
 		return errors.WithMessage(err, "Failed to send transaction")
 	}
@@ -291,7 +271,7 @@ func (r *EvmRelayer) RelayPoWBlocks(headers []contract.TypesBlockHeader) error {
 	return r.waitForSuccess(tx.Hash())
 }
 
-func (r *EvmRelayer) removePowBlocks(state *contract.ILightNodeClientState) (bool, error) {
+func (r *EvmRelayer) removePowBlocks(state *contract.ILightNodeState) (bool, error) {
 	if state.Blocks.Cmp(state.MaxBlocks) <= 0 {
 		return false, nil
 	}

@@ -1,100 +1,12 @@
 [
     {
-      "anonymous": false,
-      "inputs": [
+      "inputs": [],
+      "name": "headerHeight",
+      "outputs": [
         {
-          "indexed": true,
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "start",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "end",
-          "type": "uint256"
-        }
-      ],
-      "name": "UpdateBlockHeader",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "epoch",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "round",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
           "internalType": "uint256",
           "name": "height",
           "type": "uint256"
-        }
-      ],
-      "name": "UpdateLightClient",
-      "type": "event"
-    },
-    {
-      "inputs": [],
-      "name": "clientState",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "uint256",
-              "name": "epoch",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "round",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "earliestBlockNumber",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "finalizedBlockNumber",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "blocks",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "maxBlocks",
-              "type": "uint256"
-            }
-          ],
-          "internalType": "struct ILightNode.ClientState",
-          "name": "",
-          "type": "tuple"
         }
       ],
       "stateMutability": "view",
@@ -104,18 +16,77 @@
       "inputs": [
         {
           "internalType": "address",
-          "name": "_controller",
+          "name": "controller",
           "type": "address"
         },
         {
           "internalType": "address",
-          "name": "_ledgerInfoUtil",
+          "name": "ledgerInfoUtil",
           "type": "address"
         },
         {
           "internalType": "address",
-          "name": "_mptVerify",
+          "name": "mptVerify",
           "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint64",
+              "name": "epoch",
+              "type": "uint64"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "bytes32",
+                  "name": "account",
+                  "type": "bytes32"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "compressedPublicKey",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "uncompressedPublicKey",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "vrfPublicKey",
+                  "type": "bytes"
+                },
+                {
+                  "internalType": "uint64",
+                  "name": "votingPower",
+                  "type": "uint64"
+                }
+              ],
+              "internalType": "struct LedgerInfoLib.ValidatorInfo[]",
+              "name": "validators",
+              "type": "tuple[]"
+            },
+            {
+              "internalType": "uint64",
+              "name": "quorumVotingPower",
+              "type": "uint64"
+            },
+            {
+              "internalType": "uint64",
+              "name": "totalVotingPower",
+              "type": "uint64"
+            },
+            {
+              "internalType": "bytes",
+              "name": "vrfSeed",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct LedgerInfoLib.EpochState",
+          "name": "committee",
+          "type": "tuple"
         },
         {
           "components": [
@@ -280,114 +251,6 @@
     {
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "limit",
-          "type": "uint256"
-        }
-      ],
-      "name": "removeBlockHeader",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "components": [
-            {
-              "internalType": "bytes32",
-              "name": "parentHash",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "uint256",
-              "name": "height",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "timestamp",
-              "type": "uint256"
-            },
-            {
-              "internalType": "address",
-              "name": "author",
-              "type": "address"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "transactionsRoot",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "deferredStateRoot",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "deferredReceiptsRoot",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "deferredLogsBloomHash",
-              "type": "bytes32"
-            },
-            {
-              "internalType": "uint256",
-              "name": "blame",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "difficulty",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bool",
-              "name": "adaptive",
-              "type": "bool"
-            },
-            {
-              "internalType": "uint256",
-              "name": "gasLimit",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bytes32[]",
-              "name": "refereeHashes",
-              "type": "bytes32[]"
-            },
-            {
-              "internalType": "bytes[]",
-              "name": "custom",
-              "type": "bytes[]"
-            },
-            {
-              "internalType": "uint256",
-              "name": "nonce",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "posReference",
-              "type": "bytes32"
-            }
-          ],
-          "internalType": "struct Types.BlockHeader[]",
-          "name": "headers",
-          "type": "tuple[]"
-        }
-      ],
-      "name": "updateBlockHeader",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
           "components": [
             {
               "internalType": "uint64",
@@ -523,6 +386,103 @@
           "type": "tuple"
         }
       ],
+      "name": "relayPOS",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes[]",
+          "name": "headers",
+          "type": "bytes[]"
+        }
+      ],
+      "name": "relayPOW",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "limit",
+          "type": "uint256"
+        }
+      ],
+      "name": "removeBlockHeader",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "state",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "epoch",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "round",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "earliestBlockNumber",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "finalizedBlockNumber",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "blocks",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxBlocks",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ILightNode.State",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "_blockHeader",
+          "type": "bytes"
+        }
+      ],
+      "name": "updateBlockHeader",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "_data",
+          "type": "bytes"
+        }
+      ],
       "name": "updateLightClient",
       "outputs": [],
       "stateMutability": "nonpayable",
@@ -550,7 +510,7 @@
       "inputs": [
         {
           "internalType": "bytes",
-          "name": "receiptProof",
+          "name": "_receiptProof",
           "type": "bytes"
         }
       ],
@@ -568,7 +528,7 @@
         },
         {
           "internalType": "bytes",
-          "name": "rlpLogs",
+          "name": "logs",
           "type": "bytes"
         }
       ],
@@ -580,91 +540,9 @@
         {
           "components": [
             {
-              "components": [
-                {
-                  "internalType": "bytes32",
-                  "name": "parentHash",
-                  "type": "bytes32"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "height",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "timestamp",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "address",
-                  "name": "author",
-                  "type": "address"
-                },
-                {
-                  "internalType": "bytes32",
-                  "name": "transactionsRoot",
-                  "type": "bytes32"
-                },
-                {
-                  "internalType": "bytes32",
-                  "name": "deferredStateRoot",
-                  "type": "bytes32"
-                },
-                {
-                  "internalType": "bytes32",
-                  "name": "deferredReceiptsRoot",
-                  "type": "bytes32"
-                },
-                {
-                  "internalType": "bytes32",
-                  "name": "deferredLogsBloomHash",
-                  "type": "bytes32"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "blame",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "difficulty",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "bool",
-                  "name": "adaptive",
-                  "type": "bool"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "gasLimit",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "bytes32[]",
-                  "name": "refereeHashes",
-                  "type": "bytes32[]"
-                },
-                {
-                  "internalType": "bytes[]",
-                  "name": "custom",
-                  "type": "bytes[]"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "nonce",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "bytes32",
-                  "name": "posReference",
-                  "type": "bytes32"
-                }
-              ],
-              "internalType": "struct Types.BlockHeader[]",
+              "internalType": "bytes[]",
               "name": "headers",
-              "type": "tuple[]"
+              "type": "bytes[]"
             },
             {
               "internalType": "bytes",
@@ -721,102 +599,9 @@
               "type": "bytes"
             },
             {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "accumulatedGasUsed",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "gasFee",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "bool",
-                  "name": "gasSponsorPaid",
-                  "type": "bool"
-                },
-                {
-                  "internalType": "bytes",
-                  "name": "logBloom",
-                  "type": "bytes"
-                },
-                {
-                  "components": [
-                    {
-                      "internalType": "address",
-                      "name": "addr",
-                      "type": "address"
-                    },
-                    {
-                      "internalType": "bytes32[]",
-                      "name": "topics",
-                      "type": "bytes32[]"
-                    },
-                    {
-                      "internalType": "bytes",
-                      "name": "data",
-                      "type": "bytes"
-                    },
-                    {
-                      "internalType": "uint8",
-                      "name": "space",
-                      "type": "uint8"
-                    }
-                  ],
-                  "internalType": "struct Types.TxLog[]",
-                  "name": "logs",
-                  "type": "tuple[]"
-                },
-                {
-                  "internalType": "uint8",
-                  "name": "outcomeStatus",
-                  "type": "uint8"
-                },
-                {
-                  "internalType": "bool",
-                  "name": "storageSponsorPaid",
-                  "type": "bool"
-                },
-                {
-                  "components": [
-                    {
-                      "internalType": "address",
-                      "name": "account",
-                      "type": "address"
-                    },
-                    {
-                      "internalType": "uint64",
-                      "name": "collaterals",
-                      "type": "uint64"
-                    }
-                  ],
-                  "internalType": "struct Types.StorageChange[]",
-                  "name": "storageCollateralized",
-                  "type": "tuple[]"
-                },
-                {
-                  "components": [
-                    {
-                      "internalType": "address",
-                      "name": "account",
-                      "type": "address"
-                    },
-                    {
-                      "internalType": "uint64",
-                      "name": "collaterals",
-                      "type": "uint64"
-                    }
-                  ],
-                  "internalType": "struct Types.StorageChange[]",
-                  "name": "storageReleased",
-                  "type": "tuple[]"
-                }
-              ],
-              "internalType": "struct Types.TxReceipt",
+              "internalType": "bytes",
               "name": "receipt",
-              "type": "tuple"
+              "type": "bytes"
             },
             {
               "components": [
@@ -867,35 +652,8 @@
       "outputs": [
         {
           "internalType": "bool",
-          "name": "success",
+          "name": "",
           "type": "bool"
-        },
-        {
-          "components": [
-            {
-              "internalType": "address",
-              "name": "addr",
-              "type": "address"
-            },
-            {
-              "internalType": "bytes32[]",
-              "name": "topics",
-              "type": "bytes32[]"
-            },
-            {
-              "internalType": "bytes",
-              "name": "data",
-              "type": "bytes"
-            },
-            {
-              "internalType": "uint8",
-              "name": "space",
-              "type": "uint8"
-            }
-          ],
-          "internalType": "struct Types.TxLog[]",
-          "name": "logs",
-          "type": "tuple[]"
         }
       ],
       "stateMutability": "view",
