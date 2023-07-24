@@ -1,9 +1,6 @@
 package contract
 
 import (
-	"bytes"
-	"sort"
-
 	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -18,26 +15,27 @@ func ConvertCommittee(ledger *postypes.LedgerInfoWithSignatures) (LedgerInfoLibE
 		return LedgerInfoLibEpochState{}, false
 	}
 
-	var validators sortableValidators
-	for k, v := range state.Verifier.AddressToValidatorInfo {
+	var validators []LedgerInfoLibValidatorInfo
+	for _, v := range ledger.NextEpochValidatorsSorted() {
+		info := state.Verifier.AddressToValidatorInfo[v]
+
 		validator := LedgerInfoLibValidatorInfo{
-			Account:               k,
-			CompressedPublicKey:   v.PublicKey,
-			UncompressedPublicKey: ledger.NextEpochValidators[k],
-			VotingPower:           uint64(v.VotingPower),
+			Account:               v,
+			CompressedPublicKey:   info.PublicKey,
+			UncompressedPublicKey: ledger.NextEpochValidators[v],
+			VotingPower:           uint64(info.VotingPower),
 		}
 
 		if len(validator.UncompressedPublicKey) == 0 {
 			return LedgerInfoLibEpochState{}, false
 		}
 
-		if v.VrfPublicKey != nil {
-			validator.VrfPublicKey = *v.VrfPublicKey
+		if info.VrfPublicKey != nil {
+			validator.VrfPublicKey = *info.VrfPublicKey
 		}
 
 		validators = append(validators, validator)
 	}
-	sort.Sort(validators)
 
 	return LedgerInfoLibEpochState{
 		Epoch:             uint64(state.Epoch),
@@ -67,31 +65,12 @@ func ConvertLedger(ledger *postypes.LedgerInfoWithSignatures) LedgerInfoLibLedge
 		result.Pivot.BlockHash = pivot.BlockHash.ToHash()
 	}
 
-	var signatures sortableAccountSignatures
-	for k, v := range ledger.Signatures {
-		signatures = append(signatures, LedgerInfoLibAccountSignature{
-			Account:            k,
-			ConsensusSignature: v,
+	for _, v := range ledger.ValidatorsSorted() {
+		result.Signatures = append(result.Signatures, LedgerInfoLibAccountSignature{
+			Account:            v,
+			ConsensusSignature: ledger.Signatures[v],
 		})
 	}
-	sort.Sort(signatures)
-	result.Signatures = signatures
 
 	return result
 }
-
-type sortableAccountSignatures []LedgerInfoLibAccountSignature
-
-func (s sortableAccountSignatures) Len() int { return len(s) }
-func (s sortableAccountSignatures) Less(i, j int) bool {
-	return bytes.Compare(s[i].Account[:], s[j].Account[:]) < 0
-}
-func (s sortableAccountSignatures) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
-
-type sortableValidators []LedgerInfoLibValidatorInfo
-
-func (s sortableValidators) Len() int { return len(s) }
-func (s sortableValidators) Less(i, j int) bool {
-	return bytes.Compare(s[i].Account[:], s[j].Account[:]) < 0
-}
-func (s sortableValidators) Swap(i, j int) { s[i], s[j] = s[j], s[i] }

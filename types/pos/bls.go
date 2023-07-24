@@ -12,8 +12,6 @@ import (
 )
 
 var (
-	errInvalidSignatureBLS = errors.New("invalid BLS signature")
-
 	bcsPrefix []byte = hexutil.MustDecode("0xcd510d1ab583c33b54fa949014601df0664857c18c4cfb228c862dd869df1b62")
 
 	hashToField_p *big.Int
@@ -87,21 +85,7 @@ func (info *LedgerInfoWithSignatures) Verify(committee Committee) (bool, error) 
 
 	var votes hexutil.Uint64
 
-	for account, signature := range info.Signatures {
-		publicKey, ok := committee.uncompressedKeys[account]
-		if !ok {
-			return false, errors.Errorf("PoS account %v not found in committee", account)
-		}
-
-		verified, err := verifyBLS(signature, publicKey, hash)
-		if err != nil {
-			return false, errors.WithMessage(err, "Failed to validate BLS signature")
-		}
-
-		if !verified {
-			return false, errInvalidSignatureBLS
-		}
-
+	for account := range info.Signatures {
 		votes += committee.state.Verifier.AddressToValidatorInfo[account].VotingPower
 	}
 
@@ -110,17 +94,42 @@ func (info *LedgerInfoWithSignatures) Verify(committee Committee) (bool, error) 
 			uint64(committee.state.Verifier.QuorumVotingPower), uint64(votes))
 	}
 
-	return true, nil
+	accPubKey, err := info.AggregatedPublicKey(committee)
+	if err != nil {
+		return false, errors.WithMessage(err, "Failed to aggregate public keys")
+	}
+
+	verified, err := verifyBLS(info.AggregatedSignature, accPubKey, hash)
+	if err != nil {
+		return false, errors.WithMessage(err, "Failed to verify BLS signature")
+	}
+
+	return verified, nil
 }
 
-func verifyBLS(signature, publicKey []byte, hash *bls12381.PointG2) (bool, error) {
-	engine := bls12381.NewPairingEngine()
+func (info *LedgerInfoWithSignatures) AggregatedPublicKey(committee Committee) (*bls12381.PointG1, error) {
+	g1 := bls12381.NewG1()
+	acc := g1.Zero()
 
-	// public key is uncompressed BLS public key in 96 bytes
-	pubKeyPointG1, err := engine.G1.FromBytes(publicKey)
-	if err != nil {
-		return false, errors.WithMessage(err, "Failed to decode public key to G1 point")
+	for _, account := range info.ValidatorsSorted() {
+		publicKey, ok := committee.uncompressedKeys[account]
+		if !ok {
+			return nil, errors.Errorf("PoS account %v not found in committee", account)
+		}
+
+		cur, err := g1.FromBytes(publicKey)
+		if err != nil {
+			return nil, errors.WithMessage(err, "Failed to decode public key to G1 point")
+		}
+
+		g1.Add(acc, acc, cur)
 	}
+
+	return acc, nil
+}
+
+func verifyBLS(signature []byte, publicKey *bls12381.PointG1, hash *bls12381.PointG2) (bool, error) {
+	engine := bls12381.NewPairingEngine()
 
 	// signature is uncompressed BLS signature in 192 bytes
 	sigPointG2, err := engine.G2.FromBytes(signature)
@@ -129,7 +138,7 @@ func verifyBLS(signature, publicKey []byte, hash *bls12381.PointG2) (bool, error
 	}
 
 	return engine.
-		AddPair(pubKeyPointG1, hash).
+		AddPair(publicKey, hash).
 		AddPairInv(engine.G1.One(), sigPointG2).
 		Check(), nil
 }

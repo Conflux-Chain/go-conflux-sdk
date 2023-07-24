@@ -1,7 +1,9 @@
 package postypes
 
 import (
+	"bytes"
 	"encoding/json"
+	"sort"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common"
@@ -254,4 +256,42 @@ type LedgerInfoWithSignatures struct {
 	// Validators with uncompressed BLS public key (in 96 bytes) if next epoch
 	// state available. Generally, this is used to verify BLS signatures at client side.
 	NextEpochValidators map[common.Hash]hexutil.Bytes `json:"nextEpochValidators"`
+	// Aggregated BLS signature in 192 bytes.
+	AggregatedSignature hexutil.Bytes `json:"aggregatedSignature"`
 }
+
+func (info *LedgerInfoWithSignatures) ValidatorsSorted() []common.Hash {
+	var accounts PoSAccounts
+
+	for k := range info.Signatures {
+		accounts = append(accounts, k)
+	}
+
+	sort.Sort(accounts)
+
+	return accounts
+}
+
+func (info *LedgerInfoWithSignatures) NextEpochValidatorsSorted() []common.Hash {
+	if info.LedgerInfo.CommitInfo.NextEpochState == nil {
+		return nil
+	}
+
+	var accounts PoSAccounts
+
+	for k := range info.LedgerInfo.CommitInfo.NextEpochState.Verifier.AddressToValidatorInfo {
+		accounts = append(accounts, k)
+	}
+
+	sort.Sort(accounts)
+
+	return accounts
+}
+
+type PoSAccounts []common.Hash
+
+func (s PoSAccounts) Len() int { return len(s) }
+func (s PoSAccounts) Less(i, j int) bool {
+	return bytes.Compare(s[i].Bytes(), s[j].Bytes()) < 0
+}
+func (s PoSAccounts) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
