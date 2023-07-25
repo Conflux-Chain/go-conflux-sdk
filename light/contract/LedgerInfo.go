@@ -30,7 +30,7 @@ var (
 
 // LedgerInfoMetaData contains all meta data concerning the LedgerInfo contract.
 var LedgerInfoMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"bytes[]\",\"name\":\"signatures\",\"type\":\"bytes[]\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"internalType\":\"bytes[]\",\"name\":\"publicKeys\",\"type\":\"bytes[]\"}],\"name\":\"batchVerifyBLS\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"round\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"executedStateId\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"timestampUsecs\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"account\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"compressedPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"uncompressedPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"vrfPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"votingPower\",\"type\":\"uint64\"}],\"internalType\":\"structLedgerInfoLib.ValidatorInfo[]\",\"name\":\"validators\",\"type\":\"tuple[]\"},{\"internalType\":\"uint64\",\"name\":\"quorumVotingPower\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"totalVotingPower\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"vrfSeed\",\"type\":\"bytes\"}],\"internalType\":\"structLedgerInfoLib.EpochState\",\"name\":\"nextEpochState\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"height\",\"type\":\"uint64\"}],\"internalType\":\"structLedgerInfoLib.Decision\",\"name\":\"pivot\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"consensusDataHash\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"account\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"consensusSignature\",\"type\":\"bytes\"}],\"internalType\":\"structLedgerInfoLib.AccountSignature[]\",\"name\":\"signatures\",\"type\":\"tuple[]\"}],\"internalType\":\"structLedgerInfoLib.LedgerInfoWithSignatures\",\"name\":\"ledgerInfo\",\"type\":\"tuple\"}],\"name\":\"bcsEncode\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"precompile\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"outputLen\",\"type\":\"uint256\"}],\"name\":\"callPrecompile\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"expandMessageXmd\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"hashToCurve\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"hashToField\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"publicKey\",\"type\":\"bytes\"}],\"name\":\"verifyBLS\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"g2Message\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"publicKey\",\"type\":\"bytes\"}],\"name\":\"verifyBLSHashed\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"internalType\":\"bytes[]\",\"name\":\"publicKeys\",\"type\":\"bytes[]\"}],\"name\":\"aggregateVerifyBLS\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes[]\",\"name\":\"signatures\",\"type\":\"bytes[]\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"internalType\":\"bytes[]\",\"name\":\"publicKeys\",\"type\":\"bytes[]\"}],\"name\":\"batchVerifyBLS\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"round\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"id\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"executedStateId\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"timestampUsecs\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"uint64\",\"name\":\"epoch\",\"type\":\"uint64\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"account\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"compressedPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"uncompressedPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"vrfPublicKey\",\"type\":\"bytes\"},{\"internalType\":\"uint64\",\"name\":\"votingPower\",\"type\":\"uint64\"}],\"internalType\":\"structLedgerInfoLib.ValidatorInfo[]\",\"name\":\"validators\",\"type\":\"tuple[]\"},{\"internalType\":\"uint64\",\"name\":\"quorumVotingPower\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"totalVotingPower\",\"type\":\"uint64\"},{\"internalType\":\"bytes\",\"name\":\"vrfSeed\",\"type\":\"bytes\"}],\"internalType\":\"structLedgerInfoLib.EpochState\",\"name\":\"nextEpochState\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint64\",\"name\":\"height\",\"type\":\"uint64\"}],\"internalType\":\"structLedgerInfoLib.Decision\",\"name\":\"pivot\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"consensusDataHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32[]\",\"name\":\"accounts\",\"type\":\"bytes32[]\"},{\"internalType\":\"bytes\",\"name\":\"aggregatedSignature\",\"type\":\"bytes\"}],\"internalType\":\"structLedgerInfoLib.LedgerInfoWithSignatures\",\"name\":\"ledgerInfo\",\"type\":\"tuple\"}],\"name\":\"bcsEncode\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"precompile\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"outputLen\",\"type\":\"uint256\"}],\"name\":\"callPrecompile\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"expandMessageXmd\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"hashToCurve\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"}],\"name\":\"hashToField\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"message\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"publicKey\",\"type\":\"bytes\"}],\"name\":\"verifyBLS\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"g2Message\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"publicKey\",\"type\":\"bytes\"}],\"name\":\"verifyBLSHashed\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // LedgerInfoABI is the input ABI used to generate the binding from.
@@ -179,6 +179,37 @@ func (_LedgerInfo *LedgerInfoTransactorRaw) Transact(opts *bind.TransactOpts, me
 	return _LedgerInfo.Contract.contract.Transact(opts, method, params...)
 }
 
+// AggregateVerifyBLS is a free data retrieval call binding the contract method 0x4e10fde8.
+//
+// Solidity: function aggregateVerifyBLS(bytes signature, bytes message, bytes[] publicKeys) view returns(bool)
+func (_LedgerInfo *LedgerInfoCaller) AggregateVerifyBLS(opts *bind.CallOpts, signature []byte, message []byte, publicKeys [][]byte) (bool, error) {
+	var out []interface{}
+	err := _LedgerInfo.contract.Call(opts, &out, "aggregateVerifyBLS", signature, message, publicKeys)
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
+}
+
+// AggregateVerifyBLS is a free data retrieval call binding the contract method 0x4e10fde8.
+//
+// Solidity: function aggregateVerifyBLS(bytes signature, bytes message, bytes[] publicKeys) view returns(bool)
+func (_LedgerInfo *LedgerInfoSession) AggregateVerifyBLS(signature []byte, message []byte, publicKeys [][]byte) (bool, error) {
+	return _LedgerInfo.Contract.AggregateVerifyBLS(&_LedgerInfo.CallOpts, signature, message, publicKeys)
+}
+
+// AggregateVerifyBLS is a free data retrieval call binding the contract method 0x4e10fde8.
+//
+// Solidity: function aggregateVerifyBLS(bytes signature, bytes message, bytes[] publicKeys) view returns(bool)
+func (_LedgerInfo *LedgerInfoCallerSession) AggregateVerifyBLS(signature []byte, message []byte, publicKeys [][]byte) (bool, error) {
+	return _LedgerInfo.Contract.AggregateVerifyBLS(&_LedgerInfo.CallOpts, signature, message, publicKeys)
+}
+
 // BatchVerifyBLS is a free data retrieval call binding the contract method 0xdd003b5f.
 //
 // Solidity: function batchVerifyBLS(bytes[] signatures, bytes message, bytes[] publicKeys) view returns(bool)
@@ -210,9 +241,9 @@ func (_LedgerInfo *LedgerInfoCallerSession) BatchVerifyBLS(signatures [][]byte, 
 	return _LedgerInfo.Contract.BatchVerifyBLS(&_LedgerInfo.CallOpts, signatures, message, publicKeys)
 }
 
-// BcsEncode is a free data retrieval call binding the contract method 0x838eeceb.
+// BcsEncode is a free data retrieval call binding the contract method 0x1690684f.
 //
-// Solidity: function bcsEncode((uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,(bytes32,bytes)[]) ledgerInfo) pure returns(bytes)
+// Solidity: function bcsEncode((uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,bytes32[],bytes) ledgerInfo) pure returns(bytes)
 func (_LedgerInfo *LedgerInfoCaller) BcsEncode(opts *bind.CallOpts, ledgerInfo LedgerInfoLibLedgerInfoWithSignatures) ([]byte, error) {
 	var out []interface{}
 	err := _LedgerInfo.contract.Call(opts, &out, "bcsEncode", ledgerInfo)
@@ -227,16 +258,16 @@ func (_LedgerInfo *LedgerInfoCaller) BcsEncode(opts *bind.CallOpts, ledgerInfo L
 
 }
 
-// BcsEncode is a free data retrieval call binding the contract method 0x838eeceb.
+// BcsEncode is a free data retrieval call binding the contract method 0x1690684f.
 //
-// Solidity: function bcsEncode((uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,(bytes32,bytes)[]) ledgerInfo) pure returns(bytes)
+// Solidity: function bcsEncode((uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,bytes32[],bytes) ledgerInfo) pure returns(bytes)
 func (_LedgerInfo *LedgerInfoSession) BcsEncode(ledgerInfo LedgerInfoLibLedgerInfoWithSignatures) ([]byte, error) {
 	return _LedgerInfo.Contract.BcsEncode(&_LedgerInfo.CallOpts, ledgerInfo)
 }
 
-// BcsEncode is a free data retrieval call binding the contract method 0x838eeceb.
+// BcsEncode is a free data retrieval call binding the contract method 0x1690684f.
 //
-// Solidity: function bcsEncode((uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,(bytes32,bytes)[]) ledgerInfo) pure returns(bytes)
+// Solidity: function bcsEncode((uint64,uint64,bytes32,bytes32,uint64,uint64,(uint64,(bytes32,bytes,bytes,bytes,uint64)[],uint64,uint64,bytes),(bytes32,uint64),bytes32,bytes32[],bytes) ledgerInfo) pure returns(bytes)
 func (_LedgerInfo *LedgerInfoCallerSession) BcsEncode(ledgerInfo LedgerInfoLibLedgerInfoWithSignatures) ([]byte, error) {
 	return _LedgerInfo.Contract.BcsEncode(&_LedgerInfo.CallOpts, ledgerInfo)
 }

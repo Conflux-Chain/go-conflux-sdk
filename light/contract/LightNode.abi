@@ -1,6 +1,19 @@
 [
     {
       "inputs": [],
+      "name": "clientState",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "headerHeight",
       "outputs": [
         {
@@ -202,21 +215,14 @@
               "type": "bytes32"
             },
             {
-              "components": [
-                {
-                  "internalType": "bytes32",
-                  "name": "account",
-                  "type": "bytes32"
-                },
-                {
-                  "internalType": "bytes",
-                  "name": "consensusSignature",
-                  "type": "bytes"
-                }
-              ],
-              "internalType": "struct LedgerInfoLib.AccountSignature[]",
-              "name": "signatures",
-              "type": "tuple[]"
+              "internalType": "bytes32[]",
+              "name": "accounts",
+              "type": "bytes32[]"
+            },
+            {
+              "internalType": "bytes",
+              "name": "aggregatedSignature",
+              "type": "bytes"
             }
           ],
           "internalType": "struct LedgerInfoLib.LedgerInfoWithSignatures",
@@ -364,21 +370,14 @@
               "type": "bytes32"
             },
             {
-              "components": [
-                {
-                  "internalType": "bytes32",
-                  "name": "account",
-                  "type": "bytes32"
-                },
-                {
-                  "internalType": "bytes",
-                  "name": "consensusSignature",
-                  "type": "bytes"
-                }
-              ],
-              "internalType": "struct LedgerInfoLib.AccountSignature[]",
-              "name": "signatures",
-              "type": "tuple[]"
+              "internalType": "bytes32[]",
+              "name": "accounts",
+              "type": "bytes32[]"
+            },
+            {
+              "internalType": "bytes",
+              "name": "aggregatedSignature",
+              "type": "bytes"
             }
           ],
           "internalType": "struct LedgerInfoLib.LedgerInfoWithSignatures",

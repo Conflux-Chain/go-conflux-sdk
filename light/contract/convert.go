@@ -1,9 +1,6 @@
 package contract
 
 import (
-	"bytes"
-	"sort"
-
 	postypes "github.com/Conflux-Chain/go-conflux-sdk/types/pos"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -18,26 +15,28 @@ func ConvertCommittee(ledger *postypes.LedgerInfoWithSignatures) (LedgerInfoLibE
 		return LedgerInfoLibEpochState{}, false
 	}
 
-	var validators sortableValidators
-	for k, v := range state.Verifier.AddressToValidatorInfo {
-		validator := LedgerInfoLibValidatorInfo{
-			Account:               k,
-			CompressedPublicKey:   v.PublicKey,
-			UncompressedPublicKey: ledger.NextEpochValidators[k],
-			VotingPower:           uint64(v.VotingPower),
-		}
+	var validators []LedgerInfoLibValidatorInfo
+	for _, v := range ledger.NextEpochValidatorsSorted() {
+		info := state.Verifier.AddressToValidatorInfo[v]
 
-		if len(validator.UncompressedPublicKey) == 0 {
+		uncompressedPubKey, ok := ledger.NextEpochValidators[v]
+		if !ok {
 			return LedgerInfoLibEpochState{}, false
 		}
 
-		if v.VrfPublicKey != nil {
-			validator.VrfPublicKey = *v.VrfPublicKey
+		validator := LedgerInfoLibValidatorInfo{
+			Account:               v,
+			CompressedPublicKey:   info.PublicKey,
+			UncompressedPublicKey: ABIEncodePublicKey(uncompressedPubKey),
+			VotingPower:           uint64(info.VotingPower),
+		}
+
+		if info.VrfPublicKey != nil {
+			validator.VrfPublicKey = *info.VrfPublicKey
 		}
 
 		validators = append(validators, validator)
 	}
-	sort.Sort(validators)
 
 	return LedgerInfoLibEpochState{
 		Epoch:             uint64(state.Epoch),
@@ -67,31 +66,38 @@ func ConvertLedger(ledger *postypes.LedgerInfoWithSignatures) LedgerInfoLibLedge
 		result.Pivot.BlockHash = pivot.BlockHash.ToHash()
 	}
 
-	var signatures sortableAccountSignatures
-	for k, v := range ledger.Signatures {
-		signatures = append(signatures, LedgerInfoLibAccountSignature{
-			Account:            k,
-			ConsensusSignature: v,
-		})
+	result.AggregatedSignature = ABIEncodeSignature(ledger.AggregatedSignature)
+	for _, v := range ledger.ValidatorsSorted() {
+		result.Accounts = append(result.Accounts, v)
 	}
-	sort.Sort(signatures)
-	result.Signatures = signatures
 
 	return result
 }
 
-type sortableAccountSignatures []LedgerInfoLibAccountSignature
+func ABIEncodeSignature(signature []byte) []byte {
+	if len(signature) != 192 {
+		return signature
+	}
 
-func (s sortableAccountSignatures) Len() int { return len(s) }
-func (s sortableAccountSignatures) Less(i, j int) bool {
-	return bytes.Compare(s[i].Account[:], s[j].Account[:]) < 0
+	encoded := make([]byte, 256)
+
+	copy(encoded[16:64], signature[:48])
+	copy(encoded[80:128], signature[48:96])
+	copy(encoded[144:192], signature[96:144])
+	copy(encoded[208:256], signature[144:192])
+
+	return encoded
 }
-func (s sortableAccountSignatures) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
-type sortableValidators []LedgerInfoLibValidatorInfo
+func ABIEncodePublicKey(publicKey []byte) []byte {
+	if len(publicKey) != 96 {
+		return publicKey
+	}
 
-func (s sortableValidators) Len() int { return len(s) }
-func (s sortableValidators) Less(i, j int) bool {
-	return bytes.Compare(s[i].Account[:], s[j].Account[:]) < 0
+	encoded := make([]byte, 128)
+
+	copy(encoded[16:64], publicKey[:48])
+	copy(encoded[80:128], publicKey[48:])
+
+	return encoded
 }
-func (s sortableValidators) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
