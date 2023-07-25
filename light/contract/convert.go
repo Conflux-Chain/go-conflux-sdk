@@ -20,19 +20,23 @@ func ConvertCommittee(ledger *postypes.LedgerInfoWithSignatures) (LedgerInfoLibE
 		info := state.Verifier.AddressToValidatorInfo[v]
 
 		validator := LedgerInfoLibValidatorInfo{
-			Account:               v,
-			CompressedPublicKey:   info.PublicKey,
-			UncompressedPublicKey: ledger.NextEpochValidators[v],
-			VotingPower:           uint64(info.VotingPower),
-		}
-
-		if len(validator.UncompressedPublicKey) == 0 {
-			return LedgerInfoLibEpochState{}, false
+			Account:             v,
+			CompressedPublicKey: info.PublicKey,
+			VotingPower:         uint64(info.VotingPower),
 		}
 
 		if info.VrfPublicKey != nil {
 			validator.VrfPublicKey = *info.VrfPublicKey
 		}
+
+		uncompressedPubKey, ok := ledger.NextEpochValidators[v]
+		if !ok {
+			return LedgerInfoLibEpochState{}, false
+		}
+
+		validator.UncompressedPublicKey = make([]byte, 128)
+		copy(validator.UncompressedPublicKey[16:64], uncompressedPubKey[:48])
+		copy(validator.UncompressedPublicKey[80:128], uncompressedPubKey[48:])
 
 		validators = append(validators, validator)
 	}
@@ -65,11 +69,13 @@ func ConvertLedger(ledger *postypes.LedgerInfoWithSignatures) LedgerInfoLibLedge
 		result.Pivot.BlockHash = pivot.BlockHash.ToHash()
 	}
 
+	result.AggregatedSignature = make([]byte, 256)
+	copy(result.AggregatedSignature[16:64], ledger.AggregatedSignature[:48])
+	copy(result.AggregatedSignature[80:128], ledger.AggregatedSignature[48:96])
+	copy(result.AggregatedSignature[144:192], ledger.AggregatedSignature[96:144])
+	copy(result.AggregatedSignature[208:256], ledger.AggregatedSignature[144:192])
 	for _, v := range ledger.ValidatorsSorted() {
-		result.Signatures = append(result.Signatures, LedgerInfoLibAccountSignature{
-			Account:            v,
-			ConsensusSignature: ledger.Signatures[v],
-		})
+		result.Accounts = append(result.Accounts, v)
 	}
 
 	return result
