@@ -38,6 +38,11 @@ type Committee struct {
 	uncompressedKeys map[common.Hash]hexutil.Bytes // pos account => uncompressed BLS public key
 }
 
+func (c *Committee) GetPublicKey(account common.Hash) (pubKey []byte, ok bool) {
+	pubKey, ok = c.uncompressedKeys[account]
+	return
+}
+
 func (info *LedgerInfoWithSignatures) NextCommittee() (Committee, bool) {
 	if info.LedgerInfo.CommitInfo.NextEpochState == nil {
 		return Committee{}, false
