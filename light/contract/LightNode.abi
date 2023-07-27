@@ -58,11 +58,6 @@
                 },
                 {
                   "internalType": "bytes",
-                  "name": "compressedPublicKey",
-                  "type": "bytes"
-                },
-                {
-                  "internalType": "bytes",
                   "name": "uncompressedPublicKey",
                   "type": "bytes"
                 },
@@ -146,11 +141,6 @@
                       "internalType": "bytes32",
                       "name": "account",
                       "type": "bytes32"
-                    },
-                    {
-                      "internalType": "bytes",
-                      "name": "compressedPublicKey",
-                      "type": "bytes"
                     },
                     {
                       "internalType": "bytes",
@@ -301,11 +291,6 @@
                       "internalType": "bytes32",
                       "name": "account",
                       "type": "bytes32"
-                    },
-                    {
-                      "internalType": "bytes",
-                      "name": "compressedPublicKey",
-                      "type": "bytes"
                     },
                     {
                       "internalType": "bytes",
