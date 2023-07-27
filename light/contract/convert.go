@@ -26,7 +26,6 @@ func ConvertCommittee(ledger *postypes.LedgerInfoWithSignatures) (LedgerInfoLibE
 
 		validator := LedgerInfoLibValidatorInfo{
 			Account:               v,
-			CompressedPublicKey:   info.PublicKey,
 			UncompressedPublicKey: ABIEncodePublicKey(uncompressedPubKey),
 			VotingPower:           uint64(info.VotingPower),
 		}
