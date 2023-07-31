@@ -119,6 +119,15 @@ func (s *Sponsor) IsAllWhitelisted(option *types.ContractMethodCallOption, contr
 	return result, nil
 }
 
+func (s *Sponsor) GetAvailableStoragePoints(option *types.ContractMethodCallOption, address types.Address) (*big.Int, error) {
+	var result *big.Int
+	err := s.Call(option, &result, "getAvailableStoragePoints", address.MustGetCommonAddress())
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // AddPrivilegeByAdmin for admin adds user to whitelist
 func (s *Sponsor) AddPrivilegeByAdmin(option *types.ContractMethodSendOption, contractAddr types.Address, userAddresses []types.Address) (types.Hash, error) {
 	userAddressesComm := make([]common.Address, 0)
