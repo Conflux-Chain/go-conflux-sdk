@@ -22,7 +22,7 @@
     - [Batch Call snd Send Transactions](docs/transactions/batch_call_and_send.md)
 - Other
     - [Call/BatchCall RPC Hook](docs/other/middlewire.md)
-    - [Conflux Addreess](https://app.gitbook.com/o/-M_3ceuxf0yHyWGZk0em/s/lpwHIUPNb7e6SBw47wGP/notes/conflux-address)
+    - [Conflux Addreess](https://docs.confluxnetwork.org/crypto-notes/notes/conflux-address)
 - [Conflux-ABIGEN](docs/cfxabigen.md)
 - [ChangeLog](changeLog.md)
 - [References](docs/references.md)
