@@ -76,8 +76,9 @@ type RpcTermData struct {
 }
 
 type VoteParamsInfo struct {
-	PowBaseReward *hexutil.Big `json:"powBaseReward"`
-	InterestRate  *hexutil.Big `json:"interestRate"`
+	PowBaseReward    *hexutil.Big `json:"powBaseReward"`
+	InterestRate     *hexutil.Big `json:"interestRate"`
+	StoragePointProp *hexutil.Big `json:"storagePointProp"`
 }
 
 type Block struct {
@@ -206,9 +207,9 @@ type EpochState struct {
 	VrfSeed  hexutil.Bytes     `json:"vrfSeed"`
 }
 
-/// This structure contains all the information needed for tracking a block
-/// without having access to the block or its execution output state. It
-/// assumes that the block is the last block executed within the ledger.
+// / This structure contains all the information needed for tracking a block
+// / without having access to the block or its execution output state. It
+// / assumes that the block is the last block executed within the ledger.
 type BlockInfo struct {
 	/// Epoch number corresponds to the set of validators that are active for
 	/// this block.
@@ -240,11 +241,11 @@ type LedgerInfo struct {
 	ConsensusDataHash hexutil.Bytes `json:"consensusDataHash"`
 }
 
-/// The validator node returns this structure which includes signatures
-/// from validators that confirm the state.  The client needs to only pass back
-/// the LedgerInfo element since the validator node doesn't need to know the
-/// signatures again when the client performs a query, those are only there for
-/// the client to be able to verify the state
+// / The validator node returns this structure which includes signatures
+// / from validators that confirm the state.  The client needs to only pass back
+// / the LedgerInfo element since the validator node doesn't need to know the
+// / signatures again when the client performs a query, those are only there for
+// / the client to be able to verify the state
 type LedgerInfoWithSignatures struct {
 	LedgerInfo LedgerInfo `json:"ledgerInfo"`
 	// The validator is identified by its account address: in order to verify
