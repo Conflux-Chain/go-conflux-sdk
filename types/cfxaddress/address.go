@@ -98,7 +98,7 @@ func NewFromBase32(base32Str string) (cfxAddress Address, err error) {
 		return cfxAddress, errors.Errorf("base32 string %v is invalid format", base32Str)
 	}
 
-	cfxAddress.networkType, err = NewNetowrkType(parts[0])
+	cfxAddress.networkType, err = NewNetworkType(parts[0])
 	if err != nil {
 		return cfxAddress, errors.Wrapf(err, "failed to get network type of %v", parts[0])
 	}
