@@ -40,6 +40,7 @@ type Client struct {
 	networkID *uint32
 	chainID   *uint32
 	option    ClientOption
+	context   context.Context
 
 	RpcTraceClient
 	rpcPosClient    RpcPosClient
@@ -65,29 +66,30 @@ type ClientOption struct {
 }
 
 // NewClient creates an instance of Client with specified conflux node url, it will creat account manager if option.KeystorePath not empty.
-// 	client, err := sdk.NewClient("https://test.confluxrpc.com", sdk.ClientOption{
-// 	    KeystorePath: "your keystore folder path",
-// 		RetryCount	: 3,
-// 	})
+//
+//	client, err := sdk.NewClient("https://test.confluxrpc.com", sdk.ClientOption{
+//	    KeystorePath: "your keystore folder path",
+//		RetryCount	: 3,
+//	})
 //	// query rpc
-// 	epoch, err := client.GetEpochNumber()
-// 	if err != nil {
-// 		panic(err)
-// 	}
+//	epoch, err := client.GetEpochNumber()
+//	if err != nil {
+//		panic(err)
+//	}
 //	// send transaction
-// 	chainID, err := client.GetNetworkID()
-// 	if err!=nil {
-// 	    panic(err)
-// 	}
-// 	from, err :=client.AccountManger().GetDefault()
-// 	if err!=nil {
-// 	    panic(err)
-// 	}
-// 	utx, err := client.CreateUnsignedTransaction(*from, cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d", chainID), types.NewBigInt(1), nil)
-// 	if err!=nil {
-// 	    panic(err)
-// 	}
-// 	txhash, err := client.SendTransaction(utx)
+//	chainID, err := client.GetNetworkID()
+//	if err!=nil {
+//	    panic(err)
+//	}
+//	from, err :=client.AccountManger().GetDefault()
+//	if err!=nil {
+//	    panic(err)
+//	}
+//	utx, err := client.CreateUnsignedTransaction(*from, cfxaddress.MustNewFromHex("0x1cad0b19bb29d4674531d6f115237e16afce377d", chainID), types.NewBigInt(1), nil)
+//	if err!=nil {
+//	    panic(err)
+//	}
+//	txhash, err := client.SendTransaction(utx)
 func NewClient(nodeURL string, option ...ClientOption) (*Client, error) {
 	realOption := ClientOption{}
 	if len(option) > 0 {
@@ -166,6 +168,20 @@ func newClientWithOption(nodeURL string, clientOption ClientOption) (*Client, er
 	return &client, nil
 }
 
+// WithContext creates a new Client with specified context
+func (client *Client) WithContext(ctx context.Context) *Client {
+	_client := *client
+	_client.context = ctx
+	return &_client
+}
+
+func (client *Client) getContext() context.Context {
+	if client.context == nil {
+		return context.Background()
+	}
+	return client.context
+}
+
 // Provider returns the middlewarable provider
 func (client *Client) Provider() *providers.MiddlewarableProvider {
 	return client.MiddlewarableProvider
@@ -239,8 +255,7 @@ func (client *Client) MustNewAddress(base32OrHex string) types.Address {
 //
 // You could use UseCallRpcMiddleware to add middleware for hooking CallRPC
 func (client *Client) CallRPC(result interface{}, method string, args ...interface{}) error {
-	// return client.callRpcHandler.Handle(context.Background(), result, method, args...)
-	return client.MiddlewarableProvider.CallContext(context.Background(), result, method, args...)
+	return client.MiddlewarableProvider.CallContext(client.getContext(), result, method, args...)
 }
 
 // BatchCallRPC sends all given requests as a single batch and waits for the server
@@ -253,8 +268,7 @@ func (client *Client) CallRPC(result interface{}, method string, args ...interfa
 //
 // You could use UseBatchCallRpcMiddleware to add middleware for hooking BatchCallRPC
 func (client *Client) BatchCallRPC(b []rpc.BatchElem) error {
-	// return client.batchCallRpcHandler.Handle(context.Background(), b)
-	err := client.MiddlewarableProvider.BatchCallContext(context.Background(), b)
+	err := client.MiddlewarableProvider.BatchCallContext(client.getContext(), b)
 	if err != nil {
 		return err
 	}
@@ -1193,41 +1207,41 @@ func (client *Client) BatchGetBlockConfirmationRisk(blockhashes []types.Hash) (m
 
 // SubscribeNewHeads subscribes all new block headers participating in the consensus.
 func (client *Client) SubscribeNewHeads(channel chan types.BlockHeader) (*rpc.ClientSubscription, error) {
-	return client.Subscribe(context.Background(), "cfx", channel, "newHeads")
+	return client.Subscribe(client.getContext(), "cfx", channel, "newHeads")
 }
 
 // SubscribeEpochs subscribes consensus results: the total order of blocks, as expressed by a sequence of epochs. Currently subscriptionEpochType only support "latest_mined" and "latest_state"
 func (client *Client) SubscribeEpochs(channel chan types.WebsocketEpochResponse, subscriptionEpochType ...types.Epoch) (*rpc.ClientSubscription, error) {
 	if len(subscriptionEpochType) > 0 {
-		return client.Subscribe(context.Background(), "cfx", channel, "epochs", subscriptionEpochType[0].String())
+		return client.Subscribe(client.getContext(), "cfx", channel, "epochs", subscriptionEpochType[0].String())
 	}
-	return client.Subscribe(context.Background(), "cfx", channel, "epochs")
+	return client.Subscribe(client.getContext(), "cfx", channel, "epochs")
 }
 
 // SubscribeLogs subscribes all logs matching a certain filter, in order.
 func (client *Client) SubscribeLogs(channel chan types.SubscriptionLog, filter types.LogFilter) (*rpc.ClientSubscription, error) {
-	return client.Subscribe(context.Background(), "cfx", channel, "logs", filter)
+	return client.Subscribe(client.getContext(), "cfx", channel, "logs", filter)
 }
 
 // SubscribeNewHeadsWitReconn subscribes all new block headers participating in the consensus.
 // It will auto re-subscribe if lost connect.
 func (client *Client) SubscribeNewHeadsWitReconn(channel chan types.BlockHeader) *rpc.ReconnClientSubscription {
-	return client.SubscribeWithReconn(context.Background(), "cfx", channel, "newHeads")
+	return client.SubscribeWithReconn(client.getContext(), "cfx", channel, "newHeads")
 }
 
 // SubscribeEpochsWithReconn subscribes consensus results: the total order of blocks, as expressed by a sequence of epochs. Currently subscriptionEpochType only support "latest_mined" and "latest_state"
 // It will auto re-subscribe if lost connect.
 func (client *Client) SubscribeEpochsWithReconn(channel chan types.WebsocketEpochResponse, subscriptionEpochType ...types.Epoch) *rpc.ReconnClientSubscription {
 	if len(subscriptionEpochType) > 0 {
-		return client.SubscribeWithReconn(context.Background(), "cfx", channel, "epochs", subscriptionEpochType[0].String())
+		return client.SubscribeWithReconn(client.getContext(), "cfx", channel, "epochs", subscriptionEpochType[0].String())
 	}
-	return client.SubscribeWithReconn(context.Background(), "cfx", channel, "epochs")
+	return client.SubscribeWithReconn(client.getContext(), "cfx", channel, "epochs")
 }
 
 // SubscribeLogs subscribes all logs matching a certain filter, in order.
 // It will auto re-subscribe if lost connect.
 func (client *Client) SubscribeLogsWithReconn(channel chan types.SubscriptionLog, filter types.LogFilter) *rpc.ReconnClientSubscription {
-	return client.SubscribeWithReconn(context.Background(), "cfx", channel, "logs", filter)
+	return client.SubscribeWithReconn(client.getContext(), "cfx", channel, "logs", filter)
 }
 
 // === helper methods ===
