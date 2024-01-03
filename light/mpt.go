@@ -34,7 +34,7 @@ func CreateReceiptsMPT(epochReceipts [][]types.TransactionReceipt) ([]*mpt.Node,
 		keyLen := mpt.MinReprBytes(len(blockReceipts))
 
 		for i, v := range blockReceipts {
-			key := mpt.IndexToKey(i, keyLen)
+			key := mpt.ToIndexBytes(i, keyLen)
 			value := primitives.MustRLPEncodeReceipt(&v)
 			root.Insert(key, value)
 		}
@@ -45,7 +45,7 @@ func CreateReceiptsMPT(epochReceipts [][]types.TransactionReceipt) ([]*mpt.Node,
 	var root mpt.Node
 	keyLen := mpt.MinReprBytes(len(subtrees))
 	for i, v := range subtrees {
-		key := mpt.IndexToKey(i, keyLen)
+		key := mpt.ToIndexBytes(i, keyLen)
 		value := v.Hash().Bytes()
 		root.Insert(key, value)
 	}
