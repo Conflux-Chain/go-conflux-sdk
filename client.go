@@ -63,6 +63,8 @@ type ClientOption struct {
 	MaxConnectionPerHost int
 
 	Logger io.Writer
+
+	CircuitBreakerOption *providers.DefaultCircuitBreakerOption
 }
 
 // NewClient creates an instance of Client with specified conflux node url, it will creat account manager if option.KeystorePath not empty.
@@ -1396,11 +1398,17 @@ func get1stU64Ify(values []hexutil.Uint64) *hexutil.Uint64 {
 }
 
 func (c *ClientOption) genProviderOption() *providers.Option {
-	return &providers.Option{
+	o := &providers.Option{
 		RequestTimeout:       c.RequestTimeout,
 		RetryCount:           c.RetryCount,
 		RetryInterval:        c.RetryInterval,
 		MaxConnectionPerHost: c.MaxConnectionPerHost,
 		Logger:               c.Logger,
 	}
+
+	if c.CircuitBreakerOption != nil {
+		o.CircuitBreaker = providers.NewDefaultCircuitBreaker(*c.CircuitBreakerOption)
+	}
+
+	return o
 }

@@ -6,7 +6,7 @@ require (
 	bou.ke/monkey v1.0.2
 	github.com/ethereum/go-ethereum v1.10.15
 	github.com/mcuadros/go-defaults v1.2.0
-	github.com/openweb3/go-rpc-provider v0.3.1
+	github.com/openweb3/go-rpc-provider v0.3.2
 	github.com/openweb3/go-sdk-common v0.0.0-20220720074746-a7134e1d372c
 	github.com/openweb3/web3go v0.2.5
 	github.com/pkg/errors v0.9.1
@@ -83,7 +83,3 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
-
-// replace github.com/openweb3/go-sdk-common => ../go-sdk-common
-// replace github.com/ethereum/go-ethereum => ../../ethereum/go-ethereum
-// replace github.com/openweb3/go-rpc-provider v0.3.1 => ../go-rpc-provider
