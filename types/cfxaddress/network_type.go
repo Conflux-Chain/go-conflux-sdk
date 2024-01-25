@@ -28,12 +28,14 @@ const (
 	NetworkTypeMainnetPrefix NetworkType = "cfx"
 	NetworkTypeTestNetPrefix NetworkType = "cfxtest"
 
-	NetowrkTypeMainnetID uint32 = 1029
+	// Deprecated: use NetworkTypeMainnetID instead, this constant will be removed in the future
+	NetowrkTypeMainnetID uint32 = NetworkTypeMainnetID
+	NetworkTypeMainnetID uint32 = 1029
 	NetworkTypeTestnetID uint32 = 1
 )
 
-// NewNetowrkType creates network type by string
-func NewNetowrkType(netType string) (NetworkType, error) {
+// NewNetworkType creates network type by string
+func NewNetworkType(netType string) (NetworkType, error) {
 	if netType == NetworkTypeMainnetPrefix.String() || netType == NetworkTypeTestNetPrefix.String() {
 		return NetworkType(netType), nil
 	}
@@ -44,11 +46,17 @@ func NewNetowrkType(netType string) (NetworkType, error) {
 	return NetworkType(netType), nil
 }
 
+// NewNetowrkType creates network type by string
+// Deprecated: use NewNetworkType instead, this function will be removed in the future
+func NewNetowrkType(netType string) (NetworkType, error) {
+	return NewNetworkType(netType)
+}
+
 // NewNetworkTypeByID creates network type by network ID
 func NewNetworkTypeByID(networkID uint32) NetworkType {
 	var nt NetworkType
 	switch networkID {
-	case NetowrkTypeMainnetID:
+	case NetworkTypeMainnetID:
 		nt = NetworkTypeMainnetPrefix
 	case NetworkTypeTestnetID:
 		nt = NetworkTypeTestNetPrefix
@@ -62,7 +70,7 @@ func NewNetworkTypeByID(networkID uint32) NetworkType {
 func (n NetworkType) ToNetworkID() (uint32, error) {
 	switch n {
 	case NetworkTypeMainnetPrefix:
-		return NetowrkTypeMainnetID, nil
+		return NetworkTypeMainnetID, nil
 	case NetworkTypeTestNetPrefix:
 		return NetworkTypeTestnetID, nil
 	default:
