@@ -1,5 +1,17 @@
 Go-conflux-sdk Change Log
 ============
+
+v1.5.9
+------------
+-   Support circuit breaker when creating client
+-   Client support WithContext for attach context on calling rpc
+
+v1.5.8
+------------
+-   Update light node functions
+-   Sponsor contract supports GetAvailableStoragePoints
+
+
 v1.5.7
 ------------
 -   Support light POS relay
