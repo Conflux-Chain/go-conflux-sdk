@@ -151,7 +151,7 @@ type RpcTrace interface {
 
 type RpcPos interface {
 	GetStatus() (postypes.Status, error)
-	GetAccount(address postypes.Address, blockNumber ...hexutil.Uint64) (postypes.Account, error)
+	GetAccount(address postypes.Address, blockNumber ...hexutil.Uint64) (account postypes.Account, err error)
 	GetAccountByPowAddress(address cfxaddress.Address, blockNumber ...hexutil.Uint64) (account postypes.Account, err error)
 	GetCommittee(blockNumber ...hexutil.Uint64) (postypes.CommitteeState, error)
 	GetBlockByHash(types.Hash) (*postypes.Block, error)
@@ -159,10 +159,10 @@ type RpcPos interface {
 	GetTransactionByNumber(txNumber hexutil.Uint64) (*postypes.Transaction, error)
 	GetRewardsByEpoch(epochNumber hexutil.Uint64) (postypes.EpochReward, error)
 	GetConsensusBlocks() (blocks []*postypes.Block, err error)
-	GetEpochState(epochNumber ...hexutil.Uint64) (epochState *postypes.EpochState, err error)
+	GetEpochState(epochNumber hexutil.Uint64) (epochState *postypes.EpochState, err error)
 	GetLedgerInfoByBlockNumber(blockNumber postypes.BlockNumber) (ledgerInfoWithSigs *postypes.LedgerInfoWithSignatures, err error)
 	GetLedgerInfoByEpochAndRound(epochNumber hexutil.Uint64, round hexutil.Uint64) (ledgerInfoWithSigs *postypes.LedgerInfoWithSignatures, err error)
-	GetLedgerInfoByEpoch(epochNumber ...hexutil.Uint64) (ledgerInfoWithSigs *postypes.LedgerInfoWithSignatures, err error)
+	GetLedgerInfoByEpoch(epochNumber hexutil.Uint64) (ledgerInfoWithSigs *postypes.LedgerInfoWithSignatures, err error)
 	GetLedgerInfosByEpoch(startEpoch hexutil.Uint64, endEpoch hexutil.Uint64) (ledgerInfoWithSigs []*postypes.LedgerInfoWithSignatures, err error)
 }
 
