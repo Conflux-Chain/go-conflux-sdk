@@ -2,6 +2,7 @@ package postypes
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -210,3 +211,12 @@ func TestUnmarshalEpochState(t *testing.T) {
 }
 
 // {"epoch":"0x1234","verifier":{"addressToValidatorInfo":{"0x4dbe13565ee9eef1277f72d1e27b688a1087af13c721d3bf715d6e752151382b":{"publicKey":"811e103da17df9f6c0c09bad05b70c31bbbbab28d0d7e3f3a345a91989bc8cc3ec55c962d23f502d67ae6c990b3f7ae5","votingPower":"0x45","vrfPublicKey":"03ee1e0bf295eb52c699719b8977ffd3c932b923947449c8d161bbc6d46478d4ed"},"0x941f97b7f878abc15dcd289e643e639f22484d94c0908a1ff4afee53f142df0c":{"publicKey":"b23b0c6ef4e1a68a0d3a65061674a9013650c5105d1eb647b85b94e3781d034ae7e5e5419b2d71fb01b1f988412dd39d","votingPower":"0x22","vrfPublicKey":"02babc924839a01bf02a3b8de2ec9689323dabc60259a543e1c219607c1caaa537"},"0x9f77c402afa0b04b2e38d39381890387a8fd2c621c0862129146b2de335cd964":{"publicKey":"b157f238403a5b980546fd19ca48f79a2613e3e3a91d14ee69908b8816e4c53665370b2fbd0db62cc4aa0e8caeedc9b5","votingPower":"0x3d","vrfPublicKey":"02b49bbfe4e9e7523dc916c37697f8d71fefc9583691dfc453946bd408173d60a6"},"0xc035f831f4808318d19d3eaf472fe3b42b68f8646a91eed00e1311f8241a865c":{"publicKey":"b51a7f24113e37ea2196af5fcd9a6bd46e0bf861e01c341151860ee9de82092c35260ad0730fe05d41e1bf33bc1ab111","votingPower":"0x3e","vrfPublicKey":"03fe232b62992e3f70118f7c6ecce444adfa156c739e3ed2ac08baf24d873baf0a"},"0xcfc244d9dfa7f3ba4a804a5e0bbb17267a1322492d020b2d310a650f69a318ac":{"publicKey":"951c6d12712c257d7ca1a566b6bb85f6095d92be85d38d3a01af21f4d7c51f5c98b2fff27ffc5e57a81aa8725d7c7040","votingPower":"0x4a","vrfPublicKey":"03f0964ebf270aa24b17b474f7f9113373d71152ecfe4114f0eedd0b2a6b2cb7b5"}},"quorumVotingPower":"0xc9","totalVotingPower":"0x12c"},"vrfSeed":"0xc1db63a832a8aa3ee92623359ddcf0acdecc26c4d08c4b50f47cd72cc52cfbe0"}
+
+func TestUnmarshalAccount(t *testing.T) {
+	expect := `{"address":"0xbec7e19d019851f49580b6748d00adfb589d42bc0758a5fecaa1bfdc7da46c45","blockNumber":"0x14bc2e","status":{"inQueue":[{"endBlockNumber":"0x14bc6b","power":"0x1"},{"endBlockNumber":"0x14bd6b","power":"0x1"},{"endBlockNumber":"0x14bfa2","power":"0x8"},{"endBlockNumber":"0x14c044","power":"0x1"},{"endBlockNumber":"0x14c189","power":"0x6e"},{"endBlockNumber":"0x14c1c9","power":"0x1"},{"endBlockNumber":"0x14c3ac","power":"0xc9"},{"endBlockNumber":"0x14c8c4","power":"0xa"},{"endBlockNumber":"0x14d2cd","power":"0x1"},{"endBlockNumber":"0x14d9c6","power":"0x1"},{"endBlockNumber":"0x14debe","power":"0x1"},{"endBlockNumber":"0x14e0d7","power":"0x4"},{"endBlockNumber":"0x14e1bd","power":"0x1f"},{"endBlockNumber":"0x14e2c3","power":"0x5"},{"endBlockNumber":"0x14e517","power":"0x6d"},{"endBlockNumber":"0x14e546","power":"0x1"},{"endBlockNumber":"0x14e592","power":"0x1"},{"endBlockNumber":"0x14e65f","power":"0x2"},{"endBlockNumber":"0x14ea0b","power":"0xb"},{"endBlockNumber":"0x14ea0f","power":"0x1"},{"endBlockNumber":"0x14ea30","power":"0x5"},{"endBlockNumber":"0x14eb09","power":"0x13"},{"endBlockNumber":"0x14ec84","power":"0x12"},{"endBlockNumber":"0x14ee9d","power":"0x1"},{"endBlockNumber":"0x14eec9","power":"0x1"},{"endBlockNumber":"0x14f246","power":"0x4"},{"endBlockNumber":"0x14f4f9","power":"0x9"},{"endBlockNumber":"0x14f4fc","power":"0x4"},{"endBlockNumber":"0x14f8c6","power":"0x5e"},{"endBlockNumber":"0x14fb5e","power":"0x1"},{"endBlockNumber":"0x14fce6","power":"0x2"},{"endBlockNumber":"0x14fe72","power":"0x1c"},{"endBlockNumber":"0x150042","power":"0x1"},{"endBlockNumber":"0x15054a","power":"0x1"}],"locked":"0x3677","outQueue":[{"endBlockNumber":"0x14be28","power":"0x5e"}],"unlocked":"0xd7ec","availableVotes":"0x3928","forceRetired":null,"forfeited":"0x0"}}`
+
+	var acc Account
+	err := json.Unmarshal([]byte(expect), &acc)
+	assert.NoError(t, err)
+	fmt.Printf("acc: %v\n", acc)
+}

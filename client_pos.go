@@ -26,6 +26,10 @@ func (c *RpcPosClient) GetStatus() (status postypes.Status, err error) {
 // GetAccount returns account info at block
 func (c *RpcPosClient) GetAccount(address postypes.Address, blockNumber ...hexutil.Uint64) (account postypes.Account, err error) {
 	_view := get1stU64Ify(blockNumber)
+	if _view == nil {
+		err = c.core.CallRPC(&account, "pos_getAccount", address)
+		return
+	}
 	err = c.core.CallRPC(&account, "pos_getAccount", address, _view)
 	return
 }
@@ -33,6 +37,10 @@ func (c *RpcPosClient) GetAccount(address postypes.Address, blockNumber ...hexut
 // GetAccount returns pos account of pow address info at block
 func (c *RpcPosClient) GetAccountByPowAddress(address cfxaddress.Address, blockNumber ...hexutil.Uint64) (account postypes.Account, err error) {
 	_view := get1stU64Ify(blockNumber)
+	if _view == nil {
+		err = c.core.CallRPC(&account, "pos_getAccountByPowAddress", address)
+		return
+	}
 	err = c.core.CallRPC(&account, "pos_getAccountByPowAddress", address, _view)
 	return
 }
@@ -40,6 +48,10 @@ func (c *RpcPosClient) GetAccountByPowAddress(address cfxaddress.Address, blockN
 // GetCommittee returns committee info at block
 func (c *RpcPosClient) GetCommittee(blockNumber ...hexutil.Uint64) (committee postypes.CommitteeState, err error) {
 	_view := get1stU64Ify(blockNumber)
+	if _view == nil {
+		err = c.core.CallRPC(&committee, "pos_getCommittee")
+		return
+	}
 	err = c.core.CallRPC(&committee, "pos_getCommittee", _view)
 	return
 }
@@ -74,9 +86,8 @@ func (c *RpcPosClient) GetConsensusBlocks() (blocks []*postypes.Block, err error
 	return
 }
 
-func (c *RpcPosClient) GetEpochState(epochNumber ...hexutil.Uint64) (epochState *postypes.EpochState, err error) {
-	_view := get1stU64Ify(epochNumber)
-	err = c.core.CallRPC(&epochState, "pos_getEpochState", _view)
+func (c *RpcPosClient) GetEpochState(epochNumber hexutil.Uint64) (epochState *postypes.EpochState, err error) {
+	err = c.core.CallRPC(&epochState, "pos_getEpochState", epochNumber)
 	return
 }
 
@@ -90,9 +101,8 @@ func (c *RpcPosClient) GetLedgerInfoByEpochAndRound(epochNumber hexutil.Uint64, 
 	return
 }
 
-func (c *RpcPosClient) GetLedgerInfoByEpoch(epochNumber ...hexutil.Uint64) (ledgerInfoWithSigs *postypes.LedgerInfoWithSignatures, err error) {
-	_view := get1stU64Ify(epochNumber)
-	err = c.core.CallRPC(&ledgerInfoWithSigs, "pos_getLedgerInfoByEpoch", _view)
+func (c *RpcPosClient) GetLedgerInfoByEpoch(epochNumber hexutil.Uint64) (ledgerInfoWithSigs *postypes.LedgerInfoWithSignatures, err error) {
+	err = c.core.CallRPC(&ledgerInfoWithSigs, "pos_getLedgerInfoByEpoch", epochNumber)
 	return
 }
 
