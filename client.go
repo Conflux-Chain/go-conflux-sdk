@@ -732,6 +732,17 @@ func (client *Client) GetPoSRewardByEpoch(epoch types.Epoch) (reward *postypes.E
 	return
 }
 
+// GetPosRewardByEpoch returns pos rewarded in this epoch
+func (client *Client) GetFeeHistory(blockCount uint64, lastEpoch types.Epoch, rewardPercentiles []float64) (feeHistory *types.FeeHistory, err error) {
+	err = client.wrappedCallRPC(&feeHistory, "cfx_feeHistory", hexutil.Uint64(blockCount), lastEpoch, rewardPercentiles)
+	return
+}
+
+func (client *Client) GetMaxPriorityFeePerGas() (maxPriorityFeePerGas *hexutil.Big, err error) {
+	err = client.wrappedCallRPC(&maxPriorityFeePerGas, "cfx_maxPriorityFeePerGas")
+	return
+}
+
 // CreateUnsignedTransaction creates an unsigned transaction by parameters,
 // and the other fields will be set to values fetched from conflux node.
 func (client *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (types.UnsignedTransaction, error) {
