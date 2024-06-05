@@ -98,9 +98,8 @@ func genCfxTestConfig() rpctest.RpcTestConfig {
 
 	return rpctest.RpcTestConfig{
 
-		// ExamplesUrl: "https://raw.githubusercontent.com/Conflux-Chain/jsonrpc-spec/main/src/cfx/examples.json",
-		ExamplesUrl: "http://172.16.100.90:8000/src/cfx/examples.json",
-		Client:      sdk.MustNewClient("http://127.0.0.1:3333", sdk.ClientOption{Logger: os.Stdout}),
+		ExamplesUrl: "https://raw.githubusercontent.com/Conflux-Chain/jsonrpc-spec/main/src/cfx/examples.json",
+		Client:      sdk.MustNewClient("http://39.100.93.109", sdk.ClientOption{Logger: os.Stdout}),
 
 		Rpc2Func:         rpc2Func,
 		Rpc2FuncSelector: rpc2FuncSelector,
