@@ -1,5 +1,15 @@
 package sdk
 
+import (
+	"fmt"
+	"os"
+	"testing"
+
+	"github.com/Conflux-Chain/go-conflux-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/stretchr/testify/assert"
+)
+
 // // GoConvey COMPOSER
 // // Test NewClient
 // // 	Subject: New client use rpc client
@@ -170,3 +180,34 @@ package sdk
 // 	var result interface{}
 // 	c.CallRPC(&result, "pos_getEpochState", "0x1234")
 // }
+
+func TestSendTransaction(t *testing.T) {
+	client := MustNewClient("http://net8888cfx.confluxrpc.com", ClientOption{
+		KeystorePath: "./keystore",
+		Logger:       os.Stdout,
+	})
+	client.AccountManager.ImportKey("0x0ccb34a57c54b3e61effebbc3cf3baaf5a03cd07a90836f38d97e08bcd1662f3", "hello")
+	// assert.NoError(t, err)
+	client.AccountManager.UnlockDefault("hello")
+
+	addr, _ := client.AccountManager.GetDefault()
+
+	fmt.Printf("addr %v\n", addr)
+
+	txHash, err := client.SendTransaction(types.UnsignedTransaction{
+		UnsignedTransactionBase: types.UnsignedTransactionBase{
+			AccessList: types.AccessList{types.AccessTuple{
+				Address: *addr,
+				StorageKeys: []common.Hash{
+					common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
+				},
+			}},
+			// Gas: types.NewBigInt(30000),
+		},
+		To: addr,
+	})
+	assert.NoError(t, err)
+
+	fmt.Println(txHash)
+
+}

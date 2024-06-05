@@ -11,6 +11,7 @@ import (
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types/enums"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	etypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/pkg/errors"
 )
@@ -18,7 +19,8 @@ import (
 // Transaction represents a transaction with signature in Conflux.
 // it is the response from conflux node when sending rpc request, such as cfx_getTransactionByHash
 type Transaction struct {
-	// Space            *string          `json:"space,omitempty"` //currently it is always "nil", so comment it now and uncomment it if need later
+	// Space            *string         `json:"space,omitempty"` //currently it is always "nil", so comment it now and uncomment it if need later
+	TransactionType  *hexutil.Uint64 `json:"type,omitempty"`
 	Hash             Hash            `json:"hash"`
 	Nonce            *hexutil.Big    `json:"nonce"`
 	BlockHash        *Hash           `json:"blockHash"`
@@ -35,14 +37,20 @@ type Transaction struct {
 	ChainID          *hexutil.Big    `json:"chainId"`
 	Status           *hexutil.Uint64 `json:"status"`
 
+	AccessList           *etypes.AccessList `json:"accessList,omitempty"`
+	MaxPriorityFeePerGas *hexutil.Big       `json:"maxPriorityFeePerGas,omitempty"`
+	MaxFeePerGas         *hexutil.Big       `json:"maxFeePerGas,omitempty"`
+
 	//signature
-	V *hexutil.Big `json:"v"`
-	R *hexutil.Big `json:"r"`
-	S *hexutil.Big `json:"s"`
+	V       *hexutil.Big    `json:"v"`
+	R       *hexutil.Big    `json:"r"`
+	S       *hexutil.Big    `json:"s"`
+	YParity *hexutil.Uint64 `json:"yParity,omitempty"`
 }
 
 // rlpEncodableTransaction transaction struct used for rlp encoding
 type rlpEncodableTransaction struct {
+	TransactionType  *hexutil.Uint64
 	Hash             Hash
 	Nonce            *big.Int
 	BlockHash        *Hash
@@ -59,19 +67,26 @@ type rlpEncodableTransaction struct {
 	ChainID          *big.Int
 	Status           *hexutil.Uint64
 
+	AccessList           *etypes.AccessList
+	MaxPriorityFeePerGas *big.Int
+	MaxFeePerGas         *big.Int
+
 	//signature
-	V *big.Int
-	R *big.Int
-	S *big.Int
+	V       *big.Int
+	R       *big.Int
+	S       *big.Int
+	YParity *hexutil.Uint64
 }
 
 // EncodeRLP implements the rlp.Encoder interface.
 func (tx Transaction) EncodeRLP(w io.Writer) error {
 	rtx := rlpEncodableTransaction{
+		tx.TransactionIndex,
 		tx.Hash, tx.Nonce.ToInt(), tx.BlockHash, tx.TransactionIndex, tx.From, tx.To,
 		tx.Value.ToInt(), tx.GasPrice.ToInt(), tx.Gas.ToInt(), tx.ContractCreated, tx.Data,
 		tx.StorageLimit.ToInt(), tx.EpochHeight.ToInt(), tx.ChainID.ToInt(), tx.Status,
-		tx.V.ToInt(), tx.R.ToInt(), tx.S.ToInt(),
+		tx.AccessList, tx.MaxPriorityFeePerGas.ToInt(), tx.MaxFeePerGas.ToInt(),
+		tx.V.ToInt(), tx.R.ToInt(), tx.S.ToInt(), tx.YParity,
 	}
 
 	return rlp.Encode(w, rtx)
@@ -84,13 +99,16 @@ func (tx *Transaction) DecodeRLP(r *rlp.Stream) error {
 		return err
 	}
 
+	tx.TransactionType = rtx.TransactionType
 	tx.Hash, tx.Nonce, tx.BlockHash = rtx.Hash, (*hexutil.Big)(rtx.Nonce), rtx.BlockHash
 	tx.TransactionIndex, tx.From, tx.To = rtx.TransactionIndex, rtx.From, rtx.To
 	tx.Value, tx.GasPrice = (*hexutil.Big)(rtx.Value), (*hexutil.Big)(rtx.GasPrice)
 	tx.Gas, tx.ContractCreated, tx.Data = (*hexutil.Big)(rtx.Gas), rtx.ContractCreated, rtx.Data
 	tx.StorageLimit, tx.EpochHeight = (*hexutil.Big)(rtx.StorageLimit), (*hexutil.Big)(rtx.EpochHeight)
-	tx.ChainID, tx.Status, tx.V = (*hexutil.Big)(rtx.ChainID), rtx.Status, (*hexutil.Big)(rtx.V)
-	tx.R, tx.S = (*hexutil.Big)(rtx.R), (*hexutil.Big)(rtx.S)
+	tx.ChainID, tx.Status = (*hexutil.Big)(rtx.ChainID), rtx.Status
+	tx.AccessList, tx.MaxPriorityFeePerGas, tx.MaxFeePerGas = rtx.AccessList, (*hexutil.Big)(rtx.MaxPriorityFeePerGas), (*hexutil.Big)(rtx.MaxFeePerGas)
+	tx.V, tx.R, tx.S = (*hexutil.Big)(rtx.V), (*hexutil.Big)(rtx.R), (*hexutil.Big)(rtx.S)
+	tx.YParity = rtx.YParity
 
 	return nil
 }
@@ -98,6 +116,7 @@ func (tx *Transaction) DecodeRLP(r *rlp.Stream) error {
 // TransactionReceipt represents the transaction execution result in Conflux.
 // it is the response from conflux node when sending rpc request, such as cfx_getTransactionReceipt
 type TransactionReceipt struct {
+	Type               *hexutil.Uint64 `json:"type,omitempty"`
 	TransactionHash    Hash            `json:"transactionHash"`
 	Index              hexutil.Uint64  `json:"index"`
 	BlockHash          Hash            `json:"blockHash"`
@@ -107,6 +126,7 @@ type TransactionReceipt struct {
 	GasUsed            *hexutil.Big    `json:"gasUsed"`
 	AccumulatedGasUsed *hexutil.Big    `json:"accumulatedGasUsed,omitempty"`
 	GasFee             *hexutil.Big    `json:"gasFee"`
+	EffectiveGasPrice  *hexutil.Big    `json:"effectiveGasPrice"`
 	ContractCreated    *Address        `json:"contractCreated"`
 	Logs               []Log           `json:"logs"`
 	LogsBloom          Bloom           `json:"logsBloom"`
@@ -122,6 +142,7 @@ type TransactionReceipt struct {
 	// Storage collaterals released during the execution of the transaction.
 	StorageReleased []StorageChange `json:"storageReleased"`
 	Space           *SpaceType      `json:"space,omitempty"`
+	BurntGasFee     *hexutil.Big    `json:"burntGasFee,omitempty"`
 }
 
 func (r *TransactionReceipt) GetOutcomeType() (enums.TransactionOutcome, error) {
@@ -169,20 +190,22 @@ type StorageChange struct {
 
 // rlpEncodableTransactionReceipt transaction receipt struct used for rlp encoding
 type rlpEncodableTransactionReceipt struct {
-	TransactionHash Hash
-	Index           hexutil.Uint64
-	BlockHash       Hash
-	EpochNumber     *hexutil.Uint64
-	From            Address
-	To              *Address `rlp:"nil"`
-	GasUsed         *big.Int
-	GasFee          *big.Int
-	ContractCreated *Address `rlp:"nil"` // nil means contract creation
-	Logs            []Log
-	LogsBloom       Bloom
-	StateRoot       Hash
-	OutcomeStatus   hexutil.Uint64
-	TxExecErrorMsg  *string `rlp:"nil"`
+	Type              *hexutil.Uint64
+	TransactionHash   Hash
+	Index             hexutil.Uint64
+	BlockHash         Hash
+	EpochNumber       *hexutil.Uint64
+	From              Address
+	To                *Address `rlp:"nil"`
+	GasUsed           *big.Int
+	GasFee            *big.Int
+	EffectiveGasPrice *big.Int
+	ContractCreated   *Address `rlp:"nil"` // nil means contract creation
+	Logs              []Log
+	LogsBloom         Bloom
+	StateRoot         Hash
+	OutcomeStatus     hexutil.Uint64
+	TxExecErrorMsg    *string `rlp:"nil"`
 	// Whether gas costs were covered by the sponsor.
 	GasCoveredBySponsor bool
 	// Whether storage costs were covered by the sponsor.
@@ -191,15 +214,18 @@ type rlpEncodableTransactionReceipt struct {
 	StorageCollateralized hexutil.Uint64
 	// Storage collaterals released during the execution of the transaction.
 	StorageReleased []StorageChange
+	BurntGasFee     *big.Int
 }
 
 // EncodeRLP implements the rlp.Encoder interface.
 func (tr TransactionReceipt) EncodeRLP(w io.Writer) error {
 	rtx := rlpEncodableTransactionReceipt{
+		tr.Type,
 		tr.TransactionHash, tr.Index, tr.BlockHash, tr.EpochNumber, tr.From, tr.To,
-		tr.GasUsed.ToInt(), tr.GasFee.ToInt(), tr.ContractCreated, tr.Logs, tr.LogsBloom,
+		tr.GasUsed.ToInt(), tr.GasFee.ToInt(), tr.EffectiveGasPrice.ToInt(), tr.ContractCreated, tr.Logs, tr.LogsBloom,
 		tr.StateRoot, tr.OutcomeStatus, tr.TxExecErrorMsg, tr.GasCoveredBySponsor,
 		tr.StorageCoveredBySponsor, tr.StorageCollateralized, tr.StorageReleased,
+		tr.BurntGasFee.ToInt(),
 	}
 
 	return rlp.Encode(w, rtx)
@@ -212,14 +238,15 @@ func (tr *TransactionReceipt) DecodeRLP(r *rlp.Stream) error {
 		return err
 	}
 
+	tr.Type = rtr.Type
 	tr.TransactionHash, tr.Index, tr.BlockHash = rtr.TransactionHash, rtr.Index, rtr.BlockHash
 	tr.EpochNumber, tr.From, tr.To = rtr.EpochNumber, rtr.From, rtr.To
-	tr.GasUsed, tr.GasFee = (*hexutil.Big)(rtr.GasUsed), (*hexutil.Big)(rtr.GasFee)
+	tr.GasUsed, tr.GasFee, tr.EffectiveGasPrice = (*hexutil.Big)(rtr.GasUsed), (*hexutil.Big)(rtr.GasFee), (*hexutil.Big)(rtr.EffectiveGasPrice)
 	tr.ContractCreated, tr.Logs, tr.LogsBloom = rtr.ContractCreated, rtr.Logs, rtr.LogsBloom
 	tr.StateRoot, tr.OutcomeStatus, tr.TxExecErrorMsg = rtr.StateRoot, rtr.OutcomeStatus, rtr.TxExecErrorMsg
 	tr.GasCoveredBySponsor, tr.StorageCoveredBySponsor = rtr.GasCoveredBySponsor, rtr.StorageCoveredBySponsor
 	tr.StorageCollateralized, tr.StorageReleased = rtr.StorageCollateralized, rtr.StorageReleased
-
+	tr.BurntGasFee = (*hexutil.Big)(rtr.BurntGasFee)
 	return nil
 }
 

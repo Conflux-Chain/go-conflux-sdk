@@ -28,6 +28,7 @@ type BlockHeader struct {
 	BlockNumber           *hexutil.Big     `json:"blockNumber"`
 	GasLimit              *hexutil.Big     `json:"gasLimit"`
 	GasUsed               *hexutil.Big     `json:"gasUsed"`
+	BaseFeePerGas         *hexutil.Big     `json:"baseFeePerGas"`
 	Timestamp             *hexutil.Big     `json:"timestamp"`
 	Difficulty            *hexutil.Big     `json:"difficulty"`
 	PowQuality            *hexutil.Big     `json:"powQuality"`

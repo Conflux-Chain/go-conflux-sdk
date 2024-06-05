@@ -42,6 +42,11 @@ type CallRequest struct {
 	Data         *string         `json:"data,omitempty"`
 	Nonce        *hexutil.Big    `json:"nonce,omitempty"`
 	StorageLimit *hexutil.Uint64 `json:"storageLimit,omitempty"`
+
+	MaxPriorityFeePerGas *hexutil.Big    `json:"maxPriorityFeePerGas,omitempty"`
+	MaxFeePerGas         *hexutil.Big    `json:"maxFeePerGas,omitempty"`
+	AccessList           AccessList      `json:"accessList,omitempty"`
+	TransactionType      *hexutil.Uint64 `json:"type,omitempty"`
 }
 
 // FillByUnsignedTx fills CallRequest fields by tx
@@ -63,6 +68,8 @@ func (request *CallRequest) FillByUnsignedTx(tx *UnsignedTransaction) {
 		if tx.Nonce != nil {
 			request.Nonce = tx.Nonce
 		}
+
+		request.AccessList = tx.AccessList
 	}
 }
 

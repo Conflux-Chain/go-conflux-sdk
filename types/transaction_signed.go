@@ -6,6 +6,7 @@ package types
 
 import (
 	"math/big"
+	"slices"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils/addressutil"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -13,14 +14,6 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/pkg/errors"
 )
-
-// signedTransactionForRlp is a intermediate struct for encoding rlp data
-type signedTransactionForRlp struct {
-	UnsignedData *unsignedTransactionForRlp
-	V            byte
-	R            *big.Int
-	S            *big.Int
-}
 
 // SignedTransaction represents a transaction with signature,
 // it is the transaction information for sending transaction.
@@ -31,27 +24,110 @@ type SignedTransaction struct {
 	S                   hexutil.Bytes
 }
 
-// Decode decodes RLP encoded data to tx
-func (tx *SignedTransaction) Decode(data []byte, networkID uint32) error {
-	txForRlp := new(signedTransactionForRlp)
-	err := rlp.DecodeBytes(data, txForRlp)
-	if err != nil {
-		return err
-	}
-
-	*tx = *txForRlp.toSignedTransaction(networkID)
-	return nil
+// signedTransactionForRlp is a intermediate struct for encoding rlp data
+type signedTransactionForRlp struct {
+	UnsignedData interface{}
+	V            byte
+	R            *big.Int
+	S            *big.Int
 }
 
-//Encode encodes tx and returns its RLP encoded data
+// geneic format of type signedTransactionForRlp
+type gSignedTransactionForRlp[T any] struct {
+	UnsignedData T
+	V            byte
+	R            *big.Int
+	S            *big.Int
+}
+
+// convert from gSignedTransactionForRlp to signedTransactionForRlp
+func (g gSignedTransactionForRlp[T]) toRaw() *signedTransactionForRlp {
+	return &signedTransactionForRlp{
+		UnsignedData: g.UnsignedData,
+		V:            g.V,
+		R:            g.R,
+		S:            g.S,
+	}
+}
+
+// Decode decodes RLP encoded data to tx
+func (tx *SignedTransaction) Decode(data []byte, networkID uint32) error {
+
+	if !slices.Equal(data[:3], TRANSACTION_TYPE_PREFIX) {
+		txForRlp := new(gSignedTransactionForRlp[unsignedLegacyTransactionForRlp])
+		err := rlp.DecodeBytes(data, txForRlp)
+		if err != nil {
+			return err
+		}
+
+		_tx, err := txForRlp.toRaw().toSignedTransaction(networkID)
+		if err != nil {
+			return err
+		}
+		*tx = *_tx
+		return nil
+	}
+
+	txType := TransactionType(data[3])
+	switch txType {
+	case TRANSACTION_TYPE_2930:
+		txForRlp := new(gSignedTransactionForRlp[unsigned2930TransactionForRlp])
+		err := rlp.DecodeBytes(data[4:], txForRlp)
+		if err != nil {
+			return err
+		}
+
+		_tx, err := txForRlp.toRaw().toSignedTransaction(networkID)
+		if err != nil {
+			return err
+		}
+		*tx = *_tx
+		return nil
+
+	case TRANSACTION_TYPE_1559:
+		txForRlp := new(gSignedTransactionForRlp[unsigned1559TransactionForRlp])
+		err := rlp.DecodeBytes(data[4:], txForRlp)
+		if err != nil {
+			return err
+		}
+
+		_tx, err := txForRlp.toRaw().toSignedTransaction(networkID)
+		if err != nil {
+			return err
+		}
+		*tx = *_tx
+		return nil
+
+	default:
+		return errors.Errorf("unknown transaction type %d", txType)
+	}
+}
+
+// Encode encodes tx and returns its RLP encoded data; Encode format is "cfx||tx_type||body_rlp"
 func (tx *SignedTransaction) Encode() ([]byte, error) {
-	txForRlp := *tx.toStructForRlp()
-	encoded, err := rlp.EncodeToBytes(txForRlp)
+	_tx := *tx
+	if tx.UnsignedTransaction.Type == nil {
+		_tx.UnsignedTransaction.Type = TRANSACTION_TYPE_LEGACY.Ptr()
+	}
+
+	txForRlp, err := _tx.toStructForRlp()
 	if err != nil {
 		return nil, err
 	}
 
-	return encoded, nil
+	bodyRlp, err := rlp.EncodeToBytes(txForRlp)
+	if err != nil {
+		return nil, err
+	}
+
+	if *_tx.UnsignedTransaction.Type == TRANSACTION_TYPE_LEGACY {
+		return bodyRlp, nil
+	} else {
+		data := append([]byte{}, TRANSACTION_TYPE_PREFIX...)
+		data = append(data, byte(*_tx.UnsignedTransaction.Type))
+		data = append(data, bodyRlp...)
+		return data, nil
+	}
 }
 
 // Hash calculates the hash of the transaction rlp encode result
@@ -88,22 +164,30 @@ func (tx *SignedTransaction) Signature() []byte {
 	return sig
 }
 
-func (tx *SignedTransaction) toStructForRlp() *signedTransactionForRlp {
+func (tx *SignedTransaction) toStructForRlp() (*signedTransactionForRlp, error) {
+	untxForRlp, err := tx.UnsignedTransaction.toStructForRlp()
+	if err != nil {
+		return nil, err
+	}
+
 	txForRlp := signedTransactionForRlp{
-		UnsignedData: tx.UnsignedTransaction.toStructForRlp(),
+		UnsignedData: untxForRlp,
 		V:            tx.V,
 		R:            big.NewInt(0).SetBytes(tx.R),
 		S:            big.NewInt(0).SetBytes(tx.S),
 	}
-	return &txForRlp
+	return &txForRlp, nil
 }
 
-func (tx *signedTransactionForRlp) toSignedTransaction(networkID uint32) *SignedTransaction {
-	unsigned := tx.UnsignedData.toUnsignedTransaction(networkID)
+func (tx *signedTransactionForRlp) toSignedTransaction(networkID uint32) (*SignedTransaction, error) {
+	unsigned, err := toUnsignedTransaction(tx.UnsignedData, networkID)
+	if err != nil {
+		return nil, err
+	}
 	return &SignedTransaction{
 		UnsignedTransaction: *unsigned,
 		V:                   tx.V,
 		R:                   tx.R.Bytes(),
 		S:                   tx.S.Bytes(),
-	}
+	}, nil
 }
