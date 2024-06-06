@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	etypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
+
 	"github.com/pkg/errors"
 )
 
@@ -37,9 +38,9 @@ type Transaction struct {
 	ChainID          *hexutil.Big    `json:"chainId"`
 	Status           *hexutil.Uint64 `json:"status"`
 
-	AccessList           *etypes.AccessList `json:"accessList,omitempty"`
-	MaxPriorityFeePerGas *hexutil.Big       `json:"maxPriorityFeePerGas,omitempty"`
-	MaxFeePerGas         *hexutil.Big       `json:"maxFeePerGas,omitempty"`
+	AccessList           *AccessList  `json:"accessList,omitempty"`
+	MaxPriorityFeePerGas *hexutil.Big `json:"maxPriorityFeePerGas,omitempty"`
+	MaxFeePerGas         *hexutil.Big `json:"maxFeePerGas,omitempty"`
 
 	//signature
 	V       *hexutil.Big    `json:"v"`
@@ -85,7 +86,7 @@ func (tx Transaction) EncodeRLP(w io.Writer) error {
 		tx.Hash, tx.Nonce.ToInt(), tx.BlockHash, tx.TransactionIndex, tx.From, tx.To,
 		tx.Value.ToInt(), tx.GasPrice.ToInt(), tx.Gas.ToInt(), tx.ContractCreated, tx.Data,
 		tx.StorageLimit.ToInt(), tx.EpochHeight.ToInt(), tx.ChainID.ToInt(), tx.Status,
-		tx.AccessList, tx.MaxPriorityFeePerGas.ToInt(), tx.MaxFeePerGas.ToInt(),
+		tx.AccessList.ToEthType(), tx.MaxPriorityFeePerGas.ToInt(), tx.MaxFeePerGas.ToInt(),
 		tx.V.ToInt(), tx.R.ToInt(), tx.S.ToInt(), tx.YParity,
 	}
 
@@ -93,11 +94,14 @@ func (tx Transaction) EncodeRLP(w io.Writer) error {
 }
 
 // DecodeRLP implements the rlp.Decoder interface.
-func (tx *Transaction) DecodeRLP(r *rlp.Stream) error {
+func (tx *Transaction) DecodeRLP(r *rlp.Stream, networkID uint32) error {
 	var rtx rlpEncodableTransaction
 	if err := r.Decode(&rtx); err != nil {
 		return err
 	}
+
+	var accessList AccessList
+	accessList.FromEthType(rtx.AccessList, networkID)
 
 	tx.TransactionType = rtx.TransactionType
 	tx.Hash, tx.Nonce, tx.BlockHash = rtx.Hash, (*hexutil.Big)(rtx.Nonce), rtx.BlockHash
@@ -106,7 +110,7 @@ func (tx *Transaction) DecodeRLP(r *rlp.Stream) error {
 	tx.Gas, tx.ContractCreated, tx.Data = (*hexutil.Big)(rtx.Gas), rtx.ContractCreated, rtx.Data
 	tx.StorageLimit, tx.EpochHeight = (*hexutil.Big)(rtx.StorageLimit), (*hexutil.Big)(rtx.EpochHeight)
 	tx.ChainID, tx.Status = (*hexutil.Big)(rtx.ChainID), rtx.Status
-	tx.AccessList, tx.MaxPriorityFeePerGas, tx.MaxFeePerGas = rtx.AccessList, (*hexutil.Big)(rtx.MaxPriorityFeePerGas), (*hexutil.Big)(rtx.MaxFeePerGas)
+	tx.AccessList, tx.MaxPriorityFeePerGas, tx.MaxFeePerGas = &accessList, (*hexutil.Big)(rtx.MaxPriorityFeePerGas), (*hexutil.Big)(rtx.MaxFeePerGas)
 	tx.V, tx.R, tx.S = (*hexutil.Big)(rtx.V), (*hexutil.Big)(rtx.R), (*hexutil.Big)(rtx.S)
 	tx.YParity = rtx.YParity
 

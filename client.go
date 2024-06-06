@@ -733,7 +733,7 @@ func (client *Client) GetPoSRewardByEpoch(epoch types.Epoch) (reward *postypes.E
 	return
 }
 
-// GetPosRewardByEpoch returns pos rewarded in this epoch
+// GetFeeHistory returns transaction base fee per gas and effective priority fee per gas for the requested/supported epoch range.
 func (client *Client) GetFeeHistory(blockCount hexutil.Uint64, lastEpoch types.Epoch, rewardPercentiles []float64) (feeHistory *types.FeeHistory, err error) {
 	err = client.wrappedCallRPC(&feeHistory, "cfx_feeHistory", blockCount, lastEpoch, rewardPercentiles)
 	return
@@ -741,6 +741,11 @@ func (client *Client) GetFeeHistory(blockCount hexutil.Uint64, lastEpoch types.E
 
 func (client *Client) GetMaxPriorityFeePerGas() (maxPriorityFeePerGas *hexutil.Big, err error) {
 	err = client.wrappedCallRPC(&maxPriorityFeePerGas, "cfx_maxPriorityFeePerGas")
+	return
+}
+
+func (client *Client) GetFeeBurnt(epoch ...*types.Epoch) (info *hexutil.Big, err error) {
+	err = client.wrappedCallRPC(&info, "cfx_getFeeBurnt", get1stEpochIfy(epoch))
 	return
 }
 
@@ -851,6 +856,11 @@ func (client *Client) populateTxtypeAndGasPrice(tx *types.UnsignedTransaction) e
 		return errors.New("both gasPrice and (maxFeePerGas or maxPriorityFeePerGas) specified")
 	}
 
+	if tx.GasPrice != nil && (tx.Type == nil || *tx.Type == types.TRANSACTION_TYPE_LEGACY) {
+		tx.Type = types.TRANSACTION_TYPE_LEGACY.Ptr()
+		return nil
+	}
+
 	has1559 := tx.MaxFeePerGas != nil || tx.MaxPriorityFeePerGas != nil
 
 	gasFeeData, err := client.getFeeData()
@@ -938,7 +948,12 @@ func (client *Client) getFeeData() (*gasFeeData, error) {
 		return data, nil
 	}
 
-	data.maxPriorityFeePerGas = types.NewBigInt(1.5e9)
+	priorityFeePerGas, err := client.GetMaxPriorityFeePerGas()
+	if err != nil {
+		return nil, err
+	}
+
+	data.maxPriorityFeePerGas = priorityFeePerGas
 	maxFeePerGas := new(big.Int).Mul(basefee.ToInt(), big.NewInt(2))
 	maxFeePerGas = new(big.Int).Add(maxFeePerGas, data.maxPriorityFeePerGas.ToInt())
 	data.maxFeePerGas = types.NewBigIntByRaw(maxFeePerGas)
@@ -1077,12 +1092,6 @@ func (client *Client) GetCollateralInfo(epoch ...*types.Epoch) (info types.Stora
 	err = client.wrappedCallRPC(&info, "cfx_getCollateralInfo", get1stEpochIfy(epoch))
 	return
 }
-
-// /// Return information about total token supply.
-// #[rpc(name = "cfx_getCollateralInfo")]
-// fn get_collateral_info(
-//     &self, epoch_number: Option<EpochNumber>,
-// ) -> JsonRpcResult<StorageCollateralInfo>;
 
 // =====Debug RPC=====
 

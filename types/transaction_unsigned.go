@@ -270,7 +270,7 @@ func (tx *UnsignedTransaction) toStructForRlp() (interface{}, error) {
 			EpochHeight:  tx.EpochHeight,
 			ChainID:      tx.ChainID,
 			Data:         tx.Data,
-			AccessList:   tx.AccessList.ToEthType(),
+			AccessList:   *tx.AccessList.ToEthType(),
 		}, nil
 	case TRANSACTION_TYPE_1559:
 		return unsigned1559TransactionForRlp{
@@ -284,7 +284,7 @@ func (tx *UnsignedTransaction) toStructForRlp() (interface{}, error) {
 			EpochHeight:          tx.EpochHeight,
 			ChainID:              tx.ChainID,
 			Data:                 tx.Data,
-			AccessList:           tx.AccessList.ToEthType(),
+			AccessList:           *tx.AccessList.ToEthType(),
 		}, nil
 	default:
 		return nil, errors.New("unkown transaction type")
@@ -322,7 +322,7 @@ func (tx *unsigned2930TransactionForRlp) toUnsignedTransaction(networkID uint32)
 	}
 
 	var accessList AccessList
-	accessList.FromEthType(tx.AccessList, networkID)
+	accessList.FromEthType(&tx.AccessList, networkID)
 
 	return &UnsignedTransaction{
 		UnsignedTransactionBase: UnsignedTransactionBase{
@@ -350,7 +350,7 @@ func (tx *unsigned1559TransactionForRlp) toUnsignedTransaction(networkID uint32)
 	}
 
 	var accessList AccessList
-	accessList.FromEthType(tx.AccessList, networkID)
+	accessList.FromEthType(&tx.AccessList, networkID)
 
 	return &UnsignedTransaction{
 		UnsignedTransactionBase: UnsignedTransactionBase{

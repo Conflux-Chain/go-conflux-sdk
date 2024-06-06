@@ -117,6 +117,7 @@ type ClientOperator interface {
 	GetPoSRewardByEpoch(epoch types.Epoch) (reward *postypes.EpochReward, err error)
 	GetFeeHistory(blockCount hexutil.Uint64, lastEpoch types.Epoch, rewardPercentiles []float64) (feeHistory *types.FeeHistory, err error)
 	GetMaxPriorityFeePerGas() (maxPriorityFeePerGas *hexutil.Big, err error)
+	GetFeeBurnt(epoch ...*types.Epoch) (info *hexutil.Big, err error)
 
 	GetEpochReceipts(epoch types.EpochOrBlockHash, include_eth_recepits ...bool) (receipts [][]types.TransactionReceipt, err error)
 	GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error)

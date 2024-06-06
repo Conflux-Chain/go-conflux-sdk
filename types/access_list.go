@@ -13,20 +13,20 @@ type AccessTuple struct {
 	StorageKeys []common.Hash      `json:"storageKeys"`
 }
 
-func (a AccessList) ToEthType() etypes.AccessList {
+func (a *AccessList) ToEthType() *etypes.AccessList {
 	var eValue etypes.AccessList
-	for _, tuple := range a {
+	for _, tuple := range *a {
 		eValue = append(eValue, etypes.AccessTuple{
 			Address:     tuple.Address.MustGetCommonAddress(),
 			StorageKeys: tuple.StorageKeys,
 		})
 	}
-	return eValue
+	return &eValue
 }
 
-func (a *AccessList) FromEthType(raw etypes.AccessList, networkID uint32) {
+func (a *AccessList) FromEthType(raw *etypes.AccessList, networkID uint32) {
 	*a = AccessList{}
-	for _, tuple := range raw {
+	for _, tuple := range *raw {
 		*a = append(*a, AccessTuple{
 			Address:     cfxaddress.MustNewFromCommon(tuple.Address, networkID),
 			StorageKeys: tuple.StorageKeys,
