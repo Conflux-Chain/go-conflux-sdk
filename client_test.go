@@ -1,72 +1,17 @@
 package sdk
 
-// GoConvey COMPOSER
-// Test NewClient
-// 	Subject: New client use rpc client
-// 		Given a node url and retry params
-// 			When rpc dail error
-// 				Return error
-// 			When rpc dail success
-// 				Return client instance
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
-	"time"
-
-	. "bou.ke/monkey"
-	// "github.com/ethereum/go-ethereum/rpc"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
-	rpc "github.com/openweb3/go-rpc-provider"
+	"github.com/ethereum/go-ethereum/common"
 	providers "github.com/openweb3/go-rpc-provider/provider_wrapper"
-	"github.com/pkg/errors"
-	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
 )
-
-func _TestNewClient(t *testing.T) {
-
-	Convey("Subject: New client use rpc client", t, func() {
-
-		Convey("Given a node url and retry params", func() {
-
-			Convey("When rpc dail error", func() {
-				//stub for rpc.Dail
-				guard := Patch(rpc.Dial, func(_ string) (*rpc.Client, error) {
-					return nil, errors.New("rpc dail fail")
-				})
-				defer guard.Unpatch()
-
-				client, err := newClientWithOption("", ClientOption{})
-				Convey("Return error", func() {
-					So(err, ShouldNotEqual, nil)
-					So(client, ShouldEqual, nil)
-				})
-			})
-
-			Convey("When rpc dail success", func() {
-				//stub for rpc.Dail
-				guard := Patch(rpc.Dial, func(_ string) (*rpc.Client, error) {
-					return &rpc.Client{}, nil
-				})
-				defer guard.Unpatch()
-
-				client, err := newClientWithOption("", ClientOption{})
-				// fmt.Printf("client:%+v,err:%+v", client, err)
-
-				Convey("Return client instance", func() {
-					So(err, ShouldEqual, nil)
-					So(client, ShouldNotEqual, nil)
-				})
-			})
-		})
-	})
-
-}
 
 func TestInterfaceImplementation(t *testing.T) {
 	var _ ClientOperator = &Client{}
@@ -110,63 +55,33 @@ func callContextMid2(f providers.CallContextFunc) providers.CallContextFunc {
 	}
 }
 
-func _TestEstimateGasAndCollateralAlwaysWithGaspriceNil(t *testing.T) {
-	c := MustNewClient("https://test.confluxrpc.com", ClientOption{
+func TestSendTransaction(t *testing.T) {
+	client := MustNewClient("http://net8888cfx.confluxrpc.com", ClientOption{
 		KeystorePath: "./keystore",
 		Logger:       os.Stdout,
 	})
-	c.Provider().HookCallContext(func(f providers.CallContextFunc) providers.CallContextFunc {
-		return func(ctx context.Context, result interface{}, method string, args ...interface{}) error {
-			if method == "cfx_estimateGasAndCollateral" {
-				fmt.Printf("cfx_estimateGasAndCollateral args: %+v\n", args)
-				if args[0].(types.CallRequest).GasPrice != nil {
-					t.Fatalf("gasPrice should be nil")
-				}
-			}
-			return f(ctx, result, method, args...)
-		}
+	client.AccountManager.ImportKey("0x0ccb34a57c54b3e61effebbc3cf3baaf5a03cd07a90836f38d97e08bcd1662f3", "hello")
+	// assert.NoError(t, err)
+	client.AccountManager.UnlockDefault("hello")
+
+	addr, _ := client.AccountManager.GetDefault()
+
+	fmt.Printf("addr %v\n", addr)
+
+	txHash, err := client.SendTransaction(types.UnsignedTransaction{
+		UnsignedTransactionBase: types.UnsignedTransactionBase{
+			AccessList: types.AccessList{types.AccessTuple{
+				Address: *addr,
+				StorageKeys: []common.Hash{
+					common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
+				},
+			}},
+			// Gas: types.NewBigInt(30000),
+		},
+		To: addr,
 	})
-	c.AccountManager.Create("123456")
-	defaultAccount, _ := c.AccountManager.GetDefault()
-	c.EstimateGasAndCollateral(
-		types.CallRequest{
-			GasPrice: types.NewBigInt(1000000000),
-			To:       defaultAccount,
-		})
-}
-
-func _TestGetPosTxByNum(t *testing.T) {
-	c := MustNewClient("https://test-internal.confluxrpc.com", ClientOption{Logger: os.Stdout})
-	tx, err := c.Pos().GetTransactionByNumber(*types.NewUint64(0x76657))
-	assert.NoError(t, err)
-	fmt.Printf("%v\n", tx)
-}
-
-func _TestDeposite(t *testing.T) {
-	c := MustNewClient("https://test.confluxrpc.com", ClientOption{Logger: os.Stdout})
-	di, err := c.GetDepositList(cfxaddress.MustNew("cfxtest:aanhtnrex2nj56kkbws4yx0jeab34ae16pcap53w13"))
-	assert.NoError(t, err)
-	fmt.Printf("%v\n", di)
-}
-
-func _TestGetFilterChanges(t *testing.T) {
-	c := MustNewClient("http://test-internal.confluxrpc.com", ClientOption{Logger: os.Stdout})
-	filter := c.Filter()
-	fID, err := filter.NewFilter(types.LogFilter{})
 	assert.NoError(t, err)
 
-	ticker := time.NewTicker(time.Second)
-	for range ticker.C {
-		fcg, err := c.Filter().GetFilterChanges(*fID)
-		assert.NoError(t, err)
-		j, _ := json.MarshalIndent(fcg, "", " ")
-		fmt.Printf("new log json: , %s\n", j)
-		fmt.Printf("new log: %+v\n", fcg)
-	}
-}
+	fmt.Println(txHash)
 
-func _TestCall(t *testing.T) {
-	c := MustNewClient("http://net8888cfx.confluxrpc.com", ClientOption{Logger: os.Stdout})
-	var result interface{}
-	c.CallRPC(&result, "pos_getEpochState", "0x1234")
 }

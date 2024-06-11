@@ -6,6 +6,7 @@ package sdk
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"sync/atomic"
 
@@ -732,6 +733,22 @@ func (client *Client) GetPoSRewardByEpoch(epoch types.Epoch) (reward *postypes.E
 	return
 }
 
+// GetFeeHistory returns transaction base fee per gas and effective priority fee per gas for the requested/supported epoch range.
+func (client *Client) GetFeeHistory(blockCount hexutil.Uint64, lastEpoch types.Epoch, rewardPercentiles []float64) (feeHistory *types.FeeHistory, err error) {
+	err = client.wrappedCallRPC(&feeHistory, "cfx_feeHistory", blockCount, lastEpoch, rewardPercentiles)
+	return
+}
+
+func (client *Client) GetMaxPriorityFeePerGas() (maxPriorityFeePerGas *hexutil.Big, err error) {
+	err = client.wrappedCallRPC(&maxPriorityFeePerGas, "cfx_maxPriorityFeePerGas")
+	return
+}
+
+func (client *Client) GetFeeBurnt(epoch ...*types.Epoch) (info *hexutil.Big, err error) {
+	err = client.wrappedCallRPC(&info, "cfx_getFeeBurnt", get1stEpochIfy(epoch))
+	return
+}
+
 // CreateUnsignedTransaction creates an unsigned transaction by parameters,
 // and the other fields will be set to values fetched from conflux node.
 func (client *Client) CreateUnsignedTransaction(from types.Address, to types.Address, amount *hexutil.Big, data []byte) (types.UnsignedTransaction, error) {
@@ -824,24 +841,123 @@ func (client *Client) ApplyUnsignedTransactionDefault(tx *types.UnsignedTransact
 			}
 		}
 
-		if tx.GasPrice == nil {
-			gasPrice, err := client.GetGasPrice()
-			if err != nil {
-				return errors.Wrap(err, "failed to get gas price")
-			}
-
-			// conflux responsed gasprice offen be 0, but the min gasprice is 1 when sending transaction, so do this
-			if gasPrice.ToInt().Cmp(big.NewInt(constants.MinGasprice)) < 1 {
-				gasPrice = types.NewBigInt(constants.MinGasprice)
-			}
-			tmp := hexutil.Big(*gasPrice)
-			tx.GasPrice = &tmp
+		if err := client.populateTxtypeAndGasPrice(tx); err != nil {
+			return err
 		}
 
 		tx.ApplyDefault()
 	}
 
 	return nil
+}
+
+func (client *Client) populateTxtypeAndGasPrice(tx *types.UnsignedTransaction) error {
+	if tx.GasPrice != nil && (tx.MaxFeePerGas != nil || tx.MaxPriorityFeePerGas != nil) {
+		return errors.New("both gasPrice and (maxFeePerGas or maxPriorityFeePerGas) specified")
+	}
+
+	if tx.GasPrice != nil && (tx.Type == nil || *tx.Type == types.TRANSACTION_TYPE_LEGACY) {
+		tx.Type = types.TRANSACTION_TYPE_LEGACY.Ptr()
+		return nil
+	}
+
+	has1559 := tx.MaxFeePerGas != nil || tx.MaxPriorityFeePerGas != nil
+
+	gasFeeData, err := client.getFeeData()
+	if err != nil {
+		return errors.Wrap(err, "failed to get fee data")
+	}
+
+	// set the txtype according to feeData
+	// - if support1559, then set txtype to 2
+	// - if not support1559
+	// - - if has maxFeePerGas or maxPriorityFeePerGas, then return error
+	// - - if contains accesslist, set txtype to 1
+	// - - else set txtype to 0
+	if tx.Type == nil {
+		if gasFeeData.isSupport1559() {
+			tx.Type = types.TRANSACTION_TYPE_1559.Ptr()
+		} else {
+			if has1559 {
+				return errors.New("not support 1559 but (maxFeePerGas or maxPriorityFeePerGas) specified")
+			}
+
+			if tx.AccessList == nil {
+				tx.Type = types.TRANSACTION_TYPE_LEGACY.Ptr()
+			} else {
+				tx.Type = types.TRANSACTION_TYPE_2930.Ptr()
+			}
+		}
+	}
+
+	// if txtype is DynamicFeeTxType that means support 1559, so if gasPrice is not nil, set max... to gasPrice
+	if *tx.Type == types.TRANSACTION_TYPE_1559 {
+		if tx.GasPrice != nil {
+			tx.MaxFeePerGas = tx.GasPrice
+			tx.MaxPriorityFeePerGas = tx.GasPrice
+			tx.GasPrice = nil
+			return nil
+		}
+
+		if tx.MaxPriorityFeePerGas == nil {
+			tx.MaxPriorityFeePerGas = (*hexutil.Big)(gasFeeData.maxPriorityFeePerGas)
+		}
+		if tx.MaxFeePerGas == nil {
+			tx.MaxFeePerGas = (*hexutil.Big)(gasFeeData.maxFeePerGas)
+		}
+		if tx.MaxFeePerGas.ToInt().Cmp(tx.MaxPriorityFeePerGas.ToInt()) < 0 {
+			return fmt.Errorf("maxFeePerGas (%v) < maxPriorityFeePerGas (%v)", tx.MaxFeePerGas, tx.MaxPriorityFeePerGas)
+		}
+		return nil
+	}
+
+	if tx.GasPrice != nil {
+		return nil
+	}
+
+	tx.GasPrice = (*hexutil.Big)(gasFeeData.gasPrice)
+	return nil
+}
+
+type gasFeeData struct {
+	gasPrice             *hexutil.Big
+	maxFeePerGas         *hexutil.Big
+	maxPriorityFeePerGas *hexutil.Big
+}
+
+func (g gasFeeData) isSupport1559() bool {
+	return g.maxPriorityFeePerGas != nil && g.maxFeePerGas != nil
+}
+
+func (client *Client) getFeeData() (*gasFeeData, error) {
+	data := &gasFeeData{}
+
+	gasPrice, err := client.GetGasPrice()
+	if err != nil {
+		return nil, err
+	}
+	data.gasPrice = gasPrice
+
+	block, err := client.GetBlockByEpoch(types.EpochLatestState)
+	if err != nil {
+		return nil, err
+	}
+	basefee := block.BaseFeePerGas
+
+	if basefee == nil {
+		return data, nil
+	}
+
+	priorityFeePerGas, err := client.GetMaxPriorityFeePerGas()
+	if err != nil {
+		return nil, err
+	}
+
+	data.maxPriorityFeePerGas = priorityFeePerGas
+	maxFeePerGas := new(big.Int).Mul(basefee.ToInt(), big.NewInt(2))
+	maxFeePerGas = new(big.Int).Add(maxFeePerGas, data.maxPriorityFeePerGas.ToInt())
+	data.maxFeePerGas = types.NewBigIntByRaw(maxFeePerGas)
+	return data, nil
 }
 
 // DeployContract deploys a contract by abiJSON, bytecode and consturctor params.
@@ -976,12 +1092,6 @@ func (client *Client) GetCollateralInfo(epoch ...*types.Epoch) (info types.Stora
 	err = client.wrappedCallRPC(&info, "cfx_getCollateralInfo", get1stEpochIfy(epoch))
 	return
 }
-
-// /// Return information about total token supply.
-// #[rpc(name = "cfx_getCollateralInfo")]
-// fn get_collateral_info(
-//     &self, epoch_number: Option<EpochNumber>,
-// ) -> JsonRpcResult<StorageCollateralInfo>;
 
 // =====Debug RPC=====
 

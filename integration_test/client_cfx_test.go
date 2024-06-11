@@ -52,6 +52,8 @@ func genCfxTestConfig() rpctest.RpcTestConfig {
 		"cfx_getAccountPendingTransactions":     "GetAccountPendingTransactions",
 		"cfx_getPoSEconomics":                   "GetPoSEconomics",
 		"cfx_openedMethodGroups":                "GetOpenedMethodGroups",
+		"cfx_maxPriorityFeePerGas":              "GetMaxPriorityFeePerGas",
+		"cfx_feeHistory":                        "GetFeeHistory",
 	}
 
 	var rpc2FuncSelector map[string]func(params []interface{}) (string, []interface{}) = map[string]func(params []interface{}) (string, []interface{}){
@@ -95,8 +97,9 @@ func genCfxTestConfig() rpctest.RpcTestConfig {
 	var onlyTestRpc map[string]bool = map[string]bool{}
 
 	return rpctest.RpcTestConfig{
+
 		ExamplesUrl: "https://raw.githubusercontent.com/Conflux-Chain/jsonrpc-spec/main/src/cfx/examples.json",
-		Client:      sdk.MustNewClient("http://47.93.101.243", sdk.ClientOption{Logger: os.Stdout}),
+		Client:      sdk.MustNewClient("http://39.100.93.109", sdk.ClientOption{Logger: os.Stdout}),
 
 		Rpc2Func:         rpc2Func,
 		Rpc2FuncSelector: rpc2FuncSelector,

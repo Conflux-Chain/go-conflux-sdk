@@ -79,6 +79,7 @@ type VoteParamsInfo struct {
 	PowBaseReward    *hexutil.Big `json:"powBaseReward"`
 	InterestRate     *hexutil.Big `json:"interestRate"`
 	StoragePointProp *hexutil.Big `json:"storagePointProp"`
+	BaseFeeShareProp *hexutil.Big `json:"baseFeeShareProp"`
 }
 
 type Block struct {
