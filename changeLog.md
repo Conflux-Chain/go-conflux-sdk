@@ -1,6 +1,15 @@
 Go-conflux-sdk Change Log
 ============
 
+v1.6.0
+------------
+-   Support 1559 related rpcs
+-   Return StoragePointProp in cfx_getParamsFromVote, which is introduced by CIP-107.
+
+v1.5.9
+------------
+-   Support circuit breaker when creating client
+
 v1.5.9
 ------------
 -   Support circuit breaker when creating client
