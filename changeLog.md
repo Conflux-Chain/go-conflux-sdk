@@ -9,10 +9,6 @@ v1.6.0
 v1.5.9
 ------------
 -   Support circuit breaker when creating client
-
-v1.5.9
-------------
--   Support circuit breaker when creating client
 -   Client support WithContext for attach context on calling rpc
 
 v1.5.8
