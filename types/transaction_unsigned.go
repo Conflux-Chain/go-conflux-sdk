@@ -6,7 +6,6 @@ package types
 
 import (
 	"math/big"
-	"slices"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common"
@@ -189,7 +188,7 @@ func (tx *UnsignedTransaction) EncodeWithSignature(v byte, r, s []byte) ([]byte,
 
 // Decode decodes RLP encoded data to tx
 func (tx *UnsignedTransaction) Decode(data []byte, networkID uint32) error {
-	if !slices.Equal(data[:3], TRANSACTION_TYPE_PREFIX) {
+	if string(data[:3]) != string(TRANSACTION_TYPE_PREFIX) {
 		utxForRlp := new(unsignedLegacyTransactionForRlp)
 		err := rlp.DecodeBytes(data, utxForRlp)
 		if err != nil {
