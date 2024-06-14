@@ -5,6 +5,7 @@
 package types
 
 import (
+	"fmt"
 	"io"
 	"math/big"
 
@@ -40,8 +41,77 @@ type BlockHeader struct {
 	PosReference          *Hash            `json:"posReference"`
 }
 
-// rlpEncodableBlockHeader block header struct used for rlp encoding
-type rlpEncodableBlockHeader struct {
+func (bh *BlockHeader) toStructForRlp() any {
+	if bh.BaseFeePerGas == nil {
+		rbh := rlpEncodableBlockHeaderNormal{
+			Hash:                  bh.Hash,
+			ParentHash:            bh.ParentHash,
+			Height:                bh.Height.ToInt(),
+			Miner:                 bh.Miner,
+			DeferredStateRoot:     bh.DeferredStateRoot,
+			DeferredReceiptsRoot:  bh.DeferredReceiptsRoot,
+			DeferredLogsBloomHash: bh.DeferredLogsBloomHash,
+			Blame:                 bh.Blame,
+			TransactionsRoot:      bh.TransactionsRoot,
+			EpochNumber:           bh.EpochNumber.ToInt(),
+			GasLimit:              bh.GasLimit.ToInt(),
+			Timestamp:             bh.Timestamp.ToInt(),
+			Difficulty:            bh.Difficulty.ToInt(),
+			PowQuality:            bh.PowQuality.ToInt(),
+			RefereeHashes:         bh.RefereeHashes,
+			Adaptive:              bh.Adaptive,
+			Nonce:                 bh.Nonce.ToInt(),
+			Size:                  bh.Size.ToInt(),
+			Custom:                bh.Custom,
+			PosReference:          bh.PosReference,
+		}
+
+		if bh.BlockNumber != nil {
+			rbh.BlockNumber = &rlpNilableBigInt{bh.BlockNumber.ToInt()}
+		}
+
+		if bh.GasUsed != nil {
+			rbh.GasUsed = &rlpNilableBigInt{bh.GasUsed.ToInt()}
+		}
+		return rbh
+	} else {
+		rbh := rlpEncodeableBlockHeader1559{
+			Hash:                  bh.Hash,
+			ParentHash:            bh.ParentHash,
+			Height:                bh.Height.ToInt(),
+			Miner:                 bh.Miner,
+			DeferredStateRoot:     bh.DeferredStateRoot,
+			DeferredReceiptsRoot:  bh.DeferredReceiptsRoot,
+			DeferredLogsBloomHash: bh.DeferredLogsBloomHash,
+			Blame:                 bh.Blame,
+			TransactionsRoot:      bh.TransactionsRoot,
+			EpochNumber:           bh.EpochNumber.ToInt(),
+			GasLimit:              bh.GasLimit.ToInt(),
+			BaseFeePerGas:         bh.BaseFeePerGas.ToInt(),
+			Timestamp:             bh.Timestamp.ToInt(),
+			Difficulty:            bh.Difficulty.ToInt(),
+			PowQuality:            bh.PowQuality.ToInt(),
+			RefereeHashes:         bh.RefereeHashes,
+			Adaptive:              bh.Adaptive,
+			Nonce:                 bh.Nonce.ToInt(),
+			Size:                  bh.Size.ToInt(),
+			Custom:                bh.Custom,
+			PosReference:          bh.PosReference,
+		}
+
+		if bh.BlockNumber != nil {
+			rbh.BlockNumber = &rlpNilableBigInt{bh.BlockNumber.ToInt()}
+		}
+
+		if bh.GasUsed != nil {
+			rbh.GasUsed = &rlpNilableBigInt{bh.GasUsed.ToInt()}
+		}
+		return rbh
+	}
+}
+
+// rlpEncodableBlockHeaderNormal block header struct used for rlp encoding
+type rlpEncodableBlockHeaderNormal struct {
 	Hash                  Hash
 	ParentHash            Hash
 	Height                *big.Int
@@ -66,67 +136,136 @@ type rlpEncodableBlockHeader struct {
 	PosReference          *Hash `rlp:"nil"`
 }
 
+func (r *rlpEncodableBlockHeaderNormal) toRaw() *BlockHeader {
+	bh := &BlockHeader{
+		Hash:                  r.Hash,
+		ParentHash:            r.ParentHash,
+		Height:                (*hexutil.Big)(r.Height),
+		Miner:                 r.Miner,
+		DeferredStateRoot:     r.DeferredStateRoot,
+		DeferredReceiptsRoot:  r.DeferredReceiptsRoot,
+		DeferredLogsBloomHash: r.DeferredLogsBloomHash,
+		Blame:                 r.Blame,
+		TransactionsRoot:      r.TransactionsRoot,
+		EpochNumber:           (*hexutil.Big)(r.EpochNumber),
+		GasLimit:              (*hexutil.Big)(r.GasLimit),
+		BaseFeePerGas:         nil,
+		Timestamp:             (*hexutil.Big)(r.Timestamp),
+		Difficulty:            (*hexutil.Big)(r.Difficulty),
+		PowQuality:            (*hexutil.Big)(r.PowQuality),
+		RefereeHashes:         r.RefereeHashes,
+		Adaptive:              r.Adaptive,
+		Nonce:                 (*hexutil.Big)(r.Nonce),
+		Size:                  (*hexutil.Big)(r.Size),
+		Custom:                r.Custom,
+		PosReference:          r.PosReference,
+	}
+
+	if r.BlockNumber != nil {
+		bh.BlockNumber = (*hexutil.Big)(r.BlockNumber.Val)
+	}
+
+	if r.GasUsed != nil {
+		bh.GasUsed = (*hexutil.Big)(r.GasUsed.Val)
+	}
+	return bh
+}
+
+type rlpEncodeableBlockHeader1559 struct {
+	Hash                  Hash
+	ParentHash            Hash
+	Height                *big.Int
+	Miner                 Address
+	DeferredStateRoot     Hash
+	DeferredReceiptsRoot  Hash
+	DeferredLogsBloomHash Hash
+	Blame                 hexutil.Uint64
+	TransactionsRoot      Hash
+	EpochNumber           *big.Int
+	BlockNumber           *rlpNilableBigInt `rlp:"nil"`
+	GasLimit              *big.Int
+	GasUsed               *rlpNilableBigInt `rlp:"nil"`
+	BaseFeePerGas         *big.Int
+	Timestamp             *big.Int
+	Difficulty            *big.Int
+	PowQuality            *big.Int
+	RefereeHashes         []Hash
+	Adaptive              bool
+	Nonce                 *big.Int
+	Size                  *big.Int
+	Custom                []cmptutil.Bytes
+	PosReference          *Hash `rlp:"nil"`
+}
+
+func (r *rlpEncodeableBlockHeader1559) toRaw() *BlockHeader {
+	bh := &BlockHeader{
+		Hash:                  r.Hash,
+		ParentHash:            r.ParentHash,
+		Height:                (*hexutil.Big)(r.Height),
+		Miner:                 r.Miner,
+		DeferredStateRoot:     r.DeferredStateRoot,
+		DeferredReceiptsRoot:  r.DeferredReceiptsRoot,
+		DeferredLogsBloomHash: r.DeferredLogsBloomHash,
+		Blame:                 r.Blame,
+		TransactionsRoot:      r.TransactionsRoot,
+		EpochNumber:           (*hexutil.Big)(r.EpochNumber),
+		GasLimit:              (*hexutil.Big)(r.GasLimit),
+		BaseFeePerGas:         (*hexutil.Big)(r.BaseFeePerGas),
+		Timestamp:             (*hexutil.Big)(r.Timestamp),
+		Difficulty:            (*hexutil.Big)(r.Difficulty),
+		PowQuality:            (*hexutil.Big)(r.PowQuality),
+		RefereeHashes:         r.RefereeHashes,
+		Adaptive:              r.Adaptive,
+		Nonce:                 (*hexutil.Big)(r.Nonce),
+		Size:                  (*hexutil.Big)(r.Size),
+		Custom:                r.Custom,
+		PosReference:          r.PosReference,
+	}
+
+	if r.BlockNumber != nil {
+		bh.BlockNumber = (*hexutil.Big)(r.BlockNumber.Val)
+	}
+
+	if r.GasUsed != nil {
+		bh.GasUsed = (*hexutil.Big)(r.GasUsed.Val)
+	}
+	return bh
+}
+
 // EncodeRLP implements the rlp.Encoder interface.
 func (bh BlockHeader) EncodeRLP(w io.Writer) error {
-	rbh := rlpEncodableBlockHeader{
-		Hash:                  bh.Hash,
-		ParentHash:            bh.ParentHash,
-		Height:                bh.Height.ToInt(),
-		Miner:                 bh.Miner,
-		DeferredStateRoot:     bh.DeferredStateRoot,
-		DeferredReceiptsRoot:  bh.DeferredReceiptsRoot,
-		DeferredLogsBloomHash: bh.DeferredLogsBloomHash,
-		Blame:                 bh.Blame,
-		TransactionsRoot:      bh.TransactionsRoot,
-		EpochNumber:           bh.EpochNumber.ToInt(),
-		GasLimit:              bh.GasLimit.ToInt(),
-		Timestamp:             bh.Timestamp.ToInt(),
-		Difficulty:            bh.Difficulty.ToInt(),
-		PowQuality:            bh.PowQuality.ToInt(),
-		RefereeHashes:         bh.RefereeHashes,
-		Adaptive:              bh.Adaptive,
-		Nonce:                 bh.Nonce.ToInt(),
-		Size:                  bh.Size.ToInt(),
-		Custom:                bh.Custom,
-		PosReference:          bh.PosReference,
-	}
-
-	if bh.BlockNumber != nil {
-		rbh.BlockNumber = &rlpNilableBigInt{bh.BlockNumber.ToInt()}
-	}
-
-	if bh.GasUsed != nil {
-		rbh.GasUsed = &rlpNilableBigInt{bh.GasUsed.ToInt()}
-	}
-
-	return rlp.Encode(w, rbh)
+	return rlp.Encode(w, bh.toStructForRlp())
 }
 
 // DecodeRLP implements the rlp.Decoder interface.
 func (bh *BlockHeader) DecodeRLP(r *rlp.Stream) error {
-	var rbh rlpEncodableBlockHeader
-	if err := r.Decode(&rbh); err != nil {
+	bytes, err := r.Raw()
+	if err != nil {
 		return err
 	}
 
-	bh.Hash, bh.ParentHash, bh.Height = rbh.Hash, rbh.ParentHash, (*hexutil.Big)(rbh.Height)
-	bh.Miner, bh.DeferredStateRoot = rbh.Miner, rbh.DeferredStateRoot
-	bh.DeferredReceiptsRoot, bh.DeferredLogsBloomHash = rbh.DeferredReceiptsRoot, rbh.DeferredLogsBloomHash
-	bh.Blame, bh.TransactionsRoot = rbh.Blame, rbh.TransactionsRoot
-	bh.EpochNumber = (*hexutil.Big)(rbh.EpochNumber)
-	bh.GasLimit = (*hexutil.Big)(rbh.GasLimit)
-	bh.Timestamp = (*hexutil.Big)(rbh.Timestamp)
-	bh.Difficulty, bh.PowQuality = (*hexutil.Big)(rbh.Difficulty), (*hexutil.Big)(rbh.PowQuality)
-	bh.RefereeHashes, bh.Adaptive = rbh.RefereeHashes, rbh.Adaptive
-	bh.Nonce, bh.Size, bh.Custom = (*hexutil.Big)(rbh.Nonce), (*hexutil.Big)(rbh.Size), rbh.Custom
-	bh.PosReference = rbh.PosReference
-
-	if rbh.BlockNumber != nil {
-		bh.BlockNumber = (*hexutil.Big)(rbh.BlockNumber.Val)
+	var list []any
+	err = rlp.DecodeBytes(bytes, &list)
+	if err != nil {
+		return err
 	}
 
-	if rbh.GasUsed != nil {
-		bh.GasUsed = (*hexutil.Big)(rbh.GasUsed.Val)
+	switch len(list) {
+	case 22:
+		var rbh rlpEncodableBlockHeaderNormal
+		if err := rlp.DecodeBytes(bytes, &rbh); err != nil {
+			return err
+		}
+		*bh = *rbh.toRaw()
+
+	case 23:
+		var rbh rlpEncodeableBlockHeader1559
+		if err := rlp.DecodeBytes(bytes, &rbh); err != nil {
+			return err
+		}
+		*bh = *rbh.toRaw()
+	default:
+		return fmt.Errorf("invalid block header RLP code length: %d", len(list))
 	}
 
 	return nil
