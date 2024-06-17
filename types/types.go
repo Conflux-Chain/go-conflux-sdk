@@ -85,7 +85,7 @@ func NewBytes(input []byte) hexutil.Bytes {
 type HexOrDecimalUint64 uint64
 
 func (u HexOrDecimalUint64) MarshalJSON() ([]byte, error) {
-	return json.Marshal(uint64(u))
+	return json.Marshal(hexutil.Uint64(u))
 }
 
 func (u *HexOrDecimalUint64) UnmarshalJSON(data []byte) error {
