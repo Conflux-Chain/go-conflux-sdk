@@ -61,7 +61,7 @@ func TestHexOrDecimalUint64(t *testing.T) {
 		u := HexOrDecimalUint64(10)
 		b, err := json.Marshal(u)
 		assert.NoError(t, err)
-		assert.Equal(t, string(b), "10")
+		assert.Equal(t, string(b), "\"0xa\"")
 	})
 
 	t.Run("Json Unmarshal", func(t *testing.T) {
