@@ -734,7 +734,7 @@ func (client *Client) GetPoSRewardByEpoch(epoch types.Epoch) (reward *postypes.E
 }
 
 // GetFeeHistory returns transaction base fee per gas and effective priority fee per gas for the requested/supported epoch range.
-func (client *Client) GetFeeHistory(blockCount hexutil.Uint64, lastEpoch types.Epoch, rewardPercentiles []float64) (feeHistory *types.FeeHistory, err error) {
+func (client *Client) GetFeeHistory(blockCount types.HexOrDecimalUint64, lastEpoch types.Epoch, rewardPercentiles []float64) (feeHistory *types.FeeHistory, err error) {
 	err = client.wrappedCallRPC(&feeHistory, "cfx_feeHistory", blockCount, lastEpoch, rewardPercentiles)
 	return
 }
