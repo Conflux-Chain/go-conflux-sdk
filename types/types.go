@@ -81,3 +81,27 @@ func NewUint(x uint) *hexutil.Uint {
 func NewBytes(input []byte) hexutil.Bytes {
 	return hexutil.Bytes(input)
 }
+
+type HexOrDecimalUint64 uint64
+
+func (u HexOrDecimalUint64) MarshalJSON() ([]byte, error) {
+	return json.Marshal(hexutil.Uint64(u))
+}
+
+func (u *HexOrDecimalUint64) UnmarshalJSON(data []byte) error {
+	if data[0] == byte('"') && data[len(data)-1] == byte('"') {
+		var val hexutil.Uint64
+		if err := json.Unmarshal(data, &val); err != nil {
+			return err
+		}
+		*u = HexOrDecimalUint64(val)
+		return nil
+	}
+
+	var val uint64
+	if err := json.Unmarshal(data, &val); err != nil {
+		return err
+	}
+	*u = HexOrDecimalUint64(val)
+	return nil
+}
