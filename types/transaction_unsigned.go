@@ -6,7 +6,6 @@ package types
 
 import (
 	"math/big"
-	"slices"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common"
@@ -189,7 +188,7 @@ func (tx *UnsignedTransaction) EncodeWithSignature(v byte, r, s []byte) ([]byte,
 
 // Decode decodes RLP encoded data to tx
 func (tx *UnsignedTransaction) Decode(data []byte, networkID uint32) error {
-	if !slices.Equal(data[:3], TRANSACTION_TYPE_PREFIX) {
+	if string(data[:3]) != string(TRANSACTION_TYPE_PREFIX) {
 		utxForRlp := new(unsignedLegacyTransactionForRlp)
 		err := rlp.DecodeBytes(data, utxForRlp)
 		if err != nil {
@@ -270,7 +269,7 @@ func (tx *UnsignedTransaction) toStructForRlp() (interface{}, error) {
 			EpochHeight:  tx.EpochHeight,
 			ChainID:      tx.ChainID,
 			Data:         tx.Data,
-			AccessList:   *tx.AccessList.ToEthType(),
+			AccessList:   tx.AccessList.ToEthType(),
 		}, nil
 	case TRANSACTION_TYPE_1559:
 		return unsigned1559TransactionForRlp{
@@ -284,7 +283,7 @@ func (tx *UnsignedTransaction) toStructForRlp() (interface{}, error) {
 			EpochHeight:          tx.EpochHeight,
 			ChainID:              tx.ChainID,
 			Data:                 tx.Data,
-			AccessList:           *tx.AccessList.ToEthType(),
+			AccessList:           tx.AccessList.ToEthType(),
 		}, nil
 	default:
 		return nil, errors.New("unkown transaction type")
@@ -321,8 +320,7 @@ func (tx *unsigned2930TransactionForRlp) toUnsignedTransaction(networkID uint32)
 		to = &_to
 	}
 
-	var accessList AccessList
-	accessList.FromEthType(&tx.AccessList, networkID)
+	accessList := ConvertEthAccessListToCfx(tx.AccessList, networkID)
 
 	return &UnsignedTransaction{
 		UnsignedTransactionBase: UnsignedTransactionBase{
@@ -349,8 +347,7 @@ func (tx *unsigned1559TransactionForRlp) toUnsignedTransaction(networkID uint32)
 		to = &_to
 	}
 
-	var accessList AccessList
-	accessList.FromEthType(&tx.AccessList, networkID)
+	accessList := ConvertEthAccessListToCfx(tx.AccessList, networkID)
 
 	return &UnsignedTransaction{
 		UnsignedTransactionBase: UnsignedTransactionBase{

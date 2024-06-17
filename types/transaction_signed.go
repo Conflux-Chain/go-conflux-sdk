@@ -6,7 +6,6 @@ package types
 
 import (
 	"math/big"
-	"slices"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils/addressutil"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -53,7 +52,7 @@ func (g gSignedTransactionForRlp[T]) toRaw() *signedTransactionForRlp {
 // Decode decodes RLP encoded data to tx
 func (tx *SignedTransaction) Decode(data []byte, networkID uint32) error {
 
-	if !slices.Equal(data[:3], TRANSACTION_TYPE_PREFIX) {
+	if string(data[:3]) != string(TRANSACTION_TYPE_PREFIX) {
 		txForRlp := new(gSignedTransactionForRlp[unsignedLegacyTransactionForRlp])
 		err := rlp.DecodeBytes(data, txForRlp)
 		if err != nil {
