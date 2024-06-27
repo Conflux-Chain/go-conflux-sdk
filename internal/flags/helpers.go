@@ -20,7 +20,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli/v2"
 )
 
 var (
@@ -157,22 +157,22 @@ func (a ByCategory) Less(i, j int) bool {
 	return iIdx < jIdx
 }
 
-func FlagCategory(flag cli.Flag, flagGroups []FlagGroup) string {
-	for _, category := range flagGroups {
-		for _, flg := range category.Flags {
-			if flg.GetName() == flag.GetName() {
-				return category.Name
-			}
-		}
-	}
-	return "MISC"
-}
+// func FlagCategory(flag cli.Flag, flagGroups []FlagGroup) string {
+// 	for _, category := range flagGroups {
+// 		for _, flg := range category.Flags {
+// 			if flg.GetName() == flag.GetName() {
+// 				return category.Name
+// 			}
+// 		}
+// 	}
+// 	return "MISC"
+// }
 
 // NewApp creates an app with sane defaults.
-func NewApp(gitCommit, gitDate, usage string) *cli.App {
+func NewApp(usage string) *cli.App {
 	app := cli.NewApp()
 	app.Name = filepath.Base(os.Args[0])
-	app.Version = "v1.1.1"
+	app.Version = "v1.2.1"
 	app.Usage = usage
 	return app
 }
