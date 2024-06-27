@@ -21,7 +21,6 @@ require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/btcsuite/btcd v0.24.0 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 // indirect
-	// github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
@@ -128,5 +127,3 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
-
-// replace github.com/openweb3/go-ethereum-hdwallet v0.1.1 => /Users/dayong/myspace/mywork/go-ethereum-hdwallet
