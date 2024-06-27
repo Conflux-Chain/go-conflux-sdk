@@ -7,7 +7,9 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/light/bcs"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/crypto/bls12381"
+
+	// "github.com/ethereum/go-ethereum/crypto/bls12381"
+	bls12381 "github.com/kilic/bls12-381"
 	"github.com/pkg/errors"
 )
 
@@ -123,7 +125,7 @@ func (info *LedgerInfoWithSignatures) AggregatedPublicKey(committee Committee) (
 }
 
 func verifyBLS(signature []byte, publicKey *bls12381.PointG1, hash *bls12381.PointG2) (bool, error) {
-	engine := bls12381.NewPairingEngine()
+	engine := bls12381.NewEngine()
 
 	// signature is uncompressed BLS signature in 192 bytes
 	sigPointG2, err := engine.G2.FromBytes(signature)
