@@ -206,6 +206,7 @@ type AccountManagerOperator interface {
 	Delete(address types.Address, passphrase string) error
 	Update(address types.Address, passphrase, newPassphrase string) error
 	List() []types.Address
+	Contains(address types.Address) bool
 	GetDefault() (*types.Address, error)
 	Unlock(address types.Address, passphrase string) error
 	UnlockDefault(passphrase string) error
