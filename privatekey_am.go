@@ -51,6 +51,7 @@ func (p *PrivatekeyAccountManager) Import(keystoreFile string, passphrase string
 	return addr, nil
 }
 
+// Note: the passphrase will not be used; it is only for interface compatibility.
 func (p *PrivatekeyAccountManager) ImportKey(keyString string, passphrase string) (types.Address, error) {
 	key, err := privatekeyhelper.NewFromKeyString(keyString)
 	if err != nil {
@@ -60,6 +61,7 @@ func (p *PrivatekeyAccountManager) ImportKey(keyString string, passphrase string
 	return addr, nil
 }
 
+// Note: the passphrase will not be used; it is only for interface compatibility.
 func (p *PrivatekeyAccountManager) Export(address types.Address, passphrase string) (string, error) {
 	if !p.Contains(address) {
 		return "", sdkErrors.NewAccountNotFoundError(address)
@@ -69,6 +71,7 @@ func (p *PrivatekeyAccountManager) Export(address types.Address, passphrase stri
 	return "0x" + keystr, nil
 }
 
+// Note: the passphrase will not be used; it is only for interface compatibility.
 func (p *PrivatekeyAccountManager) Delete(address types.Address, passphrase string) error {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
