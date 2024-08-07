@@ -1,7 +1,6 @@
 package primitives
 
 import (
-	"io"
 	"math/big"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
@@ -11,73 +10,63 @@ import (
 
 const cip112Epoch = uint64(79050000)
 
-type BlockHeader struct {
-	raw              *types.BlockSummary
-	evmBaseFeePerGas *big.Int
-}
-
 func MustRLPEncodeBlock(coreBlock *types.BlockSummary, evmBaseFeePerGas *big.Int) []byte {
-	if coreBlock.BaseFeePerGas != nil && evmBaseFeePerGas == nil {
-		panic("EVM base fee per gas empty")
-	}
-
-	encoded, err := rlp.EncodeToBytes(BlockHeader{coreBlock, evmBaseFeePerGas})
-	if err != nil {
-		panic(err)
-	}
-
-	return encoded
-}
-
-// EncodeRLP implements the rlp.Encoder interface.
-func (header BlockHeader) EncodeRLP(w io.Writer) error {
 	var adaptive uint64
-	if header.raw.Adaptive {
+	if coreBlock.Adaptive {
 		adaptive = 1
 	}
 
 	var referees []common.Hash
-	for _, v := range header.raw.RefereeHashes {
+	for _, v := range coreBlock.RefereeHashes {
 		referees = append(referees, *v.ToCommonHash())
 	}
 
 	list := []interface{}{
-		header.raw.ParentHash.ToCommonHash(),
-		header.raw.Height.ToInt(),
-		header.raw.Timestamp.ToInt(),
-		header.raw.Miner.MustGetCommonAddress(),
-		header.raw.TransactionsRoot.ToCommonHash(),
-		header.raw.DeferredStateRoot.ToCommonHash(),
-		header.raw.DeferredReceiptsRoot.ToCommonHash(),
-		header.raw.DeferredLogsBloomHash.ToCommonHash(),
-		header.raw.Blame,
-		header.raw.Difficulty.ToInt(),
+		coreBlock.ParentHash.ToCommonHash(),
+		coreBlock.Height.ToInt(),
+		coreBlock.Timestamp.ToInt(),
+		coreBlock.Miner.MustGetCommonAddress(),
+		coreBlock.TransactionsRoot.ToCommonHash(),
+		coreBlock.DeferredStateRoot.ToCommonHash(),
+		coreBlock.DeferredReceiptsRoot.ToCommonHash(),
+		coreBlock.DeferredLogsBloomHash.ToCommonHash(),
+		coreBlock.Blame,
+		coreBlock.Difficulty.ToInt(),
 		adaptive,
-		header.raw.GasLimit.ToInt(),
+		coreBlock.GasLimit.ToInt(),
 		referees,
-		header.raw.Nonce.ToInt(),
+		coreBlock.Nonce.ToInt(),
 	}
 
-	if header.raw.PosReference != nil {
-		list = append(list, rlpEncodeOptionSome(*header.raw.PosReference.ToCommonHash()))
+	if coreBlock.PosReference != nil {
+		list = append(list, rlpEncodeOptionSome(*coreBlock.PosReference.ToCommonHash()))
 	}
 
-	if header.raw.BaseFeePerGas != nil {
+	if coreBlock.BaseFeePerGas != nil {
+		if evmBaseFeePerGas == nil {
+			panic("EVM base fee is empty")
+		}
+
 		list = append(list, rlpEncodeOptionSome([]interface{}{
-			header.raw.BaseFeePerGas.ToInt(),
-			header.evmBaseFeePerGas,
+			coreBlock.BaseFeePerGas.ToInt(),
+			evmBaseFeePerGas,
 		}))
 	}
 
-	for _, v := range header.raw.Custom {
-		if header.raw.EpochNumber.ToInt().Uint64() >= cip112Epoch {
+	for _, v := range coreBlock.Custom {
+		if coreBlock.EpochNumber.ToInt().Uint64() >= cip112Epoch {
 			list = append(list, v.ToBytes())
 		} else {
 			list = append(list, rlp.RawValue(v.ToBytes()))
 		}
 	}
 
-	return rlp.Encode(w, list)
+	encoded, err := rlp.EncodeToBytes(list)
+	if err != nil {
+		panic(err)
+	}
+
+	return encoded
 }
 
 // simulate RLP encoding for rust Option type
