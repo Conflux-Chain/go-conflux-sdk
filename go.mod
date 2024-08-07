@@ -4,9 +4,9 @@ go 1.22
 
 require (
 	github.com/mcuadros/go-defaults v1.2.0
-	github.com/openweb3/go-rpc-provider v0.3.2
+	github.com/openweb3/go-rpc-provider v0.3.3
 	github.com/openweb3/go-sdk-common v0.0.0-20240627072707-f78f0155ab34
-	github.com/openweb3/web3go v0.2.5
+	github.com/openweb3/web3go v0.2.9
 	github.com/pkg/errors v0.9.1
 	github.com/shopspring/decimal v1.3.1
 	github.com/sirupsen/logrus v1.9.3

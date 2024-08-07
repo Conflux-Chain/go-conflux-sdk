@@ -2,6 +2,7 @@ package primitives
 
 import (
 	"io"
+	"math/big"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -11,20 +12,21 @@ import (
 const cip112Epoch = uint64(79050000)
 
 type BlockHeader struct {
-	raw *types.BlockSummary
+	raw              *types.BlockSummary
+	evmBaseFeePerGas *big.Int
 }
 
-func MustRLPEncodeBlock(block *types.BlockSummary) []byte {
-	val := ConvertBlock(block)
-	encoded, err := rlp.EncodeToBytes(val)
+func MustRLPEncodeBlock(coreBlock *types.BlockSummary, evmBaseFeePerGas *big.Int) []byte {
+	if coreBlock.BaseFeePerGas != nil && evmBaseFeePerGas == nil {
+		panic("EVM base fee per gas empty")
+	}
+
+	encoded, err := rlp.EncodeToBytes(BlockHeader{coreBlock, evmBaseFeePerGas})
 	if err != nil {
 		panic(err)
 	}
-	return encoded
-}
 
-func ConvertBlock(block *types.BlockSummary) BlockHeader {
-	return BlockHeader{block}
+	return encoded
 }
 
 // EncodeRLP implements the rlp.Encoder interface.
@@ -58,6 +60,13 @@ func (header BlockHeader) EncodeRLP(w io.Writer) error {
 
 	if header.raw.PosReference != nil {
 		list = append(list, rlpEncodeOptionSome(*header.raw.PosReference.ToCommonHash()))
+	}
+
+	if header.raw.BaseFeePerGas != nil {
+		list = append(list, rlpEncodeOptionSome([]interface{}{
+			header.raw.BaseFeePerGas.ToInt(),
+			header.evmBaseFeePerGas,
+		}))
 	}
 
 	for _, v := range header.raw.Custom {
