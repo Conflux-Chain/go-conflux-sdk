@@ -8,6 +8,8 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
+const cip112Epoch = uint64(79050000)
+
 type BlockHeader struct {
 	raw *types.BlockSummary
 }
@@ -55,14 +57,21 @@ func (header BlockHeader) EncodeRLP(w io.Writer) error {
 	}
 
 	if header.raw.PosReference != nil {
-		// simulate RLP encoding for rust Option type
-		item := []common.Hash{*header.raw.PosReference.ToCommonHash()}
-		list = append(list, item)
+		list = append(list, rlpEncodeOptionSome(*header.raw.PosReference.ToCommonHash()))
 	}
 
 	for _, v := range header.raw.Custom {
-		list = append(list, rlp.RawValue(v))
+		if header.raw.EpochNumber.ToInt().Uint64() >= cip112Epoch {
+			list = append(list, v.ToBytes())
+		} else {
+			list = append(list, rlp.RawValue(v.ToBytes()))
+		}
 	}
 
 	return rlp.Encode(w, list)
+}
+
+// simulate RLP encoding for rust Option type
+func rlpEncodeOptionSome(v interface{}) interface{} {
+	return []interface{}{v}
 }
