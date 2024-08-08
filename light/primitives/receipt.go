@@ -2,7 +2,6 @@ package primitives
 
 import (
 	"io"
-	"math/big"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
@@ -12,41 +11,30 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Receipt struct {
-	AccumulatedGasUsed    *big.Int
-	GasFee                *big.Int
-	GasSponsorPaid        Bool
-	LogBloom              []byte
-	Logs                  []TxLog
-	OutcomeStatus         uint8
-	StorageSponsorPaid    Bool
-	StorageCollateralized []StorageChange
-	StorageReleased       []StorageChange
-}
-
 func MustRLPEncodeReceipt(receipt *types.TransactionReceipt) []byte {
-	val := ConvertReceipt(receipt)
+	storageCollateralized, storageReleased := constructStorageChanges(receipt)
+
+	val := []interface{}{
+		receipt.AccumulatedGasUsed.ToInt(),
+		receipt.GasFee.ToInt(),
+		Bool(receipt.GasCoveredBySponsor),
+		hexutil.MustDecode(string(receipt.LogsBloom)),
+		convertLogs(receipt.Logs),
+		uint8(receipt.MustGetOutcomeType()),
+		Bool(receipt.StorageCoveredBySponsor),
+		storageCollateralized,
+		storageReleased,
+	}
+
+	if receipt.BurntGasFee != nil {
+		val = append(val, receipt.BurntGasFee)
+	}
+
 	encoded, err := rlp.EncodeToBytes(val)
 	if err != nil {
 		panic(err)
 	}
 	return encoded
-}
-
-func ConvertReceipt(receipt *types.TransactionReceipt) Receipt {
-	storageCollateralized, storageReleased := constructStorageChanges(receipt)
-
-	return Receipt{
-		AccumulatedGasUsed:    receipt.AccumulatedGasUsed.ToInt(),
-		GasFee:                receipt.GasFee.ToInt(),
-		GasSponsorPaid:        Bool(receipt.GasCoveredBySponsor),
-		LogBloom:              hexutil.MustDecode(string(receipt.LogsBloom)),
-		Logs:                  convertLogs(receipt.Logs),
-		OutcomeStatus:         uint8(receipt.MustGetOutcomeType()),
-		StorageSponsorPaid:    Bool(receipt.StorageCoveredBySponsor),
-		StorageCollateralized: storageCollateralized,
-		StorageReleased:       storageReleased,
-	}
 }
 
 type StorageChange struct {

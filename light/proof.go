@@ -11,6 +11,7 @@ import (
 	"github.com/Conflux-Chain/go-conflux-sdk/types/enums"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/openweb3/web3go"
+	evmTypes "github.com/openweb3/web3go/types"
 	"github.com/pkg/errors"
 )
 
@@ -65,10 +66,10 @@ func (g *ProofGenerator) CreateReceiptProofEvm(evmClient *web3go.Client, txHash 
 		return nil, errors.WithMessage(err, "Failed to get nearest pivot on chain")
 	}
 
-	return CreateReceiptProofEvm(g.coreClient, txHash, receipt.BlockNumber, pivot.Uint64())
+	return CreateReceiptProofEvm(g.coreClient, evmClient, txHash, receipt.BlockNumber, pivot.Uint64())
 }
 
-func CreateReceiptProofEvm(coreClient *sdk.Client, txHash common.Hash, epochNumber uint64, pivot uint64) (*contract.TypesReceiptProof, error) {
+func CreateReceiptProofEvm(coreClient *sdk.Client, evmClient *web3go.Client, txHash common.Hash, epochNumber uint64, pivot uint64) (*contract.TypesReceiptProof, error) {
 	if epochNumber+deferredExecutionEpochs > pivot {
 		return nil, errors.New("invalid pivot")
 	}
@@ -107,12 +108,32 @@ func CreateReceiptProofEvm(coreClient *sdk.Client, txHash common.Hash, epochNumb
 
 	var headers [][]byte
 	for i := epochNumber + deferredExecutionEpochs; i <= pivot; i++ {
-		block, err := coreClient.GetBlockSummaryByEpoch(types.NewEpochNumberUint64(i))
+		coreBlock, err := coreClient.GetBlockSummaryByEpoch(types.NewEpochNumberUint64(i))
 		if err != nil {
-			return nil, errors.WithMessagef(err, "Failed to get block summary by epoch %v", i)
+			return nil, errors.WithMessagef(err, "Failed to get core block summary by epoch %v", i)
 		}
 
-		headers = append(headers, primitives.MustRLPEncodeBlock(block))
+		if coreBlock == nil {
+			return nil, errors.Errorf("Core block not found by epoch %v", i)
+		}
+
+		var evmBlock *evmTypes.Block
+		if coreBlock.BaseFeePerGas != nil {
+			evmBlock, err = evmClient.Eth.BlockByNumber(evmTypes.NewBlockNumber(int64(i)), false)
+			if err != nil {
+				return nil, errors.WithMessagef(err, "Failed to get evm block by block number %v", i)
+			}
+
+			if evmBlock == nil {
+				return nil, errors.Errorf("Evm block not found by block number %v", i)
+			}
+
+			if evmBlock.BaseFeePerGas == nil {
+				return nil, errors.Errorf("There is no base fee in evm block by number %v", i)
+			}
+		}
+
+		headers = append(headers, primitives.MustRLPEncodeBlock(coreBlock, evmBlock.BaseFeePerGas))
 	}
 
 	return &contract.TypesReceiptProof{
