@@ -28,7 +28,7 @@ type Transaction struct {
 	From             Address         `json:"from"`
 	To               *Address        `json:"to"`
 	Value            *hexutil.Big    `json:"value"`
-	GasPrice         *hexutil.Big    `json:"gasPrice"`
+	GasPrice         *hexutil.Big    `json:"gasPrice,omitempty"`
 	Gas              *hexutil.Big    `json:"gas"`
 	ContractCreated  *Address        `json:"contractCreated"`
 	Data             string          `json:"data"`
