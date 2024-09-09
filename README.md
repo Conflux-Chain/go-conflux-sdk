@@ -8,7 +8,7 @@
 
 The Conflux Golang API allows any Golang client to interact with a local or remote Conflux node based on JSON-RPC 2.0 protocol. With Conflux Golang API, users can easily manage accounts, send transactions, deploy smart contracts, and query blockchain information.
 
-Please read the [documentation](https://docs.confluxnetwork.org/go-conflux-sdk) for more.
+Please read the [documentation](https://confluxnetwork.gitbook.io/go-conflux-sdk) for more.
 
 And read the API documentation from [here](https://pkg.go.dev/github.com/Conflux-Chain/go-conflux-sdk).
 
