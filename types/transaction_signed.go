@@ -51,6 +51,9 @@ func (g gSignedTransactionForRlp[T]) toRaw() *signedTransactionForRlp {
 
 // Decode decodes RLP encoded data to tx
 func (tx *SignedTransaction) Decode(data []byte, networkID uint32) error {
+	if len(data) < 4 {
+		return errors.New("data should not be less than 4")
+	}
 
 	if string(data[:3]) != string(TRANSACTION_TYPE_PREFIX) {
 		txForRlp := new(gSignedTransactionForRlp[unsignedLegacyTransactionForRlp])
