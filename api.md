@@ -153,7 +153,7 @@ SignTransaction signs tx and returns its RLP encoded data.
 func (m *AccountManager) SignTransactionWithPassphrase(tx types.UnsignedTransaction, passphrase string) (types.SignedTransaction, error)
 ```
 SignTransactionWithPassphrase signs tx with given passphrase and returns a
-transction with signature
+transaction with signature
 
 #### func (*AccountManager) TimedUnlock
 
@@ -213,7 +213,7 @@ MustNewClient same to NewClient but panic if failed
 func NewClient(nodeURL string, option ...ClientOption) (*Client, error)
 ```
 NewClient creates an instance of Client with specified conflux node url, it will
-creat account manager if option.KeystorePath not empty.
+create account manager if option.KeystorePath not empty.
 
     client, err := sdk.NewClient("https://test.confluxrpc.com", sdk.ClientOption{
         KeystorePath: "../context/keystore",
@@ -371,7 +371,7 @@ Debug returns RpcDebugClient for invoke rpc with debug namespace
 func (client *Client) DeployContract(option *types.ContractDeployOption, abiJSON []byte,
 	bytecode []byte, constroctorParams ...interface{}) *ContractDeployResult
 ```
-DeployContract deploys a contract by abiJSON, bytecode and consturctor params.
+DeployContract deploys a contract by abiJSON, bytecode and constructor params.
 It returns a ContractDeployState instance which contains 3 channels for
 notifying when state changed.
 
@@ -380,7 +380,7 @@ notifying when state changed.
 ```go
 func (client *Client) EstimateGasAndCollateral(request types.CallRequest, epoch ...*types.Epoch) (estimat types.Estimate, err error)
 ```
-EstimateGasAndCollateral excutes a message call "request" and returns the amount
+EstimateGasAndCollateral executes a message call "request" and returns the amount
 of the gas used and storage for collateral
 
 #### func (*Client) FilterTraces
@@ -545,7 +545,7 @@ GetNetworkID returns networkID of connecting conflux node
 ```go
 func (client *Client) GetChainIDCached() uint32
 ```
-GetChainIDCached returns chached networkID created when new client
+GetChainIDCached returns cached networkID created when new client
 
 #### func (*Client) GetClientVersion
 
@@ -662,7 +662,7 @@ GetNodeURL returns node url
 ```go
 func (client *Client) GetOpenedMethodGroups() (openedGroups []string, err error)
 ```
-GetOpenedMethodGroups returns openning method groups
+GetOpenedMethodGroups returns opening method groups
 
 #### func (*Client) GetPoSEconomics
 
@@ -780,7 +780,7 @@ func (client *Client) MustNewAddress(base32OrHex string) types.Address
 ```
 MustNewAddress create conflux address by base32 string or hex40 string, if
 base32OrHex is base32 and networkID is passed it will create cfx Address use
-networkID of current client. it will painc if error occured.
+networkID of current client. it will panic if error occurred.
 
 #### func (*Client) NewAddress
 
@@ -1226,7 +1226,7 @@ IsRPCJSONError returns true if err is rpc error
 ```go
 func Keccak256(hexStr string) (string, error)
 ```
-Keccak256 hashes hex string by keccak256 and returns it's hash value
+Keccak256 hashes hex string by keccak256 and returns its hash value
 
 #### func  PanicIfErr
 
