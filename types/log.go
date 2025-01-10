@@ -6,6 +6,7 @@ package types
 
 import (
 	"encoding/json"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"io"
 	"math/big"
 	"reflect"
@@ -123,7 +124,7 @@ func (log *Log) DecodeRLP(r *rlp.Stream) error {
 	return nil
 }
 
-// UnmarshalJSON implements the json.Unmarshaler interface.
+// UnmarshalJSON implements the utils.JSONUnmarshaler interface.
 func (l *LogFilter) UnmarshalJSON(data []byte) error {
 	type tmpLogFilter struct {
 		FromEpoch   *Epoch          `json:"fromEpoch,omitempty"`
@@ -138,7 +139,7 @@ func (l *LogFilter) UnmarshalJSON(data []byte) error {
 	}
 
 	t := tmpLogFilter{}
-	if err := json.Unmarshal(data, &t); err != nil {
+	if err := utils.JSONUnmarshal(data, &t); err != nil {
 		return err
 	}
 

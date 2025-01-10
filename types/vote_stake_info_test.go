@@ -1,8 +1,8 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"testing"
 )
 
@@ -16,7 +16,7 @@ func TestUnmarshal(t *testing.T) {
 
 	for _, c := range cases {
 		v := VoteStakeInfo{}
-		e := json.Unmarshal([]byte(c), &v)
+		e := utils.JSONUnmarshal([]byte(c), &v)
 		if e != nil {
 			t.Fatal(e)
 		}

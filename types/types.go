@@ -6,6 +6,7 @@ package types
 
 import (
 	"encoding/json"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"math/big"
 
 	address "github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
@@ -31,7 +32,7 @@ func (hash Hash) String() string {
 
 func (hash *Hash) UnmarshalJSON(input []byte) error {
 	var h common.Hash
-	if err := json.Unmarshal(input, &h); err != nil {
+	if err := utils.JSONUnmarshal(input, &h); err != nil {
 		return err
 	}
 	*hash = Hash(h.String())
@@ -91,7 +92,7 @@ func (u HexOrDecimalUint64) MarshalJSON() ([]byte, error) {
 func (u *HexOrDecimalUint64) UnmarshalJSON(data []byte) error {
 	if data[0] == byte('"') && data[len(data)-1] == byte('"') {
 		var val hexutil.Uint64
-		if err := json.Unmarshal(data, &val); err != nil {
+		if err := utils.JSONUnmarshal(data, &val); err != nil {
 			return err
 		}
 		*u = HexOrDecimalUint64(val)
@@ -99,7 +100,7 @@ func (u *HexOrDecimalUint64) UnmarshalJSON(data []byte) error {
 	}
 
 	var val uint64
-	if err := json.Unmarshal(data, &val); err != nil {
+	if err := utils.JSONUnmarshal(data, &val); err != nil {
 		return err
 	}
 	*u = HexOrDecimalUint64(val)

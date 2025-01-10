@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/hex"
 	"encoding/json"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"reflect"
 	"testing"
 
@@ -41,7 +42,7 @@ func TestRLPMarshalTransaction(t *testing.T) {
 		for _, item := range table {
 			// Encode
 			var tx Transaction
-			err := json.Unmarshal([]byte(item.json), &tx)
+			err := utils.JSONUnmarshal([]byte(item.json), &tx)
 			assert.NoError(t, err)
 
 			dBytes, err := rlp.EncodeToBytes(tx)
@@ -104,7 +105,7 @@ func TestRLPMarshalTransactionReceipt(t *testing.T) {
 		for _, item := range table {
 			// Encode
 			var tx TransactionReceipt
-			err := json.Unmarshal([]byte(item.json), &tx)
+			err := utils.JSONUnmarshal([]byte(item.json), &tx)
 			assert.NoError(t, err)
 
 			dBytes, err := rlp.EncodeToBytes(tx)
@@ -140,7 +141,7 @@ func TestJsonTransaction(t *testing.T) {
 
 	for _, expect := range table {
 		var tx *Transaction
-		err := json.Unmarshal([]byte(expect), &tx)
+		err := utils.JSONUnmarshal([]byte(expect), &tx)
 		assert.NoError(t, err)
 
 		actual, err := json.Marshal(tx)
@@ -182,7 +183,7 @@ func TestJsonUnmarshalTransactionStatus(t *testing.T) {
 
 func testJsonUnmarshalTransactionStatus(t *testing.T, originTxStatusJson []byte, expectTxStatus TransactionStatus) {
 	actualTxStatus := TransactionStatus{}
-	json.Unmarshal(originTxStatusJson, &actualTxStatus)
+	utils.JSONUnmarshal(originTxStatusJson, &actualTxStatus)
 	if !reflect.DeepEqual(actualTxStatus, expectTxStatus) {
 		t.Fatalf("expect %#v, actual %#v", expectTxStatus, actualTxStatus)
 	}

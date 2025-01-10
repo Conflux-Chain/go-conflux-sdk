@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 )
 
 type CfxFilterChanges struct {
@@ -27,14 +28,14 @@ func (u *CfxFilterChanges) UnmarshalJSON(data []byte) error {
 	}
 
 	logs := []*SubscriptionLog{}
-	err := json.Unmarshal(data, &logs)
+	err := utils.JSONUnmarshal(data, &logs)
 	if err == nil {
 		u.Logs = logs
 		u.Type = "log"
 		return nil
 	}
 	hashes := []Hash{}
-	err = json.Unmarshal(data, &hashes)
+	err = utils.JSONUnmarshal(data, &hashes)
 	if err == nil {
 		u.Hashes = hashes
 		u.Type = "hash"

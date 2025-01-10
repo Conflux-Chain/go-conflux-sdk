@@ -2,7 +2,6 @@ package cfxaddress
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"io"
 	"reflect"
@@ -403,14 +402,14 @@ func (a *Address) UnmarshalText(data []byte) error {
 	return a.UnmarshalJSON(data)
 }
 
-// UnmarshalJSON implements the json.Unmarshaler interface.
+// UnmarshalJSON implements the utils.JSONUnmarshaler interface.
 func (a *Address) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
 		return nil
 	}
 
 	var str string
-	err := json.Unmarshal(data, &str)
+	err := utils.JSONUnmarshal(data, &str)
 	if err != nil {
 		return errors.Wrapf(err, "failed to unmarshal %x to string", data)
 	}

@@ -36,7 +36,7 @@ func TestUnmarshalEpoch(t *testing.T) {
 	}
 
 	for _, epochStr := range epochStrs {
-		err := json.Unmarshal([]byte(`"`+epochStr+`"`), &Epoch{})
+		err := utils.JSONUnmarshal([]byte(`"`+epochStr+`"`), &Epoch{})
 		if err != nil {
 			t.Fatalf("failed unmarshal %v, %v", epochStr, err)
 		}
@@ -68,7 +68,7 @@ func TestUnmarshalEpochOrBlockHash(t *testing.T) {
 
 	for _, input := range inputs {
 		var e EpochOrBlockHash
-		err := json.Unmarshal([]byte(input), &e)
+		err := utils.JSONUnmarshal([]byte(input), &e)
 		assert.NoError(t, err, input)
 
 		jActual, _ := json.Marshal(e)

@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"testing"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
@@ -35,7 +36,7 @@ func TestEncodeSignedTransaction(t *testing.T) {
 
 	for _, item := range table {
 		tx := SignedTransaction{}
-		err := json.Unmarshal([]byte(item.raw), &tx)
+		err := utils.JSONUnmarshal([]byte(item.raw), &tx)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -154,7 +155,7 @@ func TestHashUnsignedTransaction(t *testing.T) {
 
 	for _, item := range table {
 		tx := UnsignedTransaction{}
-		err := json.Unmarshal([]byte(item.tx), &tx)
+		err := utils.JSONUnmarshal([]byte(item.tx), &tx)
 		if err != nil {
 			t.Fatal(err)
 		}

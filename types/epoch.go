@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -103,10 +104,10 @@ func (e Epoch) MarshalText() ([]byte, error) {
 	return []byte(e.String()), nil
 }
 
-// UnmarshalJSON implements the json.Unmarshaler interface.
+// UnmarshalJSON implements the utils.JSONUnmarshaler interface.
 func (e *Epoch) UnmarshalJSON(data []byte) error {
 	var input string
-	if err := json.Unmarshal(data, &input); err != nil {
+	if err := utils.JSONUnmarshal(data, &input); err != nil {
 		return err
 	}
 
@@ -208,11 +209,11 @@ func (e EpochOrBlockHash) MarshalJSON() ([]byte, error) {
 	return nil, errors.New("unkown EpochOrBlockHash")
 }
 
-// UnmarshalJSON implements the json.Unmarshaler interface.
+// UnmarshalJSON implements the utils.JSONUnmarshaler interface.
 func (e *EpochOrBlockHash) UnmarshalJSON(data []byte) error {
 
 	var epoch Epoch
-	err := json.Unmarshal(data, &epoch)
+	err := utils.JSONUnmarshal(data, &epoch)
 	if err == nil {
 		e.epoch = &epoch
 		return nil
@@ -225,7 +226,7 @@ func (e *EpochOrBlockHash) UnmarshalJSON(data []byte) error {
 	}
 
 	var val tmpEpoch
-	err = json.Unmarshal(data, &val)
+	err = utils.JSONUnmarshal(data, &val)
 	if err != nil {
 		return err
 	}

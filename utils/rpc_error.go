@@ -37,7 +37,7 @@ func ToRpcError(origin error) (*RpcError, error) {
 	}
 
 	rpcErr := &RpcError{}
-	if err = json.Unmarshal(j, rpcErr); err != nil {
+	if err = JSONUnmarshal(j, rpcErr); err != nil {
 		return nil, errors.WithStack(err)
 	}
 

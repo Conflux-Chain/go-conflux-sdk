@@ -162,7 +162,7 @@ func (l *LocalizedTrace) UnmarshalJSON(data []byte) error {
 	type alias LocalizedTrace
 
 	a := alias{}
-	err := json.Unmarshal(data, &a)
+	err := utils.JSONUnmarshal(data, &a)
 	if err != nil {
 		return err
 	}
@@ -172,7 +172,7 @@ func (l *LocalizedTrace) UnmarshalJSON(data []byte) error {
 		Action map[string]interface{} `json:"action"`
 	}{}
 
-	err = json.Unmarshal(data, &tmp)
+	err = utils.JSONUnmarshal(data, &tmp)
 	if err != nil {
 		return err
 	}
@@ -202,23 +202,23 @@ func parseAction(actionInMap map[string]interface{}, actionType TraceType) (inte
 	switch actionType {
 	case TRACE_CALL:
 		action := Call{}
-		err = json.Unmarshal(actionJson, &action)
+		err = utils.JSONUnmarshal(actionJson, &action)
 		result = action
 	case TRACE_CREATE:
 		action := Create{}
-		err = json.Unmarshal(actionJson, &action)
+		err = utils.JSONUnmarshal(actionJson, &action)
 		result = action
 	case TRACE_CALL_RESULT:
 		action := CallResult{}
-		err = json.Unmarshal(actionJson, &action)
+		err = utils.JSONUnmarshal(actionJson, &action)
 		result = action
 	case TRACE_CREATE_RESULT:
 		action := CreateResult{}
-		err = json.Unmarshal(actionJson, &action)
+		err = utils.JSONUnmarshal(actionJson, &action)
 		result = action
 	case TRACE_INTERNAL_TRANSFER_ACTIION:
 		action := InternalTransferAction{}
-		err = json.Unmarshal(actionJson, &action)
+		err = utils.JSONUnmarshal(actionJson, &action)
 		result = action
 	default:
 		return nil, fmt.Errorf("unknown action type %v", actionType)
@@ -261,17 +261,17 @@ func (l *LocalizedTraceNode) populate(raw LocalizedTrace) {
 
 // TraceInTire convert flattened trace to trie, the convered tiers are stored in the order of the flattened trace like follow.
 //
-// 		InternalTransfer
-// 		call
-// 		create
-// 		createResult
-// 		callResult
-// 		InternalTransfer
-// 		============>
-// 		InternalTransfer
-// 		call + callResult
-// 			|- create + createResult
-// 		InternalTransfer
+//	InternalTransfer
+//	call
+//	create
+//	createResult
+//	callResult
+//	InternalTransfer
+//	============>
+//	InternalTransfer
+//	call + callResult
+//		|- create + createResult
+//	InternalTransfer
 func TraceInTire(traces []LocalizedTrace) (tier LocalizedTraceTire, err error) {
 	cacheStack := new([]*LocalizedTraceNode)
 

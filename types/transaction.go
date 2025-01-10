@@ -6,6 +6,7 @@ package types
 
 import (
 	"encoding/json"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"io"
 	"math/big"
 
@@ -756,13 +757,13 @@ func (ts *TransactionStatus) UnmarshalJSON(data []byte) error {
 	}
 
 	var pendingreason pending
-	if err := json.Unmarshal(data, &pendingreason); err == nil {
+	if err := utils.JSONUnmarshal(data, &pendingreason); err == nil {
 		ts.pending = pendingreason
 		return nil
 	}
 
 	var tmp string
-	if err := json.Unmarshal(data, &tmp); err == nil {
+	if err := utils.JSONUnmarshal(data, &tmp); err == nil {
 		ts.packedOrReady = tmp
 		return nil
 	}

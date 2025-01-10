@@ -1,7 +1,7 @@
 package types
 
 import (
-	"encoding/json"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -17,14 +17,14 @@ type VoteStakeInfo struct {
 	UnlockBlockNumber uint64 `json:"unlockBlockNumber"`
 }
 
-// UnmarshalJSON implements the json.Unmarshaler interface.
+// UnmarshalJSON implements the utils.JSONUnmarshaler interface.
 func (v *VoteStakeInfo) UnmarshalJSON(data []byte) error {
 	tmp := struct {
 		Amount            *hexutil.Big `json:"amount"`
 		UnlockBlockNumber interface{}  `json:"unlockBlockNumber"`
 	}{}
 
-	err := json.Unmarshal(data, &tmp)
+	err := utils.JSONUnmarshal(data, &tmp)
 	if err != nil {
 		return err
 	}

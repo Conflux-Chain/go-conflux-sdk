@@ -1,7 +1,7 @@
 package postypes
 
 import (
-	"encoding/json"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"reflect"
 	"testing"
 
@@ -34,7 +34,7 @@ func TestBlockNumberUnmarshalJSON(t *testing.T) {
 
 	for _, v := range table {
 		var actual BlockNumber
-		err := json.Unmarshal([]byte(v.input), &actual)
+		err := utils.JSONUnmarshal([]byte(v.input), &actual)
 
 		// fmt.Printf("actual %+v, err %v", actual, err)
 

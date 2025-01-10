@@ -2,6 +2,7 @@ package cfxaddress
 
 import (
 	"encoding/json"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"reflect"
 	"testing"
 
@@ -115,7 +116,7 @@ func TestUnmarshalJSON(t *testing.T) {
 
 	for _, v := range marshaledToPtr {
 		var actual *Address = &Address{}
-		err := json.Unmarshal([]byte(v.input), &actual)
+		err := utils.JSONUnmarshal([]byte(v.input), &actual)
 		fatalIfErr(t, err)
 		if !reflect.DeepEqual(actual, v.expect) {
 			t.Fatalf("expect %#v, actual %#v", v.expect, actual)
@@ -137,7 +138,7 @@ func TestUnmarshalJSON(t *testing.T) {
 	}
 	for _, v := range marshaledToValue {
 		var actual Address
-		err := json.Unmarshal([]byte(v.input), &actual)
+		err := utils.JSONUnmarshal([]byte(v.input), &actual)
 		fatalIfErr(t, err)
 		if !reflect.DeepEqual(actual, v.expect) {
 			t.Fatalf("expect %+v, actual %+v", v.expect, actual)
@@ -150,7 +151,7 @@ func TestUnmarshalJSON(t *testing.T) {
 
 	for _, v := range wrongs {
 		var actual *Address
-		err := json.Unmarshal([]byte(v), &actual)
+		err := utils.JSONUnmarshal([]byte(v), &actual)
 		if err == nil {
 			t.Errorf("expect unmarshal %v error, bug get %v", v, actual)
 		}

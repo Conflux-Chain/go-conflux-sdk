@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,7 +34,7 @@ func TestJsonMarshalAccessList(t *testing.T) {
 	t.Run("Unmarshal", func(t *testing.T) {
 		for _, item := range table {
 			var al *AccessList
-			err := json.Unmarshal([]byte(item.expect), &al)
+			err := utils.JSONUnmarshal([]byte(item.expect), &al)
 			assert.NoError(t, err)
 
 			if item.input == nil {

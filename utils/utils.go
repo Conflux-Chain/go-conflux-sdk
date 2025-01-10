@@ -125,7 +125,7 @@ func GetMapSortedKeys(m map[string]interface{}) []string {
 // Format Json into string with orderd by field names
 func FormatJson(input string) string {
 	var oInput interface{}
-	json.Unmarshal([]byte(input), &oInput)
+	JSONUnmarshal([]byte(input), &oInput)
 
 	formated, _ := json.Marshal(oInput)
 	return string(formated)
