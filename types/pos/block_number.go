@@ -1,8 +1,8 @@
 package postypes
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"regexp"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -39,11 +39,11 @@ func (e BlockNumber) MarshalText() ([]byte, error) {
 	return []byte(e.String()), nil
 }
 
-// UnmarshalJSON implements the json.Unmarshaler interface.
+// UnmarshalJSON implements the utils.JSONUnmarshaler interface.
 func (e *BlockNumber) UnmarshalJSON(data []byte) error {
 	var input string
 
-	if err := json.Unmarshal(data, &input); err != nil {
+	if err := utils.JsonUnmarshal(data, &input); err != nil {
 		return err
 	}
 

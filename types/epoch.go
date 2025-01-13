@@ -5,9 +5,9 @@
 package types
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -103,10 +103,10 @@ func (e Epoch) MarshalText() ([]byte, error) {
 	return []byte(e.String()), nil
 }
 
-// UnmarshalJSON implements the json.Unmarshaler interface.
+// UnmarshalJSON implements the utils.JSONUnmarshaler interface.
 func (e *Epoch) UnmarshalJSON(data []byte) error {
 	var input string
-	if err := json.Unmarshal(data, &input); err != nil {
+	if err := utils.JsonUnmarshal(data, &input); err != nil {
 		return err
 	}
 
@@ -185,11 +185,11 @@ func (e EpochOrBlockHash) MarshalText() ([]byte, error) {
 
 func (e EpochOrBlockHash) MarshalJSON() ([]byte, error) {
 	if e.epoch != nil {
-		return json.Marshal(e.epoch)
+		return utils.JsonMarshal(e.epoch)
 	}
 
 	if e.epochNumber != nil {
-		return json.Marshal(struct {
+		return utils.JsonMarshal(struct {
 			EpochNumber *hexutil.Big `json:"epochNumber"`
 		}{
 			EpochNumber: e.epochNumber,
@@ -197,7 +197,7 @@ func (e EpochOrBlockHash) MarshalJSON() ([]byte, error) {
 	}
 
 	if e.blockHash != nil {
-		return json.Marshal(struct {
+		return utils.JsonMarshal(struct {
 			BlockHash    common.Hash `json:"blockHash"`
 			RequirePivot bool        `json:"requirePivot"`
 		}{
@@ -208,11 +208,11 @@ func (e EpochOrBlockHash) MarshalJSON() ([]byte, error) {
 	return nil, errors.New("unkown EpochOrBlockHash")
 }
 
-// UnmarshalJSON implements the json.Unmarshaler interface.
+// UnmarshalJSON implements the utils.JSONUnmarshaler interface.
 func (e *EpochOrBlockHash) UnmarshalJSON(data []byte) error {
 
 	var epoch Epoch
-	err := json.Unmarshal(data, &epoch)
+	err := utils.JsonUnmarshal(data, &epoch)
 	if err == nil {
 		e.epoch = &epoch
 		return nil
@@ -225,7 +225,7 @@ func (e *EpochOrBlockHash) UnmarshalJSON(data []byte) error {
 	}
 
 	var val tmpEpoch
-	err = json.Unmarshal(data, &val)
+	err = utils.JsonUnmarshal(data, &val)
 	if err != nil {
 		return err
 	}

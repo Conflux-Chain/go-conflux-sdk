@@ -65,7 +65,7 @@ func PanicIfErr(err error) {
 
 // PrettyJSON json marshal value and pretty with indent
 func PrettyJSON(value interface{}) string {
-	j, e := json.Marshal(value)
+	j, e := JsonMarshal(value)
 	if e != nil {
 		panic(e)
 	}
@@ -125,9 +125,9 @@ func GetMapSortedKeys(m map[string]interface{}) []string {
 // Format Json into string with orderd by field names
 func FormatJson(input string) string {
 	var oInput interface{}
-	json.Unmarshal([]byte(input), &oInput)
+	JsonUnmarshal([]byte(input), &oInput)
 
-	formated, _ := json.Marshal(oInput)
+	formated, _ := JsonMarshal(oInput)
 	return string(formated)
 }
 

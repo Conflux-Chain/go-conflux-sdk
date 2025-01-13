@@ -2,7 +2,7 @@ package postypes
 
 import (
 	"bytes"
-	"encoding/json"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"sort"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
@@ -140,7 +140,7 @@ func (b *Transaction) UnmarshalJSON(data []byte) error {
 
 	tmpTx := tmpTransaction{}
 
-	if err := json.Unmarshal(data, &tmpTx); err != nil {
+	if err := utils.JsonUnmarshal(data, &tmpTx); err != nil {
 		return errors.WithStack(err)
 	}
 
@@ -148,7 +148,7 @@ func (b *Transaction) UnmarshalJSON(data []byte) error {
 		tmpTx.Timestamp, tmpTx.Number, nil, tmpTx.Status, tmpTx.Type}
 
 	if tmpTx.Payload != nil {
-		marshaled, err := json.Marshal(tmpTx.Payload)
+		marshaled, err := utils.JsonMarshal(tmpTx.Payload)
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -157,17 +157,17 @@ func (b *Transaction) UnmarshalJSON(data []byte) error {
 		realPayload.SetTransactionType(tmpTx.Type)
 		switch tmpTx.Type {
 		case "Election":
-			err = json.Unmarshal(marshaled, &realPayload.ElectionPayload)
+			err = utils.JsonUnmarshal(marshaled, &realPayload.ElectionPayload)
 		case "Retire":
-			err = json.Unmarshal(marshaled, &realPayload.RetirePayload)
+			err = utils.JsonUnmarshal(marshaled, &realPayload.RetirePayload)
 		case "Register":
-			err = json.Unmarshal(marshaled, &realPayload.RegisterPayload)
+			err = utils.JsonUnmarshal(marshaled, &realPayload.RegisterPayload)
 		case "UpdateVotingPower":
-			err = json.Unmarshal(marshaled, &realPayload.UpdateVotingPowerPayload)
+			err = utils.JsonUnmarshal(marshaled, &realPayload.UpdateVotingPowerPayload)
 		case "PivotDecision":
-			err = json.Unmarshal(marshaled, &realPayload.PivotBlockDecision)
+			err = utils.JsonUnmarshal(marshaled, &realPayload.PivotBlockDecision)
 		case "Dispute":
-			err = json.Unmarshal(marshaled, &realPayload.DisputePayload)
+			err = utils.JsonUnmarshal(marshaled, &realPayload.DisputePayload)
 		}
 		if err != nil {
 			return errors.WithStack(err)

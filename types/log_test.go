@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/json"
 	"reflect"
 	"strings"
 	"testing"
@@ -45,7 +44,7 @@ func TestRLPMarshalLog(t *testing.T) {
 
 	for _, logJson := range []string{logJson2, logJson1} {
 		var log Log
-		err := json.Unmarshal([]byte(logJson), &log)
+		err := utils.JsonUnmarshal([]byte(logJson), &log)
 		fatalIfErr(t, err)
 		// RLP marshal log to bytes
 		dBytes, err := rlp.EncodeToBytes(log)
@@ -55,11 +54,11 @@ func TestRLPMarshalLog(t *testing.T) {
 		err = rlp.DecodeBytes(dBytes, &log2)
 		fatalIfErr(t, err)
 		// Json marshal log
-		jBytes1, err := json.Marshal(log)
+		jBytes1, err := utils.JsonMarshal(log)
 		fatalIfErr(t, err)
 		logJsonStr := string(jBytes1)
 		// Json marshal log2
-		jBytes2, err := json.Marshal(log2)
+		jBytes2, err := utils.JsonMarshal(log2)
 		fatalIfErr(t, err)
 		logJsonStr2 := string(jBytes2)
 
@@ -75,7 +74,7 @@ func TestRLPMarshalSubscriptionLog(t *testing.T) {
 
 	for _, logJson := range []string{logJson2, logJson1} {
 		var log SubscriptionLog
-		err := json.Unmarshal([]byte(logJson), &log)
+		err := utils.JsonUnmarshal([]byte(logJson), &log)
 		fatalIfErr(t, err)
 
 		// fmt.Printf("log:%v\n", utils.PrettyJSON(log))
@@ -90,11 +89,11 @@ func TestRLPMarshalSubscriptionLog(t *testing.T) {
 		fatalIfErr(t, err)
 		// fmt.Printf("dlog :%+v\n", log2)
 		// Json marshal log
-		jBytes1, err := json.Marshal(log)
+		jBytes1, err := utils.JsonMarshal(log)
 		fatalIfErr(t, err)
 		logJsonStr := string(jBytes1)
 		// Json marshal log2
-		jBytes2, err := json.Marshal(log2)
+		jBytes2, err := utils.JsonMarshal(log2)
 		fatalIfErr(t, err)
 		logJsonStr2 := string(jBytes2)
 
@@ -168,7 +167,7 @@ func verifyLogFilter(t *testing.T, address string, topics string, expectAddress 
 	expect.Topics = expectTopics
 
 	actual := LogFilter{}
-	err := json.Unmarshal([]byte(input), &actual)
+	err := utils.JsonUnmarshal([]byte(input), &actual)
 	if err != nil {
 		t.Error(err)
 		t.Fatalf("failed to unmarshal %v", input)
@@ -183,11 +182,11 @@ func TestUnMarhsalSubscribeLog(t *testing.T) {
 	slogJson := `{"address":"cfxtest:acfpjyyu1wp1h79h589dcxhms3z40zgj1y41cj8u3k","topics":["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef","0x00000000000000000000000019f4bcf113e0b896d9b34294fd3da86b4adf0302","0x000000000000000000000000160ebef20c1f739957bf9eecd040bce699cc42c6"],"data":"0x000000000000000000000000000000000000000000000000000000000000000a","blockHash":"0x0c4ee0e8487b7556e9fbc07c8b2f8b5d8ea3841cb104ef6ca0ccc373b44446e6","epochNumber":"0x233e0d4","transactionHash":"0x0631cd13ff875fd991c340d4dac5c85fbc36302af866c2a7c69371064250260f","transactionIndex":"0x0","logIndex":"0x0","transactionLogIndex":"0x0"}`
 
 	actual := SubscriptionLog{}
-	err := json.Unmarshal([]byte(slogJson), &actual)
+	err := utils.JsonUnmarshal([]byte(slogJson), &actual)
 	fatalIfErr(t, err)
 
 	l := Log{}
-	err = json.Unmarshal([]byte(slogJson), &l)
+	err = utils.JsonUnmarshal([]byte(slogJson), &l)
 	fatalIfErr(t, err)
 
 	expect := SubscriptionLog{&l, nil}
@@ -197,11 +196,11 @@ func TestUnMarhsalSubscribeLog(t *testing.T) {
 
 	slogJson = `{"revertTo":"0x40f"}`
 	actual = SubscriptionLog{}
-	err = json.Unmarshal([]byte(slogJson), &actual)
+	err = utils.JsonUnmarshal([]byte(slogJson), &actual)
 	fatalIfErr(t, err)
 
 	r := ChainReorg{}
-	err = json.Unmarshal([]byte(slogJson), &r)
+	err = utils.JsonUnmarshal([]byte(slogJson), &r)
 	fatalIfErr(t, err)
 
 	expect = SubscriptionLog{nil, &r}
@@ -214,14 +213,14 @@ func TestMarshalSubscriptionLog(t *testing.T) {
 	logJson := `{"address":"cfxtest:acfpjyyu1wp1h79h589dcxhms3z40zgj1y41cj8u3k","topics":["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef","0x00000000000000000000000019f4bcf113e0b896d9b34294fd3da86b4adf0302","0x000000000000000000000000160ebef20c1f739957bf9eecd040bce699cc42c6"],"data":"0x000000000000000000000000000000000000000000000000000000000000000a","blockHash":"0x0c4ee0e8487b7556e9fbc07c8b2f8b5d8ea3841cb104ef6ca0ccc373b44446e6","epochNumber":"0x233e0d4","transactionHash":"0x0631cd13ff875fd991c340d4dac5c85fbc36302af866c2a7c69371064250260f","transactionIndex":"0x0","logIndex":"0x0","transactionLogIndex":"0x0"}`
 
 	l := Log{}
-	err := json.Unmarshal([]byte(logJson), &l)
+	err := utils.JsonUnmarshal([]byte(logJson), &l)
 	fatalIfErr(t, err)
 
 	sLog := SubscriptionLog{&l, nil}
-	actual, err := json.Marshal(sLog)
+	actual, err := utils.JsonMarshal(sLog)
 	fatalIfErr(t, err)
 
-	expect, err := json.Marshal(l)
+	expect, err := utils.JsonMarshal(l)
 	fatalIfErr(t, err)
 
 	if !reflect.DeepEqual(actual, expect) {
@@ -230,14 +229,14 @@ func TestMarshalSubscriptionLog(t *testing.T) {
 
 	reorgJson := `{"revertTo":"0x40f"}`
 	r := ChainReorg{}
-	err = json.Unmarshal([]byte(reorgJson), &r)
+	err = utils.JsonUnmarshal([]byte(reorgJson), &r)
 	fatalIfErr(t, err)
 
 	sLog = SubscriptionLog{nil, &r}
-	actual, err = json.Marshal(sLog)
+	actual, err = utils.JsonMarshal(sLog)
 	fatalIfErr(t, err)
 
-	expect, err = json.Marshal(r)
+	expect, err = utils.JsonMarshal(r)
 	fatalIfErr(t, err)
 
 	if !reflect.DeepEqual(actual, expect) {

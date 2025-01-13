@@ -2,7 +2,7 @@ package types
 
 import (
 	"encoding/hex"
-	"encoding/json"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"reflect"
 	"testing"
 
@@ -41,7 +41,7 @@ func TestRLPMarshalTransaction(t *testing.T) {
 		for _, item := range table {
 			// Encode
 			var tx Transaction
-			err := json.Unmarshal([]byte(item.json), &tx)
+			err := utils.JsonUnmarshal([]byte(item.json), &tx)
 			assert.NoError(t, err)
 
 			dBytes, err := rlp.EncodeToBytes(tx)
@@ -61,7 +61,7 @@ func TestRLPMarshalTransaction(t *testing.T) {
 			err = rlp.DecodeBytes(dBytes, &tx2)
 			assert.NoError(t, err)
 
-			jBytes2, err := json.Marshal(tx2)
+			jBytes2, err := utils.JsonMarshal(tx2)
 			assert.NoError(t, err)
 
 			assert.Equal(t, item.json, string(jBytes2))
@@ -104,7 +104,7 @@ func TestRLPMarshalTransactionReceipt(t *testing.T) {
 		for _, item := range table {
 			// Encode
 			var tx TransactionReceipt
-			err := json.Unmarshal([]byte(item.json), &tx)
+			err := utils.JsonUnmarshal([]byte(item.json), &tx)
 			assert.NoError(t, err)
 
 			dBytes, err := rlp.EncodeToBytes(tx)
@@ -124,7 +124,7 @@ func TestRLPMarshalTransactionReceipt(t *testing.T) {
 			err = rlp.DecodeBytes(dBytes, &tx2)
 			assert.NoError(t, err)
 
-			jBytes2, err := json.Marshal(tx2)
+			jBytes2, err := utils.JsonMarshal(tx2)
 			assert.NoError(t, err)
 
 			assert.Equal(t, item.json, string(jBytes2))
@@ -140,10 +140,10 @@ func TestJsonTransaction(t *testing.T) {
 
 	for _, expect := range table {
 		var tx *Transaction
-		err := json.Unmarshal([]byte(expect), &tx)
+		err := utils.JsonUnmarshal([]byte(expect), &tx)
 		assert.NoError(t, err)
 
-		actual, err := json.Marshal(tx)
+		actual, err := utils.JsonMarshal(tx)
 		assert.NoError(t, err)
 
 		assert.Equal(t, expect, string(actual))
@@ -165,7 +165,7 @@ func testJsonMarshalTransactionStatus(t *testing.T, originTxStatus TransactionSt
 		t.Fatalf("expect string %#v, actual %#v", expectString, originTxStatus.String())
 	}
 
-	actualJson, _ := json.Marshal(originTxStatus)
+	actualJson, _ := utils.JsonMarshal(originTxStatus)
 	if !reflect.DeepEqual(actualJson, expectJson) {
 		t.Fatalf("expect json %#v, actual %#v", string(expectJson), string(actualJson))
 	}
@@ -182,7 +182,7 @@ func TestJsonUnmarshalTransactionStatus(t *testing.T) {
 
 func testJsonUnmarshalTransactionStatus(t *testing.T, originTxStatusJson []byte, expectTxStatus TransactionStatus) {
 	actualTxStatus := TransactionStatus{}
-	json.Unmarshal(originTxStatusJson, &actualTxStatus)
+	utils.JsonUnmarshal(originTxStatusJson, &actualTxStatus)
 	if !reflect.DeepEqual(actualTxStatus, expectTxStatus) {
 		t.Fatalf("expect %#v, actual %#v", expectTxStatus, actualTxStatus)
 	}

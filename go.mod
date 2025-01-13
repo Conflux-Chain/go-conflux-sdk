@@ -72,6 +72,7 @@ require (
 
 require (
 	github.com/ethereum/go-ethereum v1.14.5
+	github.com/goccy/go-json v0.10.4
 	github.com/kilic/bls12-381 v0.1.0
 	github.com/urfave/cli/v2 v2.25.7
 )

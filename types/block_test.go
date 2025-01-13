@@ -2,7 +2,7 @@ package types
 
 import (
 	"encoding/hex"
-	"encoding/json"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/rlp"
@@ -42,7 +42,7 @@ func TestRLPMarshalBlockHeader(t *testing.T) {
 		for i, item := range table {
 			// Encode
 			var bh BlockHeader
-			err := json.Unmarshal([]byte(item.json), &bh)
+			err := utils.JsonUnmarshal([]byte(item.json), &bh)
 			assert.NoError(t, err, i)
 
 			rlpEncoded, err := rlp.EncodeToBytes(bh)
@@ -62,7 +62,7 @@ func TestRLPMarshalBlockHeader(t *testing.T) {
 			err = rlp.DecodeBytes(dBytes, &bh)
 			assert.NoError(t, err)
 
-			j, err := json.Marshal(bh)
+			j, err := utils.JsonMarshal(bh)
 			assert.NoError(t, err)
 
 			assert.Equal(t, item.json, string(j))
@@ -98,7 +98,7 @@ func TestRLPMarshalBlock(t *testing.T) {
 		for _, item := range table {
 			// Encode
 			var b Block
-			err := json.Unmarshal([]byte(item.json), &b)
+			err := utils.JsonUnmarshal([]byte(item.json), &b)
 			assert.NoError(t, err)
 
 			rlpEncoded, err := rlp.EncodeToBytes(b)
@@ -118,7 +118,7 @@ func TestRLPMarshalBlock(t *testing.T) {
 			err = rlp.DecodeBytes(dBytes, &b)
 			assert.NoError(t, err)
 
-			j, err := json.Marshal(b)
+			j, err := utils.JsonMarshal(b)
 			assert.NoError(t, err)
 
 			assert.Equal(t, item.json, string(j))
@@ -153,7 +153,7 @@ func TestRLPMarshalBlockSummary(t *testing.T) {
 		for _, item := range table {
 			// Encode
 			var b BlockSummary
-			err := json.Unmarshal([]byte(item.json), &b)
+			err := utils.JsonUnmarshal([]byte(item.json), &b)
 			assert.NoError(t, err)
 
 			rlpEncoded, err := rlp.EncodeToBytes(b)
@@ -173,7 +173,7 @@ func TestRLPMarshalBlockSummary(t *testing.T) {
 			err = rlp.DecodeBytes(dBytes, &b)
 			assert.NoError(t, err)
 
-			j, err := json.Marshal(b)
+			j, err := utils.JsonMarshal(b)
 			assert.NoError(t, err)
 
 			assert.Equal(t, item.json, string(j))
@@ -188,12 +188,12 @@ func TestJsonMarshalBlock(t *testing.T) {
 	}
 	for _, j := range jsons {
 		var b Block
-		e := json.Unmarshal([]byte(j), &b)
+		e := utils.JsonUnmarshal([]byte(j), &b)
 		if e != nil {
 			t.Fatal(e)
 		}
 		// fmt.Printf("%+v\n", b)
-		d, e := json.Marshal(b)
+		d, e := utils.JsonMarshal(b)
 		if e != nil {
 			t.Fatal(e)
 		}

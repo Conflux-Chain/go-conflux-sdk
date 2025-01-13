@@ -1,7 +1,7 @@
 package postypes
 
 import (
-	"encoding/json"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -26,17 +26,17 @@ func (t *TransactionPayload) SetTransactionType(txType string) {
 func (b TransactionPayload) MarshalJSON() ([]byte, error) {
 	switch b.transactionType {
 	case "Election":
-		return json.Marshal(b.ElectionPayload)
+		return utils.JsonMarshal(b.ElectionPayload)
 	case "Retire":
-		return json.Marshal(b.RetirePayload)
+		return utils.JsonMarshal(b.RetirePayload)
 	case "Register":
-		return json.Marshal(b.RegisterPayload)
+		return utils.JsonMarshal(b.RegisterPayload)
 	case "UpdateVotingPower":
-		return json.Marshal(b.UpdateVotingPowerPayload)
+		return utils.JsonMarshal(b.UpdateVotingPowerPayload)
 	case "PivotDecision":
-		return json.Marshal(b.PivotBlockDecision)
+		return utils.JsonMarshal(b.PivotBlockDecision)
 	case "Dispute":
-		return json.Marshal(b.DisputePayload)
+		return utils.JsonMarshal(b.DisputePayload)
 	}
 	return nil, nil
 }

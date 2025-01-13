@@ -5,7 +5,7 @@
 package types
 
 import (
-	"encoding/json"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"io"
 	"math/big"
 
@@ -53,9 +53,9 @@ type Transaction struct {
 func (t Transaction) MarshalJSON() ([]byte, error) {
 	type Alias Transaction
 	if t.AccessList == nil {
-		return json.Marshal((Alias)(t))
+		return utils.JsonMarshal((Alias)(t))
 	}
-	return json.Marshal(&struct {
+	return utils.JsonMarshal(&struct {
 		AccessList AccessList `json:"accessList"`
 		Alias
 	}{
@@ -742,10 +742,10 @@ func (ts TransactionStatus) String() string {
 
 func (ts TransactionStatus) MarshalJSON() ([]byte, error) {
 	if ts.packedOrReady != "" {
-		return json.Marshal(ts.packedOrReady)
+		return utils.JsonMarshal(ts.packedOrReady)
 	}
 	if (ts.pending != pending{}) {
-		return json.Marshal(ts.pending)
+		return utils.JsonMarshal(ts.pending)
 	}
 	return []byte{}, nil
 }
@@ -756,13 +756,13 @@ func (ts *TransactionStatus) UnmarshalJSON(data []byte) error {
 	}
 
 	var pendingreason pending
-	if err := json.Unmarshal(data, &pendingreason); err == nil {
+	if err := utils.JsonUnmarshal(data, &pendingreason); err == nil {
 		ts.pending = pendingreason
 		return nil
 	}
 
 	var tmp string
-	if err := json.Unmarshal(data, &tmp); err == nil {
+	if err := utils.JsonUnmarshal(data, &tmp); err == nil {
 		ts.packedOrReady = tmp
 		return nil
 	}

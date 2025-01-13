@@ -1,7 +1,7 @@
 package types
 
 import (
-	"encoding/json"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"reflect"
 	"testing"
 
@@ -66,7 +66,7 @@ func TestUnmarshalJSONForAction(t *testing.T) {
 
 	for k, v := range jsonToExpectTypeMap {
 		l := LocalizedTrace{}
-		err := json.Unmarshal([]byte(k), &l)
+		err := utils.JsonUnmarshal([]byte(k), &l)
 		if err != nil {
 			t.Fatalf("failed to unmarshl %v,err:%v", k, err.Error())
 		}
@@ -95,7 +95,7 @@ func TestTraceInTree(t *testing.T) {
 
 	for _, v := range cases {
 		flattenTraces := make([]LocalizedTrace, 0)
-		err := json.Unmarshal([]byte(v.In), &flattenTraces)
+		err := utils.JsonUnmarshal([]byte(v.In), &flattenTraces)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -104,7 +104,7 @@ func TestTraceInTree(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		marshaled, err := json.Marshal(tree)
+		marshaled, err := utils.JsonMarshal(tree)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -116,12 +116,12 @@ func TestTraceInTree(t *testing.T) {
 func TestFlattenTraces(t *testing.T) {
 	treeInJson := `{"type":"call","valid":false,"epochHash":"0x4d12913ac843622159b26b830de53194e090de93d2e82ec19e703c5b142258e3","epochNumber":"0x361f","blockHash":"0x4d12913ac843622159b26b830de53194e090de93d2e82ec19e703c5b142258e3","transactionPosition":"0x0","transactionHash":"0x3d63a2a74c0274f3af7fc2ae9215b5d07ae98c4eebdf12a8632b54df028c9fa7","callWithResult":{"call":{"from":"net1037:aap9kthvctunvf030rbkk9k7zbzyz12dajrt1cb5ym","to":"net1037:accam3use2128d6nfx3fn9j10v389we29av05w9zp9","value":"0x0","gas":"0x176d6","input":"0x34d97f38","callType":"call"},"callResult":{"outcome":"success","gasLeft":"0x727b","returnData":"0x"}},"childs":[{"type":"create","valid":false,"epochHash":"0x4d12913ac843622159b26b830de53194e090de93d2e82ec19e703c5b142258e3","epochNumber":"0x361f","blockHash":"0x4d12913ac843622159b26b830de53194e090de93d2e82ec19e703c5b142258e3","transactionPosition":"0x0","transactionHash":"0x3d63a2a74c0274f3af7fc2ae9215b5d07ae98c4eebdf12a8632b54df028c9fa7","createWithResult":{"create":{"createType":"create","from":"net1037:accam3use2128d6nfx3fn9j10v389we29av05w9zp9","value":"0x0","gas":"0xf4e9","init":"0x6080604052348015600f57600080fd5b50608a8061001e6000396000f3fe6080604052348015600f57600080fd5b5060043610603c5760003560e01c80636bdebcc9146041578063c2985578146049578063f1fdece4146049575b600080fd5b6047604f565b005b60476052565b33ff5b56fea2646970667358221220b0eee9118dfaab481f80a888713d69aa457ec808435df671f0ab42c85d5f749564736f6c63430008000033"},"createResult":{"outcome":"success","addr":"net1037:ace08jhgg2h2pnwj7vmnzzuhkej557dge6820mye39","gasLeft":"0x88c8","returnData":"0x6080604052348015600f57600080fd5b5060043610603c5760003560e01c80636bdebcc9146041578063c2985578146049578063f1fdece4146049575b600080fd5b6047604f565b005b60476052565b33ff5b56fea2646970667358221220b0eee9118dfaab481f80a888713d69aa457ec808435df671f0ab42c85d5f749564736f6c63430008000033"}},"childs":null},{"type":"call","valid":false,"epochHash":"0x4d12913ac843622159b26b830de53194e090de93d2e82ec19e703c5b142258e3","epochNumber":"0x361f","blockHash":"0x4d12913ac843622159b26b830de53194e090de93d2e82ec19e703c5b142258e3","transactionPosition":"0x0","transactionHash":"0x3d63a2a74c0274f3af7fc2ae9215b5d07ae98c4eebdf12a8632b54df028c9fa7","callWithResult":{"call":{"from":"net1037:accam3use2128d6nfx3fn9j10v389we29av05w9zp9","to":"net1037:ace08jhgg2h2pnwj7vmnzzuhkej557dge6820mye39","value":"0x0","gas":"0x8486","input":"0x6bdebcc9","callType":"call"},"callResult":{"outcome":"success","gasLeft":"0x708b","returnData":"0x"}},"childs":[{"type":"internal_transfer_action","valid":false,"epochHash":"0x4d12913ac843622159b26b830de53194e090de93d2e82ec19e703c5b142258e3","epochNumber":"0x361f","blockHash":"0x4d12913ac843622159b26b830de53194e090de93d2e82ec19e703c5b142258e3","transactionPosition":"0x0","transactionHash":"0x3d63a2a74c0274f3af7fc2ae9215b5d07ae98c4eebdf12a8632b54df028c9fa7","internalTransferAction":{"from":"net1037:ace08jhgg2h2pnwj7vmnzzuhkej557dge6820mye39","fromPocket":"balance","to":"net1037:accam3use2128d6nfx3fn9j10v389we29av05w9zp9","toPocket":"storage_collateral","value":"0x0"},"childs":null}]}]}`
 	tree := LocalizedTraceNode{}
-	err := json.Unmarshal([]byte(treeInJson), &tree)
+	err := utils.JsonUnmarshal([]byte(treeInJson), &tree)
 	if err != nil {
 		t.Fatal(err)
 	}
 	flattened := tree.Flatten()
-	marshaled, err := json.Marshal(flattened)
+	marshaled, err := utils.JsonMarshal(flattened)
 	if err != nil {
 		t.Fatal(err)
 	}

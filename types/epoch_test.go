@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
@@ -36,7 +35,7 @@ func TestUnmarshalEpoch(t *testing.T) {
 	}
 
 	for _, epochStr := range epochStrs {
-		err := json.Unmarshal([]byte(`"`+epochStr+`"`), &Epoch{})
+		err := utils.JsonUnmarshal([]byte(`"`+epochStr+`"`), &Epoch{})
 		if err != nil {
 			t.Fatalf("failed unmarshal %v, %v", epochStr, err)
 		}
@@ -55,7 +54,7 @@ func TestUnmarshalEpochOrBlockHash(t *testing.T) {
 	// e := NewEpochOrBlockHashWithEpoch(*EpochLatestConfirmed)
 	// e := NewEpochOrBlockHashWithBlockHash("0xdbccf46a86aa259e7693536d433558bf8bbf4c88a5ab176be28e4374d7a7a5bc", false)
 	// e := EpochOrBlockHash{epochNumber: NewBigInt(1)}
-	// j, _ := json.Marshal(e)
+	// j, _ := utils.JsonMarshal(e)
 	// fmt.Println(string(j))
 
 	inputs := []string{
@@ -68,10 +67,10 @@ func TestUnmarshalEpochOrBlockHash(t *testing.T) {
 
 	for _, input := range inputs {
 		var e EpochOrBlockHash
-		err := json.Unmarshal([]byte(input), &e)
+		err := utils.JsonUnmarshal([]byte(input), &e)
 		assert.NoError(t, err, input)
 
-		jActual, _ := json.Marshal(e)
+		jActual, _ := utils.JsonMarshal(e)
 		expect, actual := utils.FormatJson(input), utils.FormatJson(string(jActual))
 		assert.Equal(t, expect, actual, input)
 	}
