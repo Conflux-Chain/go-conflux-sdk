@@ -17,7 +17,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -26,6 +25,7 @@ import (
 
 	"github.com/Conflux-Chain/go-conflux-sdk/bind"
 	"github.com/Conflux-Chain/go-conflux-sdk/internal/flags"
+	sdkUtils "github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"github.com/ethereum/go-ethereum/cmd/utils"
 	"github.com/ethereum/go-ethereum/common/compiler"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -186,7 +186,7 @@ func abigen(c *cli.Context) error {
 				fmt.Fprintf(os.Stderr, "excluding: %v\n", name)
 				continue
 			}
-			abi, err := json.Marshal(contract.Info.AbiDefinition) // Flatten the compiler parse
+			abi, err := sdkUtils.JsonMarshal(contract.Info.AbiDefinition) // Flatten the compiler parse
 			if err != nil {
 				utils.Fatalf("Failed to parse ABIs from compiler output: %v", err)
 			}

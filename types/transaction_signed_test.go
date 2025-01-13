@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"testing"
@@ -36,7 +35,7 @@ func TestEncodeSignedTransaction(t *testing.T) {
 
 	for _, item := range table {
 		tx := SignedTransaction{}
-		err := utils.JSONUnmarshal([]byte(item.raw), &tx)
+		err := utils.JsonUnmarshal([]byte(item.raw), &tx)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -81,7 +80,7 @@ func TestDecodeSignedTransaction(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		b, err = json.Marshal(tx)
+		b, err = utils.JsonMarshal(tx)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -155,7 +154,7 @@ func TestHashUnsignedTransaction(t *testing.T) {
 
 	for _, item := range table {
 		tx := UnsignedTransaction{}
-		err := utils.JSONUnmarshal([]byte(item.tx), &tx)
+		err := utils.JsonUnmarshal([]byte(item.tx), &tx)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -207,7 +206,7 @@ func TestDecodeUnsignedTransaction(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		b, err = json.Marshal(tx)
+		b, err = utils.JsonMarshal(tx)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -256,7 +255,7 @@ func TestTemp(t *testing.T) {
 		S: NewBytes([]byte{1}),
 		V: byte(0),
 	}
-	j, _ := json.Marshal(tx)
+	j, _ := utils.JsonMarshal(tx)
 	fmt.Println(string(j))
 
 	tx = SignedTransaction{
@@ -280,7 +279,7 @@ func TestTemp(t *testing.T) {
 		S: NewBytes([]byte{1}),
 		V: byte(0),
 	}
-	j, _ = json.Marshal(tx)
+	j, _ = utils.JsonMarshal(tx)
 	fmt.Println(string(j))
 }
 
@@ -314,7 +313,7 @@ func TestTemp2(t *testing.T) {
 		S: NewBytes([]byte{1}),
 		V: byte(0),
 	}
-	j, _ := json.Marshal(tx.UnsignedTransaction)
+	j, _ := utils.JsonMarshal(tx.UnsignedTransaction)
 	fmt.Println(string(j))
 
 	tx = SignedTransaction{
@@ -338,6 +337,6 @@ func TestTemp2(t *testing.T) {
 		S: NewBytes([]byte{1}),
 		V: byte(0),
 	}
-	j, _ = json.Marshal(tx.UnsignedTransaction)
+	j, _ = utils.JsonMarshal(tx.UnsignedTransaction)
 	fmt.Println(string(j))
 }

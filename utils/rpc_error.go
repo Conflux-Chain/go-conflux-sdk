@@ -2,7 +2,6 @@ package utils
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils/abiutil"
@@ -31,13 +30,13 @@ func ToRpcError(origin error) (*RpcError, error) {
 		return nil, errors.New("not a rpc error")
 	}
 
-	j, err := json.Marshal(errors.Cause(origin))
+	j, err := JsonMarshal(errors.Cause(origin))
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
 	rpcErr := &RpcError{}
-	if err = JSONUnmarshal(j, rpcErr); err != nil {
+	if err = JsonUnmarshal(j, rpcErr); err != nil {
 		return nil, errors.WithStack(err)
 	}
 

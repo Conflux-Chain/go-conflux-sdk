@@ -15,13 +15,13 @@ func (b Bytes) MarshalText() ([]byte, error) {
 
 func (b *Bytes) UnmarshalJSON(data []byte) error {
 	var hex hexutil.Bytes
-	if err := utils.JSONUnmarshal(data, &hex); err == nil {
+	if err := utils.JsonUnmarshal(data, &hex); err == nil {
 		*b = Bytes([]byte(hex))
 		return nil
 	}
 
 	nums := make([]uint, 0)
-	if err := utils.JSONUnmarshal(data, &nums); err != nil {
+	if err := utils.JsonUnmarshal(data, &nums); err != nil {
 		return err
 	}
 

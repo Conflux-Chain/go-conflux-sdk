@@ -409,7 +409,7 @@ func (a *Address) UnmarshalJSON(data []byte) error {
 	}
 
 	var str string
-	err := utils.JSONUnmarshal(data, &str)
+	err := utils.JsonUnmarshal(data, &str)
 	if err != nil {
 		return errors.Wrapf(err, "failed to unmarshal %x to string", data)
 	}

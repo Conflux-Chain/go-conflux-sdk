@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/json"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"testing"
 
@@ -38,7 +37,7 @@ func TestUnmarshalJsonHash(t *testing.T) {
 		bytes := []byte(v.input)
 
 		// fmt.Printf("bytes: %v\n", string(bytes))
-		err := utils.JSONUnmarshal(bytes, &actual)
+		err := utils.JsonUnmarshal(bytes, &actual)
 		// fmt.Printf("err %v\n", err)
 
 		if v.expectError && err == nil {
@@ -60,7 +59,7 @@ func TestUnmarshalJsonHash(t *testing.T) {
 func TestHexOrDecimalUint64(t *testing.T) {
 	t.Run("Json Marshal", func(t *testing.T) {
 		u := HexOrDecimalUint64(10)
-		b, err := json.Marshal(u)
+		b, err := utils.JsonMarshal(u)
 		assert.NoError(t, err)
 		assert.Equal(t, string(b), "\"0xa\"")
 	})
@@ -73,7 +72,7 @@ func TestHexOrDecimalUint64(t *testing.T) {
 
 		for _, b := range table {
 			var u HexOrDecimalUint64
-			err := utils.JSONUnmarshal([]byte(b), &u)
+			err := utils.JsonUnmarshal([]byte(b), &u)
 			assert.NoError(t, err)
 
 			assert.Equal(t, HexOrDecimalUint64(10), u)

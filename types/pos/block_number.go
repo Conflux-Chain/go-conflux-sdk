@@ -43,7 +43,7 @@ func (e BlockNumber) MarshalText() ([]byte, error) {
 func (e *BlockNumber) UnmarshalJSON(data []byte) error {
 	var input string
 
-	if err := utils.JSONUnmarshal(data, &input); err != nil {
+	if err := utils.JsonUnmarshal(data, &input); err != nil {
 		return err
 	}
 

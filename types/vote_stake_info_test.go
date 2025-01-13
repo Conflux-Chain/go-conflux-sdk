@@ -16,7 +16,7 @@ func TestUnmarshal(t *testing.T) {
 
 	for _, c := range cases {
 		v := VoteStakeInfo{}
-		e := utils.JSONUnmarshal([]byte(c), &v)
+		e := utils.JsonUnmarshal([]byte(c), &v)
 		if e != nil {
 			t.Fatal(e)
 		}

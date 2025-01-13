@@ -2,7 +2,6 @@ package cmptutil
 
 import (
 	"bytes"
-	"encoding/json"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"testing"
 
@@ -25,7 +24,7 @@ func TestMarshalBytes(t *testing.T) {
 	}
 
 	for _, v := range source {
-		j, e := json.Marshal(v.in)
+		j, e := utils.JsonMarshal(v.in)
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -59,7 +58,7 @@ func TestUnmarshalBytes(t *testing.T) {
 
 	for _, v := range source {
 		var b Bytes
-		e := utils.JSONUnmarshal([]byte(v.in), &b)
+		e := utils.JsonUnmarshal([]byte(v.in), &b)
 		if e != nil {
 			t.Fatal(e)
 		}

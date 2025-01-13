@@ -1,7 +1,6 @@
 package cfxaddress
 
 import (
-	"encoding/json"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"reflect"
 	"testing"
@@ -47,11 +46,11 @@ func TestRLPMarshalAddress(t *testing.T) {
 	err = rlp.DecodeBytes(dBytes, &from2)
 	fatalIfErr(t, err)
 	// Json marshal from
-	jBytes1, err := json.Marshal(from)
+	jBytes1, err := utils.JsonMarshal(from)
 	fatalIfErr(t, err)
 	txJsonStr := string(jBytes1)
 	// Json marshal from2
-	jBytes2, err := json.Marshal(from2)
+	jBytes2, err := utils.JsonMarshal(from2)
 	fatalIfErr(t, err)
 	txJsonStr2 := string(jBytes2)
 
@@ -82,7 +81,7 @@ func TestMarshalJSON(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		j, e := json.Marshal(v.input)
+		j, e := utils.JsonMarshal(v.input)
 
 		if v.err != nil && v.err != e {
 			t.Fatalf("expect error %v, actual %v", v.err, e)
@@ -116,7 +115,7 @@ func TestUnmarshalJSON(t *testing.T) {
 
 	for _, v := range marshaledToPtr {
 		var actual *Address = &Address{}
-		err := utils.JSONUnmarshal([]byte(v.input), &actual)
+		err := utils.JsonUnmarshal([]byte(v.input), &actual)
 		fatalIfErr(t, err)
 		if !reflect.DeepEqual(actual, v.expect) {
 			t.Fatalf("expect %#v, actual %#v", v.expect, actual)
@@ -138,7 +137,7 @@ func TestUnmarshalJSON(t *testing.T) {
 	}
 	for _, v := range marshaledToValue {
 		var actual Address
-		err := utils.JSONUnmarshal([]byte(v.input), &actual)
+		err := utils.JsonUnmarshal([]byte(v.input), &actual)
 		fatalIfErr(t, err)
 		if !reflect.DeepEqual(actual, v.expect) {
 			t.Fatalf("expect %+v, actual %+v", v.expect, actual)
@@ -151,7 +150,7 @@ func TestUnmarshalJSON(t *testing.T) {
 
 	for _, v := range wrongs {
 		var actual *Address
-		err := utils.JSONUnmarshal([]byte(v), &actual)
+		err := utils.JsonUnmarshal([]byte(v), &actual)
 		if err == nil {
 			t.Errorf("expect unmarshal %v error, bug get %v", v, actual)
 		}

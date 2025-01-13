@@ -5,7 +5,6 @@
 package types
 
 import (
-	"encoding/json"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"io"
 	"math/big"
@@ -139,7 +138,7 @@ func (l *LogFilter) UnmarshalJSON(data []byte) error {
 	}
 
 	t := tmpLogFilter{}
-	if err := utils.JSONUnmarshal(data, &t); err != nil {
+	if err := utils.JsonUnmarshal(data, &t); err != nil {
 		return err
 	}
 
@@ -257,9 +256,9 @@ func (s SubscriptionLog) IsRevertLog() bool {
 
 func (s SubscriptionLog) MarshalJSON() ([]byte, error) {
 	if s.IsRevertLog() {
-		return json.Marshal(s.ChainReorg)
+		return utils.JsonMarshal(s.ChainReorg)
 	}
-	return json.Marshal(s.Log)
+	return utils.JsonMarshal(s.Log)
 }
 
 func (s SubscriptionLog) toRlpEncodable() rlpEncodableSubscriptionLog {

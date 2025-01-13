@@ -34,7 +34,7 @@ func TestBlockNumberUnmarshalJSON(t *testing.T) {
 
 	for _, v := range table {
 		var actual BlockNumber
-		err := utils.JSONUnmarshal([]byte(v.input), &actual)
+		err := utils.JsonUnmarshal([]byte(v.input), &actual)
 
 		// fmt.Printf("actual %+v, err %v", actual, err)
 

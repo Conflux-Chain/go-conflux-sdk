@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/json"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 )
 
@@ -14,9 +13,9 @@ type CfxFilterChanges struct {
 func (u CfxFilterChanges) MarshalJSON() ([]byte, error) {
 	switch u.Type {
 	case "log":
-		return json.Marshal(u.Logs)
+		return utils.JsonMarshal(u.Logs)
 	case "hash":
-		return json.Marshal(u.Hashes)
+		return utils.JsonMarshal(u.Hashes)
 	}
 	return []byte(`[]`), nil
 }
@@ -28,14 +27,14 @@ func (u *CfxFilterChanges) UnmarshalJSON(data []byte) error {
 	}
 
 	logs := []*SubscriptionLog{}
-	err := utils.JSONUnmarshal(data, &logs)
+	err := utils.JsonUnmarshal(data, &logs)
 	if err == nil {
 		u.Logs = logs
 		u.Type = "log"
 		return nil
 	}
 	hashes := []Hash{}
-	err = utils.JSONUnmarshal(data, &hashes)
+	err = utils.JsonUnmarshal(data, &hashes)
 	if err == nil {
 		u.Hashes = hashes
 		u.Type = "hash"

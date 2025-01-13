@@ -5,7 +5,6 @@
 package types
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/Conflux-Chain/go-conflux-sdk/utils"
@@ -107,7 +106,7 @@ func (e Epoch) MarshalText() ([]byte, error) {
 // UnmarshalJSON implements the utils.JSONUnmarshaler interface.
 func (e *Epoch) UnmarshalJSON(data []byte) error {
 	var input string
-	if err := utils.JSONUnmarshal(data, &input); err != nil {
+	if err := utils.JsonUnmarshal(data, &input); err != nil {
 		return err
 	}
 
@@ -186,11 +185,11 @@ func (e EpochOrBlockHash) MarshalText() ([]byte, error) {
 
 func (e EpochOrBlockHash) MarshalJSON() ([]byte, error) {
 	if e.epoch != nil {
-		return json.Marshal(e.epoch)
+		return utils.JsonMarshal(e.epoch)
 	}
 
 	if e.epochNumber != nil {
-		return json.Marshal(struct {
+		return utils.JsonMarshal(struct {
 			EpochNumber *hexutil.Big `json:"epochNumber"`
 		}{
 			EpochNumber: e.epochNumber,
@@ -198,7 +197,7 @@ func (e EpochOrBlockHash) MarshalJSON() ([]byte, error) {
 	}
 
 	if e.blockHash != nil {
-		return json.Marshal(struct {
+		return utils.JsonMarshal(struct {
 			BlockHash    common.Hash `json:"blockHash"`
 			RequirePivot bool        `json:"requirePivot"`
 		}{
@@ -213,7 +212,7 @@ func (e EpochOrBlockHash) MarshalJSON() ([]byte, error) {
 func (e *EpochOrBlockHash) UnmarshalJSON(data []byte) error {
 
 	var epoch Epoch
-	err := utils.JSONUnmarshal(data, &epoch)
+	err := utils.JsonUnmarshal(data, &epoch)
 	if err == nil {
 		e.epoch = &epoch
 		return nil
@@ -226,7 +225,7 @@ func (e *EpochOrBlockHash) UnmarshalJSON(data []byte) error {
 	}
 
 	var val tmpEpoch
-	err = utils.JSONUnmarshal(data, &val)
+	err = utils.JsonUnmarshal(data, &val)
 	if err != nil {
 		return err
 	}

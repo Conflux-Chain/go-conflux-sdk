@@ -5,7 +5,7 @@
 package types
 
 import (
-	"encoding/json"
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"reflect"
 	"testing"
 
@@ -102,8 +102,8 @@ func TestDecodeRlpToUnsignTransction(t *testing.T) {
 	actual := new(UnsignedTransaction)
 	actual.Decode(rlp, 1024)
 
-	jexpect, _ := json.Marshal(expect)
-	jactual, _ := json.Marshal(actual)
+	jexpect, _ := utils.JsonMarshal(expect)
+	jactual, _ := utils.JsonMarshal(actual)
 	if !reflect.DeepEqual(jexpect, jactual) {
 		t.Errorf("\njson of expect is %+v,\njson of acutal is %+v", expect, actual)
 	}

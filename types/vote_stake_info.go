@@ -24,7 +24,7 @@ func (v *VoteStakeInfo) UnmarshalJSON(data []byte) error {
 		UnlockBlockNumber interface{}  `json:"unlockBlockNumber"`
 	}{}
 
-	err := utils.JSONUnmarshal(data, &tmp)
+	err := utils.JsonUnmarshal(data, &tmp)
 	if err != nil {
 		return err
 	}
