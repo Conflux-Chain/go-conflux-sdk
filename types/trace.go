@@ -80,11 +80,11 @@ type LocalizedTrace struct {
 	Action              interface{}    `json:"action"`
 	Valid               bool           `json:"valid"`
 	Type                TraceType      `json:"type"`
-	EpochHash           Hash           `json:"epochHash,omitempty"`
-	EpochNumber         hexutil.Big    `json:"epochNumber,omitempty"`
-	BlockHash           Hash           `json:"blockHash,omitempty"`
-	TransactionPosition hexutil.Uint64 `json:"transactionPosition,omitempty"`
-	TransactionHash     Hash           `json:"transactionHash,omitempty"`
+	EpochHash           Hash           `json:"epochHash"`
+	EpochNumber         hexutil.Big    `json:"epochNumber"`
+	BlockHash           Hash           `json:"blockHash"`
+	TransactionPosition hexutil.Uint64 `json:"transactionPosition"`
+	TransactionHash     Hash           `json:"transactionHash"`
 }
 
 // independent action structs
@@ -246,11 +246,11 @@ type LocalizedTraceTire []*LocalizedTraceNode
 type LocalizedTraceNode struct {
 	Type                TraceType      `json:"type"`
 	Valid               bool           `json:"valid"`
-	EpochHash           Hash           `json:"epochHash,omitempty"`
-	EpochNumber         hexutil.Big    `json:"epochNumber,omitempty"`
-	BlockHash           Hash           `json:"blockHash,omitempty"`
-	TransactionPosition hexutil.Uint64 `json:"transactionPosition,omitempty"`
-	TransactionHash     Hash           `json:"transactionHash,omitempty"`
+	EpochHash           Hash           `json:"epochHash"`
+	EpochNumber         hexutil.Big    `json:"epochNumber"`
+	BlockHash           Hash           `json:"blockHash"`
+	TransactionPosition hexutil.Uint64 `json:"transactionPosition"`
+	TransactionHash     Hash           `json:"transactionHash"`
 
 	CallWithResult         *TraceCallWithResult    `json:"callWithResult,omitempty"`
 	CreateWithResult       *TraceCreateWithResult  `json:"createWithResult,omitempty"`

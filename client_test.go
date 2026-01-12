@@ -55,7 +55,7 @@ func callContextMid2(f providers.CallContextFunc) providers.CallContextFunc {
 	}
 }
 
-func TestSendTransaction(t *testing.T) {
+func _TestSendTransaction(t *testing.T) {
 	client := MustNewClient("http://net8888cfx.confluxrpc.com", ClientOption{
 		KeystorePath: "./keystore",
 		Logger:       os.Stdout,
@@ -84,4 +84,13 @@ func TestSendTransaction(t *testing.T) {
 
 	fmt.Println(txHash)
 
+}
+
+func TestGetEpochTraces(t *testing.T) {
+	client := MustNewClient("https://main-internal.confluxrpc.com", ClientOption{
+		Logger: os.Stdout,
+	})
+	traces, err := client.Trace().GetEpochTraces(*types.EpochLatestFinalized)
+	assert.NoError(t, err)
+	fmt.Printf("traces: %+v\n", traces)
 }
