@@ -1099,10 +1099,6 @@ func (client *Client) GetEpochReceipts(epoch types.EpochOrBlockHash, include_eth
 	return client.Debug().GetEpochReceipts(epoch, include_eth_recepits...)
 }
 
-func (client *Client) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error) {
-	return client.Debug().GetEpochReceiptsByPivotBlockHash(hash)
-}
-
 // =======Batch=======
 
 // BatchGetTxByHashes requests transaction informations in bulk by txhashes
