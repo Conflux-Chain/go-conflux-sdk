@@ -5,10 +5,11 @@
 package types
 
 import (
-	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"io"
 	"math/big"
 	"reflect"
+
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types/cfxaddress"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -39,6 +40,7 @@ type Log struct {
 	LogIndex            *hexutil.Big  `json:"logIndex,omitempty"`
 	TransactionLogIndex *hexutil.Big  `json:"transactionLogIndex,omitempty"`
 	Space               *SpaceType    `json:"space,omitempty"`
+	BlockTimestamp      *hexutil.Big  `json:"blockTimestamp,omitempty"`
 }
 
 // rlpNilableBigInt nilable pointer to big int used for rlp encoding
