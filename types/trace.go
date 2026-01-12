@@ -77,14 +77,14 @@ type LocalizedTransactionTrace struct {
 }
 
 type LocalizedTrace struct {
-	Action              interface{}     `json:"action"`
-	Valid               bool            `json:"valid"`
-	Type                TraceType       `json:"type"`
-	EpochHash           *Hash           `json:"epochHash,omitempty"`
-	EpochNumber         *hexutil.Big    `json:"epochNumber,omitempty"`
-	BlockHash           *Hash           `json:"blockHash,omitempty"`
-	TransactionPosition *hexutil.Uint64 `json:"transactionPosition,omitempty"`
-	TransactionHash     *Hash           `json:"transactionHash,omitempty"`
+	Action              interface{}    `json:"action"`
+	Valid               bool           `json:"valid"`
+	Type                TraceType      `json:"type"`
+	EpochHash           Hash           `json:"epochHash,omitempty"`
+	EpochNumber         hexutil.Big    `json:"epochNumber,omitempty"`
+	BlockHash           Hash           `json:"blockHash,omitempty"`
+	TransactionPosition hexutil.Uint64 `json:"transactionPosition,omitempty"`
+	TransactionHash     Hash           `json:"transactionHash,omitempty"`
 }
 
 // independent action structs
