@@ -24,6 +24,7 @@ const (
 	TRACE_CREATE                    TraceType = "create"
 	TRACE_CREATE_RESULT             TraceType = "create_result"
 	TRACE_INTERNAL_TRANSFER_ACTIION TraceType = "internal_transfer_action"
+	TRACE_SELF_DESTRUCT             TraceType = "suicide"
 )
 
 const (
@@ -76,14 +77,14 @@ type LocalizedTransactionTrace struct {
 }
 
 type LocalizedTrace struct {
-	Action              interface{}     `json:"action"`
-	Valid               bool            `json:"valid"`
-	Type                TraceType       `json:"type"`
-	EpochHash           *Hash           `json:"epochHash,omitempty"`
-	EpochNumber         *hexutil.Big    `json:"epochNumber,omitempty"`
-	BlockHash           *Hash           `json:"blockHash,omitempty"`
-	TransactionPosition *hexutil.Uint64 `json:"transactionPosition,omitempty"`
-	TransactionHash     *Hash           `json:"transactionHash,omitempty"`
+	Action              interface{}    `json:"action"`
+	Valid               bool           `json:"valid"`
+	Type                TraceType      `json:"type"`
+	EpochHash           Hash           `json:"epochHash"`
+	EpochNumber         hexutil.Big    `json:"epochNumber"`
+	BlockHash           Hash           `json:"blockHash"`
+	TransactionPosition hexutil.Uint64 `json:"transactionPosition"`
+	TransactionHash     Hash           `json:"transactionHash"`
 }
 
 // independent action structs
@@ -127,6 +128,13 @@ type InternalTransferAction struct {
 	ToPocket   PocketType  `json:"toPocket"`
 	ToSpace    SpaceType   `json:"toSpace"`
 	Value      hexutil.Big `json:"value"`
+}
+
+type SelfDestruct struct {
+	Space         SpaceType   `json:"space"`         // The space of the contract.
+	Address       Address     `json:"address"`       // The destroyed/suicided address.
+	Balance       hexutil.Big `json:"balance"`       // The balance of the contract just before it was destroyed.
+	RefundAddress Address     `json:"refundAddress"` // The destroyed contract heir.
 }
 
 type TraceFilter struct {
@@ -219,6 +227,10 @@ func parseAction(actionInMap map[string]interface{}, actionType TraceType) (inte
 		action := InternalTransferAction{}
 		err = utils.JsonUnmarshal(actionJson, &action)
 		result = action
+	case TRACE_SELF_DESTRUCT:
+		action := SelfDestruct{}
+		err = utils.JsonUnmarshal(actionJson, &action)
+		result = action
 	default:
 		return nil, fmt.Errorf("unknown action type %v", actionType)
 	}
@@ -232,17 +244,18 @@ func parseAction(actionInMap map[string]interface{}, actionType TraceType) (inte
 type LocalizedTraceTire []*LocalizedTraceNode
 
 type LocalizedTraceNode struct {
-	Type                TraceType       `json:"type"`
-	Valid               bool            `json:"valid"`
-	EpochHash           *Hash           `json:"epochHash,omitempty"`
-	EpochNumber         *hexutil.Big    `json:"epochNumber,omitempty"`
-	BlockHash           *Hash           `json:"blockHash,omitempty"`
-	TransactionPosition *hexutil.Uint64 `json:"transactionPosition,omitempty"`
-	TransactionHash     *Hash           `json:"transactionHash,omitempty"`
+	Type                TraceType      `json:"type"`
+	Valid               bool           `json:"valid"`
+	EpochHash           Hash           `json:"epochHash"`
+	EpochNumber         hexutil.Big    `json:"epochNumber"`
+	BlockHash           Hash           `json:"blockHash"`
+	TransactionPosition hexutil.Uint64 `json:"transactionPosition"`
+	TransactionHash     Hash           `json:"transactionHash"`
 
 	CallWithResult         *TraceCallWithResult    `json:"callWithResult,omitempty"`
 	CreateWithResult       *TraceCreateWithResult  `json:"createWithResult,omitempty"`
 	InternalTransferAction *InternalTransferAction `json:"internalTransferAction,omitempty"`
+	SelfDestruct           *SelfDestruct           `json:"selfDestruct,omitempty"`
 
 	Childs []*LocalizedTraceNode `json:"childs"`
 	// Raw    *LocalizedTrace       `json:"raw"`
@@ -287,6 +300,15 @@ func TraceInTire(traces []LocalizedTrace) (tier LocalizedTraceTire, err error) {
 
 		lastOpeningNode := (*cacheStack)[len(*cacheStack)-1]
 		if v.Type == TRACE_INTERNAL_TRANSFER_ACTIION {
+			item, err := newLocalizedTraceNode(v, nil)
+			if err != nil {
+				return nil, errors.WithStack(err)
+			}
+			lastOpeningNode.Childs = append(lastOpeningNode.Childs, item)
+			continue
+		}
+
+		if v.Type == TRACE_SELF_DESTRUCT {
 			item, err := newLocalizedTraceNode(v, nil)
 			if err != nil {
 				return nil, errors.WithStack(err)
@@ -350,6 +372,11 @@ func newLocalizedTraceNode(trace LocalizedTrace, cacheStack *[]*LocalizedTraceNo
 	case TRACE_INTERNAL_TRANSFER_ACTIION:
 		action := trace.Action.(InternalTransferAction)
 		node := &LocalizedTraceNode{InternalTransferAction: &action}
+		node.populate(trace)
+		return node, nil
+	case TRACE_SELF_DESTRUCT:
+		action := trace.Action.(SelfDestruct)
+		node := &LocalizedTraceNode{SelfDestruct: &action}
 		node.populate(trace)
 		return node, nil
 	}

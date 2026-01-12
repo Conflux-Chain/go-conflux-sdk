@@ -1,9 +1,10 @@
 package types
 
 import (
-	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"reflect"
 	"testing"
+
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 
 	"github.com/stretchr/testify/assert"
 )

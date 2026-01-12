@@ -5,9 +5,10 @@
 package types
 
 import (
-	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"io"
 	"math/big"
+
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/types/enums"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -398,7 +399,7 @@ type TransactionReceipt struct {
 	TransactionHash    Hash            `json:"transactionHash"`
 	Index              hexutil.Uint64  `json:"index"`
 	BlockHash          Hash            `json:"blockHash"`
-	EpochNumber        *hexutil.Uint64 `json:"epochNumber"`
+	EpochNumber        hexutil.Uint64  `json:"epochNumber"`
 	From               Address         `json:"from"`
 	To                 *Address        `json:"to"`
 	GasUsed            *hexutil.Big    `json:"gasUsed"`
@@ -534,7 +535,7 @@ type legacyTxReceiptForRlp struct {
 	TransactionHash         Hash
 	Index                   hexutil.Uint64
 	BlockHash               Hash
-	EpochNumber             *hexutil.Uint64
+	EpochNumber             hexutil.Uint64
 	From                    Address
 	To                      *Address `rlp:"nil"`
 	GasUsed                 *big.Int
@@ -580,7 +581,7 @@ type txReceiptWithTypeForRlp struct {
 	TransactionHash         Hash
 	Index                   hexutil.Uint64
 	BlockHash               Hash
-	EpochNumber             *hexutil.Uint64
+	EpochNumber             hexutil.Uint64
 	From                    Address
 	To                      *Address `rlp:"nil"`
 	GasUsed                 *big.Int

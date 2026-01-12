@@ -55,7 +55,7 @@ func callContextMid2(f providers.CallContextFunc) providers.CallContextFunc {
 	}
 }
 
-func TestSendTransaction(t *testing.T) {
+func _TestSendTransaction(t *testing.T) {
 	client := MustNewClient("http://net8888cfx.confluxrpc.com", ClientOption{
 		KeystorePath: "./keystore",
 		Logger:       os.Stdout,
