@@ -244,13 +244,13 @@ func parseAction(actionInMap map[string]interface{}, actionType TraceType) (inte
 type LocalizedTraceTire []*LocalizedTraceNode
 
 type LocalizedTraceNode struct {
-	Type                TraceType       `json:"type"`
-	Valid               bool            `json:"valid"`
-	EpochHash           *Hash           `json:"epochHash,omitempty"`
-	EpochNumber         *hexutil.Big    `json:"epochNumber,omitempty"`
-	BlockHash           *Hash           `json:"blockHash,omitempty"`
-	TransactionPosition *hexutil.Uint64 `json:"transactionPosition,omitempty"`
-	TransactionHash     *Hash           `json:"transactionHash,omitempty"`
+	Type                TraceType      `json:"type"`
+	Valid               bool           `json:"valid"`
+	EpochHash           Hash           `json:"epochHash,omitempty"`
+	EpochNumber         hexutil.Big    `json:"epochNumber,omitempty"`
+	BlockHash           Hash           `json:"blockHash,omitempty"`
+	TransactionPosition hexutil.Uint64 `json:"transactionPosition,omitempty"`
+	TransactionHash     Hash           `json:"transactionHash,omitempty"`
 
 	CallWithResult         *TraceCallWithResult    `json:"callWithResult,omitempty"`
 	CreateWithResult       *TraceCreateWithResult  `json:"createWithResult,omitempty"`

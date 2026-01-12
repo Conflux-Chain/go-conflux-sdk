@@ -120,7 +120,6 @@ type ClientOperator interface {
 	GetFeeBurnt(epoch ...*types.Epoch) (info *hexutil.Big, err error)
 
 	GetEpochReceipts(epoch types.EpochOrBlockHash, include_eth_recepits ...bool) (receipts [][]types.TransactionReceipt, err error)
-	GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error)
 
 	GetParamsFromVote(epoch ...*types.Epoch) (info postypes.VoteParamsInfo, err error)
 	GetCollateralInfo(epoch ...*types.Epoch) (info types.StorageCollateralInfo, err error)

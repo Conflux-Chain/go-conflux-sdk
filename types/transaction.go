@@ -535,7 +535,7 @@ type legacyTxReceiptForRlp struct {
 	TransactionHash         Hash
 	Index                   hexutil.Uint64
 	BlockHash               Hash
-	EpochNumber             *hexutil.Uint64
+	EpochNumber             hexutil.Uint64
 	From                    Address
 	To                      *Address `rlp:"nil"`
 	GasUsed                 *big.Int
@@ -581,7 +581,7 @@ type txReceiptWithTypeForRlp struct {
 	TransactionHash         Hash
 	Index                   hexutil.Uint64
 	BlockHash               Hash
-	EpochNumber             *hexutil.Uint64
+	EpochNumber             hexutil.Uint64
 	From                    Address
 	To                      *Address `rlp:"nil"`
 	GasUsed                 *big.Int
