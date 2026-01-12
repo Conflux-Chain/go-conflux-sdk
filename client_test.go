@@ -85,12 +85,3 @@ func _TestSendTransaction(t *testing.T) {
 	fmt.Println(txHash)
 
 }
-
-func TestGetEpochTraces(t *testing.T) {
-	client := MustNewClient("https://main-internal.confluxrpc.com", ClientOption{
-		Logger: os.Stdout,
-	})
-	traces, err := client.Trace().GetEpochTraces(*types.EpochLatestFinalized)
-	assert.NoError(t, err)
-	fmt.Printf("traces: %+v\n", traces)
-}
