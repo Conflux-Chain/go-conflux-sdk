@@ -69,6 +69,33 @@ func TestRLPMarshalTransaction(t *testing.T) {
 	})
 }
 
+func TestTransaction1559RlpUsesPriorityFee(t *testing.T) {
+	tx := Transaction{
+		TransactionType:      NewUint64(uint64(TRANSACTION_TYPE_1559)),
+		Nonce:                NewBigInt(16),
+		Value:                NewBigInt(128),
+		Gas:                  NewBigInt(64),
+		GasPrice:             NewBigInt(0),
+		StorageLimit:         NewBigInt(256),
+		EpochHeight:          NewBigInt(512),
+		ChainID:              NewBigInt(1024),
+		Status:               NewUint64(0),
+		MaxPriorityFeePerGas: NewBigInt(1),
+		MaxFeePerGas:         NewBigInt(100),
+		V:                    NewBigInt(0),
+		R:                    NewBigInt(0),
+		S:                    NewBigInt(0),
+	}
+
+	rlpStruct, err := tx.toStructForRlp()
+	assert.NoError(t, err)
+
+	tx1559, ok := rlpStruct.(dynamicFeeTransactionForRlp)
+	assert.True(t, ok, "expected dynamicFeeTransactionForRlp, got %T", rlpStruct)
+	assert.Equal(t, uint64(1), tx1559.MaxPriorityFeePerGas.Uint64())
+	assert.Equal(t, uint64(100), tx1559.MaxFeePerGas.Uint64())
+}
+
 func TestRLPMarshalTransactionReceipt(t *testing.T) {
 
 	table := []struct {

@@ -78,6 +78,39 @@ func TestEncodeWithSignature(t *testing.T) {
 	}
 }
 
+func TestUnsigned1559TransactionRlpUsesPriorityFee(t *testing.T) {
+	utx := UnsignedTransaction{
+		UnsignedTransactionBase: UnsignedTransactionBase{
+			Nonce:                NewBigInt(16),
+			Gas:                  NewBigInt(64),
+			Value:                NewBigInt(128),
+			StorageLimit:         NewUint64(256),
+			EpochHeight:          NewUint64(512),
+			ChainID:              NewUint(1024),
+			MaxPriorityFeePerGas: NewBigInt(1),
+			MaxFeePerGas:         NewBigInt(100),
+			Type:                 TRANSACTION_TYPE_1559.Ptr(),
+		},
+	}
+
+	rlpStruct, err := utx.toStructForRlp()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tx1559, ok := rlpStruct.(unsigned1559TransactionForRlp)
+	if !ok {
+		t.Fatalf("expected unsigned1559TransactionForRlp, got %T", rlpStruct)
+	}
+
+	if tx1559.MaxPriorityFeePerGas.Uint64() != 1 {
+		t.Fatalf("expected maxPriorityFeePerGas 1, got %v", tx1559.MaxPriorityFeePerGas)
+	}
+	if tx1559.MaxFeePerGas.Uint64() != 100 {
+		t.Fatalf("expected maxFeePerGas 100, got %v", tx1559.MaxFeePerGas)
+	}
+}
+
 func TestDecodeRlpToUnsignTransction(t *testing.T) {
 
 	rlp := []byte{231, 16, 32, 64, 148, 28, 173, 11, 25, 187, 41, 212, 103, 69, 49, 214, 241, 21, 35, 126, 22, 175, 206, 55, 125, 129, 128, 130, 1, 0, 130, 2, 0, 130, 4, 0, 131, 1, 2, 3}

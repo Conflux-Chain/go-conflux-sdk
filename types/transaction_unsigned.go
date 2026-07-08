@@ -274,7 +274,7 @@ func (tx *UnsignedTransaction) toStructForRlp() (interface{}, error) {
 	case TRANSACTION_TYPE_1559:
 		return unsigned1559TransactionForRlp{
 			Nonce:                tx.Nonce.ToInt(),
-			MaxPriorityFeePerGas: tx.MaxFeePerGas.ToInt(),
+			MaxPriorityFeePerGas: tx.MaxPriorityFeePerGas.ToInt(),
 			MaxFeePerGas:         tx.MaxFeePerGas.ToInt(),
 			Gas:                  tx.Gas.ToInt(),
 			To:                   to,

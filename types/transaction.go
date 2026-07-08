@@ -296,7 +296,7 @@ func (tx *Transaction) toStructForRlp() (interface{}, error) {
 			ChainID:              tx.ChainID.ToInt(),
 			Status:               tx.Status,
 			AccessList:           tx.AccessList,
-			MaxPriorityFeePerGas: tx.MaxFeePerGas.ToInt(),
+			MaxPriorityFeePerGas: tx.MaxPriorityFeePerGas.ToInt(),
 			MaxFeePerGas:         tx.MaxFeePerGas.ToInt(),
 			V:                    tx.V.ToInt(),
 			R:                    tx.R.ToInt(),
