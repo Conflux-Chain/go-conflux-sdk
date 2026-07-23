@@ -7,8 +7,9 @@ package types
 import (
 	"errors"
 	"fmt"
-	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 	"math/big"
+
+	"github.com/Conflux-Chain/go-conflux-sdk/utils"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -218,13 +219,13 @@ func (e *EpochOrBlockHash) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	type tmpEpoch struct {
+	type epochOrBlockHashForJSON struct {
 		EpochNumber  *hexutil.Big `json:"epochNumber"`
 		BlockHash    *common.Hash `json:"blockHash"`
 		RequirePivot bool         `json:"requirePivot"`
 	}
 
-	var val tmpEpoch
+	var val epochOrBlockHashForJSON
 	err = utils.JsonUnmarshal(data, &val)
 	if err != nil {
 		return err

@@ -1,8 +1,6 @@
 package sdk
 
 import (
-	"fmt"
-
 	"github.com/Conflux-Chain/go-conflux-sdk/types"
 	sdkErrors "github.com/Conflux-Chain/go-conflux-sdk/types/errors"
 )
@@ -35,7 +33,7 @@ func (c *RpcDebugClient) GetEpochReceipts(epoch types.EpochOrBlockHash, include_
 
 // GetEpochReceiptsByPivotBlockHash returns epoch receipts by pivot block hash
 func (c *RpcDebugClient) GetEpochReceiptsByPivotBlockHash(hash types.Hash) (receipts [][]types.TransactionReceipt, err error) {
-	err = c.core.CallRPC(&receipts, "cfx_getEpochReceipts", fmt.Sprintf("hash:%v", hash))
+	err = c.core.CallRPC(&receipts, "cfx_getEpochReceipts", types.NewEpochOrBlockHashWithBlockHash(hash, true))
 	if ok, code := sdkErrors.DetectErrorCode(err); ok {
 		err = sdkErrors.BusinessError{Code: code, Inner: err}
 	}
