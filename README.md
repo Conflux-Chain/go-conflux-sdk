@@ -33,6 +33,26 @@ client, err := sdk.NewClient("https://test.confluxrpc.com", sdk.ClientOption{
 ```golang
 epoch, err := client.GetEpochNumber()
 ```
+### Handle Invalid params Errors
+Conflux Core v3.0.3 usually puts the details of an `Invalid params` error in the RPC error `message`. For framework-level parameter errors, Core v3.1.0 and later use the fixed message `Invalid params` and put the details in `data`. `utils.RpcError.InvalidParamsDetail` handles both formats.
+
+Convert the error returned by an SDK call with `utils.ToRpcError` before reading the details, because not every error is an RPC error:
+```golang
+_, err := client.GetEpochNumber()
+if err != nil {
+    rpcErr, conversionErr := utils.ToRpcError(err)
+    if conversionErr != nil {
+        // Handle a non-RPC error.
+        return conversionErr
+    }
+
+    detail, ok := rpcErr.InvalidParamsDetail()
+    if ok {
+        // ok means the RPC error code is -32602; detail may still be empty.
+        fmt.Printf("Invalid params: %s\n", detail)
+    }
+}
+```
 ### Send Transaction
 ```golang
 chainID, err := client.GetNetworkID()
