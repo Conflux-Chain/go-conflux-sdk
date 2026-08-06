@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"github.com/Conflux-Chain/go-conflux-sdk/utils/abiutil"
 	"github.com/pkg/errors"
@@ -14,6 +15,41 @@ type RpcError struct {
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data,omitempty"`
+}
+
+// InvalidParamsDetail returns the detail of an Invalid params RPC error.
+// ok is true only when the error code is -32602, even if detail is empty.
+// It prefers the detail in Data used by newer Core versions and falls back to
+// Message for compatibility with older Core versions.
+func (e *RpcError) InvalidParamsDetail() (detail string, ok bool) {
+	if e == nil || e.Code != -32602 {
+		return "", false
+	}
+
+	if data, isString := e.Data.(string); isString && data != "" {
+		detail = data
+		if len(data) >= 2 && data[0] == '"' && data[len(data)-1] == '"' {
+			var decoded string
+			if err := JsonUnmarshal([]byte(data), &decoded); err == nil {
+				detail = decoded
+			}
+		}
+		if detail != "" {
+			return detail, true
+		}
+	}
+
+	for _, prefix := range []string{"Invalid params:", "Invalid parameters:"} {
+		if len(e.Message) >= len(prefix) && strings.EqualFold(e.Message[:len(prefix)], prefix) {
+			return e.Message[len(prefix):], true
+		}
+	}
+
+	if strings.EqualFold(e.Message, "Invalid params") || strings.EqualFold(e.Message, "Invalid parameters") {
+		return "", true
+	}
+
+	return e.Message, true
 }
 
 func (e *RpcError) Error() string {
