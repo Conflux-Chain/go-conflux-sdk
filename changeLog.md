@@ -64,11 +64,11 @@ v1.2.0
 ------------
 -   add context in CallRpcHandlerFunc/BatchCallRpcHandlerFunc for hook context when Call/Batchcall
 -   AccountManagerOperator support ImportKey and Export interface
-> Note: It's not compatiable with previous version
+> Note: It's not compatible with previous version
 
 V1.1.5
 ------------
--   support setting max connection number for client with http(s) protocal
+-   support setting max connection number for client with http(s) protocol
 
 V1.1.4
 ------------
@@ -93,7 +93,7 @@ v1.0.27
 v1.0.24
 ------------
 -   Support convert trace to tire
--   Forbid send transaction with to address in unkonwn type
+-   Forbid send transaction with to address in unknown type
 -   Fix rlp decode transaction
 -   Support rpc GetPosRewardByEpoch and GetPoSEconomics
 -   Return unknown type for address start without '0x0,0x8,0x1'
