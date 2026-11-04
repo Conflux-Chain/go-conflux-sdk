@@ -46,8 +46,8 @@ func (b *TransactionPayload) UnmarshalJSON(data []byte) error {
 }
 
 type ElectionPayload struct {
-	PublicKey    string         `json:"publicKey"`
-	VrfPublicKey string         `json:"vrfPublicKey"`
+	PublicKey    string         `json:"electionPublicKey"`
+	VrfPublicKey string         `json:"electionVrfPublicKey"`
 	TargetTerm   hexutil.Uint64 `json:"targetTerm"`
 	VrfProof     string         `json:"vrfProof"`
 }
@@ -58,8 +58,8 @@ type RetirePayload struct {
 }
 
 type RegisterPayload struct {
-	PublicKey    string `json:"publicKey"`
-	VrfPublicKey string `json:"vrfPublicKey"`
+	PublicKey    string `json:"registerPublicKey"`
+	VrfPublicKey string `json:"registerVrfPublicKey"`
 }
 
 type UpdateVotingPowerPayload struct {
