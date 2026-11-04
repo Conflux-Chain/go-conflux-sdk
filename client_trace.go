@@ -6,9 +6,9 @@ type RpcTraceClient struct {
 	core *Client
 }
 
-// NewRpcPosClient creates a new RpcPosClient instance.
-func NewRpcTraceClient(core *Client) RpcPosClient {
-	return RpcPosClient{core}
+// NewRpcTraceClient creates a new RpcTraceClient instance.
+func NewRpcTraceClient(core *Client) RpcTraceClient {
+	return RpcTraceClient{core}
 }
 
 // GetBlockTrace returns all traces produced at given block.
