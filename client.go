@@ -124,9 +124,15 @@ func NewClientWithRPCRequester(provider RpcRequester) (*Client, error) {
 
 // NewClientWithProvider creates an instance of Client with specified provider, and will wrap it to create a MiddlewarableProvider for be able to hooking CallContext/BatchCallContext/Subscribe
 func NewClientWithProvider(provider interfaces.Provider) (*Client, error) {
-	return &Client{
+	client := &Client{
 		MiddlewarableProvider: providers.NewMiddlewarableProvider(provider),
-	}, nil
+	}
+	client.rpcPosClient = NewRpcPosClient(client)
+	client.rpcTxpoolClient = NewRpcTxpoolClient(client)
+	client.rpcDebugClient = NewRpcDebugClient(client)
+	client.rpcFilterClient = NewRpcFilterClient(client)
+	client.RpcTraceClient = NewRpcTraceClient(client)
+	return client, nil
 }
 
 // NewClientWithRetry creates a retryable new instance of Client with specified conflux node url and retry options.
@@ -175,6 +181,12 @@ func newClientWithOption(nodeURL string, clientOption ClientOption) (*Client, er
 func (client *Client) WithContext(ctx context.Context) *Client {
 	_client := *client
 	_client.context = ctx
+	// Bind namespace clients to the copy so RPC calls use its context.
+	_client.rpcPosClient = NewRpcPosClient(&_client)
+	_client.rpcTxpoolClient = NewRpcTxpoolClient(&_client)
+	_client.rpcDebugClient = NewRpcDebugClient(&_client)
+	_client.rpcFilterClient = NewRpcFilterClient(&_client)
+	_client.RpcTraceClient = NewRpcTraceClient(&_client)
 	return &_client
 }
 

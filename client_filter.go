@@ -9,8 +9,9 @@ type RpcFilterClient struct {
 	core *Client
 }
 
-func NewRpcFilterClient(core *Client) RpcPosClient {
-	return RpcPosClient{core}
+// NewRpcFilterClient creates a new RpcFilterClient instance.
+func NewRpcFilterClient(core *Client) RpcFilterClient {
+	return RpcFilterClient{core}
 }
 
 func (c *RpcFilterClient) NewFilter(logFilter types.LogFilter) (filterId *rpc.ID, err error) {
