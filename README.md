@@ -23,7 +23,7 @@ govendor fetch github.com/Conflux-Chain/go-conflux-sdk
 ## Use go-conflux-sdk
 
 ### Create Client
-usd `sdk.NewClient` to creat a client for interact with conflux-rust node, the `sdk.ClientOption` is for setting `Account Manager` keystore folder path and retry options.
+usd `sdk.NewClient` to create a client for interacting with conflux-rust node, the `sdk.ClientOption` is for setting `Account Manager` keystore folder path and retry options.
 ```golang
 client, err := sdk.NewClient("https://test.confluxrpc.com", sdk.ClientOption{
     KeystorePath: "../context/keystore",
